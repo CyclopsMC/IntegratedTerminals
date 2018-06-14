@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<recipes>
+
+	<recipe type="shaped">
+		<input>
+			<grid>
+				<gridrow>
+					<item>integrateddynamics:energy_battery</item>
+					<item type="oredict">chest</item>
+					<item>minecraft:bucket</item>
+				</gridrow>
+				<gridrow>
+					<item meta="0">integrateddynamics:variable_transformer</item>
+					<item>integrateddynamics:part_display_panel_item</item>
+					<item meta="0">integrateddynamics:variable_transformer</item>
+				</gridrow>
+			</grid>
+		</input>
+		<output>
+			<item>integratedterminals:part_terminal_storage</item>
+		</output>
+	</recipe>
+
+</recipes>

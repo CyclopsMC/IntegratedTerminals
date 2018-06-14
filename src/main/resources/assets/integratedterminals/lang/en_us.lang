@@ -1,0 +1,31 @@
+# General
+itemGroup.integratedterminals=Integrated Terminals
+general.integratedterminals.description=Terminals for managing and overviewing Integrated Dynamics networks.
+
+# Gui
+gui.integratedterminals.terminal_storage.storage_name=%s Storage
+
+# Part types
+parttype.parttypes.integratedterminals.terminal_storage.name=Storage Terminal
+parttype.parttypes.integratedterminals.terminal_storage.info=Visually interact with the elements stored the attached network.
+
+# Configuration
+config.integratedterminals=%s configuration
+
+## Config categories
+config.integratedterminals.general=General settings
+config.integratedterminals.general.tooltip=General settings
+config.integratedterminals.core=Core settings
+config.integratedterminals.core.tooltip=Core settings
+config.integratedterminals.modcompat=Mod compatibility settings
+config.integratedterminals.modcompat.tooltip=Mod compatibility settings
+config.integratedterminals.capability=Capability settings
+config.integratedterminals.capability.tooltip=Capability settings
+
+## Core settings
+config.integratedterminals.general.analytics=Send anonymous analytics
+config.integratedterminals.general.crashOnInvalidRecipe=Crash on invalid Recipe
+config.integratedterminals.general.crashOnModCompatCrash=Crash on Compatibility issue
+config.integratedterminals.general.debug=Develop mode
+config.integratedterminals.general.version=Version
+config.integratedterminals.general.versionChecker=Version check
