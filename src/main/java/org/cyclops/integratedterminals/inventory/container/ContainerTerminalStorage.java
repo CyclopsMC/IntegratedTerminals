@@ -1,34 +1,50 @@
 package org.cyclops.integratedterminals.inventory.container;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.world.World;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.IGuiContainerProvider;
 import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
-import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentHandler;
+import org.cyclops.integrateddynamics.api.network.INetwork;
+import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
+import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
-import org.cyclops.integrateddynamics.core.ingredient.IngredientComponentHandlers;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 /**
  * @author rubensworks
  */
 public class ContainerTerminalStorage extends ExtendedInventoryContainer {
 
+    private final World world;
     private final PartTarget target;
     private final IPartContainer partContainer;
     private final IPartType partType;
-    private final List<ITab> tabs;
+    private final Map<String, ITerminalStorageTabClient> tabsClient;
+    private final Map<String, ITerminalStorageTabServer> tabsServer;
 
     private int selectedTabIndexValueId;
+    private int selectedChannelValueId;
+    private boolean serverTabsInitialized;
+
+    private final List<String> channelStrings;
+    private String channelAllLabel;
 
     /**
      * Make a new instance.
@@ -43,25 +59,54 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         this.target = target;
         this.partContainer = partContainer;
         this.partType = partType;
-        this.tabs = Lists.newLinkedList();
+        this.tabsClient = Maps.newHashMap();
+        this.tabsServer = Maps.newHashMap();
 
         this.selectedTabIndexValueId = getNextValueId();
+        this.selectedChannelValueId = getNextValueId();
+        this.serverTabsInitialized = false;
 
         addPlayerInventory(player.inventory, 9, 143);
 
+        this.world = player.world;
+        this.channelAllLabel = L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel_all");
+        this.channelStrings = Lists.newArrayList(this.channelAllLabel);
+
         for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValuesCollection()) {
-            addTab(new TabIngredientComponent(ingredientComponent));
+            INetwork network = NetworkHelpers.getNetwork(target.getCenter());
+            if (this.world.isRemote) {
+                TerminalStorageTabIngredientComponentClient tab = new TerminalStorageTabIngredientComponentClient(ingredientComponent);
+                this.tabsClient.put(tab.getId(), tab);
+            } else {
+                IPositionedAddonsNetworkIngredients<?, ?> ingredientNetwork = NetworkHelpers.getIngredientNetwork(network, ingredientComponent);
+                TerminalStorageTabIngredientComponentServer tab = new TerminalStorageTabIngredientComponentServer(ingredientComponent, ingredientNetwork, target.getCenter(), (EntityPlayerMP) player);
+                this.tabsServer.put(tab.getId(), tab);
+            }
         }
 
         setSelectedTabIndex(0);
+        setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
     }
 
-    public void addTab(ITab tab) {
-        this.tabs.add(tab);
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        if (!serverTabsInitialized) {
+            serverTabsInitialized = true;
+            for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
+                tab.init();
+            }
+        }
     }
 
-    public List<ITab> getTabs() {
-        return tabs;
+    @Override
+    public void onContainerClosed(EntityPlayer playerIn) {
+        super.onContainerClosed(playerIn);
+        if (!world.isRemote) {
+            for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
+                tab.deInit();
+            }
+        }
     }
 
     public PartTarget getTarget() {
@@ -86,34 +131,41 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return ValueNotifierHelpers.getValueInt(this, selectedTabIndexValueId);
     }
 
-    public static interface ITab {
-
-        public ItemStack getIcon();
-
-        List<String> getTooltip(int mouseX, int mouseY);
+    public void setSelectedChannel(int selectedChannel) {
+        ValueNotifierHelpers.setValue(this, selectedChannelValueId, selectedChannel);
+        refreshChannelStrings();
     }
 
-    public static class TabIngredientComponent implements ITab {
+    public int getSelectedChannel() {
+        return ValueNotifierHelpers.getValueInt(this, selectedChannelValueId);
+    }
 
-        private final IngredientComponent<?, ?> ingredientComponent;
-        private final IIngredientComponentHandler<?, ?, ?, ?, ?> ingredientComponentHandler;
-        private final ItemStack icon;
+    @Nullable
+    public ITerminalStorageTabClient getTabClient(IngredientComponent<?, ?> ingredientComponent) {
+        return tabsClient.get(ingredientComponent.getName().toString());
+    }
 
-        public TabIngredientComponent(IngredientComponent<?, ?> ingredientComponent) {
-            this.ingredientComponent = ingredientComponent;
-            this.ingredientComponentHandler = Objects.requireNonNull(IngredientComponentHandlers.REGISTRY.getComponentHandler(this.ingredientComponent));
-            this.icon = ingredientComponentHandler.getIcon();
-        }
+    public int getTabsClientCount() {
+        return tabsClient.size();
+    }
 
-        @Override
-        public ItemStack getIcon() {
-            return this.icon;
-        }
+    public Collection<ITerminalStorageTabClient> getTabsClient() {
+        return tabsClient.values();
+    }
 
-        @Override
-        public List<String> getTooltip(int mouseX, int mouseY) {
-            return Lists.newArrayList(L10NHelpers.localize("gui.integratedterminals.terminal_storage.storage_name",
-                    L10NHelpers.localize(this.ingredientComponent.getUnlocalizedName())));
+    public List<String> getChannelStrings() {
+        return channelStrings;
+    }
+
+    public void refreshChannelStrings() {
+        this.channelStrings.clear();
+        this.channelStrings.add(channelAllLabel);
+        ArrayList<ITerminalStorageTabClient> tabs = Lists.newArrayList(getTabsClient());
+        if (!tabs.isEmpty()) {
+            for (int channel : tabs.get(getSelectedTabIndex()).getChannels()) {
+                this.channelStrings.add(String.valueOf(channel));
+            }
         }
     }
+
 }
