@@ -1,6 +1,5 @@
 package org.cyclops.integratedterminals;
 
-import org.apache.logging.log4j.Level;
 import org.cyclops.cyclopscore.config.ConfigurableProperty;
 import org.cyclops.cyclopscore.config.ConfigurableType;
 import org.cyclops.cyclopscore.config.ConfigurableTypeCategory;
@@ -52,6 +51,12 @@ public class GeneralConfig extends DummyConfig {
      */
     @ConfigurableProperty(category = ConfigurableTypeCategory.CORE, comment = "If the version checker should be enabled.")
     public static boolean versionChecker = true;
+
+    /**
+     * The maximum number of terminal storage instances that can be sent in a single packet. Reduce this when you have packet overflows.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.CORE, comment = "The maximum number of terminal storage instances that can be sent in a single packet. Reduce this when you have packet overflows.", isCommandable = true)
+    public static int terminalStoragePacketMaxInstances = 1024;
 
     /**
      * The type of this config.

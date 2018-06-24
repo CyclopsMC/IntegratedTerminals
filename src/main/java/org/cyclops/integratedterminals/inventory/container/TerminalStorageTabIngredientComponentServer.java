@@ -8,6 +8,7 @@ import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
@@ -79,9 +80,35 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     protected void sendToClient(IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
         long maxQuantity = this.ingredientNetwork.getChannel(event.getChannel()).getMaxQuantity();
 
-        IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                new TerminalStorageIngredientChangeEventPacket(event), player);
-        IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                new TerminalStorageIngredientMaxQuantityPacket(event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
+        // Only allow ingredient collection of a max given size to be sent in a packet
+        if (event.getInstances().size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
+            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                    new TerminalStorageIngredientChangeEventPacket(event), player);
+            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                    new TerminalStorageIngredientMaxQuantityPacket(event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
+        } else {
+            IngredientArrayList<T, M> buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
+                    GeneralConfig.terminalStoragePacketMaxInstances);
+            for (T instance : event.getInstances()) {
+                buffer.add(instance);
+
+                // If our buffer reaches its capacity,
+                // flush it, and create a new buffer
+                if (buffer.size() == GeneralConfig.terminalStoragePacketMaxInstances) {
+                    sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
+                            event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer
+                    ));
+                    buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
+                            GeneralConfig.terminalStoragePacketMaxInstances);
+                }
+            }
+
+            // Our buffer can contain some remaining instances, make sure to flush them as well.
+            if (!buffer.isEmpty()) {
+                sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
+                        event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer
+                ));
+            }
+        }
     }
 }
