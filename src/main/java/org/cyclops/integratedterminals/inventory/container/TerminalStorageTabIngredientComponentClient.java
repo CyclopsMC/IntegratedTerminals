@@ -1,6 +1,5 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import gnu.trove.map.TIntLongMap;
 import gnu.trove.map.TIntObjectMap;
@@ -10,6 +9,8 @@ import net.minecraft.item.ItemStack;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
+import org.cyclops.cyclopscore.ingredient.collection.IIngredientListMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
@@ -20,9 +21,9 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentViewHandlerConfig;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A client-side storage terminal ingredient tab.
@@ -36,7 +37,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M> implements ITermi
     private final IIngredientComponentViewHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
 
-    private final TIntObjectMap<IngredientCollectionPrototypeMap<T, M>> ingredientsViews;
+    private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
 
     private TIntLongMap maxQuantities;
     private TIntLongMap totalQuantities;
@@ -68,10 +69,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M> implements ITermi
                 L10NHelpers.localize(this.ingredientComponent.getUnlocalizedName())));
     }
 
-    protected IngredientCollectionPrototypeMap<T, M> getSafeIngredientsView(int channel) {
-        IngredientCollectionPrototypeMap<T, M> ingredientsView = ingredientsViews.get(channel);
+    protected IIngredientListMutable<T, M> getSafeIngredientsView(int channel) {
+        IIngredientListMutable<T, M> ingredientsView = ingredientsViews.get(channel);
         if (ingredientsView == null) {
-            ingredientsView = new IngredientCollectionPrototypeMap<>(this.ingredientComponent);
+            ingredientsView = new IngredientArrayList<>(this.ingredientComponent);
             ingredientsViews.put(channel, ingredientsView);
         }
         return ingredientsView;
@@ -79,15 +80,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M> implements ITermi
 
     @Override
     public List<ITerminalStorageSlot> getSlots(int channel, int offset, int limit) {
-        // TODO: more efficient offset?
-        Iterator<T> it = getSafeIngredientsView(channel).iterator();
-        Iterators.advance(it, offset);
-        List<ITerminalStorageSlot> list = Lists.newArrayListWithExpectedSize(limit);
-        int i = 0;
-        while (i++ < limit && it.hasNext()) {
-            list.add(new TerminalStorageSlotIngredient<>(ingredientComponentViewHandler, it.next()));
-        }
-        return list;
+        IIngredientListMutable<T, M> ingredients = getSafeIngredientsView(channel);
+        return ingredients.subList(offset, Math.min(limit, ingredients.size())).stream()
+                .map(instance -> new TerminalStorageSlotIngredient<>(ingredientComponentViewHandler, instance))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -119,13 +115,22 @@ public class TerminalStorageTabIngredientComponentClient<T, M> implements ITermi
             quantity += matcher.getQuantity(ingredient);
         }
 
+        // Use a prototype-based collection so that ingredients are collapsed
+        IIngredientListMutable<T, M> persistedIngredients = getSafeIngredientsView(channel);
+        IIngredientCollapsedCollectionMutable<T, M> prototypedIngredients = new IngredientCollectionPrototypeMap<>(this.ingredientComponent);
+        prototypedIngredients.addAll(persistedIngredients);
+
         // Apply changes
         if (changeType == IIngredientComponentStorageObservable.Change.ADDITION) {
-            getSafeIngredientsView(channel).addAll(ingredients);
+            prototypedIngredients.addAll(ingredients);
         } else {
-            getSafeIngredientsView(channel).removeAll(ingredients);
+            prototypedIngredients.removeAll(ingredients);
             quantity = -quantity;
         }
+
+        // Persist changes
+        persistedIngredients.clear();
+        persistedIngredients.addAll(prototypedIngredients);
 
         long newQuantity = totalQuantities.get(channel) + quantity;
         if (newQuantity != 0) {
