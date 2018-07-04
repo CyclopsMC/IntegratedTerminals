@@ -55,7 +55,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                 GuiHelpers.renderFluidSlot(gui, instance, x, y);
 
                 // Draw amount
-                RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, GuiHelpers.quantityToScaledString(instance.amount), x, y);
+                RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, label != null ? label : GuiHelpers.quantityToScaledString(instance.amount), x, y);
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<String> lines = Lists.newArrayList();

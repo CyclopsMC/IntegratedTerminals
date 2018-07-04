@@ -55,7 +55,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                         64, 225, GuiHelpers.ProgressDirection.UP, instance, (int) maxQuantity);
 
                 // Draw amount
-                RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, GuiHelpers.quantityToScaledString(instance), x, y);
+                RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> Lists.newArrayList(label != null ? label : TextFormatting.GRAY.toString() + instance + " FE"));

@@ -293,7 +293,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             GlStateManager.color(1, 1, 1, 1);
             slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
                     mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
-                    mouseX, mouseY, tab, getContainer().getSelectedChannel(), String.valueOf(maxQuantity));
+                    mouseX, mouseY, tab, getContainer().getSelectedChannel(), GuiHelpers.quantityToScaledString(maxQuantity));
         }
     }
 
