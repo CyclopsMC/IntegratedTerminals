@@ -46,6 +46,9 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     private final List<String> channelStrings;
     private String channelAllLabel;
 
+    // Fields for storing the last tab client-side
+    private static int lastSelectedTabIndex = 0;
+
     /**
      * Make a new instance.
      * @param target The target.
@@ -84,7 +87,8 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
             }
         }
 
-        setSelectedTabIndex(0);
+        setSelectedTabIndex(player.world.isRemote && lastSelectedTabIndex >= 0
+                && lastSelectedTabIndex < getTabsClient().size() ? lastSelectedTabIndex : 0);
         setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
     }
 
@@ -124,6 +128,9 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     }
 
     public void setSelectedTabIndex(int selectedTabIndex) {
+        if (player.world.isRemote) {
+            lastSelectedTabIndex = selectedTabIndex;
+        }
         ValueNotifierHelpers.setValue(this, selectedTabIndexValueId, selectedTabIndex);
     }
 
