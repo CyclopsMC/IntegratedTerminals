@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
@@ -20,7 +21,6 @@ import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentViewHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
@@ -75,7 +75,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             @Override
             public int getTotalRows() {
                 ContainerTerminalStorage container = getContainer();
-                int totalSlots = getClientTab(container.getSelectedTabIndex()).getSlotCount(container.getSelectedChannel());
+                int totalSlots = getSelectedClientTab().getSlotCount(container.getSelectedChannel());
                 return totalSlots / getSlotRowLength();
             }
         };
@@ -107,7 +107,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         super.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
         fieldChannel.drawTextBox(Minecraft.getMinecraft(), mouseX, mouseY);
         drawTabsBackground();
-        drawTabContents(getContainer().getSelectedTabIndex(), getContainer().getSelectedChannel(), IIngredientComponentViewHandler.DrawLayer.BACKGROUND,
+        drawTabContents(getContainer().getSelectedTabIndex(), getContainer().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + SLOTS_OFFSET_X, getGuiTopTotal() + SLOTS_OFFSET_Y, mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
     }
@@ -116,8 +116,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         super.drawGuiContainerForegroundLayer(mouseX, mouseY);
         drawTabsForeground(mouseX, mouseY);
-        drawTabContents(getContainer().getSelectedTabIndex(), getContainer().getSelectedChannel(), IIngredientComponentViewHandler.DrawLayer.FOREGROUND,
+        drawTabContents(getContainer().getSelectedTabIndex(), getContainer().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, SLOTS_OFFSET_X, SLOTS_OFFSET_Y, mouseX, mouseY);
+        drawActiveStorageSlotItem(mouseX, mouseY);
     }
 
     @Override
@@ -139,13 +140,22 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        // Select a tab
         if (mouseButton == 0
                 && mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
                 && mouseX > getGuiLeft() + TAB_OFFSET_X && mouseX <= getGuiLeft() + (TAB_WIDTH * getContainer().getTabsClientCount())) {
+            // Save tab index
             getContainer().setSelectedTabIndex((mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH);
-            scrollBar.scrollTo(0); // Reset scrollbar
+
+            // Reset scrollbar
+            scrollBar.scrollTo(0);
+
+            // Reset active slot
+            getSelectedClientTab().resetActiveSlot();
+
             return;
         }
+
         // Update channel when changing channel field
         if (this.fieldChannel.mouseClicked(mouseX, mouseY, mouseButton)) {
             int channel;
@@ -156,8 +166,34 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             }
             getContainer().setSelectedChannel(channel);
             scrollBar.scrollTo(0); // Reset scrollbar
+            return;
         }
+
+        // Handle clicks on storage slots
+        int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+        Slot playerSlot = getSlotUnderMouse();
+        boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop);
+        if (getSelectedClientTab().handleClick(getContainer().getSelectedChannel(), slot, mouseButton,
+                hasClickedOutside, playerSlot != null ? playerSlot.getSlotIndex() : -1)) {
+            return;
+        }
+
         super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    private int getStorageSlotIndexAtPosition(int mouseX, int mouseY) {
+        if (mouseX >= getGuiLeftTotal() + SLOTS_OFFSET_X
+                && mouseX < getGuiLeftTotal() + SLOTS_OFFSET_X + getSlotRowLength() * GuiHelpers.SLOT_SIZE - 1
+                && mouseY >= getGuiTopTotal() + SLOTS_OFFSET_Y
+                && mouseY < getGuiTopTotal() + SLOTS_OFFSET_Y + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE) {
+            if ((mouseX - getGuiLeftTotal() - SLOTS_OFFSET_X) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER
+                    && (mouseY - getGuiTopTotal() - SLOTS_OFFSET_Y) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER) {
+                return ((mouseX - getGuiLeftTotal() - SLOTS_OFFSET_X) / GuiHelpers.SLOT_SIZE)
+                        + ((mouseY - getGuiTopTotal() - SLOTS_OFFSET_Y) / GuiHelpers.SLOT_SIZE) * getSlotRowLength();
+            }
+        }
+
+        return -1;
     }
 
     protected void drawTabsBackground() {
@@ -212,7 +248,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         return firstRow;
     }
 
-    protected void drawTabContents(int tabIndex, int channel, IIngredientComponentViewHandler.DrawLayer layer,
+    protected void drawTabContents(int tabIndex, int channel, DrawLayer layer,
                                    float partialTick, int x, int y, int mouseX, int mouseY) {
         ITerminalStorageTabClient tab = getClientTab(tabIndex);
 
@@ -229,14 +265,14 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         int slotY = y;
         int slotI = 0;
         for (ITerminalStorageSlot slot : slots) {
-            if (layer == IIngredientComponentViewHandler.DrawLayer.BACKGROUND) {
+            if (layer == DrawLayer.BACKGROUND) {
                 // highlight slot on hover
                 RenderHelpers.bindTexture(this.texture);
                 if (RenderHelpers.isPointInRegion(slotX, slotY, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY)) {
                     drawRect(slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
                 }
             }
-            slot.drawGuiContainerLayer(this, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel);
+            slot.drawGuiContainerLayer(this, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
             if (++slotI >= rowLength) {
                 slotX = x;
                 slotY += GuiHelpers.SLOT_SIZE;
@@ -247,8 +283,26 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         }
     }
 
-    protected ITerminalStorageTabClient getClientTab(int tabIndex) {
+    private void drawActiveStorageSlotItem(int mouseX, int mouseY) {
+        ITerminalStorageTabClient<?> tab = getSelectedClientTab();
+        int slotId = tab.getActiveSlotId();
+        if (slotId >= 0) {
+            int maxQuantity = tab.getActiveSlotQuantity();
+            ITerminalStorageSlot slot = tab.getSlots(getContainer().getSelectedChannel(), slotId, 1).get(0);
+            RenderHelpers.bindTexture(this.texture);
+            GlStateManager.color(1, 1, 1, 1);
+            slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
+                    mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
+                    mouseX, mouseY, tab, getContainer().getSelectedChannel(), String.valueOf(maxQuantity));
+        }
+    }
+
+    protected ITerminalStorageTabClient<?> getClientTab(int tabIndex) {
         return Lists.newArrayList(getContainer().getTabsClient()).get(tabIndex);
+    }
+
+    protected ITerminalStorageTabClient<?> getSelectedClientTab() {
+        return getClientTab(getContainer().getSelectedTabIndex());
     }
 
     protected void drawTabsForeground(int mouseX, int mouseY) {
@@ -258,5 +312,13 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             ITerminalStorageTabClient tab = getClientTab(tabIndex);
             this.drawTooltip(tab.getTooltip(), mouseX - getGuiLeft(), mouseY - getGuiTop());
         }
+    }
+
+    /**
+     * The layer to draw on.
+     */
+    public static enum DrawLayer {
+        BACKGROUND,
+        FOREGROUND
     }
 }

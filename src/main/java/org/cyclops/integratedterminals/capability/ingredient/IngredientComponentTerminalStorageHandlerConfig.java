@@ -5,35 +5,35 @@ import net.minecraftforge.common.capabilities.CapabilityInject;
 import org.cyclops.commoncapabilities.CommonCapabilities;
 import org.cyclops.cyclopscore.config.extendedconfig.CapabilityConfig;
 import org.cyclops.cyclopscore.modcompat.capabilities.DefaultCapabilityStorage;
-import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentViewHandler;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 
 /**
  * Config for the ingredient component view capability.
  * @author rubensworks
  *
  */
-public class IngredientComponentViewHandlerConfig extends CapabilityConfig<IIngredientComponentViewHandler> {
+public class IngredientComponentTerminalStorageHandlerConfig extends CapabilityConfig<IIngredientComponentTerminalStorageHandler> {
 
     /**
      * The unique instance.
      */
-    public static IngredientComponentViewHandlerConfig _instance;
+    public static IngredientComponentTerminalStorageHandlerConfig _instance;
 
-    @CapabilityInject(IIngredientComponentViewHandler.class)
-    public static Capability<IIngredientComponentViewHandler> CAPABILITY = null;
+    @CapabilityInject(IIngredientComponentTerminalStorageHandler.class)
+    public static Capability<IIngredientComponentTerminalStorageHandler> CAPABILITY = null;
 
     /**
      * Make a new instance.
      */
-    public IngredientComponentViewHandlerConfig() {
+    public IngredientComponentTerminalStorageHandlerConfig() {
         super(
                 CommonCapabilities._instance,
                 true,
-                "ingredientComponentViewHandler",
+                "ingredientComponentTerminalStorageHandler",
                 "Capability for displaying ingredient components of a certain type",
-                IIngredientComponentViewHandler.class,
-                new DefaultCapabilityStorage<IIngredientComponentViewHandler>(),
-                IngredientComponentViewHandlerItemStack.class
+                IIngredientComponentTerminalStorageHandler.class,
+                new DefaultCapabilityStorage<IIngredientComponentTerminalStorageHandler>(),
+                IngredientComponentTerminalStorageHandlerItemStack.class
         );
     }
 

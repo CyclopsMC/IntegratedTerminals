@@ -20,4 +20,5 @@ public interface ITerminalStorageTabServer {
      * Deinitialize the tab when the container is closed.
      */
     public void deInit();
+
 }

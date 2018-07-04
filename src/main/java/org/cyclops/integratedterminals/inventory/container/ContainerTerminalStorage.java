@@ -36,7 +36,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     private final PartTarget target;
     private final IPartContainer partContainer;
     private final IPartType partType;
-    private final Map<String, ITerminalStorageTabClient> tabsClient;
+    private final Map<String, ITerminalStorageTabClient<?>> tabsClient;
     private final Map<String, ITerminalStorageTabServer> tabsServer;
 
     private int selectedTabIndexValueId;
@@ -145,12 +145,21 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return tabsClient.get(ingredientComponent.getName().toString());
     }
 
+    @Nullable
+    public ITerminalStorageTabServer getTabServer(IngredientComponent<?, ?> ingredientComponent) {
+        return tabsServer.get(ingredientComponent.getName().toString());
+    }
+
     public int getTabsClientCount() {
         return tabsClient.size();
     }
 
-    public Collection<ITerminalStorageTabClient> getTabsClient() {
+    public Collection<ITerminalStorageTabClient<?>> getTabsClient() {
         return tabsClient.values();
+    }
+
+    public Collection<ITerminalStorageTabServer> getTabsServer() {
+        return tabsServer.values();
     }
 
     public List<String> getChannelStrings() {

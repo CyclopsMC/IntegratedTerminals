@@ -59,6 +59,42 @@ public class GeneralConfig extends DummyConfig {
     public static int terminalStoragePacketMaxInstances = 1024;
 
     /**
+     * The number that should be selected when clicking on an item in the storage terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.MACHINE, comment = "The number of items that should be selected when clicking on an item in the storage terminal.", isCommandable = true)
+    public static int guiStorageItemInitialQuantity = 64;
+
+    /**
+     * The number that should be removed when right-clicking when an item is selected in the storage terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.MACHINE, comment = "The number of items that should be removed when right-clicking when an item is selected in the storage terminal.", isCommandable = true)
+    public static int guiStorageItemIncrementalQuantity = 1;
+
+    /**
+     * The number that should be selected when clicking on a fluid in the storage terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.MACHINE, comment = "The number of items that should be selected when clicking on a fluid in the storage terminal.", isCommandable = true)
+    public static int guiStorageFluidInitialQuantity = 100000;
+
+    /**
+     * The number that should be removed when right-clicking when a fluid is selected in the storage terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.MACHINE, comment = "The number of items that should be removed when right-clicking when a fluid is selected in the storage terminal.", isCommandable = true)
+    public static int guiStorageFluidIncrementalQuantity = 1000;
+
+    /**
+     * The number that should be selected when clicking on energy in the storage terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.MACHINE, comment = "The number of items that should be selected when clicking on energy in the storage terminal.", isCommandable = true)
+    public static int guiStorageEnergyInitialQuantity = 100000;
+
+    /**
+     * The number that should be removed when right-clicking when energy is selected in the storage terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.MACHINE, comment = "The number of items that should be removed when right-clicking when energy is selected in the storage terminal.", isCommandable = true)
+    public static int guiStorageEnergyIncrementalQuantity = 1000;
+
+    /**
      * The type of this config.
      */
     public static ConfigurableType TYPE = ConfigurableType.DUMMY;

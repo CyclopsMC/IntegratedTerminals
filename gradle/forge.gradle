@@ -38,6 +38,7 @@ dependencies {
 minecraft {
     version = "${config.minecraft_version}-${config.forge_version}"
     runDir = "run"
+    useDepAts = true
     
     replaceIn "Reference.java"
     replace "@VERSION@", project.version

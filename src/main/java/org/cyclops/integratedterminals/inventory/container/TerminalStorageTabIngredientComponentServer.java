@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.server.SPacketSetSlot;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
@@ -10,9 +11,13 @@ import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngred
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
+import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
+
+import javax.annotation.Nullable;
 
 /**
  * A server-side storage terminal ingredient tab.
@@ -20,7 +25,8 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientM
  * @param <M> The matching condition parameter.
  * @author rubensworks
  */
-public class TerminalStorageTabIngredientComponentServer<T, M> implements ITerminalStorageTabServer, IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
+public class TerminalStorageTabIngredientComponentServer<T, M> implements ITerminalStorageTabServer,
+        IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
 
     private final IngredientComponent<T, M> ingredientComponent;
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
@@ -109,6 +115,40 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                         event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer
                 ));
             }
+        }
+    }
+
+    @Nullable
+    public void handleStorageSlotClick(EntityPlayerMP player, TerminalClickType clickType, int channel, T hoveringStorageInstance,
+                                       int hoveredPlayerSlot, T activeStorageInstance) {
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
+        IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
+
+        boolean updateActivePlayerStack = false;
+
+        switch (clickType) {
+            case STORAGE_QUICK_MOVE:
+                viewHandler.insertMaxIntoPlayerInventory(storage, player.inventory, hoveringStorageInstance);
+                break;
+            case STORAGE_PLACE_WORLD:
+                viewHandler.throwIntoWorld(storage, activeStorageInstance, player);
+                break;
+            case STORAGE_PLACE_PLAYER:
+                viewHandler.insertIntoPlayerInventory(storage, player.inventory, hoveredPlayerSlot, activeStorageInstance);
+                updateActivePlayerStack = true;
+                break;
+            case PLAYER_PLACE_STORAGE:
+                viewHandler.extractActiveStackFromPlayerInventory(storage, player.inventory);
+                updateActivePlayerStack = true;
+                break;
+            case PLAYER_QUICK_MOVE:
+                viewHandler.extractMaxFromPlayerInventorySlot(storage, player.inventory, hoveredPlayerSlot);
+                break;
+        }
+
+        // Notify the client that the currently hovering player stack has changed.
+        if (updateActivePlayerStack) {
+            player.connection.sendPacket(new SPacketSetSlot(-1, 0, player.inventory.getItemStack()));
         }
     }
 }

@@ -1,9 +1,14 @@
 package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
-import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentViewHandler;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+
+import javax.annotation.Nullable;
 
 /**
  * An ingredient slot.
@@ -13,18 +18,24 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
  */
 public class TerminalStorageSlotIngredient<T, M> implements ITerminalStorageSlot {
 
-    private final IIngredientComponentViewHandler<T, M> ingredientComponentViewHandler;
+    private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final T instance;
 
-    public TerminalStorageSlotIngredient(IIngredientComponentViewHandler<T, M> ingredientComponentViewHandler, T instance) {
+    public TerminalStorageSlotIngredient(IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler, T instance) {
         this.ingredientComponentViewHandler = ingredientComponentViewHandler;
         this.instance = instance;
     }
 
     @Override
-    public void drawGuiContainerLayer(GuiContainer gui, IIngredientComponentViewHandler.DrawLayer layer,
+    @SideOnly(Side.CLIENT)
+    public void drawGuiContainerLayer(GuiContainer gui, GuiTerminalStorage.DrawLayer layer,
                                       float partialTick, int x, int y, int mouseX, int mouseY,
-                                      ITerminalStorageTabClient tab, int channel) {
-        ingredientComponentViewHandler.drawInstanceSlot(instance, gui, layer, partialTick, x, y, mouseX, mouseY, tab, channel);
+                                      ITerminalStorageTabClient tab, int channel, @Nullable String label) {
+        long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
+        ingredientComponentViewHandler.drawInstance(instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, channel);
+    }
+
+    public T getInstance() {
+        return instance;
     }
 }

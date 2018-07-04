@@ -5,6 +5,8 @@ import gnu.trove.map.TIntLongMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -15,10 +17,12 @@ import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
-import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentViewHandler;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
+import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentViewHandlerConfig;
+import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
+import org.lwjgl.input.Keyboard;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,26 +35,30 @@ import java.util.stream.Collectors;
  * @param <M> The matching condition parameter.
  * @author rubensworks
  */
-public class TerminalStorageTabIngredientComponentClient<T, M> implements ITerminalStorageTabClient {
+public class TerminalStorageTabIngredientComponentClient<T, M>
+        implements ITerminalStorageTabClient<TerminalStorageSlotIngredient<T, M>> {
 
     private final IngredientComponent<T, M> ingredientComponent;
-    private final IIngredientComponentViewHandler<T, M> ingredientComponentViewHandler;
+    private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
 
     private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
 
-    private TIntLongMap maxQuantities;
-    private TIntLongMap totalQuantities;
+    private final TIntLongMap maxQuantities;
+    private final TIntLongMap totalQuantities;
+    private int activeSlotId;
+    private int activeSlotQuantity;
 
     public TerminalStorageTabIngredientComponentClient(IngredientComponent<?, ?> ingredientComponent) {
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
-        this.ingredientComponentViewHandler = Objects.requireNonNull(this.ingredientComponent.getCapability(IngredientComponentViewHandlerConfig.CAPABILITY));
+        this.ingredientComponentViewHandler = Objects.requireNonNull(this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY));
         this.icon = ingredientComponentViewHandler.getIcon();
 
         this.ingredientsViews = new TIntObjectHashMap<>();
 
         this.maxQuantities = new TIntLongHashMap();
         this.totalQuantities = new TIntLongHashMap();
+        resetActiveSlot();
     }
 
     @Override
@@ -79,9 +87,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M> implements ITermi
     }
 
     @Override
-    public List<ITerminalStorageSlot> getSlots(int channel, int offset, int limit) {
+    public List<TerminalStorageSlotIngredient<T, M>> getSlots(int channel, int offset, int limit) {
         IIngredientListMutable<T, M> ingredients = getSafeIngredientsView(channel);
-        return ingredients.subList(offset, Math.min(limit, ingredients.size())).stream()
+        int size = ingredients.size();
+        if (offset >= size) {
+            return Lists.newArrayList();
+        }
+        return ingredients.subList(offset, offset + Math.min(limit, size)).stream()
                 .map(instance -> new TerminalStorageSlotIngredient<>(ingredientComponentViewHandler, instance))
                 .collect(Collectors.toList());
     }
@@ -174,5 +186,93 @@ public class TerminalStorageTabIngredientComponentClient<T, M> implements ITermi
         int[] channels = maxQuantities.keys();
         Arrays.sort(channels);
         return channels;
+    }
+
+    @Override
+    public void resetActiveSlot() {
+        this.activeSlotId = -1;
+        this.activeSlotQuantity = 0;
+    }
+
+    @Override
+    public boolean handleClick(int channel, int hoveringStorageSlot, int mouseButton, boolean hasClickedOutside, int hoveredPlayerSlot) {
+        IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
+        List<TerminalStorageSlotIngredient<T, M>> slots = hoveringStorageSlot >= 0 ? getSlots(channel, hoveringStorageSlot, 1) : Lists.newArrayList();
+        boolean validHoveringStorageSlot = !slots.isEmpty();
+        T hoveringStorageInstance = slots.size() > 0 ? slots.get(0).getInstance() : matcher.getEmptyInstance();
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
+        boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
+
+        EntityPlayer player = Minecraft.getMinecraft().player;
+        if (mouseButton == 0 || mouseButton == 1) {
+            TerminalClickType clickType = null;
+            boolean reset = false; // So that a reset occurs after the packet is sent
+            if (validHoveringStorageSlot && player.inventory.getItemStack().isEmpty() && activeSlotId < 0) {
+                if (hoveringStorageInstance != null && shift) {
+                    // Quick move max quantity from storage to player
+                    clickType = TerminalClickType.STORAGE_QUICK_MOVE;
+                } else {
+                    // Pick up
+                    this.activeSlotId = hoveringStorageSlot;
+                    this.activeSlotQuantity = Math.min((int) ingredientComponent.getMatcher().getQuantity(hoveringStorageInstance),
+                            viewHandler.getInitialInstanceMovementQuantity());
+                    if (mouseButton == 1) {
+                        this.activeSlotQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
+                    }
+                }
+            } else if (hoveredPlayerSlot >= 0 && !player.inventory.getStackInSlot(hoveredPlayerSlot).isEmpty() && shift) {
+                // Quick move max quantity from player to storage
+                clickType = TerminalClickType.PLAYER_QUICK_MOVE;
+            } else if (hoveringStorageSlot >= 0 && !player.inventory.getItemStack().isEmpty()) {
+                // Move into storage
+                clickType = TerminalClickType.PLAYER_PLACE_STORAGE;
+                resetActiveSlot();
+            } else if (activeSlotId >= 0) {
+                // We have a storage slot selected
+                if (hasClickedOutside) {
+                    // Throw
+                    clickType = TerminalClickType.STORAGE_PLACE_WORLD;
+                    reset = true;
+                } else if (hoveredPlayerSlot >= 0) {
+                    // Insert into player inventory
+                    clickType = TerminalClickType.STORAGE_PLACE_PLAYER;
+                    reset = true;
+                } else if (hoveringStorageSlot >= 0 && mouseButton == 1) {
+                    // Adjust active quantity
+                    this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - viewHandler.getIncrementalInstanceMovementQuantity());
+                } else {
+                    // Deselect slot
+                    resetActiveSlot();
+                }
+
+                if (activeSlotQuantity == 0) {
+                    activeSlotId = -1;
+                }
+            }
+            if (clickType != null) {
+                T activeInstance = matcher.getEmptyInstance();
+                if (activeSlotId >= 0) {
+                    activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), activeSlotQuantity);
+                }
+                IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
+                        ingredientComponent, clickType, channel, hoveringStorageInstance, hoveredPlayerSlot, activeInstance));
+                if (reset) {
+                    resetActiveSlot();
+                }
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public int getActiveSlotId() {
+        return this.activeSlotId;
+    }
+
+    @Override
+    public int getActiveSlotQuantity() {
+        return this.activeSlotQuantity;
     }
 }

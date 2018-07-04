@@ -24,22 +24,22 @@ public class TerminalIngredientComponentCapabilities {
         attacherManager.addAttacher(new IngredientComponentCapabilityAttacherAdapter<ItemStack, Integer>(IngredientComponentCapabilities.INGREDIENT_ITEMSTACK_NAME, capabilityIngredientComponentViewHandler) {
             @Override
             public ICapabilityProvider createCapabilityProvider(IngredientComponent<ItemStack, Integer> ingredientComponent) {
-                return new DefaultCapabilityProvider<>(() -> IngredientComponentViewHandlerConfig.CAPABILITY,
-                        new IngredientComponentViewHandlerItemStack(ingredientComponent));
+                return new DefaultCapabilityProvider<>(() -> IngredientComponentTerminalStorageHandlerConfig.CAPABILITY,
+                        new IngredientComponentTerminalStorageHandlerItemStack(ingredientComponent));
             }
         });
         attacherManager.addAttacher(new IngredientComponentCapabilityAttacherAdapter<FluidStack, Integer>(IngredientComponentCapabilities.INGREDIENT_FLUIDSTACK_NAME, capabilityIngredientComponentViewHandler) {
             @Override
             public ICapabilityProvider createCapabilityProvider(IngredientComponent<FluidStack, Integer> ingredientComponent) {
-                return new DefaultCapabilityProvider<>(() -> IngredientComponentViewHandlerConfig.CAPABILITY,
-                        new IngredientComponentViewHandlerFluidStack(ingredientComponent));
+                return new DefaultCapabilityProvider<>(() -> IngredientComponentTerminalStorageHandlerConfig.CAPABILITY,
+                        new IngredientComponentTerminalStorageHandlerFluidStack(ingredientComponent));
             }
         });
         attacherManager.addAttacher(new IngredientComponentCapabilityAttacherAdapter<Integer, Boolean>(IngredientComponentCapabilities.INGREDIENT_ENERGY_NAME, capabilityIngredientComponentViewHandler) {
             @Override
             public ICapabilityProvider createCapabilityProvider(IngredientComponent<Integer, Boolean> ingredientComponent) {
-                return new DefaultCapabilityProvider<>(() -> IngredientComponentViewHandlerConfig.CAPABILITY,
-                        new IngredientComponentViewHandlerEnergy(ingredientComponent));
+                return new DefaultCapabilityProvider<>(() -> IngredientComponentTerminalStorageHandlerConfig.CAPABILITY,
+                        new IngredientComponentTerminalStorageHandlerEnergy(ingredientComponent));
             }
         });
     }

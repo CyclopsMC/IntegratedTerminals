@@ -10,7 +10,7 @@ import java.util.List;
  * A client-side terminal storage tab.
  * @author rubensworks
  */
-public interface ITerminalStorageTabClient {
+public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
 
     /**
      * @return The unique tab id, must be equal to its server-side variant.
@@ -35,7 +35,7 @@ public interface ITerminalStorageTabClient {
      * @return A list of slots, can be empty.
      */
     @SideOnly(Side.CLIENT)
-    public List<ITerminalStorageSlot> getSlots(int channel, int offset, int limit);
+    public List<S> getSlots(int channel, int offset, int limit);
 
     /**
      * Get the total number of slots in the given channel
@@ -54,4 +54,31 @@ public interface ITerminalStorageTabClient {
      * @return All available channels.
      */
     public int[] getChannels();
+
+    /**
+     * Unselect the active storage slot.
+     */
+    public void resetActiveSlot();
+
+    /**
+     * Called when a mouse click happens in a gui.
+     * @param channel The active channel.
+     * @param hoveringStorageSlot The storage slot id that is being hovered. -1 if none.
+     * @param mouseButton The mouse button.
+     * @param hasClickedOutside If the player has clicked outside the gui.
+     * @param hoveredPlayerSlot The player slot id that is being hovered. -1 if none.
+     * @return If further click processing should stop.
+     */
+    public boolean handleClick(int channel, int hoveringStorageSlot, int mouseButton, boolean hasClickedOutside, int hoveredPlayerSlot);
+
+    /**
+     * @return The active storage slot id.
+     */
+    public int getActiveSlotId();
+
+    /**
+     * @return The active storage slot quantity.
+     */
+    public int getActiveSlotQuantity();
+
 }

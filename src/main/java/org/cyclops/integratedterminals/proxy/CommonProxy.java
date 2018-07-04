@@ -7,6 +7,7 @@ import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 
 /**
  * Proxy for server and client side.
@@ -27,6 +28,7 @@ public class CommonProxy extends CommonProxyComponent {
         // Register packets.
         packetHandler.register(TerminalStorageIngredientChangeEventPacket.class);
         packetHandler.register(TerminalStorageIngredientMaxQuantityPacket.class);
+        packetHandler.register(TerminalStorageIngredientSlotClickPacket.class);
 
         IntegratedDynamics.clog("Registered packet handler.");
     }

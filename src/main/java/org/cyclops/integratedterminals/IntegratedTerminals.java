@@ -19,7 +19,7 @@ import org.cyclops.cyclopscore.init.ItemCreativeTab;
 import org.cyclops.cyclopscore.init.ModBaseVersionable;
 import org.cyclops.cyclopscore.init.RecipeHandler;
 import org.cyclops.cyclopscore.proxy.ICommonProxy;
-import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentViewHandlerConfig;
+import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
 import org.cyclops.integratedterminals.part.PartTypes;
 
@@ -141,7 +141,7 @@ public class IntegratedTerminals extends ModBaseVersionable {
     public void onMainConfigsRegister(ConfigHandler configHandler) {
         super.onMainConfigsRegister(configHandler);
 
-        configHandler.add(new IngredientComponentViewHandlerConfig());
+        configHandler.add(new IngredientComponentTerminalStorageHandlerConfig());
     }
 
     @Override
