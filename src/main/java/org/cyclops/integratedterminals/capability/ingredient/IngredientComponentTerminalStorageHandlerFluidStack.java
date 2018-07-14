@@ -117,7 +117,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         IFluidHandlerItem fluidHandler = playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            IngredientStorageHelpers.moveIngredients(itemStorage, storage, Long.MAX_VALUE, false);
+            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
 
             playerInventory.setItemStack(fluidHandler.getContainer());
         }
@@ -129,7 +129,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            IngredientStorageHelpers.moveIngredients(itemStorage, storage, Long.MAX_VALUE, false);
+            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
 
             playerInventory.setInventorySlotContents(playerSlot, fluidHandler.getContainer());
             playerInventory.player.openContainer.detectAndSendChanges();

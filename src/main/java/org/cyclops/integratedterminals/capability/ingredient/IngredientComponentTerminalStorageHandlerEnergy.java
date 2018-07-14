@@ -94,7 +94,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         IEnergyStorage energyStorage = stack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            return IngredientStorageHelpers.moveIngredients(storage, itemStorage, maxInstance, false);
+            return IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
         }
         return 0;
     }
@@ -106,7 +106,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         IEnergyStorage energyStorage = playerStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            IngredientStorageHelpers.moveIngredients(itemStorage, storage, Long.MAX_VALUE, false);
+            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
         }
     }
 
@@ -116,7 +116,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            IngredientStorageHelpers.moveIngredients(itemStorage, storage, Long.MAX_VALUE, false);
+            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
         }
     }
 }
