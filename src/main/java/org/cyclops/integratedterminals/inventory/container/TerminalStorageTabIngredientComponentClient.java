@@ -237,7 +237,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
 
         EntityPlayer player = Minecraft.getMinecraft().player;
-        if (mouseButton == 0 || mouseButton == 1) {
+        if (mouseButton == 0 || mouseButton == 1 || mouseButton == 2) {
             TerminalClickType clickType = null;
             boolean reset = false; // So that a reset occurs after the packet is sent
             if (validHoveringStorageSlot && player.inventory.getItemStack().isEmpty() && activeSlotId < 0) {
@@ -251,6 +251,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                             viewHandler.getInitialInstanceMovementQuantity());
                     if (mouseButton == 1) {
                         this.activeSlotQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
+                    } else if (mouseButton == 2) {
+                        this.activeSlotQuantity = 1;
                     }
                 }
             } else if (hoveredPlayerSlot >= 0 && !player.inventory.getStackInSlot(hoveredPlayerSlot).isEmpty() && shift) {
