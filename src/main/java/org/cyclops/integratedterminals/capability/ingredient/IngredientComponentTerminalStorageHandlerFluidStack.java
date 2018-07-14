@@ -96,7 +96,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
             FluidStack moved = IngredientStorageHelpers.moveIngredients(storage, itemStorage, maxInstance,
-                    FluidMatch.EXACT, false);
+                    FluidMatch.FLUID | FluidMatch.NBT, false);
             inv.setStackInSlot(playerSlot, fluidHandler.getContainer());
             return FluidHelpers.getAmount(moved);
         }
