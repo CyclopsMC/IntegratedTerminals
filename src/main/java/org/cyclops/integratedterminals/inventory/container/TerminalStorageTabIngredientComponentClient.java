@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientListMutable;
@@ -114,7 +115,17 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      * @param changeType A change type.
      * @param ingredients A list of changed ingredients.
      */
-    public void onChange(int channel, IIngredientComponentStorageObservable.Change changeType, IngredientArrayList<T, M> ingredients) {
+    public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType, IngredientArrayList<T, M> ingredients) {
+        // Remember the selected instance, as this change event might change its position or quantity.
+        // This is handled at the end of this method.
+        T lastInstance = null;
+        if (this.activeSlotId >= 0) {
+            List<TerminalStorageSlotIngredient<T, M>> lastSlots = getSlots(channel, this.activeSlotId, 1);
+            if (!lastSlots.isEmpty()) {
+                lastInstance = lastSlots.get(0).getInstance();
+            }
+        }
+
         // Apply the change to the wildcard channel as well
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             onChange(IPositionedAddonsNetwork.WILDCARD_CHANNEL, changeType, ingredients);
@@ -147,6 +158,28 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         long newQuantity = totalQuantities.get(channel) + quantity;
         if (newQuantity != 0) {
             totalQuantities.put(channel, newQuantity);
+        }
+
+        // Update the active instance by searching for its new position in the slots
+        // If this becomes a performance bottleneck, we could search _around_ the previous position.
+        if (lastInstance != null) {
+            int newActiveSlot = 0;
+            M matchCondition = matcher.withoutCondition(matcher.getExactMatchCondition(),
+                    ingredients.getComponent().getPrimaryQuantifier().getMatchCondition());
+            for (T persistedIngredient : persistedIngredients) {
+                if (matcher.matches(persistedIngredient, lastInstance, matchCondition)) {
+                    this.activeSlotId = newActiveSlot;
+                    this.activeSlotQuantity = Math.min(this.activeSlotQuantity, Helpers.castSafe(matcher.getQuantity(persistedIngredient)));
+                    break;
+                }
+                newActiveSlot++;
+            }
+
+            // None was found, deselect slot
+            if (newActiveSlot == persistedIngredients.size()) {
+                this.activeSlotId = -1;
+                this.activeSlotQuantity = 0;
+            }
         }
     }
 
