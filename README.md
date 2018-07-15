@@ -9,7 +9,7 @@ Terminals for managing and overviewing Integrated Dynamics networks
 
 All stable releases (including deobfuscated builds) can be found on [CurseForge](http://minecraft.curseforge.com/mc-mods/295910/files).
 
-[Development builds](https://oss.jfrog.org/artifactory/simple/libs-release/org/cyclops/integratedterminals/Integrated Terminals/) are hosted by [JFrog Artifactory](https://www.jfrog.com/artifactory/).
+[Development builds](https://oss.jfrog.org/artifactory/simple/libs-release/org/cyclops/integratedterminals/IntegratedTerminals/) are hosted by [JFrog Artifactory](https://www.jfrog.com/artifactory/).
 
 ### Contributing
 * Before submitting a pull request containing a new feature, please discuss this first with one of the lead developers.
