@@ -22,11 +22,13 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
+import org.cyclops.integratedterminals.inventory.container.query.IIngredientQuery;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 import org.lwjgl.input.Keyboard;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -45,6 +47,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final ItemStack icon;
 
     private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
+    private final TIntObjectMap<IIngredientListMutable<T, M>> filteredIngredientsViews;
+    private final TIntObjectMap<String> filters;
 
     private final TIntLongMap maxQuantities;
     private final TIntLongMap totalQuantities;
@@ -57,6 +61,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.icon = ingredientComponentViewHandler.getIcon();
 
         this.ingredientsViews = new TIntObjectHashMap<>();
+        this.filteredIngredientsViews = new TIntObjectHashMap<>();
+        this.filters = new TIntObjectHashMap<>();
 
         this.maxQuantities = new TIntLongHashMap();
         this.totalQuantities = new TIntLongHashMap();
@@ -79,7 +85,23 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 L10NHelpers.localize(this.ingredientComponent.getUnlocalizedName())));
     }
 
-    protected IIngredientListMutable<T, M> getSafeIngredientsView(int channel) {
+    @Override
+    public String getInstanceFilter(int channel) {
+        String filter = this.filters.get(channel);
+        return filter == null ? "" : filter;
+    }
+
+    protected void resetFilteredIngredientsViews(int channel) {
+        filteredIngredientsViews.remove(channel);
+    }
+
+    @Override
+    public void setInstanceFilter(int channel, String filter) {
+        resetFilteredIngredientsViews(channel);
+        this.filters.put(channel, filter.toLowerCase(Locale.ENGLISH));
+    }
+
+    protected IIngredientListMutable<T, M> getUnfilteredIngredientsView(int channel) {
         IIngredientListMutable<T, M> ingredientsView = ingredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = new IngredientArrayList<>(this.ingredientComponent);
@@ -88,9 +110,21 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return ingredientsView;
     }
 
+    protected IIngredientListMutable<T, M> getFilteredIngredientsView(int channel) {
+        IIngredientListMutable<T, M> ingredientsView = filteredIngredientsViews.get(channel);
+        if (ingredientsView == null) {
+            ingredientsView = getUnfilteredIngredientsView(channel);
+            ingredientsView = new IngredientArrayList<>(ingredientsView.getComponent(), ingredientsView.stream()
+                    .filter(IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)))
+                    .collect(Collectors.toList()));
+            filteredIngredientsViews.put(channel, ingredientsView);
+        }
+        return ingredientsView;
+    }
+
     @Override
     public List<TerminalStorageSlotIngredient<T, M>> getSlots(int channel, int offset, int limit) {
-        IIngredientListMutable<T, M> ingredients = getSafeIngredientsView(channel);
+        IIngredientListMutable<T, M> ingredients = getFilteredIngredientsView(channel);
         int size = ingredients.size();
         if (offset >= size) {
             return Lists.newArrayList();
@@ -112,7 +146,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public int getSlotCount(int channel) {
-        return getSafeIngredientsView(channel).size();
+        return getFilteredIngredientsView(channel).size();
     }
 
     @Override
@@ -144,7 +178,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
 
         // Use a prototype-based collection so that ingredients are collapsed
-        IIngredientListMutable<T, M> persistedIngredients = getSafeIngredientsView(channel);
+        IIngredientListMutable<T, M> persistedIngredients = getUnfilteredIngredientsView(channel);
         IIngredientCollapsedCollectionMutable<T, M> prototypedIngredients = new IngredientCollectionPrototypeMap<>(this.ingredientComponent);
         prototypedIngredients.addAll(persistedIngredients);
 
@@ -159,6 +193,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         // Persist changes
         persistedIngredients.clear();
         persistedIngredients.addAll(prototypedIngredients);
+        resetFilteredIngredientsViews(channel);
 
         long newQuantity = totalQuantities.get(channel) + quantity;
         if (newQuantity != 0) {

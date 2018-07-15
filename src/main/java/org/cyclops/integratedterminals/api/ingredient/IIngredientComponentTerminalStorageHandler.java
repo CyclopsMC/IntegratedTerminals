@@ -10,8 +10,10 @@ import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * Capability for displaying and interacting with ingredient components of a certain type in the storage terminal.
@@ -103,5 +105,13 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param playerSlot The player slot to extract from.
      */
     public void extractMaxFromPlayerInventorySlot(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, int playerSlot);
+
+    /**
+     * Get a predicate for matching instances that apply to the given query string.
+     * @param searchMode The mode to search under
+     * @param query A query string.
+     * @return An instance matcher.
+     */
+    public Predicate<T> getInstanceFilterPredicate(SearchMode searchMode, String query);
 
 }

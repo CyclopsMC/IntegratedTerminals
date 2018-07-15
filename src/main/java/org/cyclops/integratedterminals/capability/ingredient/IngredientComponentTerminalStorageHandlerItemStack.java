@@ -9,11 +9,14 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.client.config.GuiUtils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
+import net.minecraftforge.oredict.OreDictionary;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -24,9 +27,14 @@ import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Terminal storage handler for items.
@@ -60,11 +68,11 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             renderItem.renderItemAndEffectIntoGUI(instance, x, y);
             renderItem.renderItemOverlayIntoGUI(Minecraft.getMinecraft().fontRenderer, instance, x, y, label);
         } else {
-            net.minecraftforge.fml.client.config.GuiUtils.preItemToolTip(instance);
+            GuiUtils.preItemToolTip(instance);
             GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> instance.getTooltip(
                     Minecraft.getMinecraft().player, Minecraft.getMinecraft().gameSettings.advancedItemTooltips
                             ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL));
-            net.minecraftforge.fml.client.config.GuiUtils.postItemToolTip();
+            GuiUtils.postItemToolTip();
         }
         RenderHelper.disableStandardItemLighting();
         GlStateManager.popMatrix();
@@ -135,5 +143,24 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             playerInventory.setInventorySlotContents(playerSlot, storage.insert(toMove, false));
             playerInventory.player.openContainer.detectAndSendChanges();
         }
+    }
+
+    @Override
+    public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
+        switch (searchMode) {
+            case MOD:
+                return i -> Optional.ofNullable(i.getItem().getRegistryName())
+                        .orElse(new ResourceLocation("minecraft:a")).toString().toLowerCase(Locale.ENGLISH)
+                        .matches(".*" + query + ".*");
+            case TOOLTIP:
+                return i -> i.getTooltip(Minecraft.getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL).stream()
+                        .anyMatch(s -> s.toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
+            case DICT:
+                return i -> Arrays.stream(OreDictionary.getOreIDs(i)).mapToObj(OreDictionary::getOreName)
+                        .anyMatch(name -> name.toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
+            case DEFAULT:
+                return i -> i.getDisplayName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+        }
+        return null;
     }
 }

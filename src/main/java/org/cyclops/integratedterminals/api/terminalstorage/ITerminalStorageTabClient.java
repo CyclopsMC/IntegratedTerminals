@@ -28,6 +28,20 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     public List<String> getTooltip();
 
     /**
+     * Get the currently active filter.
+     * @param channel The channel to get the filter for.
+     * @return The active filter.
+     */
+    public String getInstanceFilter(int channel);
+
+    /**
+     * Set a filter for instances in slots.
+     * @param filter A string-based filter, which could be a regex.
+     * @param channel The channel to filter in.
+     */
+    public void setInstanceFilter(int channel, String filter);
+
+    /**
      * Get a subset of slots.
      * @param channel A channel id.
      * @param offset A slot offset.

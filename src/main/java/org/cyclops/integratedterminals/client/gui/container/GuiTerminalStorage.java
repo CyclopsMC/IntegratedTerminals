@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
 import org.cyclops.cyclopscore.client.gui.component.input.GuiArrowedListField;
+import org.cyclops.cyclopscore.client.gui.component.input.GuiTextFieldExtended;
 import org.cyclops.cyclopscore.client.gui.container.GuiContainerExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -52,6 +53,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     private GuiArrowedListField<String> fieldChannel;
     private GuiScrollBar scrollBar;
+    private GuiTextFieldExtended fieldSearch;
     private int firstRow;
 
     public GuiTerminalStorage(EntityPlayer player, PartTarget target, IPartContainer partContainer, IPartType partType) {
@@ -79,6 +81,14 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 return totalSlots / getSlotRowLength();
             }
         };
+
+        fieldSearch = new GuiTextFieldExtended(1, Minecraft.getMinecraft().fontRenderer, guiLeft + 82, guiTop + 26, 80, 20);
+        fieldSearch.setMaxStringLength(50);
+        fieldSearch.setVisible(true);
+        fieldSearch.setTextColor(16777215);
+        fieldSearch.setCanLoseFocus(true);
+        fieldSearch.setEnabled(true);
+        fieldSearch.setEnableBackgroundDrawing(false);
     }
 
     @Override
@@ -106,6 +116,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     protected void drawGuiContainerBackgroundLayer(float f, int mouseX, int mouseY) {
         super.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
         fieldChannel.drawTextBox(Minecraft.getMinecraft(), mouseX, mouseY);
+        fieldSearch.drawTextBox(Minecraft.getMinecraft(), mouseX, mouseY);
         drawTabsBackground();
         drawTabContents(getContainer().getSelectedTabIndex(), getContainer().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + SLOTS_OFFSET_X, getGuiTopTotal() + SLOTS_OFFSET_Y, mouseX, mouseY);
@@ -153,6 +164,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             // Reset active slot
             getSelectedClientTab().resetActiveSlot();
 
+            // Update the filter
+            fieldSearch.setText(getSelectedClientTab().getInstanceFilter(getContainer().getSelectedChannel()));
+
             return;
         }
 
@@ -166,6 +180,10 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             }
             getContainer().setSelectedChannel(channel);
             scrollBar.scrollTo(0); // Reset scrollbar
+
+            // Update the filter
+            fieldSearch.setText(getSelectedClientTab().getInstanceFilter(channel));
+
             return;
         }
 
@@ -178,7 +196,19 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             return;
         }
 
+        // Click in search field
+        fieldSearch.mouseClicked(mouseX, mouseY, mouseButton);
+
         super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
+            getSelectedClientTab().setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText());
+        } else {
+            super.keyTyped(typedChar, keyCode);
+        }
     }
 
     private int getStorageSlotIndexAtPosition(int mouseX, int mouseY) {

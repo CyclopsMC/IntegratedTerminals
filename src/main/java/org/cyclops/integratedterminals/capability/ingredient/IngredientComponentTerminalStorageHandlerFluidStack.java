@@ -8,6 +8,7 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
@@ -24,9 +25,13 @@ import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * Terminal storage handler for fluids.
@@ -134,5 +139,21 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             playerInventory.setInventorySlotContents(playerSlot, fluidHandler.getContainer());
             playerInventory.player.openContainer.detectAndSendChanges();
         }
+    }
+
+    @Override
+    public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
+        switch (searchMode) {
+            case MOD:
+                return i -> Optional.ofNullable(FluidRegistry.getModId(i)).orElse("minecraft")
+                        .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case TOOLTIP:
+                return i -> false; // Fluids have no tooltip
+            case DICT:
+                return i -> false; // There is no fluid dictionary
+            case DEFAULT:
+                return i -> i.getLocalizedName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+        }
+        return null;
     }
 }

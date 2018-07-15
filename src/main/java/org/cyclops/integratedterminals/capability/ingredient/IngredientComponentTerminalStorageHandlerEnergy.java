@@ -21,8 +21,10 @@ import org.cyclops.integrateddynamics.block.BlockEnergyBattery;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
 /**
  * Terminal storage handler for energy.
@@ -118,5 +120,10 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
             IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
         }
+    }
+
+    @Override
+    public Predicate<Integer> getInstanceFilterPredicate(SearchMode searchMode, String query) {
+        return integer -> true; // Searching does not make sense here, as at most one instance exists.
     }
 }
