@@ -20,5 +20,5 @@ public class ClientProxy extends ClientProxyComponent {
 	public ModBase getMod() {
 		return IntegratedTerminals._instance;
 	}
-    
+
 }

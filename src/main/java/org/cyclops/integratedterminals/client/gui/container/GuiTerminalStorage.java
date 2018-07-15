@@ -20,6 +20,7 @@ import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.proxy.ClientProxy;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
@@ -82,7 +83,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             }
         };
 
-        fieldSearch = new GuiTextFieldExtended(1, Minecraft.getMinecraft().fontRenderer, guiLeft + 82, guiTop + 26, 80, 20);
+        fieldSearch = new GuiTextFieldExtended(1, Minecraft.getMinecraft().fontRenderer, guiLeft + 82, guiTop + 27, 80, 20);
         fieldSearch.setMaxStringLength(50);
         fieldSearch.setVisible(true);
         fieldSearch.setTextColor(16777215);
@@ -204,7 +205,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
+        if (ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(keyCode)) {
+            fieldSearch.setFocused(true);
+        } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
             getSelectedClientTab().setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText());
         } else {
             super.keyTyped(typedChar, keyCode);
