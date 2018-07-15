@@ -28,6 +28,7 @@ import org.lwjgl.input.Keyboard;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -99,6 +100,16 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 .collect(Collectors.toList());
     }
 
+    protected Optional<T> getSlotInstance(int channel, int index) {
+        if (index >= 0) {
+            List<TerminalStorageSlotIngredient<T, M>> lastSlots = getSlots(channel, index, 1);
+            if (!lastSlots.isEmpty()) {
+                return Optional.of(lastSlots.get(0).getInstance());
+            }
+        }
+        return Optional.empty();
+    }
+
     @Override
     public int getSlotCount(int channel) {
         return getSafeIngredientsView(channel).size();
@@ -118,13 +129,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType, IngredientArrayList<T, M> ingredients) {
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
-        T lastInstance = null;
-        if (this.activeSlotId >= 0) {
-            List<TerminalStorageSlotIngredient<T, M>> lastSlots = getSlots(channel, this.activeSlotId, 1);
-            if (!lastSlots.isEmpty()) {
-                lastInstance = lastSlots.get(0).getInstance();
-            }
-        }
+        Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
 
         // Apply the change to the wildcard channel as well
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
@@ -162,21 +167,23 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
-        if (lastInstance != null) {
+        if (lastInstance.isPresent()) {
             int newActiveSlot = 0;
             M matchCondition = matcher.withoutCondition(matcher.getExactMatchCondition(),
                     ingredients.getComponent().getPrimaryQuantifier().getMatchCondition());
-            for (T persistedIngredient : persistedIngredients) {
-                if (matcher.matches(persistedIngredient, lastInstance, matchCondition)) {
+            List<TerminalStorageSlotIngredient<T, M>> slots = getSlots(channel, 0, Integer.MAX_VALUE);
+            for (TerminalStorageSlotIngredient<T, M> slot : slots) {
+                T ingredient = slot.getInstance();
+                if (matcher.matches(ingredient, lastInstance.get(), matchCondition)) {
                     this.activeSlotId = newActiveSlot;
-                    this.activeSlotQuantity = Math.min(this.activeSlotQuantity, Helpers.castSafe(matcher.getQuantity(persistedIngredient)));
+                    this.activeSlotQuantity = Math.min(this.activeSlotQuantity, Helpers.castSafe(matcher.getQuantity(ingredient)));
                     break;
                 }
                 newActiveSlot++;
             }
 
             // None was found, deselect slot
-            if (newActiveSlot == persistedIngredients.size()) {
+            if (newActiveSlot == slots.size()) {
                 this.activeSlotId = -1;
                 this.activeSlotQuantity = 0;
             }
@@ -230,9 +237,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @Override
     public boolean handleClick(int channel, int hoveringStorageSlot, int mouseButton, boolean hasClickedOutside, int hoveredPlayerSlot) {
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
-        List<TerminalStorageSlotIngredient<T, M>> slots = hoveringStorageSlot >= 0 ? getSlots(channel, hoveringStorageSlot, 1) : Lists.newArrayList();
-        boolean validHoveringStorageSlot = !slots.isEmpty();
-        T hoveringStorageInstance = slots.size() > 0 ? slots.get(0).getInstance() : matcher.getEmptyInstance();
+        Optional<T> hoveringStorageInstance = getSlotInstance(channel, hoveringStorageSlot);
+        boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
 
@@ -241,13 +247,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             TerminalClickType clickType = null;
             boolean reset = false; // So that a reset occurs after the packet is sent
             if (validHoveringStorageSlot && player.inventory.getItemStack().isEmpty() && activeSlotId < 0) {
-                if (hoveringStorageInstance != null && shift) {
+                if (shift) {
                     // Quick move max quantity from storage to player
                     clickType = TerminalClickType.STORAGE_QUICK_MOVE;
                 } else {
                     // Pick up
                     this.activeSlotId = hoveringStorageSlot;
-                    this.activeSlotQuantity = Math.min((int) ingredientComponent.getMatcher().getQuantity(hoveringStorageInstance),
+                    this.activeSlotQuantity = Math.min((int) ingredientComponent.getMatcher()
+                                    .getQuantity(hoveringStorageInstance.orElse(matcher.getEmptyInstance())),
                             viewHandler.getInitialInstanceMovementQuantity());
                     if (mouseButton == 1) {
                         this.activeSlotQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
@@ -290,7 +297,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), activeSlotQuantity);
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
-                        ingredientComponent, clickType, channel, hoveringStorageInstance, hoveredPlayerSlot, activeInstance));
+                        ingredientComponent, clickType, channel,
+                        hoveringStorageInstance.orElse(matcher.getEmptyInstance()), hoveredPlayerSlot, activeInstance));
                 if (reset) {
                     resetActiveSlot();
                 }
