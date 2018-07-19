@@ -53,6 +53,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                              GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int channel) {
         if (instance > 0) {
             if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND){
+
                 // Draw background
                 gui.drawTexturedModalRect(x, y, 48, 225, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
 

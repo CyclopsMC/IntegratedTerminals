@@ -385,7 +385,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                         drawRect(slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
                     }
                 }
+
+                this.zLevel = 200F;
                 slot.drawGuiContainerLayer(this, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
+                this.zLevel = 0F;
+
                 if (++slotI >= rowLength) {
                     slotX = x;
                     slotY += GuiHelpers.SLOT_SIZE;
@@ -410,9 +414,12 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 ITerminalStorageSlot slot = tab.getSlots(getContainer().getSelectedChannel(), slotId, 1).get(0);
                 RenderHelpers.bindTexture(this.texture);
                 GlStateManager.color(1, 1, 1, 1);
+
+                this.zLevel = 300F;
                 slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
                         mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
                         mouseX, mouseY, tab, getContainer().getSelectedChannel(), GuiHelpers.quantityToScaledString(maxQuantity));
+                this.zLevel = 0F;
             }
         });
     }
