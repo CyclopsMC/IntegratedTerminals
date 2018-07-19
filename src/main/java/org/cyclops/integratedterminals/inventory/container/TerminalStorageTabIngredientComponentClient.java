@@ -60,6 +60,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private boolean enabled;
     private int activeSlotId;
     private int activeSlotQuantity;
+    private int activeChannel;
 
     public TerminalStorageTabIngredientComponentClient(IngredientComponent<?, ?> ingredientComponent) {
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
@@ -233,7 +234,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
-        if (lastInstance.isPresent()) {
+        if (lastInstance.isPresent() && this.activeChannel == channel) {
             int newActiveSlot = 0;
             M matchCondition = matcher.withoutCondition(matcher.getExactMatchCondition(),
                     ingredients.getComponent().getPrimaryQuantifier().getMatchCondition());
@@ -298,10 +299,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     public void resetActiveSlot() {
         this.activeSlotId = -1;
         this.activeSlotQuantity = 0;
+        this.activeChannel = -2;
     }
 
     @Override
     public boolean handleClick(int channel, int hoveringStorageSlot, int mouseButton, boolean hasClickedOutside, int hoveredPlayerSlot) {
+        this.activeChannel = channel;
+
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
         Optional<T> hoveringStorageInstance = getSlotInstance(channel, hoveringStorageSlot);
         boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
@@ -356,13 +360,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     clickType = TerminalClickType.STORAGE_PLACE_PLAYER;
                     if (mouseButton == 0) {
                         reset = true;
+                        moveQuantity = this.activeSlotQuantity;
                     } else if (mouseButton == 1) {
                         moveQuantity = viewHandler.getIncrementalInstanceMovementQuantity();
-                        this.activeSlotQuantity--;
                     } else {
                         moveQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
-                        this.activeSlotQuantity -= moveQuantity;
                     }
+                    this.activeSlotQuantity -= moveQuantity;
                 } else if (hoveringStorageSlot >= 0 && mouseButton == 1) {
                     // Adjust active quantity
                     this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - viewHandler.getIncrementalInstanceMovementQuantity());
