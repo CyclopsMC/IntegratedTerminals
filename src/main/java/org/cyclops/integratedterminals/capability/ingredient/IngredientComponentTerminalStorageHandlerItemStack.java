@@ -144,9 +144,12 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                                      InventoryPlayer playerInventory) {
-        ItemStack playerStack = playerInventory.getItemStack();
-        playerInventory.setItemStack(storage.insert(playerStack, false));
+                                                      InventoryPlayer playerInventory, long moveQuantityPlayerSlot) {
+        ItemStack playerStack = IngredientComponent.ITEMSTACK.getMatcher().withQuantity(playerInventory.getItemStack(),
+                moveQuantityPlayerSlot);
+        int remaining = storage.insert(playerStack, false).getCount();
+        int moved = (int) (moveQuantityPlayerSlot - remaining);
+        playerInventory.getItemStack().shrink(moved);
     }
 
     @Override
@@ -157,6 +160,16 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             playerInventory.setInventorySlotContents(playerSlot, storage.insert(toMove, false));
             playerInventory.player.openContainer.detectAndSendChanges();
         }
+    }
+
+    @Override
+    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory) {
+        return playerInventory.getItemStack().getCount();
+    }
+
+    @Override
+    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity) {
+        playerInventory.getItemStack().shrink((int) quantity);
     }
 
     @Override

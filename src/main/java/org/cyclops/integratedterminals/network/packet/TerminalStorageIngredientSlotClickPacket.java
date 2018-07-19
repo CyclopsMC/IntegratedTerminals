@@ -33,6 +33,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
     @CodecField
     private int hoveredPlayerSlot;
     @CodecField
+    private long moveQuantityPlayerSlot;
+    @CodecField
     private NBTTagCompound activeStorageInstanceData;
 
     public TerminalStorageIngredientSlotClickPacket() {
@@ -41,7 +43,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
 
     public TerminalStorageIngredientSlotClickPacket(IngredientComponent<T, ?> component, TerminalClickType clickType,
                                                     int channel, T hoveringStorageInstance,
-                                                    int hoveredPlayerSlot, T activeStorageInstance) {
+                                                    int hoveredPlayerSlot, long moveQuantityPlayerSlot,
+                                                    T activeStorageInstance) {
         this.clickType = clickType.ordinal();
         this.ingredientName = component.getName().toString();
         this.channel = channel;
@@ -49,6 +52,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
         this.hoveringStorageInstanceData.setTag("i", serializer.serializeInstance(hoveringStorageInstance));
         this.hoveredPlayerSlot = hoveredPlayerSlot;
+        this.moveQuantityPlayerSlot = moveQuantityPlayerSlot;
         this.activeStorageInstanceData = new NBTTagCompound();
         this.activeStorageInstanceData.setTag("i", serializer.serializeInstance(activeStorageInstance));
     }
@@ -73,7 +77,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
             T hoveringStorageInstance = serializer.deserializeInstance(this.hoveringStorageInstanceData.getTag("i"));
             T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.getTag("i"));
-            tab.handleStorageSlotClick(player, getClickType(), getChannel(), hoveringStorageInstance, hoveredPlayerSlot, activeInstance);
+            tab.handleStorageSlotClick(player, getClickType(), getChannel(), hoveringStorageInstance, hoveredPlayerSlot,
+                    moveQuantityPlayerSlot, activeInstance);
         }
     }
 

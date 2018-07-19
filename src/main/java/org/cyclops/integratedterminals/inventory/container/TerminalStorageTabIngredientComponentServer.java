@@ -120,7 +120,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
     @Nullable
     public void handleStorageSlotClick(EntityPlayerMP player, TerminalClickType clickType, int channel, T hoveringStorageInstance,
-                                       int hoveredPlayerSlot, T activeStorageInstance) {
+                                       int hoveredPlayerSlot, long moveQuantityPlayerSlot, T activeStorageInstance) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
         IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
 
@@ -138,7 +138,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 updateActivePlayerStack = true;
                 break;
             case PLAYER_PLACE_STORAGE:
-                viewHandler.extractActiveStackFromPlayerInventory(storage, player.inventory);
+                viewHandler.extractActiveStackFromPlayerInventory(storage, player.inventory, moveQuantityPlayerSlot);
                 updateActivePlayerStack = true;
                 break;
             case PLAYER_QUICK_MOVE:

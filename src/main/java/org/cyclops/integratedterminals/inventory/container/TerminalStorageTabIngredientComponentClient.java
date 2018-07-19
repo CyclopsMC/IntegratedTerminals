@@ -311,6 +311,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         EntityPlayer player = Minecraft.getMinecraft().player;
         if (mouseButton == 0 || mouseButton == 1 || mouseButton == 2) {
             TerminalClickType clickType = null;
+            long moveQuantity = this.activeSlotQuantity;
+            long movePlayerQuantity = 0;
             boolean reset = false; // So that a reset occurs after the packet is sent
             if (validHoveringStorageSlot && player.inventory.getItemStack().isEmpty() && activeSlotId < 0) {
                 if (shift) {
@@ -334,6 +336,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             } else if (hoveringStorageSlot >= 0 && !player.inventory.getItemStack().isEmpty()) {
                 // Move into storage
                 clickType = TerminalClickType.PLAYER_PLACE_STORAGE;
+                if (mouseButton == 0) {
+                    movePlayerQuantity = viewHandler.getActivePlayerStackQuantity(player.inventory);
+                } else if (mouseButton == 1) {
+                    movePlayerQuantity = viewHandler.getIncrementalInstanceMovementQuantity();
+                } else {
+                    movePlayerQuantity = (int) Math.ceil((double) viewHandler.getActivePlayerStackQuantity(player.inventory) / 2);
+                }
+                viewHandler.drainActivePlayerStackQuantity(player.inventory, movePlayerQuantity);
                 resetActiveSlot();
             } else if (activeSlotId >= 0) {
                 // We have a storage slot selected
@@ -344,27 +354,38 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 } else if (hoveredPlayerSlot >= 0) {
                     // Insert into player inventory
                     clickType = TerminalClickType.STORAGE_PLACE_PLAYER;
-                    reset = true;
+                    if (mouseButton == 0) {
+                        reset = true;
+                    } else if (mouseButton == 1) {
+                        moveQuantity = viewHandler.getIncrementalInstanceMovementQuantity();
+                        this.activeSlotQuantity--;
+                    } else {
+                        moveQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
+                        this.activeSlotQuantity -= moveQuantity;
+                    }
                 } else if (hoveringStorageSlot >= 0 && mouseButton == 1) {
                     // Adjust active quantity
                     this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - viewHandler.getIncrementalInstanceMovementQuantity());
+                    if (this.activeSlotQuantity == 0) {
+                        activeSlotId = -1;
+                    }
                 } else {
                     // Deselect slot
                     resetActiveSlot();
                 }
 
-                if (activeSlotQuantity == 0) {
+                if (moveQuantity == 0) {
                     activeSlotId = -1;
                 }
             }
             if (clickType != null) {
                 T activeInstance = matcher.getEmptyInstance();
                 if (activeSlotId >= 0) {
-                    activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), activeSlotQuantity);
+                    activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), moveQuantity);
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         ingredientComponent, clickType, channel,
-                        hoveringStorageInstance.orElse(matcher.getEmptyInstance()), hoveredPlayerSlot, activeInstance));
+                        hoveringStorageInstance.orElse(matcher.getEmptyInstance()), hoveredPlayerSlot, movePlayerQuantity, activeInstance));
                 if (reset) {
                     resetActiveSlot();
                 }

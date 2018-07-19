@@ -96,8 +96,9 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * Move the ingredient in the active player stack to the storage.
      * @param storage The storage to insert to.
      * @param playerInventory The player inventory to extract from.
+     * @param moveQuantityPlayerSlot The player stack quantity that should be extracted.
      */
-    public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory);
+    public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, long moveQuantityPlayerSlot);
 
     /**
      * Move as much as possible from the given player slot into the storage.
@@ -106,6 +107,21 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param playerSlot The player slot to extract from.
      */
     public void extractMaxFromPlayerInventorySlot(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, int playerSlot);
+
+    /**
+     * Get the quantity in the active player stack.
+     * @param playerInventory The player inventory.
+     * @return The quantity.
+     */
+    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory);
+
+    /**
+     * Drain the given quantity from the active player stack.
+     * This will typically only be called client-side, and later confirmed by the server.
+     * @param playerInventory The player inventory.
+     * @param quantity The quantity to drain.
+     */
+    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity);
 
     /**
      * Get a predicate for matching instances that apply to the given query string.

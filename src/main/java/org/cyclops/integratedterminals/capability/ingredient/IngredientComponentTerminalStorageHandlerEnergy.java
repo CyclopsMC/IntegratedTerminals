@@ -110,12 +110,12 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<Integer, Boolean> storage,
-                                                      InventoryPlayer playerInventory) {
+                                                      InventoryPlayer playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = playerInventory.getItemStack();
         IEnergyStorage energyStorage = playerStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
         }
     }
 
@@ -126,6 +126,32 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
             IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+        }
+    }
+
+    @Override
+    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory) {
+        ItemStack toMoveStack = playerInventory.getItemStack();
+        IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
+        if (energyStorage != null) {
+            return energyStorage.getEnergyStored();
+        }
+        return 0;
+    }
+
+    @Override
+    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity) {
+        ItemStack toMoveStack = playerInventory.getItemStack();
+        IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
+        if (energyStorage != null) {
+            // Drain
+            while (quantity > 0) {
+                int drained = energyStorage.extractEnergy((int) quantity, false);
+                if (drained <= 0) {
+                    break;
+                }
+                quantity -= drained;
+            }
         }
     }
 

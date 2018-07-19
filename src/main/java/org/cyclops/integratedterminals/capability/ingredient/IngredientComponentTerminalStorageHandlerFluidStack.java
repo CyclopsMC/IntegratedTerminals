@@ -12,6 +12,7 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
@@ -125,12 +126,12 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
-                                                      InventoryPlayer playerInventory) {
+                                                      InventoryPlayer playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = playerInventory.getItemStack();
         IFluidHandlerItem fluidHandler = playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
 
             playerInventory.setItemStack(fluidHandler.getContainer());
         }
@@ -146,6 +147,35 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
             playerInventory.setInventorySlotContents(playerSlot, fluidHandler.getContainer());
             playerInventory.player.openContainer.detectAndSendChanges();
+        }
+    }
+
+    @Override
+    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory) {
+        ItemStack toMoveStack = playerInventory.getItemStack();
+        IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+        if (fluidHandler != null) {
+            IFluidTankProperties[] props = fluidHandler.getTankProperties();
+            if (props.length > 0) {
+                return FluidHelpers.getAmount(props[0].getContents());
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity) {
+        ItemStack toMoveStack = playerInventory.getItemStack();
+        IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+        if (fluidHandler != null) {
+            while (quantity > 0) {
+                int drained = FluidHelpers.getAmount(fluidHandler.drain((int) quantity, true));
+                if (drained <= 0) {
+                    break;
+                }
+                quantity -= drained;
+            }
+            playerInventory.setItemStack(fluidHandler.getContainer());
         }
     }
 
