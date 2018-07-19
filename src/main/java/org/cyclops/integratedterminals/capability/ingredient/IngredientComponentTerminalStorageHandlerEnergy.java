@@ -16,6 +16,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integrateddynamics.block.BlockEnergyBattery;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -63,7 +64,10 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                 RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
-                        mouseX, mouseY, () -> Lists.newArrayList(label != null ? label : TextFormatting.GRAY.toString() + instance + " FE"));
+                        mouseX, mouseY, () -> Lists.newArrayList(label != null ? label :
+                                TextFormatting.DARK_GRAY.toString() + L10NHelpers.localize(
+                                        "gui.integratedterminals.terminal_storage.tooltip.quantity",
+                                        String.format("%,d", instance) + " FE")));
             }
         }
     }

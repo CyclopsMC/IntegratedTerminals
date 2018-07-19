@@ -21,6 +21,7 @@ import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponen
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.FluidHelpers;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -73,7 +74,9 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                     if (label != null) {
                         lines.add(label);
                     } else {
-                        lines.add(TextFormatting.GRAY.toString() + instance.amount + " mB");
+                        lines.add(TextFormatting.DARK_GRAY.toString() + L10NHelpers.localize(
+                                "gui.integratedterminals.terminal_storage.tooltip.quantity",
+                                String.format("%,d", instance.amount) + " mB"));
                     }
                     return lines;
                 });
