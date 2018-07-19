@@ -26,18 +26,22 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
     private NBTTagCompound changeData;
 	@CodecField
 	private int channel;
+	@CodecField
+	private boolean enabled;
 
     public TerminalStorageIngredientChangeEventPacket() {
 
     }
 
-    public TerminalStorageIngredientChangeEventPacket(IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event) {
+    public TerminalStorageIngredientChangeEventPacket(IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event,
+													  boolean enabled) {
 		IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
 		IIngredientCollection<?, ?> instances = event.getInstances();
 		NBTTagCompound serialized = IngredientCollections.serialize(instances);
 		serialized.setInteger("changeType", changeType.ordinal());
 		this.changeData = serialized;
 		this.channel = event.getChannel();
+		this.enabled = enabled;
     }
 
 	@Override
@@ -53,7 +57,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInteger("changeType")];
 			IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
 			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(ingredients.getComponent());
-			tab.onChange(channel, changeType, ingredients);
+			tab.onChange(channel, changeType, ingredients, enabled);
 			container.refreshChannelStrings();
 		}
 	}

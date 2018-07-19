@@ -52,6 +52,11 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     public List<S> getSlots(int channel, int offset, int limit);
 
     /**
+     * @return If this tab is enabled.
+     */
+    public boolean isEnabled();
+
+    /**
      * Get the total number of slots in the given channel
      * @param channel A channel id.
      * @return A slot count.

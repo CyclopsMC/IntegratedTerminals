@@ -57,6 +57,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     private final TIntLongMap maxQuantities;
     private final TIntLongMap totalQuantities;
+    private boolean enabled;
     private int activeSlotId;
     private int activeSlotQuantity;
 
@@ -77,6 +78,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         this.maxQuantities = new TIntLongHashMap();
         this.totalQuantities = new TIntLongHashMap();
+        this.enabled = false;
         resetActiveSlot();
     }
 
@@ -154,6 +156,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;
+    }
+
     protected Optional<T> getSlotInstance(int channel, int index) {
         if (index >= 0) {
             List<TerminalStorageSlotIngredient<T, M>> lastSlots = getSlots(channel, index, 1);
@@ -179,15 +186,19 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      * @param channel A channel id.
      * @param changeType A change type.
      * @param ingredients A list of changed ingredients.
+     * @param enabled If this tab is enabled.
      */
-    public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType, IngredientArrayList<T, M> ingredients) {
+    public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType,
+                                      IngredientArrayList<T, M> ingredients, boolean enabled) {
+        this.enabled = enabled;
+
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
         Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
 
         // Apply the change to the wildcard channel as well
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
-            onChange(IPositionedAddonsNetwork.WILDCARD_CHANNEL, changeType, ingredients);
+            onChange(IPositionedAddonsNetwork.WILDCARD_CHANNEL, changeType, ingredients, enabled);
         }
 
         // Calculate quantity-diff

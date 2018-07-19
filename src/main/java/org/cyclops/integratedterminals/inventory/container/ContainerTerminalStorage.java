@@ -164,7 +164,13 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     }
 
     public Map<String, ITerminalStorageTabClient<?>> getTabsClient() {
-        return tabsClient;
+        Map<String, ITerminalStorageTabClient<?>> tabs = Maps.newHashMap();
+        for (Map.Entry<String, ITerminalStorageTabClient<?>> entry : tabsClient.entrySet()) {
+            if (entry.getValue().isEnabled()) {
+                tabs.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return tabs;
     }
 
     public Map<String, ITerminalStorageTabServer> getTabsServer() {

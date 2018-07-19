@@ -89,7 +89,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         // Only allow ingredient collection of a max given size to be sent in a packet
         if (event.getInstances().size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientChangeEventPacket(event), player);
+                    new TerminalStorageIngredientChangeEventPacket(event, this.ingredientNetwork.hasPositions()), player);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientMaxQuantityPacket(event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
         } else {

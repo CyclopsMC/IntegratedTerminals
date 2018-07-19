@@ -17,6 +17,7 @@ import org.cyclops.cyclopscore.client.gui.component.input.GuiArrowedListField;
 import org.cyclops.cyclopscore.client.gui.component.input.GuiTextFieldExtended;
 import org.cyclops.cyclopscore.client.gui.container.GuiContainerExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
@@ -98,7 +99,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             @Override
             public int getTotalRows() {
                 ContainerTerminalStorage container = getContainer();
-                int totalSlots = getSelectedClientTab().getSlotCount(container.getSelectedChannel());
+                Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+                if (!tabOptional.isPresent()) {
+                    return 0;
+                }
+                int totalSlots = tabOptional.get().getSlotCount(container.getSelectedChannel());
                 return totalSlots / getSlotRowLength();
             }
         };
@@ -154,29 +159,34 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         drawActiveStorageSlotItem(mouseX, mouseY);
 
         // Draw button tooltips
-        int offset = 0;
-        ITerminalStorageTabClient<?> clientTab = getClientTab(getContainer().getSelectedTab());
-        for (ITerminalButton button : clientTab.getButtons()) {
-            GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
-            if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
-                List<String> lines = Lists.newArrayList();
-                lines.add(L10NHelpers.localize(button.getUnlocalizedName()));
-                button.getTooltip(mc.player, ITooltipFlag.TooltipFlags.NORMAL, lines);
-                drawTooltip(lines, mouseX - guiLeft, mouseY - guiTop);
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getClientTab(getContainer().getSelectedTab());
+        tabOptional.ifPresent(tab -> {
+            int offset = 0;
+            for (ITerminalButton button : tab.getButtons()) {
+                GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
+                if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
+                    List<String> lines = Lists.newArrayList();
+                    lines.add(L10NHelpers.localize(button.getUnlocalizedName()));
+                    button.getTooltip(mc.player, ITooltipFlag.TooltipFlags.NORMAL, lines);
+                    drawTooltip(lines, mouseX - guiLeft, mouseY - guiTop);
+                }
+                offset += BUTTONS_OFFSET + guiButton.height;
             }
-            offset += BUTTONS_OFFSET + guiButton.height;
-        }
+        });
     }
 
     @Override
     protected void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
         scrollBar.drawCurrentScreen(mouseX, mouseY, partialTicks);
-        int offset = 0;
-        for (ITerminalButton button : getSelectedClientTab().getButtons()) {
-            GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
-            guiButton.drawButton(mc, mouseX, mouseY, partialTicks);
-            offset += BUTTONS_OFFSET + guiButton.height;
-        }
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+        tabOptional.ifPresent(tab -> {
+            int offset = 0;
+            for (ITerminalButton button : tab.getButtons()) {
+                GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
+                guiButton.drawButton(mc, mouseX, mouseY, partialTicks);
+                offset += BUTTONS_OFFSET + guiButton.height;
+            }
+        });
 
         super.drawCurrentScreen(mouseX, mouseY, partialTicks);
     }
@@ -202,6 +212,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+
         // Select a tab
         if (mouseButton == 0
                 && mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
@@ -215,10 +227,10 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             scrollBar.scrollTo(0);
 
             // Reset active slot
-            getSelectedClientTab().resetActiveSlot();
+            tabOptional.ifPresent(ITerminalStorageTabClient::resetActiveSlot);
 
             // Update the filter
-            fieldSearch.setText(getSelectedClientTab().getInstanceFilter(getContainer().getSelectedChannel()));
+            tabOptional.ifPresent(tab -> fieldSearch.setText(tab.getInstanceFilter(getContainer().getSelectedChannel())));
 
             return;
         }
@@ -231,38 +243,42 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             } catch (NumberFormatException e) {
                 channel = -1;
             }
+            final int finalChannel = channel;
             getContainer().setSelectedChannel(channel);
             scrollBar.scrollTo(0); // Reset scrollbar
 
             // Update the filter
-            fieldSearch.setText(getSelectedClientTab().getInstanceFilter(channel));
+            tabOptional.ifPresent(tab -> fieldSearch.setText(tab.getInstanceFilter(finalChannel)));
 
             return;
         }
 
         // Handle clicks on storage slots
-        int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
-        Slot playerSlot = getSlotUnderMouse();
-        boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop);
-        if (getSelectedClientTab().handleClick(getContainer().getSelectedChannel(), slot, mouseButton,
-                hasClickedOutside, playerSlot != null ? playerSlot.getSlotIndex() : -1)) {
-            return;
+        if (tabOptional.isPresent()) {
+            int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+            Slot playerSlot = getSlotUnderMouse();
+            boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop);
+            if (tabOptional.get().handleClick(getContainer().getSelectedChannel(), slot, mouseButton,
+                    hasClickedOutside, playerSlot != null ? playerSlot.getSlotIndex() : -1)) {
+                return;
+            }
         }
 
         // Click in search field
         fieldSearch.mouseClicked(mouseX, mouseY, mouseButton);
 
         // Handle buttons clicks
-        int offset = 0;
-        ITerminalStorageTabClient<?> clientTab = getSelectedClientTab();
-        for (ITerminalButton button : clientTab.getButtons()) {
-            GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
-            if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
-                button.onClick(clientTab, guiButton, getContainer().getSelectedChannel(), mouseButton);
-                return;
+        tabOptional.ifPresent(tab -> {
+            int offset = 0;
+            for (ITerminalButton button : tab.getButtons()) {
+                GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
+                if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
+                    button.onClick(tab, guiButton, getContainer().getSelectedChannel(), mouseButton);
+                    return;
+                }
+                offset += BUTTONS_OFFSET + guiButton.height;
             }
-            offset += BUTTONS_OFFSET + guiButton.height;
-        }
+        });
 
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
@@ -272,7 +288,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         if (ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(keyCode)) {
             fieldSearch.setFocused(true);
         } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
-            getSelectedClientTab().setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText());
+            getSelectedClientTab()
+                    .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
         } else {
             super.keyTyped(typedChar, keyCode);
         }
@@ -345,58 +362,66 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     protected void drawTabContents(String tabId, int channel, DrawLayer layer,
                                    float partialTick, int x, int y, int mouseX, int mouseY) {
-        ITerminalStorageTabClient tab = getClientTab(tabId);
+        Optional<ITerminalStorageTabClient<?>> optionalTab = getClientTab(tabId);
+        if (optionalTab.isPresent()) {
+            ITerminalStorageTabClient<?> tab = optionalTab.get();
+            // Draw status string
+            drawCenteredString(fontRenderer, tab.getStatus(channel), x + 80, y + 92, 16777215);
+            GlStateManager.color(1, 1, 1);
 
-        // Draw status string
-        drawCenteredString(fontRenderer, tab.getStatus(channel), x + 80, y + 92, 16777215);
-        GlStateManager.color(1, 1, 1);
-
-        // Draw slots
-        int rowLength = getSlotRowLength();
-        int limit = getSlotVisibleRows() * rowLength;
-        int offset = getSelectedFirstRow() * rowLength;
-        List<ITerminalStorageSlot> slots = tab.getSlots(channel, offset, limit);
-        int slotX = x;
-        int slotY = y;
-        int slotI = 0;
-        for (ITerminalStorageSlot slot : slots) {
-            if (layer == DrawLayer.BACKGROUND) {
-                // highlight slot on hover
-                RenderHelpers.bindTexture(this.texture);
-                if (RenderHelpers.isPointInRegion(slotX, slotY, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY)) {
-                    drawRect(slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
+            // Draw slots
+            int rowLength = getSlotRowLength();
+            int limit = getSlotVisibleRows() * rowLength;
+            int offset = getSelectedFirstRow() * rowLength;
+            List<ITerminalStorageSlot> slots = (List<ITerminalStorageSlot>) tab.getSlots(channel, offset, limit);
+            int slotX = x;
+            int slotY = y;
+            int slotI = 0;
+            for (ITerminalStorageSlot slot : slots) {
+                if (layer == DrawLayer.BACKGROUND) {
+                    // highlight slot on hover
+                    RenderHelpers.bindTexture(this.texture);
+                    if (RenderHelpers.isPointInRegion(slotX, slotY, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY)) {
+                        drawRect(slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
+                    }
+                }
+                slot.drawGuiContainerLayer(this, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
+                if (++slotI >= rowLength) {
+                    slotX = x;
+                    slotY += GuiHelpers.SLOT_SIZE;
+                    slotI = 0;
+                } else {
+                    slotX += GuiHelpers.SLOT_SIZE;
                 }
             }
-            slot.drawGuiContainerLayer(this, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
-            if (++slotI >= rowLength) {
-                slotX = x;
-                slotY += GuiHelpers.SLOT_SIZE;
-                slotI = 0;
-            } else {
-                slotX += GuiHelpers.SLOT_SIZE;
-            }
+        } else {
+            GlStateManager.color(0.3F, 0.3F, 0.3F, 0.3F);
+            drawRect(x - 1, y - 1, x - 1 + GuiHelpers.SLOT_SIZE * getSlotRowLength(), y - 1 + GuiHelpers.SLOT_SIZE * getSlotVisibleRows(), Helpers.RGBAToInt(50, 50, 50, 100));
+            GlStateManager.color(1, 1, 1);
         }
     }
 
     private void drawActiveStorageSlotItem(int mouseX, int mouseY) {
-        ITerminalStorageTabClient<?> tab = getSelectedClientTab();
-        int slotId = tab.getActiveSlotId();
-        if (slotId >= 0) {
-            int maxQuantity = tab.getActiveSlotQuantity();
-            ITerminalStorageSlot slot = tab.getSlots(getContainer().getSelectedChannel(), slotId, 1).get(0);
-            RenderHelpers.bindTexture(this.texture);
-            GlStateManager.color(1, 1, 1, 1);
-            slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
-                    mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
-                    mouseX, mouseY, tab, getContainer().getSelectedChannel(), GuiHelpers.quantityToScaledString(maxQuantity));
-        }
+        Optional<ITerminalStorageTabClient<?>> optionalTab = getSelectedClientTab();
+        optionalTab.ifPresent(tab -> {
+            int slotId = tab.getActiveSlotId();
+            if (slotId >= 0) {
+                int maxQuantity = tab.getActiveSlotQuantity();
+                ITerminalStorageSlot slot = tab.getSlots(getContainer().getSelectedChannel(), slotId, 1).get(0);
+                RenderHelpers.bindTexture(this.texture);
+                GlStateManager.color(1, 1, 1, 1);
+                slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
+                        mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
+                        mouseX, mouseY, tab, getContainer().getSelectedChannel(), GuiHelpers.quantityToScaledString(maxQuantity));
+            }
+        });
     }
 
-    protected ITerminalStorageTabClient<?> getClientTab(String tab) {
-        return getContainer().getTabsClient().get(tab);
+    protected Optional<ITerminalStorageTabClient<?>> getClientTab(String tab) {
+        return Optional.ofNullable(getContainer().getTabsClient().get(tab));
     }
 
-    protected ITerminalStorageTabClient<?> getSelectedClientTab() {
+    protected Optional<ITerminalStorageTabClient<?>> getSelectedClientTab() {
         return getClientTab(getContainer().getSelectedTab());
     }
 
