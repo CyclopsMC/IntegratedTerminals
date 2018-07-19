@@ -24,10 +24,15 @@ import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
+import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackIdSorter;
+import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackNameSorter;
+import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackQuantitySorter;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -155,5 +160,14 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                 return i -> i.getLocalizedName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }
         return null;
+    }
+
+    @Override
+    public Collection<IIngredientInstanceSorter<FluidStack>> getInstanceSorters() {
+        return Lists.newArrayList(
+                new FluidStackNameSorter(),
+                new FluidStackIdSorter(),
+                new FluidStackQuantitySorter()
+        );
     }
 }

@@ -13,6 +13,7 @@ import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.function.Predicate;
 
 /**
@@ -113,5 +114,10 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @return An instance matcher.
      */
     public Predicate<T> getInstanceFilterPredicate(SearchMode searchMode, String query);
+
+    /**
+     * @return The available sorters.
+     */
+    public Collection<IIngredientInstanceSorter<T>> getInstanceSorters();
 
 }

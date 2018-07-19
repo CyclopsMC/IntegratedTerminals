@@ -20,13 +20,17 @@ import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorage
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.inventory.container.query.IIngredientQuery;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 import org.lwjgl.input.Keyboard;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -45,6 +49,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
+    private final List<ITerminalButton<?, ?>> buttons;
 
     private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
     private final TIntObjectMap<IIngredientListMutable<T, M>> filteredIngredientsViews;
@@ -59,6 +64,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
         this.ingredientComponentViewHandler = Objects.requireNonNull(this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY));
         this.icon = ingredientComponentViewHandler.getIcon();
+        this.buttons = Lists.newArrayList();
+
+        // Add all sorting buttons
+        for (IIngredientInstanceSorter<T> instanceSorter : ingredientComponentViewHandler.getInstanceSorters()) {
+            this.buttons.add(new TerminalButtonSort<>(instanceSorter));
+        }
 
         this.ingredientsViews = new TIntObjectHashMap<>();
         this.filteredIngredientsViews = new TIntObjectHashMap<>();
@@ -91,7 +102,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return filter == null ? "" : filter;
     }
 
-    protected void resetFilteredIngredientsViews(int channel) {
+    public void resetFilteredIngredientsViews(int channel) {
         filteredIngredientsViews.remove(channel);
     }
 
@@ -114,9 +125,18 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         IIngredientListMutable<T, M> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = getUnfilteredIngredientsView(channel);
+
+            // Filter
             ingredientsView = new IngredientArrayList<>(ingredientsView.getComponent(), ingredientsView.stream()
                     .filter(IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)))
                     .collect(Collectors.toList()));
+
+            // Sort
+            Comparator<T> sorter = getInstanceSorter();
+            if (sorter != null) {
+                ingredientsView.sort(sorter);
+            }
+
             filteredIngredientsViews.put(channel, ingredientsView);
         }
         return ingredientsView;
@@ -352,5 +372,36 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @Override
     public int getActiveSlotQuantity() {
         return this.activeSlotQuantity;
+    }
+
+    @Override
+    public List<ITerminalButton<?, ?>> getButtons() {
+        return this.buttons;
+    }
+
+    @Nullable
+    public Comparator<T> getInstanceSorter() {
+        Comparator<T> sorter = null;
+
+        // Chain all effective sorters from buttons of type TerminalButtonSort
+        for (ITerminalButton<?, ?> button : this.buttons) {
+            if (button instanceof TerminalButtonSort) {
+                Comparator<T> partSorter = ((TerminalButtonSort<T>) button).getEffectiveSorter();
+                if (partSorter != null) {
+                    if (sorter == null) {
+                        sorter = partSorter;
+                    } else {
+                        sorter = sorter.thenComparing(partSorter);
+                    }
+                }
+            }
+        }
+
+        if (sorter != null) {
+            // Make comparators 0-equals-safe
+            sorter = sorter.thenComparing(ingredientComponent.getMatcher());
+        }
+
+        return sorter;
     }
 }

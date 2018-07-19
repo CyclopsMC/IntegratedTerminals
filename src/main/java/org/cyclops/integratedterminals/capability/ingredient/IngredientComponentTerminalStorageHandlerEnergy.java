@@ -20,10 +20,13 @@ import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integrateddynamics.block.BlockEnergyBattery;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Predicate;
 
 /**
@@ -125,5 +128,10 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public Predicate<Integer> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         return integer -> true; // Searching does not make sense here, as at most one instance exists.
+    }
+
+    @Override
+    public Collection<IIngredientInstanceSorter<Integer>> getInstanceSorters() {
+        return Collections.emptyList();
     }
 }

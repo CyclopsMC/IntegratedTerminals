@@ -69,7 +69,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         this.selectedChannelValueId = getNextValueId();
         this.serverTabsInitialized = false;
 
-        addPlayerInventory(player.inventory, 9, 143);
+        addPlayerInventory(player.inventory, 31, 143);
 
         this.world = player.world;
         this.channelAllLabel = L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel_all");

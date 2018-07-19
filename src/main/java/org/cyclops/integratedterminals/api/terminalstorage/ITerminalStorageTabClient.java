@@ -95,4 +95,9 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      */
     public int getActiveSlotQuantity();
 
+    /**
+     * @return Buttons that are available for this tab.
+     */
+    public List<ITerminalButton<?, ?>> getButtons();
+
 }

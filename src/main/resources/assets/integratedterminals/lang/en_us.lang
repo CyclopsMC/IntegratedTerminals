@@ -6,6 +6,21 @@ general.integratedterminals.description=Terminals for managing and overviewing I
 gui.integratedterminals.terminal_storage.storage_name=%s Storage
 gui.integratedterminals.terminal_storage.channel=Chan:
 gui.integratedterminals.terminal_storage.channel_all=All
+gui.integratedterminals.terminal_storage.sort.order.label=Order: %s
+gui.integratedterminals.terminal_storage.sort.order.ascending=Ascending
+gui.integratedterminals.terminal_storage.sort.order.descending=Descending
+gui.integratedterminals.terminal_storage.sort.itemstack.id=Item ID
+gui.integratedterminals.terminal_storage.sort.itemstack.id.info=Sort by internal item registry ID.
+gui.integratedterminals.terminal_storage.sort.itemstack.name=Item Name
+gui.integratedterminals.terminal_storage.sort.itemstack.name.info=Sort by item name.
+gui.integratedterminals.terminal_storage.sort.itemstack.quantity=Item Amount
+gui.integratedterminals.terminal_storage.sort.itemstack.quantity.info=Sort by item stack size.
+gui.integratedterminals.terminal_storage.sort.fluidstack.id=Fluid ID
+gui.integratedterminals.terminal_storage.sort.fluidstack.id.info=Sort by internal fluid registry ID.
+gui.integratedterminals.terminal_storage.sort.fluidstack.name=Fluid Name
+gui.integratedterminals.terminal_storage.sort.fluidstack.name.info=Sort by fluid name.
+gui.integratedterminals.terminal_storage.sort.fluidstack.quantity=Fluid Amount
+gui.integratedterminals.terminal_storage.sort.fluidstack.quantity.info=Sort by amount of mB.
 
 # Part types
 parttype.parttypes.integratedterminals.terminal_storage.name=Storage Terminal

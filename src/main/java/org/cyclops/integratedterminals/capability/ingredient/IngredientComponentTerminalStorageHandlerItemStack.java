@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
+import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -9,7 +10,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -26,12 +26,17 @@ import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
+import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackIdSorter;
+import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackNameSorter;
+import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackQuantitySorter;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -149,8 +154,8 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         switch (searchMode) {
             case MOD:
-                return i -> Optional.ofNullable(i.getItem().getRegistryName())
-                        .orElse(new ResourceLocation("minecraft:a")).toString().toLowerCase(Locale.ENGLISH)
+                return i -> Optional.ofNullable(i.getItem().getCreatorModId(i))
+                        .orElse("minecraft").toLowerCase(Locale.ENGLISH)
                         .matches(".*" + query + ".*");
             case TOOLTIP:
                 return i -> i.getTooltip(Minecraft.getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL).stream()
@@ -162,5 +167,14 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 return i -> i.getDisplayName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }
         return null;
+    }
+
+    @Override
+    public Collection<IIngredientInstanceSorter<ItemStack>> getInstanceSorters() {
+        return Lists.newArrayList(
+                new ItemStackNameSorter(),
+                new ItemStackIdSorter(),
+                new ItemStackQuantitySorter()
+        );
     }
 }

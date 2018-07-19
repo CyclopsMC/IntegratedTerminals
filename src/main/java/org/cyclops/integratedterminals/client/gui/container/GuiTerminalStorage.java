@@ -2,9 +2,11 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -23,6 +25,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.proxy.ClientProxy;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
@@ -36,7 +39,7 @@ import java.util.List;
  */
 public class GuiTerminalStorage extends GuiContainerExtended {
 
-    private static int TAB_OFFSET_X = 2;
+    private static int TAB_OFFSET_X = 24;
     private static int TAB_WIDTH = 24;
     private static int TAB_UNSELECTED_HEIGHT = 21;
     private static int TAB_SELECTED_HEIGHT = 24;
@@ -45,12 +48,26 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     private static int TAB_SELECTED_TEXTURE_X = 24;
     private static int TAB_UNSELECTED_TEXTURE_Y = 225;
     private static int TAB_SELECTED_TEXTURE_Y = 225;
-    private static int SCROLL_X = 176;
+    private static int SCROLL_X = 198;
     private static int SCROLL_Y = 39;
     private static int SCROLL_HEIGHT = 88;
 
-    private static int SLOTS_OFFSET_X = 9;
+    private static int SLOTS_OFFSET_X = 31;
     private static int SLOTS_OFFSET_Y = 39;
+
+    private static int SEARCH_X = 104;
+    private static int SEARCH_Y = 27;
+    private static int SEARCH_WIDTH = 80;
+    private static int SEARCH_HEIGHT = 20;
+
+    private static int CHANNEL_X = 58;
+    private static int CHANNEL_Y = 25;
+    private static int CHANNEL_WIDTH = 42;
+    private static int CHANNEL_HEIGHT = 15;
+
+    private static int BUTTONS_OFFSET_X = 0;
+    private static int BUTTONS_OFFSET_Y = 22;
+    private static int BUTTONS_OFFSET = 4;
 
     private GuiArrowedListField<String> fieldChannel;
     private GuiScrollBar scrollBar;
@@ -65,8 +82,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     public void initGui() {
         super.initGui();
 
-        fieldChannel = new GuiArrowedListField<>(0, Minecraft.getMinecraft().fontRenderer, guiLeft + 36, guiTop + 25,
-                42, 15, true, true, getContainer().getChannelStrings());
+        fieldChannel = new GuiArrowedListField<>(0, Minecraft.getMinecraft().fontRenderer, guiLeft + CHANNEL_X,
+                guiTop + CHANNEL_Y, CHANNEL_WIDTH, CHANNEL_HEIGHT, true, true, getContainer().getChannelStrings());
         fieldChannel.setMaxStringLength(15);
         fieldChannel.setVisible(true);
         fieldChannel.setTextColor(16777215);
@@ -83,7 +100,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             }
         };
 
-        fieldSearch = new GuiTextFieldExtended(1, Minecraft.getMinecraft().fontRenderer, guiLeft + 82, guiTop + 27, 80, 20);
+        fieldSearch = new GuiTextFieldExtended(1, Minecraft.getMinecraft().fontRenderer, guiLeft + SEARCH_X,
+                guiTop + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT);
         fieldSearch.setMaxStringLength(50);
         fieldSearch.setVisible(true);
         fieldSearch.setTextColor(16777215);
@@ -105,7 +123,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     @Override
     public int getBaseXSize() {
-        return 196;
+        return 218;
     }
 
     @Override
@@ -131,12 +149,33 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         drawTabContents(getContainer().getSelectedTabIndex(), getContainer().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, SLOTS_OFFSET_X, SLOTS_OFFSET_Y, mouseX, mouseY);
         drawActiveStorageSlotItem(mouseX, mouseY);
+
+        // Draw button tooltips
+        int offset = 0;
+        ITerminalStorageTabClient<?> clientTab = getClientTab(getContainer().getSelectedTabIndex());
+        for (ITerminalButton button : clientTab.getButtons()) {
+            GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
+            if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
+                List<String> lines = Lists.newArrayList();
+                lines.add(L10NHelpers.localize(button.getUnlocalizedName()));
+                button.getTooltip(mc.player, ITooltipFlag.TooltipFlags.NORMAL, lines);
+                drawTooltip(lines, mouseX - guiLeft, mouseY - guiTop);
+            }
+            offset += BUTTONS_OFFSET + guiButton.height;
+        }
     }
 
     @Override
     protected void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawCurrentScreen(mouseX, mouseY, partialTicks);
         scrollBar.drawCurrentScreen(mouseX, mouseY, partialTicks);
+        int offset = 0;
+        for (ITerminalButton button : getClientTab(getContainer().getSelectedTabIndex()).getButtons()) {
+            GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
+            guiButton.drawButton(mc, mouseX, mouseY, partialTicks);
+            offset += BUTTONS_OFFSET + guiButton.height;
+        }
+
+        super.drawCurrentScreen(mouseX, mouseY, partialTicks);
     }
 
     @Override
@@ -155,7 +194,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         // Select a tab
         if (mouseButton == 0
                 && mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
-                && mouseX > getGuiLeft() + TAB_OFFSET_X && mouseX <= getGuiLeft() + (TAB_WIDTH * getContainer().getTabsClientCount())) {
+                && mouseX > getGuiLeft() + TAB_OFFSET_X
+                && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getContainer().getTabsClientCount() - 1)) {
             // Save tab index
             getContainer().setSelectedTabIndex((mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH);
 
@@ -200,6 +240,18 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         // Click in search field
         fieldSearch.mouseClicked(mouseX, mouseY, mouseButton);
 
+        // Handle buttons clicks
+        int offset = 0;
+        ITerminalStorageTabClient<?> clientTab = getClientTab(getContainer().getSelectedTabIndex());
+        for (ITerminalButton button : clientTab.getButtons()) {
+            GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
+            if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
+                button.onClick(clientTab, guiButton, getContainer().getSelectedChannel(), mouseButton);
+                return;
+            }
+            offset += BUTTONS_OFFSET + guiButton.height;
+        }
+
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
@@ -234,7 +286,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         int i = 0;
 
         // Draw channels label
-        drawString(fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 8, getGuiTop() + 26, 16777215);
+        drawString(fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getContainer().getTabsClient()) {
@@ -340,7 +392,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     protected void drawTabsForeground(int mouseX, int mouseY) {
         if (mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
-                && mouseX > getGuiLeft() + TAB_OFFSET_X && mouseX <= getGuiLeft() + (TAB_WIDTH * getContainer().getTabsClientCount())) {
+                && mouseX > getGuiLeft() + TAB_OFFSET_X
+                && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getContainer().getTabsClientCount() - 1)) {
             int tabIndex = (mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH;
             ITerminalStorageTabClient tab = getClientTab(tabIndex);
             this.drawTooltip(tab.getTooltip(), mouseX - getGuiLeft(), mouseY - getGuiTop());
