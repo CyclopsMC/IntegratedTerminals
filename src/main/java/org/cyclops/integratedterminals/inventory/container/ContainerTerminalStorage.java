@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,8 +23,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +46,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     private String channelAllLabel;
 
     // Fields for storing the last tab client-side
-    private static int lastSelectedTabIndex = 0;
+    private static String lastSelectedTab = null;
 
     /**
      * Make a new instance.
@@ -87,8 +86,8 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
             }
         }
 
-        setSelectedTabIndex(player.world.isRemote && lastSelectedTabIndex >= 0
-                && lastSelectedTabIndex < getTabsClient().size() ? lastSelectedTabIndex : 0);
+        setSelectedTab(player.world.isRemote && lastSelectedTab != null ? lastSelectedTab
+                : getTabsClient().size() > 0 ? Iterables.getFirst(getTabsClient().values(), null).getId() : null);
         setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
     }
 
@@ -127,15 +126,18 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return PartHelpers.canInteractWith(getTarget(), player, this.partContainer);
     }
 
-    public void setSelectedTabIndex(int selectedTabIndex) {
+    public void setSelectedTab(@Nullable String selectedTab) {
         if (player.world.isRemote) {
-            lastSelectedTabIndex = selectedTabIndex;
+            lastSelectedTab = selectedTab;
         }
-        ValueNotifierHelpers.setValue(this, selectedTabIndexValueId, selectedTabIndex);
+        if (selectedTab != null) {
+            ValueNotifierHelpers.setValue(this, selectedTabIndexValueId, selectedTab);
+        }
     }
 
-    public int getSelectedTabIndex() {
-        return ValueNotifierHelpers.getValueInt(this, selectedTabIndexValueId);
+    @Nullable
+    public String getSelectedTab() {
+        return ValueNotifierHelpers.getValueString(this, selectedTabIndexValueId);
     }
 
     public void setSelectedChannel(int selectedChannel) {
@@ -161,12 +163,12 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return tabsClient.size();
     }
 
-    public Collection<ITerminalStorageTabClient<?>> getTabsClient() {
-        return tabsClient.values();
+    public Map<String, ITerminalStorageTabClient<?>> getTabsClient() {
+        return tabsClient;
     }
 
-    public Collection<ITerminalStorageTabServer> getTabsServer() {
-        return tabsServer.values();
+    public Map<String, ITerminalStorageTabServer> getTabsServer() {
+        return tabsServer;
     }
 
     public List<String> getChannelStrings() {
@@ -176,9 +178,9 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     public void refreshChannelStrings() {
         this.channelStrings.clear();
         this.channelStrings.add(channelAllLabel);
-        ArrayList<ITerminalStorageTabClient> tabs = Lists.newArrayList(getTabsClient());
-        if (!tabs.isEmpty()) {
-            for (int channel : tabs.get(getSelectedTabIndex()).getChannels()) {
+        ITerminalStorageTabClient<?> tab = tabsClient.get(getSelectedTab());
+        if (tab != null) {
+            for (int channel : tab.getChannels()) {
                 this.channelStrings.add(String.valueOf(channel));
             }
         }
