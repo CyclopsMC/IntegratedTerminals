@@ -4,6 +4,7 @@ general.integratedterminals.description=Terminals for managing and overviewing I
 
 # Gui
 gui.integratedterminals.terminal_storage.storage_name=%s Storage
+gui.integratedterminals.terminal_storage.crafting_name=%s Crafting
 gui.integratedterminals.terminal_storage.channel=Chan:
 gui.integratedterminals.terminal_storage.channel_all=All
 gui.integratedterminals.terminal_storage.tooltip.quantity=Quantity: %s

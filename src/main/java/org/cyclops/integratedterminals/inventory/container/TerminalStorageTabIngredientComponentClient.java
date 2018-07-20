@@ -53,7 +53,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         MinecraftForge.EVENT_BUS.register(TerminalStorageTabIngredientComponentClient.class);
     }
 
-    private final IngredientComponent<T, M> ingredientComponent;
+    protected final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
     private final List<ITerminalButton<?, ?>> buttons;
@@ -441,7 +441,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), moveQuantity);
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
-                        ingredientComponent, clickType, channel,
+                        this.getId(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()), hoveredPlayerSlot, movePlayerQuantity, activeInstance));
                 if (reset) {
                     resetActiveSlot();

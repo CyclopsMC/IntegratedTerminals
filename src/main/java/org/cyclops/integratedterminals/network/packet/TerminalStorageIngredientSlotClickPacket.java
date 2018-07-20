@@ -23,6 +23,8 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIng
 public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
 
     @CodecField
+    private String tabId;
+    @CodecField
     private String ingredientName;
     @CodecField
     private int clickType;
@@ -41,10 +43,12 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
 
     }
 
-    public TerminalStorageIngredientSlotClickPacket(IngredientComponent<T, ?> component, TerminalClickType clickType,
+    public TerminalStorageIngredientSlotClickPacket(String tabId, IngredientComponent<T, ?> component,
+                                                    TerminalClickType clickType,
                                                     int channel, T hoveringStorageInstance,
                                                     int hoveredPlayerSlot, long moveQuantityPlayerSlot,
                                                     T activeStorageInstance) {
+        this.tabId = tabId;
         this.clickType = clickType.ordinal();
         this.ingredientName = component.getName().toString();
         this.channel = channel;
@@ -73,7 +77,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             TerminalStorageTabIngredientComponentServer<T, ?> tab = (TerminalStorageTabIngredientComponentServer<T, ?>)
-                    container.getTabServer(getComponent());
+                    container.getTabServer(tabId);
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
             T hoveringStorageInstance = serializer.deserializeInstance(this.hoveringStorageInstanceData.getTag("i"));
             T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.getTag("i"));

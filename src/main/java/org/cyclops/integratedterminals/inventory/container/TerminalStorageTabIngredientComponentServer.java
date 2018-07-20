@@ -91,9 +91,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         // Only allow ingredient collection of a max given size to be sent in a packet
         if (event.getInstances().size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientChangeEventPacket(event, this.ingredientNetwork.hasPositions()), player);
+                    new TerminalStorageIngredientChangeEventPacket(this.getId(), event, this.ingredientNetwork.hasPositions()), player);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientMaxQuantityPacket(event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
+                    new TerminalStorageIngredientMaxQuantityPacket(this.getId(), event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
         } else {
             IngredientArrayList<T, M> buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
                     GeneralConfig.terminalStoragePacketMaxInstances);
@@ -141,8 +141,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 T remainingInstance = matcher.withQuantity(movedInstance,
                         matcher.getQuantity(activeStorageInstance) - matcher.getQuantity(movedInstance));
                 IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                        new TerminalStorageIngredientUpdateActiveStorageIngredientPacket(this.ingredientComponent,
-                                channel, remainingInstance), player);
+                        new TerminalStorageIngredientUpdateActiveStorageIngredientPacket(this.getId(),
+                                this.ingredientComponent, channel, remainingInstance), player);
                 break;
             case PLAYER_PLACE_STORAGE:
                 viewHandler.extractActiveStackFromPlayerInventory(storage, player.inventory, moveQuantityPlayerSlot);

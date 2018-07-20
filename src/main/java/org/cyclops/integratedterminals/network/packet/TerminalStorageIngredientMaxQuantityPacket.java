@@ -20,6 +20,8 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIng
 public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 
 	@CodecField
+	private String tabId;
+	@CodecField
 	private String ingredientName;
     @CodecField
     private long maxQuantity;
@@ -30,7 +32,9 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 
     }
 
-    public TerminalStorageIngredientMaxQuantityPacket(IngredientComponent<?, ?> ingredientComponent, long maxQuantity, int channel) {
+    public TerminalStorageIngredientMaxQuantityPacket(String tabId, IngredientComponent<?, ?> ingredientComponent,
+													  long maxQuantity, int channel) {
+		this.tabId = tabId;
     	this.ingredientName = ingredientComponent.getName().toString();
 		this.maxQuantity = maxQuantity;
 		this.channel = channel;
@@ -49,7 +53,7 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 			if (ingredientComponent == null) {
 				throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
 			}
-			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) ((ContainerTerminalStorage) player.openContainer).getTabClient(ingredientComponent);
+			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) ((ContainerTerminalStorage) player.openContainer).getTabClient(tabId);
 			tab.setMaxQuantity(channel, maxQuantity);
 		}
 	}

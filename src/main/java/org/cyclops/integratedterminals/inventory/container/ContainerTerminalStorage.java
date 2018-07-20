@@ -5,7 +5,9 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
@@ -61,8 +63,8 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         this.target = target;
         this.partContainer = partContainer;
         this.partType = partType;
-        this.tabsClient = Maps.newHashMap();
-        this.tabsServer = Maps.newHashMap();
+        this.tabsClient = Maps.newLinkedHashMap();
+        this.tabsServer = Maps.newLinkedHashMap();
 
         this.selectedTabIndexValueId = getNextValueId();
         this.selectedChannelValueId = getNextValueId();
@@ -74,15 +76,33 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         this.channelAllLabel = L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel_all");
         this.channelStrings = Lists.newArrayList(this.channelAllLabel);
 
+        // Add tabs for all ingredients (and itemstack crafting)
         for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValuesCollection()) {
             INetwork network = NetworkHelpers.getNetwork(target.getCenter());
             if (this.world.isRemote) {
                 TerminalStorageTabIngredientComponentClient tab = new TerminalStorageTabIngredientComponentClient(ingredientComponent);
                 this.tabsClient.put(tab.getId(), tab);
+                // Hard-coded crafting tab
+                // TODO: abstract this as "auxiliary" tabs
+                if (ingredientComponent == IngredientComponents.ITEMSTACK) {
+                    TerminalStorageTabIngredientComponentClientItemStackCrafting tabCrafting =
+                            new TerminalStorageTabIngredientComponentClientItemStackCrafting(ingredientComponent);
+                    this.tabsClient.put(tabCrafting.getId(), tabCrafting);
+                }
             } else {
                 IPositionedAddonsNetworkIngredients<?, ?> ingredientNetwork = NetworkHelpers.getIngredientNetwork(network, ingredientComponent);
                 TerminalStorageTabIngredientComponentServer tab = new TerminalStorageTabIngredientComponentServer(ingredientComponent, ingredientNetwork, target.getCenter(), (EntityPlayerMP) player);
                 this.tabsServer.put(tab.getId(), tab);
+                // Hard-coded crafting tab
+                // TODO: abstract this as "auxiliary" tabs
+                if (ingredientComponent == IngredientComponents.ITEMSTACK) {
+                    TerminalStorageTabIngredientComponentServerItemStackCrafting tabCrafting =
+                            new TerminalStorageTabIngredientComponentServerItemStackCrafting(
+                                    (IngredientComponent<ItemStack, Integer>) ingredientComponent,
+                                    (IPositionedAddonsNetworkIngredients<ItemStack, Integer>) ingredientNetwork,
+                                    target.getCenter(), (EntityPlayerMP) player);
+                    this.tabsServer.put(tabCrafting.getId(), tabCrafting);
+                }
             }
         }
 
@@ -150,13 +170,13 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     }
 
     @Nullable
-    public ITerminalStorageTabClient getTabClient(IngredientComponent<?, ?> ingredientComponent) {
-        return tabsClient.get(ingredientComponent.getName().toString());
+    public ITerminalStorageTabClient getTabClient(String id) {
+        return tabsClient.get(id);
     }
 
     @Nullable
-    public ITerminalStorageTabServer getTabServer(IngredientComponent<?, ?> ingredientComponent) {
-        return tabsServer.get(ingredientComponent.getName().toString());
+    public ITerminalStorageTabServer getTabServer(String id) {
+        return tabsServer.get(id);
     }
 
     public int getTabsClientCount() {
@@ -164,7 +184,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     }
 
     public Map<String, ITerminalStorageTabClient<?>> getTabsClient() {
-        Map<String, ITerminalStorageTabClient<?>> tabs = Maps.newHashMap();
+        Map<String, ITerminalStorageTabClient<?>> tabs = Maps.newLinkedHashMap();
         for (Map.Entry<String, ITerminalStorageTabClient<?>> entry : tabsClient.entrySet()) {
             if (entry.getValue().isEnabled()) {
                 tabs.put(entry.getKey(), entry.getValue());

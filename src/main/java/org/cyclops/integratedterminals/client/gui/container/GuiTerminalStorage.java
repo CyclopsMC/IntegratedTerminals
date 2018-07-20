@@ -56,9 +56,6 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     private static int SCROLL_Y = 39;
     private static int SCROLL_HEIGHT = 88;
 
-    private static int SLOTS_OFFSET_X = 31;
-    private static int SLOTS_OFFSET_Y = 39;
-
     private static int SEARCH_X = 104;
     private static int SEARCH_Y = 27;
     private static int SEARCH_WIDTH = 80;
@@ -95,7 +92,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         fieldChannel.setEnabled(true);
 
         scrollBar = new GuiScrollBar(guiLeft + SCROLL_X, guiTop + SCROLL_Y, SCROLL_HEIGHT,
-                firstRow -> this.firstRow = firstRow, getSlotVisibleRows()) {
+                firstRow -> this.firstRow = firstRow, getSlotsOffsetX()) {
             @Override
             public int getTotalRows() {
                 ContainerTerminalStorage container = getContainer();
@@ -146,7 +143,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         fieldSearch.drawTextBox(Minecraft.getMinecraft(), mouseX, mouseY);
         drawTabsBackground();
         drawTabContents(getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.BACKGROUND,
-                f, getGuiLeftTotal() + SLOTS_OFFSET_X, getGuiTopTotal() + SLOTS_OFFSET_Y, mouseX, mouseY);
+                f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
     }
 
@@ -155,7 +152,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         super.drawGuiContainerForegroundLayer(mouseX, mouseY);
         drawTabsForeground(mouseX, mouseY);
         drawTabContents(getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.FOREGROUND,
-                0, SLOTS_OFFSET_X, SLOTS_OFFSET_Y, mouseX, mouseY);
+                0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
         drawActiveStorageSlotItem(mouseX, mouseY);
 
         // Draw button tooltips
@@ -188,7 +185,17 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             }
         });
 
+        ResourceLocation oldTexture = this.texture;
+        getSelectedClientTab().ifPresent(tab -> {
+            ResourceLocation texture = tab.getBackgroundTexture();
+            if (texture != null) {
+                this.texture = texture;
+            }
+        });
+
         super.drawCurrentScreen(mouseX, mouseY, partialTicks);
+
+        this.texture = oldTexture;
     }
 
     @Override
@@ -308,14 +315,14 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     }
 
     private int getStorageSlotIndexAtPosition(int mouseX, int mouseY) {
-        if (mouseX >= getGuiLeftTotal() + SLOTS_OFFSET_X
-                && mouseX < getGuiLeftTotal() + SLOTS_OFFSET_X + getSlotRowLength() * GuiHelpers.SLOT_SIZE - 1
-                && mouseY >= getGuiTopTotal() + SLOTS_OFFSET_Y
-                && mouseY < getGuiTopTotal() + SLOTS_OFFSET_Y + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE) {
-            if ((mouseX - getGuiLeftTotal() - SLOTS_OFFSET_X) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER
-                    && (mouseY - getGuiTopTotal() - SLOTS_OFFSET_Y) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER) {
-                return ((mouseX - getGuiLeftTotal() - SLOTS_OFFSET_X) / GuiHelpers.SLOT_SIZE)
-                        + ((mouseY - getGuiTopTotal() - SLOTS_OFFSET_Y) / GuiHelpers.SLOT_SIZE) * getSlotRowLength();
+        if (mouseX >= getGuiLeftTotal() + getSlotsOffsetX()
+                && mouseX < getGuiLeftTotal() + getSlotsOffsetX() + getSlotRowLength() * GuiHelpers.SLOT_SIZE - 1
+                && mouseY >= getGuiTopTotal() + getSlotsOffsetY()
+                && mouseY < getGuiTopTotal() + getSlotsOffsetY() + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE) {
+            if ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER
+                    && (mouseY - getGuiTopTotal() - getSlotsOffsetY()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER) {
+                return ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) / GuiHelpers.SLOT_SIZE)
+                        + ((mouseY - getGuiTopTotal() - getSlotsOffsetY()) / GuiHelpers.SLOT_SIZE) * getSlotRowLength();
             }
         }
 
@@ -360,12 +367,28 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         }
     }
 
+    protected int getSlotsOffsetX() {
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::getSlotOffsetX)
+                .orElse(ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X);
+    }
+
+    protected int getSlotsOffsetY() {
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::getSlotOffsetY)
+                .orElse(ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_Y);
+    }
+
     protected int getSlotVisibleRows() {
-        return 5;
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::getSlotVisibleRows)
+                .orElse(ITerminalStorageTabClient.DEFAULT_SLOT_VISIBLE_ROWS);
     }
 
     protected int getSlotRowLength() {
-        return 9;
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::getSlotRowLength)
+                .orElse(ITerminalStorageTabClient.DEFAULT_SLOT_ROW_LENGTH);
     }
 
     protected int getSelectedFirstRow() {
@@ -378,7 +401,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         if (optionalTab.isPresent()) {
             ITerminalStorageTabClient<?> tab = optionalTab.get();
             // Draw status string
-            drawCenteredString(fontRenderer, tab.getStatus(channel), x + 80, y + 92, 16777215);
+            drawCenteredString(fontRenderer, tab.getStatus(channel), x + (getSlotRowLength() * GuiHelpers.SLOT_SIZE) / 2,
+                    y + 2 + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE, 16777215);
             GlStateManager.color(1, 1, 1);
 
             // Draw slots

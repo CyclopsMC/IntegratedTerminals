@@ -22,6 +22,8 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIng
 public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> extends PacketCodec {
 
     @CodecField
+    private String tabId;
+    @CodecField
     private String ingredientName;
     @CodecField
     private int channel;
@@ -32,8 +34,10 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
 
     }
 
-    public TerminalStorageIngredientUpdateActiveStorageIngredientPacket(IngredientComponent<T, ?> component,
+    public TerminalStorageIngredientUpdateActiveStorageIngredientPacket(String tabId,
+                                                                        IngredientComponent<T, ?> component,
                                                                         int channel, T activeStorageInstance) {
+        this.tabId = tabId;
         this.ingredientName = component.getName().toString();
         this.channel = channel;
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
@@ -52,7 +56,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             TerminalStorageTabIngredientComponentClient<T, ?> tab = (TerminalStorageTabIngredientComponentClient<T, ?>)
-                    container.getTabClient(getComponent());
+                    container.getTabClient(tabId);
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
             T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.getTag("i"));
             tab.handleActiveIngredientUpdate(getChannel(), activeInstance);

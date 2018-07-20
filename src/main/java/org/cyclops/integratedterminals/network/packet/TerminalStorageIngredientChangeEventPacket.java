@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollections;
@@ -22,6 +23,8 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIng
  */
 public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 
+	@CodecField
+	private String tabId;
     @CodecField
     private NBTTagCompound changeData;
 	@CodecField
@@ -33,8 +36,10 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 
     }
 
-    public TerminalStorageIngredientChangeEventPacket(IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event,
+    public TerminalStorageIngredientChangeEventPacket(String tabId,
+													  IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event,
 													  boolean enabled) {
+    	this.tabId = tabId;
 		IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
 		IIngredientCollection<?, ?> instances = event.getInstances();
 		NBTTagCompound serialized = IngredientCollections.serialize(instances);
@@ -56,8 +61,17 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 			ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
 			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInteger("changeType")];
 			IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
-			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(ingredients.getComponent());
+
+			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
 			tab.onChange(channel, changeType, ingredients, enabled);
+
+			// Hard-coded crafting tab
+			// TODO: abstract this as "auxiliary" tabs
+			if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
+				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId + "_crafting");
+				tabCrafting.onChange(channel, changeType, ingredients, enabled);
+			}
+
 			container.refreshChannelStrings();
 		}
 	}

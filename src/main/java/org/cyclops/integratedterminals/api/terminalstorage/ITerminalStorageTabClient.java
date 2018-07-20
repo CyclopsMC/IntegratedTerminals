@@ -1,9 +1,11 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -11,6 +13,11 @@ import java.util.List;
  * @author rubensworks
  */
 public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
+
+    public static final int DEFAULT_SLOT_OFFSET_X = 31;
+    public static final int DEFAULT_SLOT_OFFSET_Y = 39;
+    public static final int DEFAULT_SLOT_VISIBLE_ROWS = 5;
+    public static final int DEFAULT_SLOT_ROW_LENGTH = 9;
 
     /**
      * @return The unique tab id, must be equal to its server-side variant.
@@ -105,4 +112,27 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      */
     public List<ITerminalButton<?, ?>> getButtons();
 
+    public default int getSlotOffsetX() {
+        return DEFAULT_SLOT_OFFSET_X;
+    }
+
+    public default int getSlotOffsetY() {
+        return DEFAULT_SLOT_OFFSET_Y;
+    }
+
+    public default int getSlotVisibleRows() {
+        return DEFAULT_SLOT_VISIBLE_ROWS;
+    }
+
+    public default int getSlotRowLength() {
+        return DEFAULT_SLOT_ROW_LENGTH;
+    }
+
+    /**
+     * @return An optional alternative background texture that should be used when rendering the gui of the tab.
+     */
+    @Nullable
+    public default ResourceLocation getBackgroundTexture() {
+        return null;
+    }
 }
