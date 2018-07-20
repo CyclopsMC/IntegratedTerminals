@@ -210,6 +210,22 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         return Optional.empty();
     }
 
+    protected void setTabByIndex(int tabIndex) {
+        // Save tab index
+        getTabByIndex(tabIndex).ifPresent(tab -> {
+            getContainer().setSelectedTab(tab.getId());
+
+            // Reset active slot
+            tab.resetActiveSlot();
+
+            // Update the filter
+            fieldSearch.setText(tab.getInstanceFilter(getContainer().getSelectedChannel()));
+        });
+
+        // Reset scrollbar
+        scrollBar.scrollTo(0);
+    }
+
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
@@ -220,17 +236,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 && mouseX > getGuiLeft() + TAB_OFFSET_X
                 && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getContainer().getTabsClientCount() - 1)) {
             // Save tab index
-            getTabByIndex((mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH)
-                    .ifPresent(tab -> getContainer().setSelectedTab(tab.getId()));
-
-            // Reset scrollbar
-            scrollBar.scrollTo(0);
-
-            // Reset active slot
-            tabOptional.ifPresent(ITerminalStorageTabClient::resetActiveSlot);
-
-            // Update the filter
-            tabOptional.ifPresent(tab -> fieldSearch.setText(tab.getInstanceFilter(getContainer().getSelectedChannel())));
+            setTabByIndex((mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH);
 
             return;
         }
@@ -289,12 +295,10 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             fieldSearch.setFocused(true);
         } else if (ClientProxy.TERMINAL_TAB_NEXT.isActiveAndMatches(keyCode)) {
             // Go to next tab
-            getTabByIndex((getSelectedClientTabIndex() + 1) % getContainer().getTabsClientCount())
-                    .ifPresent(tab -> getContainer().setSelectedTab(tab.getId()));
+            setTabByIndex((getSelectedClientTabIndex() + 1) % getContainer().getTabsClientCount());
         } else if (ClientProxy.TERMINAL_TAB_PREVIOUS.isActiveAndMatches(keyCode)) {
             // Go to previous tab
-            getTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount())
-                    .ifPresent(tab -> getContainer().setSelectedTab(tab.getId()));
+            setTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount());
         } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
             getSelectedClientTab()
                     .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));

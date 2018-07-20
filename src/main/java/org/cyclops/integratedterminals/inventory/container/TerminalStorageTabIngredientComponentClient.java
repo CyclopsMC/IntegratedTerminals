@@ -72,7 +72,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @SubscribeEvent
     public static void onToolTip(ItemTooltipEvent event) {
         // If this tab is active, render the quantity in all player inventory item tooltips.
-        if (event.getEntityPlayer().openContainer instanceof ContainerTerminalStorage) {
+        if (event.getEntityPlayer() != null && event.getEntityPlayer().openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = (ContainerTerminalStorage) event.getEntityPlayer().openContainer;
             ITerminalStorageTabClient<?> tab = container.getTabsClient().get(container.getSelectedTab());
             if (tab instanceof TerminalStorageTabIngredientComponentClient) {
