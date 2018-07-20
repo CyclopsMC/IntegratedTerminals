@@ -92,7 +92,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         fieldChannel.setEnabled(true);
 
         scrollBar = new GuiScrollBar(guiLeft + SCROLL_X, guiTop + SCROLL_Y, SCROLL_HEIGHT,
-                firstRow -> this.firstRow = firstRow, getSlotsOffsetX()) {
+                firstRow -> this.firstRow = firstRow, 0) {
             @Override
             public int getTotalRows() {
                 ContainerTerminalStorage container = getContainer();
@@ -102,6 +102,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 }
                 int totalSlots = tabOptional.get().getSlotCount(container.getSelectedChannel());
                 return totalSlots / getSlotRowLength();
+            }
+
+            @Override
+            public int getVisibleRows() {
+                return getSlotVisibleRows();
             }
         };
 
@@ -321,7 +326,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 && mouseY < getGuiTopTotal() + getSlotsOffsetY() + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE) {
             if ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER
                     && (mouseY - getGuiTopTotal() - getSlotsOffsetY()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER) {
-                return ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) / GuiHelpers.SLOT_SIZE)
+                int rowLength = getSlotRowLength();
+                int offset = getSelectedFirstRow() * rowLength;
+                return offset + ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) / GuiHelpers.SLOT_SIZE)
                         + ((mouseY - getGuiTopTotal() - getSlotsOffsetY()) / GuiHelpers.SLOT_SIZE) * getSlotRowLength();
             }
         }

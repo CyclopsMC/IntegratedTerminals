@@ -175,7 +175,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         if (offset >= size) {
             return Lists.newArrayList();
         }
-        return ingredients.subList(offset, offset + Math.min(limit, size)).stream()
+        return ingredients.subList(offset, Math.min(offset + limit, size)).stream()
                 .map(instance -> new TerminalStorageSlotIngredient<>(ingredientComponentViewHandler, instance))
                 .collect(Collectors.toList());
     }
