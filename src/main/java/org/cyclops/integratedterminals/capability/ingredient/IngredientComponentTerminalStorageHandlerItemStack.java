@@ -10,7 +10,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -24,7 +23,6 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -81,15 +79,23 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 List<String> lines = instance.getTooltip(
                         Minecraft.getMinecraft().player, Minecraft.getMinecraft().gameSettings.advancedItemTooltips
                                 ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
-                lines.add(1, TextFormatting.DARK_GRAY.toString() + L10NHelpers.localize(
-                        "gui.integratedterminals.terminal_storage.tooltip.quantity",
-                        String.format("%,d", instance.getCount())));
+                addQuantityTooltip(lines, instance);
                 return lines;
             });
             GuiUtils.postItemToolTip();
         }
         RenderHelper.disableStandardItemLighting();
         GlStateManager.popMatrix();
+    }
+
+    @Override
+    public String formatQuantity(ItemStack instance) {
+        return String.format("%,d", instance.getCount());
+    }
+
+    @Override
+    public ItemStack getInstance(ItemStack itemStack) {
+        return itemStack;
     }
 
     @Override

@@ -6,7 +6,6 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fml.relauncher.Side;
@@ -16,7 +15,6 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integrateddynamics.block.BlockEnergyBattery;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -28,6 +26,7 @@ import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -65,12 +64,27 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                 RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
-                        mouseX, mouseY, () -> Lists.newArrayList(label != null ? label :
-                                TextFormatting.DARK_GRAY.toString() + L10NHelpers.localize(
-                                        "gui.integratedterminals.terminal_storage.tooltip.quantity",
-                                        String.format("%,d", instance) + " FE")));
+                        mouseX, mouseY, () -> {
+                            List<String> lines = Lists.newArrayList();
+                            addQuantityTooltip(lines, instance);
+                            return lines;
+                        });
             }
         }
+    }
+
+    @Override
+    public String formatQuantity(Integer instance) {
+        return String.format("%,d", instance) + " FE";
+    }
+
+    @Override
+    public Integer getInstance(ItemStack itemStack) {
+        IEnergyStorage energyStorage = itemStack.getCapability(CapabilityEnergy.ENERGY, null);
+        if (energyStorage != null) {
+            return energyStorage.getEnergyStored();
+        }
+        return 0;
     }
 
     @Override

@@ -4,16 +4,19 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
+import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -46,6 +49,36 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
     @SideOnly(Side.CLIENT)
     public void drawInstance(T instance, long maxQuantity, @Nullable String label, GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, int channel);
+
+    /**
+     * Show the quantity of the given instance on the second tooltip line.
+     * @param lines Tooltip lines
+     * @param instance An instance.
+     */
+    public default void addQuantityTooltip(List<String> lines, T instance) {
+        String line = TextFormatting.DARK_GRAY.toString() + L10NHelpers.localize(
+                "gui.integratedterminals.terminal_storage.tooltip.quantity",
+                formatQuantity(instance));
+        if (lines.size() <= 1) {
+            lines.add(line);
+        } else {
+            lines.add(1, line);
+        }
+    }
+
+    /**
+     * Get a display string for the quantity of the given instance.
+     * @param instance An instance.
+     * @return The formatted quantity.
+     */
+    public String formatQuantity(T instance);
+
+    /**
+     * Get the ingredient instance from the given item.
+     * @param itemStack An item.
+     * @return An ingredient.
+     */
+    public T getInstance(ItemStack itemStack);
 
     /**
      * @return The number that should be selected when clicking on an instance in the storage terminal.

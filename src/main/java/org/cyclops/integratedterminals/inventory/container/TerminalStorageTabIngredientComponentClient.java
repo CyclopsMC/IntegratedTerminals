@@ -8,6 +8,9 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.Helpers;
@@ -46,6 +49,10 @@ import java.util.stream.Collectors;
 public class TerminalStorageTabIngredientComponentClient<T, M>
         implements ITerminalStorageTabClient<TerminalStorageSlotIngredient<T, M>> {
 
+    static {
+        MinecraftForge.EVENT_BUS.register(TerminalStorageTabIngredientComponentClient.class);
+    }
+
     private final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
@@ -61,6 +68,22 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private int activeSlotId;
     private int activeSlotQuantity;
     private int activeChannel;
+
+    @SubscribeEvent
+    public static void onToolTip(ItemTooltipEvent event) {
+        // If this tab is active, render the quantity in all player inventory item tooltips.
+        if (event.getEntityPlayer().openContainer instanceof ContainerTerminalStorage) {
+            ContainerTerminalStorage container = (ContainerTerminalStorage) event.getEntityPlayer().openContainer;
+            ITerminalStorageTabClient<?> tab = container.getTabsClient().get(container.getSelectedTab());
+            if (tab instanceof TerminalStorageTabIngredientComponentClient) {
+                IIngredientComponentTerminalStorageHandler handler = ((TerminalStorageTabIngredientComponentClient) tab).ingredientComponentViewHandler;
+                Object instance = handler.getInstance(event.getItemStack());
+                if (!(instance instanceof ItemStack)) {
+                    handler.addQuantityTooltip(event.getToolTip(), instance);
+                }
+            }
+        }
+    }
 
     public TerminalStorageTabIngredientComponentClient(IngredientComponent<?, ?> ingredientComponent) {
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
