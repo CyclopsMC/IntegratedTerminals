@@ -410,11 +410,21 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         moveQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
                     }
                     this.activeSlotQuantity -= moveQuantity;
-                } else if (hoveringStorageSlot >= 0 && mouseButton == 1) {
-                    // Adjust active quantity
-                    this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - viewHandler.getIncrementalInstanceMovementQuantity());
-                    if (this.activeSlotQuantity == 0) {
-                        activeSlotId = -1;
+                } else if (hoveringStorageSlot >= 0) {
+                    if (mouseButton == 0 && this.activeSlotId == hoveringStorageSlot) {
+                        // Increase the active quantity
+                        this.activeSlotQuantity = (int) Math.min(ingredientComponent.getMatcher().getQuantity(hoveringStorageInstance.get()),
+                                this.activeSlotQuantity + (shift ? viewHandler.getInitialInstanceMovementQuantity()
+                                        : viewHandler.getIncrementalInstanceMovementQuantity()));
+                    } else if (mouseButton == 1) {
+                        // Decrease active quantity
+                        this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - viewHandler.getIncrementalInstanceMovementQuantity());
+                        if (this.activeSlotQuantity == 0) {
+                            activeSlotId = -1;
+                        }
+                    } else {
+                        // Deselect slot
+                        resetActiveSlot();
                     }
                 } else {
                     // Deselect slot
