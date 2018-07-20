@@ -111,7 +111,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public int insertIntoPlayerInventory(IIngredientComponentStorage<Integer, Boolean> storage,
+    public Integer insertIntoPlayerInventory(IIngredientComponentStorage<Integer, Boolean> storage,
                                          InventoryPlayer playerInventory, int playerSlot, Integer maxInstance) {
         PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
         ItemStack stack = inv.getStackInSlot(playerSlot);

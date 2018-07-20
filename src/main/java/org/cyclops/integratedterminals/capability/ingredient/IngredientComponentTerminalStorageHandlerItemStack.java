@@ -129,7 +129,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
-    public int insertIntoPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
+    public ItemStack insertIntoPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
                                          InventoryPlayer playerInventory, int playerSlot, ItemStack maxInstance) {
         PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
         ItemStack extracted = storage.extract(maxInstance, ItemMatch.EXACT, true);
@@ -138,13 +138,13 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
             int inserted = newCount - playerStack.getCount();
             IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
-            storage.extract(matcher.withQuantity(maxInstance, inserted), ItemMatch.EXACT, false);
+            ItemStack moved = storage.extract(matcher.withQuantity(maxInstance, inserted), ItemMatch.EXACT, false);
 
             inv.setStackInSlot(playerSlot, matcher.withQuantity(maxInstance, newCount));
             playerInventory.player.openContainer.detectAndSendChanges();
-            return inserted;
+            return moved;
         }
-        return 0;
+        return ItemStack.EMPTY;
     }
 
     @Override

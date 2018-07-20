@@ -123,7 +123,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param maxInstance The instance to move.
      * @return The instance quantity that was moved.
      */
-    public int insertIntoPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, int playerSlot, T maxInstance);
+    public T insertIntoPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, int playerSlot, T maxInstance);
 
     /**
      * Move the ingredient in the active player stack to the storage.

@@ -258,25 +258,45 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
         if (lastInstance.isPresent() && this.activeChannel == channel) {
-            int newActiveSlot = 0;
-            M matchCondition = matcher.withoutCondition(matcher.getExactMatchCondition(),
-                    ingredients.getComponent().getPrimaryQuantifier().getMatchCondition());
-            List<TerminalStorageSlotIngredient<T, M>> slots = getSlots(channel, 0, Integer.MAX_VALUE);
-            for (TerminalStorageSlotIngredient<T, M> slot : slots) {
-                T ingredient = slot.getInstance();
-                if (matcher.matches(ingredient, lastInstance.get(), matchCondition)) {
-                    this.activeSlotId = newActiveSlot;
-                    this.activeSlotQuantity = Math.min(this.activeSlotQuantity, Helpers.castSafe(matcher.getQuantity(ingredient)));
-                    break;
-                }
-                newActiveSlot++;
-            }
+            this.activeChannel = channel;
+            this.activeSlotId = findActiveSlotId(channel, lastInstance.get());
+            Optional<T> slotIngredient = getSlotInstance(channel, this.activeSlotId);
+            this.activeSlotQuantity = slotIngredient
+                    .map(t -> Math.min(this.activeSlotQuantity, Helpers.castSafe(this.ingredientComponent.getMatcher().getQuantity(t))))
+                    .orElse(0);
+        }
+    }
 
-            // None was found, deselect slot
-            if (newActiveSlot == slots.size()) {
-                this.activeSlotId = -1;
-                this.activeSlotQuantity = 0;
+    protected int findActiveSlotId(int channel, T instance) {
+        IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+        int newActiveSlot = 0;
+        M matchCondition = matcher.withoutCondition(matcher.getExactMatchCondition(),
+                this.ingredientComponent.getPrimaryQuantifier().getMatchCondition());
+        List<TerminalStorageSlotIngredient<T, M>> slots = getSlots(channel, 0, Integer.MAX_VALUE);
+        for (TerminalStorageSlotIngredient<T, M> slot : slots) {
+            T ingredient = slot.getInstance();
+            if (matcher.matches(ingredient, instance, matchCondition)) {
+                return newActiveSlot;
             }
+            newActiveSlot++;
+        }
+        return -1;
+    }
+
+    /**
+     * Called by the server when a (remainder) active storage ingredient needs to be set.
+     * @param channel The channel.
+     * @param activeInstance The active instance.
+     */
+    public synchronized void handleActiveIngredientUpdate(int channel, T activeInstance) {
+        IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+        if (!matcher.isEmpty(activeInstance)) {
+            this.activeChannel = channel;
+            this.activeSlotId = findActiveSlotId(channel, activeInstance);
+            Optional<T> slotIngredient = getSlotInstance(channel, this.activeSlotId);
+            this.activeSlotQuantity += slotIngredient
+                    .map(t -> Helpers.castSafe(matcher.getQuantity(activeInstance)))
+                    .orElse(0);
         }
     }
 
@@ -463,4 +483,5 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         return sorter;
     }
+
 }

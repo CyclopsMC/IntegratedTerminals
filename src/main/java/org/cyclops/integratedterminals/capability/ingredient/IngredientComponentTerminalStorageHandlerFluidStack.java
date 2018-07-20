@@ -115,7 +115,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
-    public int insertIntoPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
+    public FluidStack insertIntoPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
                                          InventoryPlayer playerInventory, int playerSlot, FluidStack maxInstance) {
         PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
         ItemStack stack = inv.getStackInSlot(playerSlot);
@@ -125,9 +125,9 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             FluidStack moved = IngredientStorageHelpers.moveIngredients(storage, itemStorage, maxInstance,
                     FluidMatch.FLUID | FluidMatch.NBT, false);
             inv.setStackInSlot(playerSlot, fluidHandler.getContainer());
-            return FluidHelpers.getAmount(moved);
+            return moved;
         }
-        return 0;
+        return null;
     }
 
     protected IIngredientComponentStorage<FluidStack, Integer> getFluidStorage(IngredientComponent<FluidStack, Integer> component,

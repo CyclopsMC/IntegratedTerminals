@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.SPacketSetSlot;
+import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
@@ -16,6 +17,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabSe
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
 
 import javax.annotation.Nullable;
 
@@ -134,8 +136,13 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 viewHandler.throwIntoWorld(storage, activeStorageInstance, player);
                 break;
             case STORAGE_PLACE_PLAYER:
-                viewHandler.insertIntoPlayerInventory(storage, player.inventory, hoveredPlayerSlot, activeStorageInstance);
-                updateActivePlayerStack = true;
+                T movedInstance = viewHandler.insertIntoPlayerInventory(storage, player.inventory, hoveredPlayerSlot, activeStorageInstance);
+                IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+                T remainingInstance = matcher.withQuantity(movedInstance,
+                        matcher.getQuantity(activeStorageInstance) - matcher.getQuantity(movedInstance));
+                IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                        new TerminalStorageIngredientUpdateActiveStorageIngredientPacket(this.ingredientComponent,
+                                channel, remainingInstance), player);
                 break;
             case PLAYER_PLACE_STORAGE:
                 viewHandler.extractActiveStackFromPlayerInventory(storage, player.inventory, moveQuantityPlayerSlot);
