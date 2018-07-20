@@ -23,6 +23,11 @@ gui.integratedterminals.terminal_storage.sort.fluidstack.name.info=Sort by fluid
 gui.integratedterminals.terminal_storage.sort.fluidstack.quantity=Fluid Amount
 gui.integratedterminals.terminal_storage.sort.fluidstack.quantity.info=Sort by amount of mB.
 
+# Keybindings
+key.categories.integratedterminals=Integrated Terminals
+key.integratedterminals.terminal.tab.next=Go to next terminal tab
+key.integratedterminals.terminal.tab.previous=Go to next terminal tab
+
 # Part types
 parttype.parttypes.integratedterminals.terminal_storage.name=Storage Terminal
 parttype.parttypes.integratedterminals.terminal_storage.info=Visually interact with the elements stored the attached network.

@@ -24,13 +24,13 @@ import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
-import org.cyclops.integrateddynamics.proxy.ClientProxy;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
@@ -285,8 +285,16 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        if (ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(keyCode)) {
+        if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(keyCode)) {
             fieldSearch.setFocused(true);
+        } else if (ClientProxy.TERMINAL_TAB_NEXT.isActiveAndMatches(keyCode)) {
+            // Go to next tab
+            getTabByIndex((getSelectedClientTabIndex() + 1) % getContainer().getTabsClientCount())
+                    .ifPresent(tab -> getContainer().setSelectedTab(tab.getId()));
+        } else if (ClientProxy.TERMINAL_TAB_PREVIOUS.isActiveAndMatches(keyCode)) {
+            // Go to previous tab
+            getTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount())
+                    .ifPresent(tab -> getContainer().setSelectedTab(tab.getId()));
         } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
             getSelectedClientTab()
                     .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
@@ -430,6 +438,20 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     protected Optional<ITerminalStorageTabClient<?>> getSelectedClientTab() {
         return getClientTab(getContainer().getSelectedTab());
+    }
+
+    protected int getSelectedClientTabIndex() {
+        Optional<ITerminalStorageTabClient<?>> selectedTab = getSelectedClientTab();
+        if (selectedTab.isPresent()) {
+            int tabIndex = 0;
+            for (ITerminalStorageTabClient<?> tabClient : getContainer().getTabsClient().values()) {
+                if (tabClient == selectedTab.get()) {
+                    return tabIndex;
+                }
+                tabIndex++;
+            }
+        }
+        return -1;
     }
 
     protected void drawTabsForeground(int mouseX, int mouseY) {
