@@ -6,6 +6,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -49,12 +50,20 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 	@SideOnly(Side.CLIENT)
 	public void actionClient(World world, EntityPlayer player) {
 		if(player.openContainer instanceof ContainerTerminalStorage) {
+			ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
 			IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(new ResourceLocation(this.ingredientName));
 			if (ingredientComponent == null) {
 				throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
 			}
-			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) ((ContainerTerminalStorage) player.openContainer).getTabClient(tabId);
+			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
 			tab.setMaxQuantity(channel, maxQuantity);
+
+			// Hard-coded crafting tab
+			// TODO: abstract this as "auxiliary" tabs
+			if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
+				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId + "_crafting");
+				tabCrafting.setMaxQuantity(channel, maxQuantity);
+			}
 		}
 	}
 
