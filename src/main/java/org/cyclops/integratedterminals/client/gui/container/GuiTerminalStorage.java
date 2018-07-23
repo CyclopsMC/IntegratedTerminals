@@ -408,9 +408,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         if (optionalTab.isPresent()) {
             ITerminalStorageTabClient<?> tab = optionalTab.get();
             // Draw status string
-            drawCenteredString(fontRenderer, tab.getStatus(channel), x + (getSlotRowLength() * GuiHelpers.SLOT_SIZE) / 2,
-                    y + 2 + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE, 16777215);
-            GlStateManager.color(1, 1, 1);
+            if (layer == DrawLayer.BACKGROUND) {
+                drawCenteredString(fontRenderer, tab.getStatus(channel), guiLeft + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (GuiHelpers.SLOT_SIZE * ITerminalStorageTabClient.DEFAULT_SLOT_ROW_LENGTH) / 2,
+                        y + 2 + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE, 16777215);
+                GlStateManager.color(1, 1, 1);
+            }
 
             // Draw slots
             int rowLength = getSlotRowLength();
