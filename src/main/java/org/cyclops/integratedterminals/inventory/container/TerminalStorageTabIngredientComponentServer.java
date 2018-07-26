@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.Container;
 import net.minecraft.network.play.server.SPacketSetSlot;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -121,8 +122,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     @Nullable
-    public void handleStorageSlotClick(EntityPlayerMP player, TerminalClickType clickType, int channel, T hoveringStorageInstance,
-                                       int hoveredPlayerSlot, long moveQuantityPlayerSlot, T activeStorageInstance) {
+    public void handleStorageSlotClick(Container container, EntityPlayerMP player, TerminalClickType clickType,
+                                       int channel, T hoveringStorageInstance, int hoveredContainerSlot,
+                                       long moveQuantityPlayerSlot, T activeStorageInstance) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
         IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
 
@@ -130,13 +132,13 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
         switch (clickType) {
             case STORAGE_QUICK_MOVE:
-                viewHandler.insertMaxIntoPlayerInventory(storage, player.inventory, hoveringStorageInstance);
+                viewHandler.insertMaxIntoContainer(storage, container, hoveringStorageInstance);
                 break;
             case STORAGE_PLACE_WORLD:
                 viewHandler.throwIntoWorld(storage, activeStorageInstance, player);
                 break;
             case STORAGE_PLACE_PLAYER:
-                T movedInstance = viewHandler.insertIntoPlayerInventory(storage, player.inventory, hoveredPlayerSlot, activeStorageInstance);
+                T movedInstance = viewHandler.insertIntoContainer(storage, container, hoveredContainerSlot, activeStorageInstance);
                 IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
                 T remainingInstance = matcher.withQuantity(movedInstance,
                         matcher.getQuantity(activeStorageInstance) - matcher.getQuantity(movedInstance));
@@ -149,7 +151,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 updateActivePlayerStack = true;
                 break;
             case PLAYER_QUICK_MOVE:
-                viewHandler.extractMaxFromPlayerInventorySlot(storage, player.inventory, hoveredPlayerSlot);
+                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot);
                 break;
         }
 

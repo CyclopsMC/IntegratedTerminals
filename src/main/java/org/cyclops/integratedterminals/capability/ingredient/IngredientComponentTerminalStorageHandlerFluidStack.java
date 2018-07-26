@@ -6,6 +6,7 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Items;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -14,7 +15,6 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.commoncapabilities.api.capability.fluidhandler.FluidMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -115,16 +115,17 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
-    public FluidStack insertIntoPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
-                                         InventoryPlayer playerInventory, int playerSlot, FluidStack maxInstance) {
-        PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
-        ItemStack stack = inv.getStackInSlot(playerSlot);
+    public FluidStack insertIntoContainer(IIngredientComponentStorage<FluidStack, Integer> storage,
+                                          Container container, int containerSlot, FluidStack maxInstance) {
+        ItemStack stack = container.getSlot(containerSlot).getStack();
         IFluidHandlerItem fluidHandler = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
             FluidStack moved = IngredientStorageHelpers.moveIngredients(storage, itemStorage, maxInstance,
                     FluidMatch.FLUID | FluidMatch.NBT, false);
-            inv.setStackInSlot(playerSlot, fluidHandler.getContainer());
+
+            container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
+            container.detectAndSendChanges();
             return moved;
         }
         return null;
@@ -151,15 +152,15 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
-    public void extractMaxFromPlayerInventorySlot(IIngredientComponentStorage<FluidStack, Integer> storage, InventoryPlayer playerInventory, int playerSlot) {
-        ItemStack toMoveStack = playerInventory.getStackInSlot(playerSlot);
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, Container container, int containerSlot) {
+        ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
         IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
             IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
 
-            playerInventory.setInventorySlotContents(playerSlot, fluidHandler.getContainer());
-            playerInventory.player.openContainer.detectAndSendChanges();
+            container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
+            container.detectAndSendChanges();
         }
     }
 

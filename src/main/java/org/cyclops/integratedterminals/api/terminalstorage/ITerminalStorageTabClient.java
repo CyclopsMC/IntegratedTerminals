@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
@@ -88,14 +89,16 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
 
     /**
      * Called when a mouse click happens in a gui.
+     * @param container The active container.
      * @param channel The active channel.
      * @param hoveringStorageSlot The storage slot id that is being hovered. -1 if none.
      * @param mouseButton The mouse button.
      * @param hasClickedOutside If the player has clicked outside the gui.
-     * @param hoveredPlayerSlot The player slot id that is being hovered. -1 if none.
+     * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
      * @return If further click processing should stop.
      */
-    public boolean handleClick(int channel, int hoveringStorageSlot, int mouseButton, boolean hasClickedOutside, int hoveredPlayerSlot);
+    public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
+                               boolean hasClickedOutside, int hoveredContainerSlot);
 
     /**
      * @return The active storage slot id.

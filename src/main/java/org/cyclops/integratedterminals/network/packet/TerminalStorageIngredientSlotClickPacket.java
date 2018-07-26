@@ -33,7 +33,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
     @CodecField
     private NBTTagCompound hoveringStorageInstanceData;
     @CodecField
-    private int hoveredPlayerSlot;
+    private int hoveredContainerSlot;
     @CodecField
     private long moveQuantityPlayerSlot;
     @CodecField
@@ -46,7 +46,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
     public TerminalStorageIngredientSlotClickPacket(String tabId, IngredientComponent<T, ?> component,
                                                     TerminalClickType clickType,
                                                     int channel, T hoveringStorageInstance,
-                                                    int hoveredPlayerSlot, long moveQuantityPlayerSlot,
+                                                    int hoveredContainerSlot, long moveQuantityPlayerSlot,
                                                     T activeStorageInstance) {
         this.tabId = tabId;
         this.clickType = clickType.ordinal();
@@ -55,7 +55,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
         this.hoveringStorageInstanceData = new NBTTagCompound();
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
         this.hoveringStorageInstanceData.setTag("i", serializer.serializeInstance(hoveringStorageInstance));
-        this.hoveredPlayerSlot = hoveredPlayerSlot;
+        this.hoveredContainerSlot = hoveredContainerSlot;
         this.moveQuantityPlayerSlot = moveQuantityPlayerSlot;
         this.activeStorageInstanceData = new NBTTagCompound();
         this.activeStorageInstanceData.setTag("i", serializer.serializeInstance(activeStorageInstance));
@@ -81,8 +81,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
             T hoveringStorageInstance = serializer.deserializeInstance(this.hoveringStorageInstanceData.getTag("i"));
             T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.getTag("i"));
-            tab.handleStorageSlotClick(player, getClickType(), getChannel(), hoveringStorageInstance, hoveredPlayerSlot,
-                    moveQuantityPlayerSlot, activeInstance);
+            tab.handleStorageSlotClick(container, player, getClickType(), getChannel(), hoveringStorageInstance,
+                    hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance);
         }
     }
 

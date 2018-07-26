@@ -5,8 +5,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -23,10 +26,12 @@ import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
+import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author rubensworks
@@ -37,8 +42,10 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     private final PartTarget target;
     private final IPartContainer partContainer;
     private final IPartType partType;
+    private final PartTypeTerminalStorage.State partState;
     private final Map<String, ITerminalStorageTabClient<?>> tabsClient;
     private final Map<String, ITerminalStorageTabServer> tabsServer;
+    private final Map<String, List<Triple<Slot, Integer, Integer>>> tabSlots;
 
     private int selectedTabIndexValueId;
     private int selectedChannelValueId;
@@ -60,11 +67,14 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     public ContainerTerminalStorage(final EntityPlayer player, PartTarget target, IPartContainer partContainer, IPartType partType) {
         super(player.inventory, (IGuiContainerProvider) partType);
 
+        this.partState = (PartTypeTerminalStorage.State) partContainer.getPartState(target.getCenter().getSide());
+
         this.target = target;
         this.partContainer = partContainer;
         this.partType = partType;
         this.tabsClient = Maps.newLinkedHashMap();
         this.tabsServer = Maps.newLinkedHashMap();
+        this.tabSlots = Maps.newHashMap();
 
         this.selectedTabIndexValueId = getNextValueId();
         this.selectedChannelValueId = getNextValueId();
@@ -79,36 +89,50 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         // Add tabs for all ingredients (and itemstack crafting)
         for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValuesCollection()) {
             INetwork network = NetworkHelpers.getNetwork(target.getCenter());
+            boolean addCraftingTab = ingredientComponent == IngredientComponents.ITEMSTACK; // TODO: abstract this as "auxiliary" tabs
             if (this.world.isRemote) {
                 TerminalStorageTabIngredientComponentClient tab = new TerminalStorageTabIngredientComponentClient(ingredientComponent);
                 this.tabsClient.put(tab.getId(), tab);
                 // Hard-coded crafting tab
-                // TODO: abstract this as "auxiliary" tabs
-                if (ingredientComponent == IngredientComponents.ITEMSTACK) {
+                if (addCraftingTab) {
                     TerminalStorageTabIngredientComponentClientItemStackCrafting tabCrafting =
                             new TerminalStorageTabIngredientComponentClientItemStackCrafting(ingredientComponent);
                     this.tabsClient.put(tabCrafting.getId(), tabCrafting);
                 }
             } else {
                 IPositionedAddonsNetworkIngredients<?, ?> ingredientNetwork = NetworkHelpers.getIngredientNetwork(network, ingredientComponent);
-                TerminalStorageTabIngredientComponentServer tab = new TerminalStorageTabIngredientComponentServer(ingredientComponent, ingredientNetwork, target.getCenter(), (EntityPlayerMP) player);
-                this.tabsServer.put(tab.getId(), tab);
+                addServerTab(new TerminalStorageTabIngredientComponentServer(ingredientComponent, ingredientNetwork,
+                        target.getCenter(), (EntityPlayerMP) player));
                 // Hard-coded crafting tab
-                // TODO: abstract this as "auxiliary" tabs
-                if (ingredientComponent == IngredientComponents.ITEMSTACK) {
-                    TerminalStorageTabIngredientComponentServerItemStackCrafting tabCrafting =
-                            new TerminalStorageTabIngredientComponentServerItemStackCrafting(
-                                    (IngredientComponent<ItemStack, Integer>) ingredientComponent,
-                                    (IPositionedAddonsNetworkIngredients<ItemStack, Integer>) ingredientNetwork,
-                                    target.getCenter(), (EntityPlayerMP) player);
-                    this.tabsServer.put(tabCrafting.getId(), tabCrafting);
+                if (addCraftingTab) {
+                    addServerTab(new TerminalStorageTabIngredientComponentServerItemStackCrafting(
+                            (IngredientComponent<ItemStack, Integer>) ingredientComponent,
+                            (IPositionedAddonsNetworkIngredients<ItemStack, Integer>) ingredientNetwork,
+                            target.getCenter(), (EntityPlayerMP) player));
                 }
+            }
+
+            // TODO: abstract this
+            if (addCraftingTab) {
+                int slotStartIndex = this.inventorySlots.size();
+                TerminalStorageTabIngredientComponentCommontemStackCrafting tab = new TerminalStorageTabIngredientComponentCommontemStackCrafting(IngredientComponents.ITEMSTACK);
+                List<Slot> slots = tab.loadSlots(this, slotStartIndex, player, partState);
+                this.tabSlots.put(tab.getId(), slots.stream()
+                        .map(slot -> Triple.of(slot, slot.xPos, slot.yPos)).collect(Collectors.toList()));
+                for (Slot slot : slots) {
+                    this.addSlotToContainer(slot);
+                }
+                disableSlots(tab.getId());
             }
         }
 
         setSelectedTab(player.world.isRemote && lastSelectedTab != null ? lastSelectedTab
                 : getTabsClient().size() > 0 ? Iterables.getFirst(getTabsClient().values(), null).getId() : null);
         setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
+    }
+
+    protected void addServerTab(TerminalStorageTabIngredientComponentServer tab) {
+        this.tabsServer.put(tab.getId(), tab);
     }
 
     @Override
@@ -120,6 +144,11 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
                 tab.init();
             }
         }
+    }
+
+    @Override
+    public void onCraftMatrixChanged(IInventory inventoryIn) {
+        // Do nothing, we handle this manually using dirty listeners
     }
 
     @Override
@@ -146,13 +175,37 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return PartHelpers.canInteractWith(getTarget(), player, this.partContainer);
     }
 
+    protected void enableSlots(String tabName) {
+        List<Triple<Slot, Integer, Integer>> slots = this.tabSlots.get(tabName);
+        if (slots != null) {
+            for (Triple<Slot, Integer, Integer> slot : slots) {
+                slot.getLeft().xPos = slot.getMiddle();
+                slot.getLeft().yPos = slot.getRight();
+            }
+        }
+    }
+
+    protected void disableSlots(String tabName) {
+        List<Triple<Slot, Integer, Integer>> slots = this.tabSlots.get(tabName);
+        if (slots != null) {
+            for (Triple<Slot, Integer, Integer> slot : slots) {
+                slot.getLeft().xPos = -100;
+                slot.getLeft().yPos = -100;
+            }
+        }
+    }
+
     public void setSelectedTab(@Nullable String selectedTab) {
+        disableSlots(getSelectedTab());
+
         if (player.world.isRemote) {
             lastSelectedTab = selectedTab;
         }
         if (selectedTab != null) {
             ValueNotifierHelpers.setValue(this, selectedTabIndexValueId, selectedTab);
         }
+
+        enableSlots(getSelectedTab());
     }
 
     @Nullable

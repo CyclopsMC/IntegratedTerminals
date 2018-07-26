@@ -3,11 +3,11 @@ package org.cyclops.integratedterminals.api.ingredient;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -100,30 +100,29 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
     public int throwIntoWorld(IIngredientComponentStorage<T, M> storage, T maxInstance, EntityPlayer player);
 
     /**
-     * Insert as much as possible from the given instance prototype into the player inventory.
+     * Insert as much as possible from the given instance prototype into the container.
      * @param storage The storage to insert to.
-     * @param playerInventory The player storage to extract from.
+     * @param container The container to extract from.
      * @param instance The instance to move.
      */
-    public default void insertMaxIntoPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, T instance) {
+    public default void insertMaxIntoContainer(IIngredientComponentStorage<T, M> storage, Container container, T instance) {
         IIngredientMatcher<T, M> matcher = storage.getComponent().getMatcher();
         T toAdd = instance;
-        PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
         int slot = 0;
-        while (!matcher.isEmpty(toAdd) && slot < inv.getSlots()) {
-            insertIntoPlayerInventory(storage, playerInventory, slot++, toAdd);
+        while (!matcher.isEmpty(toAdd) && slot < container.inventorySlots.size()) {
+            insertIntoContainer(storage, container, slot++, toAdd);
         }
     }
 
     /**
-     * Insert the given instance into the player inventory.
+     * Insert the given instance into the container.
      * @param storage The storage to extract from.
-     * @param playerInventory The player inventory to insert to.
-     * @param playerSlot The player slot to insert to.
+     * @param container The container to insert to.
+     * @param containerSlot The container slot to insert to.
      * @param maxInstance The instance to move.
      * @return The instance quantity that was moved.
      */
-    public T insertIntoPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, int playerSlot, T maxInstance);
+    public T insertIntoContainer(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, T maxInstance);
 
     /**
      * Move the ingredient in the active player stack to the storage.
@@ -134,12 +133,12 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, long moveQuantityPlayerSlot);
 
     /**
-     * Move as much as possible from the given player slot into the storage.
+     * Move as much as possible from the given container slot into the storage.
      * @param storage The storage to insert to.
-     * @param playerInventory The player inventory to extract from.
-     * @param playerSlot The player slot to extract from.
+     * @param container The container to insert to.
+     * @param containerSlot The container slot to insert to.
      */
-    public void extractMaxFromPlayerInventorySlot(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, int playerSlot);
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot);
 
     /**
      * Get the quantity in the active player stack.

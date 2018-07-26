@@ -7,6 +7,7 @@ import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -346,7 +347,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public boolean handleClick(int channel, int hoveringStorageSlot, int mouseButton, boolean hasClickedOutside, int hoveredPlayerSlot) {
+    public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
+                               boolean hasClickedOutside, int hoveredContainerSlot) {
         this.activeChannel = channel;
 
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
@@ -377,7 +379,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         this.activeSlotQuantity = 1;
                     }
                 }
-            } else if (hoveredPlayerSlot >= 0 && !player.inventory.getStackInSlot(hoveredPlayerSlot).isEmpty() && shift) {
+            } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getStack().isEmpty() && shift) {
                 // Quick move max quantity from player to storage
                 clickType = TerminalClickType.PLAYER_QUICK_MOVE;
             } else if (hoveringStorageSlot >= 0 && !player.inventory.getItemStack().isEmpty()) {
@@ -398,7 +400,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     // Throw
                     clickType = TerminalClickType.STORAGE_PLACE_WORLD;
                     reset = true;
-                } else if (hoveredPlayerSlot >= 0) {
+                } else if (hoveredContainerSlot >= 0) {
                     // Insert into player inventory
                     clickType = TerminalClickType.STORAGE_PLACE_PLAYER;
                     if (mouseButton == 0) {
@@ -442,7 +444,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         this.getId(), ingredientComponent, clickType, channel,
-                        hoveringStorageInstance.orElse(matcher.getEmptyInstance()), hoveredPlayerSlot, movePlayerQuantity, activeInstance));
+                        hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
+                        hoveredContainerSlot, movePlayerQuantity, activeInstance));
                 if (reset) {
                     resetActiveSlot();
                 }

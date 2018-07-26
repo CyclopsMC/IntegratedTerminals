@@ -9,13 +9,12 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import net.minecraftforge.oredict.OreDictionary;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -23,7 +22,6 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
@@ -119,29 +117,19 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
-    public void insertMaxIntoPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                             InventoryPlayer playerInventory, ItemStack instance) {
-        IIngredientComponentStorage<ItemStack, Integer> playerStorage = storage.getComponent()
-                .getStorageWrapperHandler(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY)
-                .wrapComponentStorage(new PlayerMainInvWrapper(playerInventory));
-        IngredientStorageHelpers.moveIngredients(storage, playerStorage, instance,
-                ItemMatch.EXACT, false);
-    }
-
-    @Override
-    public ItemStack insertIntoPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                         InventoryPlayer playerInventory, int playerSlot, ItemStack maxInstance) {
-        PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
+    public ItemStack insertIntoContainer(IIngredientComponentStorage<ItemStack, Integer> storage,
+                                               Container container, int containerSlot, ItemStack maxInstance) {
+        //PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
         ItemStack extracted = storage.extract(maxInstance, ItemMatch.EXACT, true);
-        ItemStack playerStack = inv.getStackInSlot(playerSlot);
+        ItemStack playerStack = container.getSlot(containerSlot).getStack();
         if (playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack)) {
             int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
             int inserted = newCount - playerStack.getCount();
             IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
             ItemStack moved = storage.extract(matcher.withQuantity(maxInstance, inserted), ItemMatch.EXACT, false);
 
-            inv.setStackInSlot(playerSlot, matcher.withQuantity(maxInstance, newCount));
-            playerInventory.player.openContainer.detectAndSendChanges();
+            container.getSlot(containerSlot).putStack(matcher.withQuantity(maxInstance, newCount));
+            container.detectAndSendChanges();
             return moved;
         }
         return ItemStack.EMPTY;
@@ -158,12 +146,12 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
-    public void extractMaxFromPlayerInventorySlot(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                                  InventoryPlayer playerInventory, int playerSlot) {
-        ItemStack toMove = playerInventory.getStackInSlot(playerSlot);
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<ItemStack, Integer> storage,
+                                                  Container container, int containerSlot) {
+        ItemStack toMove = container.getSlot(containerSlot).getStack();
         if (!toMove.isEmpty()) {
-            playerInventory.setInventorySlotContents(playerSlot, storage.insert(toMove, false));
-            playerInventory.player.openContainer.detectAndSendChanges();
+            container.getSlot(containerSlot).putStack(storage.insert(toMove, false));
+            container.detectAndSendChanges();
         }
     }
 

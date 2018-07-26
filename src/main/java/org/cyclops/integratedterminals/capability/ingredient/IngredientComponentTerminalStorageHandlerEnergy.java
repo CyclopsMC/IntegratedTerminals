@@ -5,12 +5,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
@@ -111,14 +111,15 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public Integer insertIntoPlayerInventory(IIngredientComponentStorage<Integer, Boolean> storage,
-                                         InventoryPlayer playerInventory, int playerSlot, Integer maxInstance) {
-        PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
-        ItemStack stack = inv.getStackInSlot(playerSlot);
+    public Integer insertIntoContainer(IIngredientComponentStorage<Integer, Boolean> storage,
+                                       Container container, int containerSlot, Integer maxInstance) {
+        ItemStack stack = container.getSlot(containerSlot).getStack();
         IEnergyStorage energyStorage = stack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            return IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
+            Integer ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
+            container.detectAndSendChanges();
+            return ret;
         }
         return 0;
     }
@@ -135,8 +136,9 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public void extractMaxFromPlayerInventorySlot(IIngredientComponentStorage<Integer, Boolean> storage, InventoryPlayer playerInventory, int playerSlot) {
-        ItemStack toMoveStack = playerInventory.getStackInSlot(playerSlot);
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<Integer, Boolean> storage,
+                                            Container container, int containerSlot) {
+        ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
         IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);

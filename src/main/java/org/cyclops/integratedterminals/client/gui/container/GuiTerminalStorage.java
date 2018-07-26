@@ -273,11 +273,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
         // Handle clicks on storage slots
         if (tabOptional.isPresent()) {
-            int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+        int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
             Slot playerSlot = getSlotUnderMouse();
             boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop);
-            if (tabOptional.get().handleClick(getContainer().getSelectedChannel(), slot, mouseButton,
-                    hasClickedOutside, playerSlot != null ? playerSlot.getSlotIndex() : -1)) {
+            if (tabOptional.get().handleClick(getContainer(), getContainer().getSelectedChannel(), slot, mouseButton,
+                    hasClickedOutside, playerSlot != null ? playerSlot.slotNumber : -1)) {
                 return;
             }
         }

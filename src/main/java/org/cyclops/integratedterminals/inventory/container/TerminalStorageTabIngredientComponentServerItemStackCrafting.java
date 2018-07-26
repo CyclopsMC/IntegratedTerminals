@@ -11,7 +11,7 @@ import org.cyclops.integrateddynamics.api.part.PartPos;
  * @author rubensworks
  */
 public class TerminalStorageTabIngredientComponentServerItemStackCrafting
-    extends TerminalStorageTabIngredientComponentServer<ItemStack, Integer> {
+        extends TerminalStorageTabIngredientComponentServer<ItemStack, Integer> {
 
     public TerminalStorageTabIngredientComponentServerItemStackCrafting(IngredientComponent<ItemStack, Integer> ingredientComponent,
                                                                         IPositionedAddonsNetworkIngredients<ItemStack, Integer> ingredientNetwork,
