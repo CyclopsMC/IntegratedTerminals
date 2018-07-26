@@ -321,13 +321,13 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         } else if (ClientProxy.TERMINAL_TAB_PREVIOUS.isActiveAndMatches(keyCode)) {
             // Go to previous tab
             setTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount());
+        } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
+            getSelectedClientTab()
+                    .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
         } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARPLAYER.isActiveAndMatches(keyCode)) {
             clearCraftingGrid(false);
         } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARSTORAGE.isActiveAndMatches(keyCode)) {
             clearCraftingGrid(true);
-        } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
-            getSelectedClientTab()
-                    .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
         } else {
             super.keyTyped(typedChar, keyCode);
         }

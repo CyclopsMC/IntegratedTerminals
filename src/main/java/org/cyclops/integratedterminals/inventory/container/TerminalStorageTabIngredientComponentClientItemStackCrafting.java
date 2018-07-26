@@ -28,6 +28,7 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
 
         this.buttons.add(new TerminalButtonItemStackCraftingGridClear<>());
+        this.buttons.add(new TerminalButtonItemStackCraftingGridBalance<>());
     }
 
     @Override
