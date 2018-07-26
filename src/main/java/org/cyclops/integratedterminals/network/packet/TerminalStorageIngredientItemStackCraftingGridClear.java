@@ -52,23 +52,25 @@ public class TerminalStorageIngredientItemStackCraftingGridClear<T> extends Pack
     public void actionServer(World world, EntityPlayerMP player) {
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
-            TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer =
-                    (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>) container.getTabServer(tabId);
-            TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon =
-                    (TerminalStorageTabIngredientComponentCommontemStackCrafting) container.getTabCommon(tabId);
-            tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
-            InventoryCrafting inventoryCrafting = tabCommon.getInventoryCrafting();
-            for (int i = 0; i < inventoryCrafting.getSizeInventory(); i++) {
-                ItemStack itemStack = inventoryCrafting.removeStackFromSlot(i);
-                if (!itemStack.isEmpty()) {
-                    if (toStorage) {
-                        // To storage
-                        ItemStack remainder = tabServer.getIngredientNetwork().getChannel(channel).insert(itemStack, false);
-                        // Place the remainder back into the grid, so we don't loose it.
-                        inventoryCrafting.setInventorySlotContents(i, remainder);
-                    } else {
-                        // To player inventory
-                        player.inventory.placeItemBackInInventory(world, itemStack);
+            if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
+                TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer =
+                        (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>) container.getTabServer(tabId);
+                TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon =
+                        (TerminalStorageTabIngredientComponentCommontemStackCrafting) container.getTabCommon(tabId);
+                tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
+                InventoryCrafting inventoryCrafting = tabCommon.getInventoryCrafting();
+                for (int i = 0; i < inventoryCrafting.getSizeInventory(); i++) {
+                    ItemStack itemStack = inventoryCrafting.removeStackFromSlot(i);
+                    if (!itemStack.isEmpty()) {
+                        if (toStorage) {
+                            // To storage
+                            ItemStack remainder = tabServer.getIngredientNetwork().getChannel(channel).insert(itemStack, false);
+                            // Place the remainder back into the grid, so we don't loose it.
+                            inventoryCrafting.setInventorySlotContents(i, remainder);
+                        } else {
+                            // To player inventory
+                            player.inventory.placeItemBackInInventory(world, itemStack);
+                        }
                     }
                 }
             }

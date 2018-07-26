@@ -30,6 +30,8 @@ gui.integratedterminals.terminal_storage.craftinggrid.clear.info=Shift-click to 
 key.categories.integratedterminals=Integrated Terminals
 key.integratedterminals.terminal.tab.next=Go to next terminal tab
 key.integratedterminals.terminal.tab.previous=Go to next terminal tab
+key.integratedterminals.terminal.craftinggrid.clearplayer=Clear Crafting Grid into Player Inventory
+key.integratedterminals.terminal.craftinggrid.clearstorage=Clear Crafting Grid into Player Inventory
 
 # Part types
 parttype.parttypes.integratedterminals.terminal_storage.name=Storage Terminal

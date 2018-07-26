@@ -31,6 +31,8 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.TerminalButtonItemStackCraftingGridClear;
+import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.opengl.GL11;
 
@@ -319,11 +321,24 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         } else if (ClientProxy.TERMINAL_TAB_PREVIOUS.isActiveAndMatches(keyCode)) {
             // Go to previous tab
             setTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount());
+        } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARPLAYER.isActiveAndMatches(keyCode)) {
+            clearCraftingGrid(false);
+        } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARSTORAGE.isActiveAndMatches(keyCode)) {
+            clearCraftingGrid(true);
         } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
             getSelectedClientTab()
                     .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
         } else {
             super.keyTyped(typedChar, keyCode);
+        }
+    }
+
+    protected void clearCraftingGrid(boolean toStorage) {
+        ITerminalStorageTabCommon commonTab = getContainer().getTabCommon(getContainer().getSelectedTab());
+        if (commonTab instanceof TerminalStorageTabIngredientComponentCommontemStackCrafting){
+            TerminalButtonItemStackCraftingGridClear.clearGrid(
+                    (TerminalStorageTabIngredientComponentCommontemStackCrafting) commonTab,
+                    getContainer().getSelectedChannel(), toStorage);
         }
     }
 

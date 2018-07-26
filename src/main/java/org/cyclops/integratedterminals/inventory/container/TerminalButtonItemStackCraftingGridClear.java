@@ -52,9 +52,7 @@ public class TerminalButtonItemStackCraftingGridClear<T>
                         TerminalStorageTabIngredientComponentCommontemStackCrafting commomTab, GuiButtonImage guiButton,
                         int channel, int mouseButton) {
         boolean toStorage = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
-        commomTab.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
-        IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientItemStackCraftingGridClear<>(clientTab.getId(), channel, toStorage));
+        TerminalButtonItemStackCraftingGridClear.clearGrid(commomTab, channel, toStorage);
     }
 
     @Override
@@ -65,5 +63,12 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     @Override
     public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines) {
         lines.add(L10NHelpers.localize("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.clear.info"));
+    }
+
+    public static void clearGrid(TerminalStorageTabIngredientComponentCommontemStackCrafting commomTab,
+                                 int channel, boolean toStorage) {
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientItemStackCraftingGridClear<>(commomTab.getId(), channel, toStorage));
+        commomTab.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
     }
 }
