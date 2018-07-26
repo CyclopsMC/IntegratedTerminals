@@ -8,6 +8,7 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridClear;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingShiftClickOutput;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
@@ -35,6 +36,7 @@ public class CommonProxy extends CommonProxyComponent {
         packetHandler.register(TerminalStorageIngredientUpdateActiveStorageIngredientPacket.class);
         packetHandler.register(TerminalStorageIngredientItemStackCraftingGridClear.class);
         packetHandler.register(TerminalStorageIngredientItemStackCraftingGridBalance.class);
+        packetHandler.register(TerminalStorageIngredientItemStackCraftingShiftClickOutput.class);
 
         IntegratedDynamics.clog("Registered packet handler.");
     }

@@ -169,6 +169,10 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return target;
     }
 
+    public PartTypeTerminalStorage.State getPartState() {
+        return partState;
+    }
+
     @Override
     protected int getSizeInventory() {
         return 0;

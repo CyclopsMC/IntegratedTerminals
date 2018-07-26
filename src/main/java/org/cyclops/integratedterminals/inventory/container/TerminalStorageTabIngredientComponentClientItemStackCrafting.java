@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.inventory.container;
 
 import com.google.common.collect.Lists;
 import net.minecraft.init.Blocks;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -10,6 +11,8 @@ import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingShiftClickOutput;
+import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -62,5 +65,17 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
     public ResourceLocation getBackgroundTexture() {
         return new ResourceLocation(Reference.MOD_ID, IntegratedTerminals._instance
                 .getReferenceValue(ModBase.REFKEY_TEXTURE_PATH_GUI) + "part_terminal_storage_crafting.png");
+    }
+
+    @Override
+    public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
+                               boolean hasClickedOutside, int hoveredContainerSlot) {
+        boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
+        if (hoveredContainerSlot == 36 && shift) {
+            IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                    new TerminalStorageIngredientItemStackCraftingShiftClickOutput(getId(), channel));
+            return true;
+        }
+        return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside, hoveredContainerSlot);
     }
 }

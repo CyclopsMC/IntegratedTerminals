@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -12,29 +12,27 @@ import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentServer;
+import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 /**
- * Packet for telling the server that the crafting grid must be cleared.
+ * Packet for sending a storage slot click event from client to server.
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketCodec {
+public class TerminalStorageIngredientItemStackCraftingShiftClickOutput extends PacketCodec {
 
     @CodecField
     private String tabId;
     @CodecField
     private int channel;
-    @CodecField
-    private boolean toStorage;
 
-    public TerminalStorageIngredientItemStackCraftingGridClear() {
+    public TerminalStorageIngredientItemStackCraftingShiftClickOutput() {
 
     }
 
-    public TerminalStorageIngredientItemStackCraftingGridClear(String tabId, int channel, boolean toStorage) {
+    public TerminalStorageIngredientItemStackCraftingShiftClickOutput(String tabId, int channel) {
         this.tabId = tabId;
         this.channel = channel;
-        this.toStorage = toStorage;
     }
 
     @Override
@@ -57,22 +55,25 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
                         (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>) container.getTabServer(tabId);
                 TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon =
                         (TerminalStorageTabIngredientComponentCommontemStackCrafting) container.getTabCommon(tabId);
-                tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
-                InventoryCrafting inventoryCrafting = tabCommon.getInventoryCrafting();
-                for (int i = 0; i < inventoryCrafting.getSizeInventory(); i++) {
-                    ItemStack itemStack = inventoryCrafting.removeStackFromSlot(i);
-                    if (!itemStack.isEmpty()) {
-                        if (toStorage) {
-                            // To storage
-                            ItemStack remainder = tabServer.getIngredientNetwork().getChannel(channel).insert(itemStack, false);
-                            // Place the remainder back into the grid, so we don't loose it.
-                            inventoryCrafting.setInventorySlotContents(i, remainder);
-                        } else {
-                            // To player inventory
-                            player.inventory.placeItemBackInInventory(world, itemStack);
-                        }
+                PartTypeTerminalStorage.State partState = container.getPartState();
+
+                // Loop until the result slot is empty
+                SlotCrafting slotCrafting = tabCommon.getSlotCrafting();
+                ItemStack resultStack;
+                do {
+                    // Remove the current result stack and properly call all events
+                    resultStack = slotCrafting.onTake(player, slotCrafting.decrStackSize(64));
+
+                    if (!resultStack.isEmpty()) {
+                        // Move result into player inventory
+                        player.inventory.placeItemBackInInventory(world, resultStack.copy());
+
+                        // Re-calculate recipe
+                        tabCommon.updateCraftingResult(player, player.openContainer, 36, partState);
+
+                        // TODO: re-fill slots from storage (toggle-able via button)
                     }
-                }
+                } while(!resultStack.isEmpty());
             }
         }
     }

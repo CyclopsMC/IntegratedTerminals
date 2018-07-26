@@ -31,6 +31,8 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
 
     private InventoryCrafting inventoryCrafting;
     private InventoryCraftResult inventoryCraftResult;
+    private SlotCrafting slotCrafting;
+    private List<Slot> slots;
 
     public TerminalStorageTabIngredientComponentCommontemStackCrafting(IngredientComponent<ItemStack, Integer> ingredientComponent) {
         this.ingredientComponent = ingredientComponent;
@@ -44,37 +46,12 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
     @Override
     public List<Slot> loadSlots(Container container, int startIndex, EntityPlayer player,
                                 PartTypeTerminalStorage.State partState) {
-        List<Slot> slots = Lists.newArrayListWithCapacity(10);
+        slots = Lists.newArrayListWithCapacity(10);
 
         // Reload the recipe when the input slots are updated
         final int firstStartIndex = startIndex;
-        IDirtyMarkListener dirtyListener = () -> {
-            // Update the crafting result
-            if (!player.world.isRemote) {
-                EntityPlayerMP entityplayermp = (EntityPlayerMP)player;
-                ItemStack itemstack = ItemStack.EMPTY;
-                IRecipe recipe = CraftingManager.findMatchingRecipe(inventoryCrafting, player.world);
+        IDirtyMarkListener dirtyListener = () -> updateCraftingResult(player, container, firstStartIndex, partState);
 
-                if (recipe != null && (recipe.isDynamic()
-                        || !player.world.getGameRules().getBoolean("doLimitedCrafting")
-                        || entityplayermp.getRecipeBook().isUnlocked(recipe))) {
-                    inventoryCraftResult.setRecipeUsed(recipe);
-                    itemstack = recipe.getCraftingResult(inventoryCrafting);
-                }
-
-                inventoryCraftResult.setInventorySlotContents(0, itemstack);
-                entityplayermp.connection.sendPacket(new SPacketSetSlot(container.windowId, firstStartIndex, itemstack));
-            }
-
-            // Save changes into the part state
-            NonNullList<ItemStack> latestItems = NonNullList.create();
-            for (Slot slot : slots) {
-                latestItems.add(slot.getStack());
-            }
-            partState.setNamedInventory(this.getId(), latestItems);
-        };
-
-        //.
         this.inventoryCraftResult = new InventoryCraftResult() {
             @Override
             public void markDirty() {
@@ -84,7 +61,8 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
         };
         this.inventoryCrafting = new InventoryCraftingDirtyable(container, 3, 3, dirtyListener);
 
-        slots.add(new SlotCrafting(player, this.inventoryCrafting, this.inventoryCraftResult, 0, 115, 76));
+        slots.add(slotCrafting = new SlotCrafting(player, this.inventoryCrafting, this.inventoryCraftResult,
+                0, 115, 76));
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
                 slots.add(new Slot(this.inventoryCrafting, j + i * 3, 31 + j * 18, 58 + i * 18));
@@ -113,5 +91,35 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
 
     public InventoryCraftResult getInventoryCraftResult() {
         return inventoryCraftResult;
+    }
+
+    public SlotCrafting getSlotCrafting() {
+        return slotCrafting;
+    }
+
+    public void updateCraftingResult(EntityPlayer player, Container container, int resultSlotIndex,
+                                     PartTypeTerminalStorage.State partState) {
+        if (!player.world.isRemote) {
+            EntityPlayerMP entityplayermp = (EntityPlayerMP)player;
+            ItemStack itemstack = ItemStack.EMPTY;
+            IRecipe recipe = CraftingManager.findMatchingRecipe(inventoryCrafting, player.world);
+
+            if (recipe != null && (recipe.isDynamic()
+                    || !player.world.getGameRules().getBoolean("doLimitedCrafting")
+                    || entityplayermp.getRecipeBook().isUnlocked(recipe))) {
+                inventoryCraftResult.setRecipeUsed(recipe);
+                itemstack = recipe.getCraftingResult(inventoryCrafting);
+            }
+
+            inventoryCraftResult.setInventorySlotContents(0, itemstack);
+            entityplayermp.connection.sendPacket(new SPacketSetSlot(container.windowId, resultSlotIndex, itemstack));
+        }
+
+        // Save changes into the part state
+        NonNullList<ItemStack> latestItems = NonNullList.create();
+        for (Slot slot : slots) {
+            latestItems.add(slot.getStack());
+        }
+        partState.setNamedInventory(this.getId(), latestItems);
     }
 }

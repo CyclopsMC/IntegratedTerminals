@@ -20,7 +20,7 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIng
 import java.util.List;
 
 /**
- * Packet for sending a storage slot click event from client to server.
+ * Packet for telling the server that the crafting grid must be balanced.
  * @author rubensworks
  *
  */
