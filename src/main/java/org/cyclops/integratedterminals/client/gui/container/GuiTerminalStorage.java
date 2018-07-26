@@ -33,6 +33,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCo
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.TerminalButtonItemStackCraftingGridClear;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.opengl.GL11;
 
@@ -328,6 +329,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             clearCraftingGrid(false);
         } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARSTORAGE.isActiveAndMatches(keyCode)) {
             clearCraftingGrid(true);
+        } else if (ClientProxy.TERMINAL_CRAFTINGGRID_BALANCE.isActiveAndMatches(keyCode)) {
+            balanceCraftingGrid();
         } else {
             super.keyTyped(typedChar, keyCode);
         }
@@ -339,6 +342,14 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             TerminalButtonItemStackCraftingGridClear.clearGrid(
                     (TerminalStorageTabIngredientComponentCommontemStackCrafting) commonTab,
                     getContainer().getSelectedChannel(), toStorage);
+        }
+    }
+
+    protected void balanceCraftingGrid() {
+        ITerminalStorageTabCommon commonTab = getContainer().getTabCommon(getContainer().getSelectedTab());
+        if (commonTab instanceof TerminalStorageTabIngredientComponentCommontemStackCrafting){
+            TerminalStorageIngredientItemStackCraftingGridBalance.balanceGrid(
+                    ((TerminalStorageTabIngredientComponentCommontemStackCrafting) commonTab).getInventoryCrafting());
         }
     }
 

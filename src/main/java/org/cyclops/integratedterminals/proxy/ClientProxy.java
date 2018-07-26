@@ -35,6 +35,10 @@ public class ClientProxy extends ClientProxyComponent {
 			"key." + Reference.MOD_ID + ".terminal.craftinggrid.clearstorage",
 			KeyConflictContext.GUI, KeyModifier.SHIFT, Keyboard.KEY_C,
 			KEYBINDING_CATEGORY_NAME);
+	public static final KeyBinding TERMINAL_CRAFTINGGRID_BALANCE = new KeyBinding(
+			"key." + Reference.MOD_ID + ".terminal.craftinggrid.balance",
+			KeyConflictContext.GUI, Keyboard.KEY_B,
+			KEYBINDING_CATEGORY_NAME);
 
 	public ClientProxy() {
 		super(new CommonProxy());

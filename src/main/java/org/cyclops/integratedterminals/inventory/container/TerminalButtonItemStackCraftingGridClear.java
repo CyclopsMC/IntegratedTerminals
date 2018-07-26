@@ -67,7 +67,7 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     public static void clearGrid(TerminalStorageTabIngredientComponentCommontemStackCrafting commomTab,
                                  int channel, boolean toStorage) {
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientItemStackCraftingGridClear<>(commomTab.getId(), channel, toStorage));
+                new TerminalStorageIngredientItemStackCraftingGridClear(commomTab.getId(), channel, toStorage));
         commomTab.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
     }
 }

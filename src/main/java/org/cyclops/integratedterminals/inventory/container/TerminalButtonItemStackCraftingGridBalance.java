@@ -49,7 +49,7 @@ public class TerminalButtonItemStackCraftingGridBalance<T>
                         TerminalStorageTabIngredientComponentCommontemStackCrafting commomTab, GuiButtonImage guiButton,
                         int channel, int mouseButton) {
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientItemStackCraftingGridBalance<>(commomTab.getId(), channel));
+                new TerminalStorageIngredientItemStackCraftingGridBalance(commomTab.getId()));
     }
 
     @Override

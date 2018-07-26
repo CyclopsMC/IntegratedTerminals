@@ -18,7 +18,7 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIng
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientItemStackCraftingGridClear<T> extends PacketCodec {
+public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketCodec {
 
     @CodecField
     private String tabId;

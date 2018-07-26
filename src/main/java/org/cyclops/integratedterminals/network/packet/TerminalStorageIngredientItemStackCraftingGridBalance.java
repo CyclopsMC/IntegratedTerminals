@@ -24,20 +24,17 @@ import java.util.List;
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientItemStackCraftingGridBalance<T> extends PacketCodec {
+public class TerminalStorageIngredientItemStackCraftingGridBalance extends PacketCodec {
 
     @CodecField
     private String tabId;
-    @CodecField
-    private int channel;
 
     public TerminalStorageIngredientItemStackCraftingGridBalance() {
 
     }
 
-    public TerminalStorageIngredientItemStackCraftingGridBalance(String tabId, int channel) {
+    public TerminalStorageIngredientItemStackCraftingGridBalance(String tabId) {
         this.tabId = tabId;
-        this.channel = channel;
     }
 
     @Override
@@ -56,8 +53,6 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance<T> extends Pa
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
-                TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer =
-                        (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>) container.getTabServer(tabId);
                 TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon =
                         (TerminalStorageTabIngredientComponentCommontemStackCrafting) container.getTabCommon(tabId);
                 tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
