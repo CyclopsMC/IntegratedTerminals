@@ -9,6 +9,7 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.client.gui.GuiButtonSort;
 
 import javax.annotation.Nullable;
@@ -19,7 +20,8 @@ import java.util.List;
  * A button for sorting based on a given {@link IIngredientInstanceSorter}.
  * @author rubensworks
  */
-public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>, GuiButtonSort> {
+public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
+        ITerminalStorageTabCommon, GuiButtonSort> {
 
     private final IIngredientInstanceSorter<T> instanceSorter;
     private Comparator<T> effectiveSorter;
@@ -34,6 +36,21 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     }
 
     @Override
+    public int getX(int guiLeft, int offset) {
+        return guiLeft + offset;
+    }
+
+    @Override
+    public int getY(int guiTop, int offset) {
+        return guiTop + offset;
+    }
+
+    @Override
+    public boolean isInLeftColumn() {
+        return true;
+    }
+
+    @Override
     @SideOnly(Side.CLIENT)
     public GuiButtonSort createButton(int x, int y) {
         return new GuiButtonSort(0, x, y, instanceSorter.getIcon(), active, descending);
@@ -41,7 +58,8 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab, GuiButtonSort guiButton, int channel, int mouseButton) {
+    public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab, ITerminalStorageTabCommon commonTab,
+                        GuiButtonSort guiButton, int channel, int mouseButton) {
         if (mouseButton == 0) {
             if (active) {
                 if (descending) {

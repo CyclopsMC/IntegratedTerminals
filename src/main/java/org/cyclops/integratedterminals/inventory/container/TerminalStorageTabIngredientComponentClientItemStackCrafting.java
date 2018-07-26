@@ -26,6 +26,8 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
     public TerminalStorageTabIngredientComponentClientItemStackCrafting(IngredientComponent<?, ?> ingredientComponent) {
         super(ingredientComponent);
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
+
+        this.buttons.add(new TerminalButtonItemStackCraftingGridClear<>());
     }
 
     @Override

@@ -6,12 +6,35 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * @author rubensworks
  */
-public interface ITerminalButton<C extends ITerminalStorageTabClient, B extends GuiButton> {
+public interface ITerminalButton<C extends ITerminalStorageTabClient,
+        O extends ITerminalStorageTabCommon, B extends GuiButton> {
+
+    /**
+     * Calculate the final X position for this button.
+     * @param guiLeft Gui left X
+     * @param offset X offset.
+     * @return The final X position.
+     */
+    public int getX(int guiLeft, int offset);
+
+    /**
+     * Calculate the final Y position for this button.
+     * @param guiTop Gui top Y
+     * @param offset Y offset.
+     * @return The final Y position.
+     */
+    public int getY(int guiTop, int offset);
+
+    /**
+     * @return If the button should be placed in the left grid column.
+     */
+    public boolean isInLeftColumn();
 
     /**
      * Create a gui button for displaying this button.
@@ -25,12 +48,13 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient, B extends 
     /**
      * Callback for when the gui button has been clicked.
      * @param clientTab The client tab in which the button was clicked.
+     * @param commonTab The common tab in which the button was clicked.
      * @param guiButton The gui button.
      * @param channel The active channel.
      * @param mouseButton The mouse button that was used to click with.
      */
     @SideOnly(Side.CLIENT)
-    public void onClick(C clientTab, B guiButton, int channel, int mouseButton);
+    public void onClick(C clientTab, @Nullable O commonTab, B guiButton, int channel, int mouseButton);
 
     /**
      * @return The unlocalized name

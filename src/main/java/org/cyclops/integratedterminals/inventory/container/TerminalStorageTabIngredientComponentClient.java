@@ -57,7 +57,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
-    private final List<ITerminalButton<?, ?>> buttons;
+    protected final List<ITerminalButton<?, ?, ?>> buttons;
 
     private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
     private final TIntObjectMap<IIngredientListMutable<T, M>> filteredIngredientsViews;
@@ -467,7 +467,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public List<ITerminalButton<?, ?>> getButtons() {
+    public List<ITerminalButton<?, ?, ?>> getButtons() {
         return this.buttons;
     }
 
@@ -476,7 +476,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         Comparator<T> sorter = null;
 
         // Chain all effective sorters from buttons of type TerminalButtonSort
-        for (ITerminalButton<?, ?> button : this.buttons) {
+        for (ITerminalButton<?, ?, ?> button : this.buttons) {
             if (button instanceof TerminalButtonSort) {
                 Comparator<T> partSorter = ((TerminalButtonSort<T>) button).getEffectiveSorter();
                 if (partSorter != null) {

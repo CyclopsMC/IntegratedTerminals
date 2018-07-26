@@ -25,6 +25,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
@@ -45,6 +46,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     private final PartTypeTerminalStorage.State partState;
     private final Map<String, ITerminalStorageTabClient<?>> tabsClient;
     private final Map<String, ITerminalStorageTabServer> tabsServer;
+    private final Map<String, ITerminalStorageTabCommon> tabsCommon;
     private final Map<String, List<Triple<Slot, Integer, Integer>>> tabSlots;
 
     private int selectedTabIndexValueId;
@@ -74,6 +76,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         this.partType = partType;
         this.tabsClient = Maps.newLinkedHashMap();
         this.tabsServer = Maps.newLinkedHashMap();
+        this.tabsCommon = Maps.newLinkedHashMap();
         this.tabSlots = Maps.newHashMap();
 
         this.selectedTabIndexValueId = getNextValueId();
@@ -116,6 +119,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
             if (addCraftingTab) {
                 int slotStartIndex = this.inventorySlots.size();
                 TerminalStorageTabIngredientComponentCommontemStackCrafting tab = new TerminalStorageTabIngredientComponentCommontemStackCrafting(IngredientComponents.ITEMSTACK);
+                this.tabsCommon.put(tab.getId(), tab);
                 List<Slot> slots = tab.loadSlots(this, slotStartIndex, player, partState);
                 this.tabSlots.put(tab.getId(), slots.stream()
                         .map(slot -> Triple.of(slot, slot.xPos, slot.yPos)).collect(Collectors.toList()));
@@ -230,6 +234,11 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     @Nullable
     public ITerminalStorageTabServer getTabServer(String id) {
         return tabsServer.get(id);
+    }
+
+    @Nullable
+    public ITerminalStorageTabCommon getTabCommon(String id) {
+        return tabsCommon.get(id);
     }
 
     public int getTabsClientCount() {

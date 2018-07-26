@@ -106,4 +106,12 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
 
         return slots;
     }
+
+    public InventoryCrafting getInventoryCrafting() {
+        return inventoryCrafting;
+    }
+
+    public InventoryCraftResult getInventoryCraftResult() {
+        return inventoryCraftResult;
+    }
 }

@@ -121,6 +121,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         }
     }
 
+    public IPositionedAddonsNetworkIngredients<T, M> getIngredientNetwork() {
+        return ingredientNetwork;
+    }
+
     @Nullable
     public void handleStorageSlotClick(Container container, EntityPlayerMP player, TerminalClickType clickType,
                                        int channel, T hoveringStorageInstance, int hoveredContainerSlot,

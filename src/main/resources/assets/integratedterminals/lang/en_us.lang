@@ -23,6 +23,8 @@ gui.integratedterminals.terminal_storage.sort.fluidstack.name=Fluid Name
 gui.integratedterminals.terminal_storage.sort.fluidstack.name.info=Sort by fluid name.
 gui.integratedterminals.terminal_storage.sort.fluidstack.quantity=Fluid Amount
 gui.integratedterminals.terminal_storage.sort.fluidstack.quantity.info=Sort by amount of mB.
+gui.integratedterminals.terminal_storage.craftinggrid.clear=Clear Crafting Grid into Player Inventory
+gui.integratedterminals.terminal_storage.craftinggrid.clear.info=Shift-click to clear into storage
 
 # Keybindings
 key.categories.integratedterminals=Integrated Terminals

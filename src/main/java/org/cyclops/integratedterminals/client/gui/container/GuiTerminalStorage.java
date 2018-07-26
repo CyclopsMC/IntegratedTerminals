@@ -29,6 +29,7 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.opengl.GL11;
@@ -165,14 +166,17 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         tabOptional.ifPresent(tab -> {
             int offset = 0;
             for (ITerminalButton button : tab.getButtons()) {
-                GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
-                if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
+                GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
+                if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset),
+                        guiButton.width, guiButton.height, mouseX, mouseY)) {
                     List<String> lines = Lists.newArrayList();
                     lines.add(L10NHelpers.localize(button.getUnlocalizedName()));
                     button.getTooltip(mc.player, ITooltipFlag.TooltipFlags.NORMAL, lines);
                     drawTooltip(lines, mouseX - guiLeft, mouseY - guiTop);
                 }
-                offset += BUTTONS_OFFSET + guiButton.height;
+                if (button.isInLeftColumn()) {
+                    offset += BUTTONS_OFFSET + guiButton.height;
+                }
             }
         });
     }
@@ -180,15 +184,6 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     @Override
     protected void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
         scrollBar.drawCurrentScreen(mouseX, mouseY, partialTicks);
-        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
-        tabOptional.ifPresent(tab -> {
-            int offset = 0;
-            for (ITerminalButton button : tab.getButtons()) {
-                GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
-                guiButton.drawButton(mc, mouseX, mouseY, partialTicks);
-                offset += BUTTONS_OFFSET + guiButton.height;
-            }
-        });
 
         ResourceLocation oldTexture = this.texture;
         getSelectedClientTab().ifPresent(tab -> {
@@ -201,6 +196,18 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         super.drawCurrentScreen(mouseX, mouseY, partialTicks);
 
         this.texture = oldTexture;
+
+        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.disableLighting();
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+        tabOptional.ifPresent(tab -> {
+            int offset = 0;
+            for (ITerminalButton button : tab.getButtons()) {
+                GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
+                guiButton.drawButton(mc, mouseX, mouseY, partialTicks);
+                offset += BUTTONS_OFFSET + guiButton.height;
+            }
+        });
     }
 
     @Override
@@ -288,10 +295,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         // Handle buttons clicks
         tabOptional.ifPresent(tab -> {
             int offset = 0;
+            ITerminalStorageTabCommon tabCommon = getContainer().getTabCommon(tab.getId());
             for (ITerminalButton button : tab.getButtons()) {
-                GuiButton guiButton = button.createButton(guiLeft + BUTTONS_OFFSET_X, guiTop + BUTTONS_OFFSET_Y + offset);
-                if (isPointInRegion(BUTTONS_OFFSET_X, BUTTONS_OFFSET_Y + offset, guiButton.width, guiButton.height, mouseX, mouseY)) {
-                    button.onClick(tab, guiButton, getContainer().getSelectedChannel(), mouseButton);
+                GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
+                if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset), guiButton.width, guiButton.height, mouseX, mouseY)) {
+                    button.onClick(tab, tabCommon, guiButton, getContainer().getSelectedChannel(), mouseButton);
                     return;
                 }
                 offset += BUTTONS_OFFSET + guiButton.height;

@@ -113,7 +113,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     /**
      * @return Buttons that are available for this tab.
      */
-    public List<ITerminalButton<?, ?>> getButtons();
+    public List<ITerminalButton<?, ?, ?>> getButtons();
 
     public default int getSlotOffsetX() {
         return DEFAULT_SLOT_OFFSET_X;

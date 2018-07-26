@@ -24,4 +24,9 @@ public class Images {
     public static final Image BUTTON_MIDDLE_NAME = new Image(ICONS, 18, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_QUANTITY = new Image(ICONS, 36, 18, 18, 18);
 
+    public static final Image BUTTON_SMALL_BACKGROUND_INACTIVE = new Image(ICONS, 0, 36, 8, 8);
+
+    public static final Image BUTTON_SMALL_OVERLAY_CROSS = new Image(ICONS, 0, 44, 8, 8);
+    public static final Image BUTTON_SMALL_OVERLAY_SQUARE = new Image(ICONS, 8, 44, 8, 8);
+
 }
