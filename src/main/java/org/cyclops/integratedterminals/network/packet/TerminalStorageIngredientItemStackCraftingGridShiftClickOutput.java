@@ -11,9 +11,9 @@ import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 /**
@@ -21,18 +21,18 @@ import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientItemStackCraftingShiftClickOutput extends PacketCodec {
+public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput extends PacketCodec {
 
     @CodecField
     private String tabId;
     @CodecField
     private int channel;
 
-    public TerminalStorageIngredientItemStackCraftingShiftClickOutput() {
+    public TerminalStorageIngredientItemStackCraftingGridShiftClickOutput() {
 
     }
 
-    public TerminalStorageIngredientItemStackCraftingShiftClickOutput(String tabId, int channel) {
+    public TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(String tabId, int channel) {
         this.tabId = tabId;
         this.channel = channel;
     }
@@ -52,16 +52,16 @@ public class TerminalStorageIngredientItemStackCraftingShiftClickOutput extends 
     public void actionServer(World world, EntityPlayerMP player) {
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
-            if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
-                TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer =
-                        (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>) container.getTabServer(tabId);
-                TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon =
-                        (TerminalStorageTabIngredientComponentCommontemStackCrafting) container.getTabCommon(tabId);
+            ITerminalStorageTabCommon tabCommon = container.getTabCommon(tabId);
+            if (tabCommon instanceof TerminalStorageTabIngredientComponentCommontemStackCrafting) {
+                TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommonCrafting =
+                        (TerminalStorageTabIngredientComponentCommontemStackCrafting) tabCommon;
                 PartTypeTerminalStorage.State partState = container.getPartState();
 
                 // Loop until the result slot is empty
-                SlotCrafting slotCrafting = tabCommon.getSlotCrafting();
+                SlotCrafting slotCrafting = tabCommonCrafting.getSlotCrafting();
                 ItemStack resultStack;
+                int craftedAmount = 0;
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
                     if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.inventory),
@@ -71,17 +71,16 @@ public class TerminalStorageIngredientItemStackCraftingShiftClickOutput extends 
 
                     // Remove the current result stack and properly call all events
                     resultStack = slotCrafting.onTake(player, slotCrafting.decrStackSize(64));
+                    craftedAmount += resultStack.getCount();
 
                     if (!resultStack.isEmpty()) {
                         // Move result into player inventory
                         player.inventory.placeItemBackInInventory(world, resultStack.copy());
 
                         // Re-calculate recipe
-                        tabCommon.updateCraftingResult(player, player.openContainer, 36, partState);
-
-                        // TODO: re-fill slots from storage (toggle-able via button)
+                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, 36, partState);
                     }
-                } while(!resultStack.isEmpty());
+                } while(!resultStack.isEmpty() && craftedAmount < resultStack.getMaxStackSize());
             }
         }
     }

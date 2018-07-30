@@ -21,7 +21,9 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param offset X offset.
      * @return The final X position.
      */
-    public int getX(int guiLeft, int offset);
+    public default int getX(int guiLeft, int offset) {
+        return guiLeft + offset;
+    }
 
     /**
      * Calculate the final Y position for this button.
@@ -29,12 +31,16 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param offset Y offset.
      * @return The final Y position.
      */
-    public int getY(int guiTop, int offset);
+    public default int getY(int guiTop, int offset) {
+        return guiTop + offset;
+    }
 
     /**
      * @return If the button should be placed in the left grid column.
      */
-    public boolean isInLeftColumn();
+    public default boolean isInLeftColumn() {
+        return true;
+    }
 
     /**
      * Create a gui button for displaying this button.

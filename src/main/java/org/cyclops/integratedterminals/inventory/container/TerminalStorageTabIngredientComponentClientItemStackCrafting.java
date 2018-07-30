@@ -11,7 +11,7 @@ import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingShiftClickOutput;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridShiftClickOutput;
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
@@ -30,6 +30,7 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
         super(ingredientComponent);
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
 
+        this.buttons.add(new TerminalButtonItemStackCraftingGridAutoRefill<>());
         this.buttons.add(new TerminalButtonItemStackCraftingGridClear<>());
         this.buttons.add(new TerminalButtonItemStackCraftingGridBalance<>());
     }
@@ -73,7 +74,7 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
         if (hoveredContainerSlot == 36 && shift) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                    new TerminalStorageIngredientItemStackCraftingShiftClickOutput(getId(), channel));
+                    new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getId(), channel));
             return true;
         }
         return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside, hoveredContainerSlot);

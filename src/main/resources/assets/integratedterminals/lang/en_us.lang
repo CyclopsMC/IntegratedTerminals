@@ -27,6 +27,8 @@ gui.integratedterminals.terminal_storage.craftinggrid.clear=Clear Crafting Grid 
 gui.integratedterminals.terminal_storage.craftinggrid.clear.info=Shift-click to clear into storage
 gui.integratedterminals.terminal_storage.craftinggrid.balance=Balance Crafting Grid
 gui.integratedterminals.terminal_storage.craftinggrid.balance.info=Equally distribute equal items over slots
+gui.integratedterminals.terminal_storage.craftinggrid.autorefill=Auto-refill Crafting Grid
+gui.integratedterminals.terminal_storage.craftinggrid.autorefill.info=Automatically refill the Crafting Grid after crafting
 
 # Keybindings
 key.categories.integratedterminals=Integrated Terminals

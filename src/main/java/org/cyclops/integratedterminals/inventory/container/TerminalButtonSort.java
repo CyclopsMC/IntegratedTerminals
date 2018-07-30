@@ -36,21 +36,6 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     }
 
     @Override
-    public int getX(int guiLeft, int offset) {
-        return guiLeft + offset;
-    }
-
-    @Override
-    public int getY(int guiTop, int offset) {
-        return guiTop + offset;
-    }
-
-    @Override
-    public boolean isInLeftColumn() {
-        return true;
-    }
-
-    @Override
     @SideOnly(Side.CLIENT)
     public GuiButtonSort createButton(int x, int y) {
         return new GuiButtonSort(0, x, y, instanceSorter.getIcon(), active, descending);

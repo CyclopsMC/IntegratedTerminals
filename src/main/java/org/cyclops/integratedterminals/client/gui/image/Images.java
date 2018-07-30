@@ -23,6 +23,7 @@ public class Images {
     public static final Image BUTTON_MIDDLE_ID = new Image(ICONS, 0, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_NAME = new Image(ICONS, 18, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_QUANTITY = new Image(ICONS, 36, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_AUTOREFILL = new Image(ICONS, 54, 18, 18, 18);
 
     public static final Image BUTTON_SMALL_BACKGROUND_INACTIVE = new Image(ICONS, 0, 36, 8, 8);
 

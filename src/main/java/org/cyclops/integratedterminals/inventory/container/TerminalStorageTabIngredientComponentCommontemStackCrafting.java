@@ -17,6 +17,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.InventoryCraftingDirtyable;
+import org.cyclops.integratedterminals.inventory.SlotCraftingAutoRefill;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import java.util.List;
@@ -33,6 +34,7 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
     private InventoryCraftResult inventoryCraftResult;
     private SlotCrafting slotCrafting;
     private List<Slot> slots;
+    private boolean autoRefill = true;
 
     public TerminalStorageTabIngredientComponentCommontemStackCrafting(IngredientComponent<ItemStack, Integer> ingredientComponent) {
         this.ingredientComponent = ingredientComponent;
@@ -61,8 +63,10 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
         };
         this.inventoryCrafting = new InventoryCraftingDirtyable(container, 3, 3, dirtyListener);
 
-        slots.add(slotCrafting = new SlotCrafting(player, this.inventoryCrafting, this.inventoryCraftResult,
-                0, 115, 76));
+        slots.add(slotCrafting = new SlotCraftingAutoRefill(player, this.inventoryCrafting, this.inventoryCraftResult,
+                0, 115, 76, this, (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>)
+                ((ContainerTerminalStorage) container).getTabServer(getId()),
+                ((ContainerTerminalStorage) container).getSelectedChannel()));
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
                 slots.add(new Slot(this.inventoryCrafting, j + i * 3, 31 + j * 18, 58 + i * 18));
@@ -97,6 +101,14 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
         return slotCrafting;
     }
 
+    public boolean isAutoRefill() {
+        return autoRefill;
+    }
+
+    public void setAutoRefill(boolean autoRefill) {
+        this.autoRefill = autoRefill;
+    }
+
     public void updateCraftingResult(EntityPlayer player, Container container, int resultSlotIndex,
                                      PartTypeTerminalStorage.State partState) {
         if (!player.world.isRemote) {
@@ -121,5 +133,9 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
             latestItems.add(slot.getStack());
         }
         partState.setNamedInventory(this.getId(), latestItems);
+    }
+
+    public void autoRefill() {
+
     }
 }
