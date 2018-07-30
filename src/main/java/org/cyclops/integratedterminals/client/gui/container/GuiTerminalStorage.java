@@ -12,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
 import org.cyclops.cyclopscore.client.gui.component.input.GuiArrowedListField;
 import org.cyclops.cyclopscore.client.gui.component.input.GuiTextFieldExtended;
@@ -174,7 +175,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         drawTabsForeground(mouseX, mouseY);
         drawTabContents(getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
+        this.zLevel = 150.0F;
+        RenderItemExtendedSlotCount.getInstance().zLevel = 150.0F;
         drawActiveStorageSlotItem(mouseX, mouseY);
+        RenderItemExtendedSlotCount.getInstance().zLevel = 0F;
+        this.zLevel = 0.0F;
 
         // Draw button tooltips
         Optional<ITerminalStorageTabClient<?>> tabOptional = getClientTab(getContainer().getSelectedTab());
@@ -499,11 +504,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 RenderHelpers.bindTexture(this.texture);
                 GlStateManager.color(1, 1, 1, 1);
 
-                this.zLevel = 300F;
                 slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
                         mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
                         mouseX, mouseY, tab, getContainer().getSelectedChannel(), GuiHelpers.quantityToScaledString(maxQuantity));
-                this.zLevel = 0F;
             }
         });
     }
