@@ -4,6 +4,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 
 import java.util.function.Predicate;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * @author rubensworks
@@ -34,7 +35,11 @@ public class IngredientQueryLeaf<T> implements IIngredientQuery<T> {
 
     @Override
     public boolean test(T t) {
-        return this.tester.test(t);
+        try {
+            return this.tester.test(t);
+        } catch (PatternSyntaxException e) {
+            return false;
+        }
     }
 
 }
