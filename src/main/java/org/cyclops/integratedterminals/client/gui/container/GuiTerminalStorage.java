@@ -3,12 +3,14 @@ package org.cyclops.integratedterminals.client.gui.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -253,6 +255,10 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         scrollBar.scrollTo(0);
     }
 
+    protected void playButtonClickSound() {
+        this.mc.getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    }
+
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
@@ -264,6 +270,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getContainer().getTabsClientCount() - 1)) {
             // Save tab index
             setTabByIndex((mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH);
+            playButtonClickSound();
 
             return;
         }
@@ -282,6 +289,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
             // Update the filter
             tabOptional.ifPresent(tab -> fieldSearch.setText(tab.getInstanceFilter(finalChannel)));
+
+            playButtonClickSound();
 
             return;
         }
@@ -309,6 +318,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
                 if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset), guiButton.width, guiButton.height, mouseX, mouseY)) {
                     button.onClick(tab, tabCommon, guiButton, getContainer().getSelectedChannel(), mouseButton);
+                    playButtonClickSound();
                     return;
                 }
                 offset += BUTTONS_OFFSET + guiButton.height;
@@ -325,18 +335,23 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         } else if (ClientProxy.TERMINAL_TAB_NEXT.isActiveAndMatches(keyCode)) {
             // Go to next tab
             setTabByIndex((getSelectedClientTabIndex() + 1) % getContainer().getTabsClientCount());
+            playButtonClickSound();
         } else if (ClientProxy.TERMINAL_TAB_PREVIOUS.isActiveAndMatches(keyCode)) {
             // Go to previous tab
             setTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount());
+            playButtonClickSound();
         } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
             getSelectedClientTab()
                     .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
         } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARPLAYER.isActiveAndMatches(keyCode)) {
             clearCraftingGrid(false);
+            playButtonClickSound();
         } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARSTORAGE.isActiveAndMatches(keyCode)) {
             clearCraftingGrid(true);
+            playButtonClickSound();
         } else if (ClientProxy.TERMINAL_CRAFTINGGRID_BALANCE.isActiveAndMatches(keyCode)) {
             balanceCraftingGrid();
+            playButtonClickSound();
         } else {
             super.keyTyped(typedChar, keyCode);
         }
