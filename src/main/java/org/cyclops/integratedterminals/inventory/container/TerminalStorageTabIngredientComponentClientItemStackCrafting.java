@@ -77,6 +77,9 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
                     new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getId(), channel));
             return true;
         }
+        if (hoveredContainerSlot > 36 && getActiveSlotId() < 0) {
+            return false;
+        }
         return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside, hoveredContainerSlot);
     }
 }

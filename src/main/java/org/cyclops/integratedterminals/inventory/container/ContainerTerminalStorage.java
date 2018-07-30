@@ -175,7 +175,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
 
     @Override
     protected int getSizeInventory() {
-        return 0;
+        return inventorySlots.size() - player.inventory.mainInventory.size();
     }
 
     @Override
