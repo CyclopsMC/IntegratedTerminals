@@ -7,6 +7,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
@@ -61,6 +63,12 @@ public class TerminalStorageIngredientItemStackCraftingShiftClickOutput extends 
                 SlotCrafting slotCrafting = tabCommon.getSlotCrafting();
                 ItemStack resultStack;
                 do {
+                    // Break the loop once we can not add the result into the player inventory anymore
+                    if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.inventory),
+                            slotCrafting.getStack(), true).isEmpty()) {
+                        break;
+                    }
+
                     // Remove the current result stack and properly call all events
                     resultStack = slotCrafting.onTake(player, slotCrafting.decrStackSize(64));
 
