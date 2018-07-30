@@ -154,6 +154,18 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         drawTabContents(getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
+
+        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.disableLighting();
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+        tabOptional.ifPresent(tab -> {
+            int offset = 0;
+            for (ITerminalButton button : tab.getButtons()) {
+                GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
+                guiButton.drawButton(mc, mouseX, mouseY, f);
+                offset += BUTTONS_OFFSET + guiButton.height;
+            }
+        });
     }
 
     @Override
@@ -199,18 +211,6 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         super.drawCurrentScreen(mouseX, mouseY, partialTicks);
 
         this.texture = oldTexture;
-
-        GlStateManager.color(1, 1, 1, 1);
-        GlStateManager.disableLighting();
-        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
-        tabOptional.ifPresent(tab -> {
-            int offset = 0;
-            for (ITerminalButton button : tab.getButtons()) {
-                GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
-                guiButton.drawButton(mc, mouseX, mouseY, partialTicks);
-                offset += BUTTONS_OFFSET + guiButton.height;
-            }
-        });
     }
 
     @Override
