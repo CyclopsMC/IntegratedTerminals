@@ -70,7 +70,7 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
 
     @Override
     public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
-                               boolean hasClickedOutside, int hoveredContainerSlot) {
+                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
         if (hoveredContainerSlot == 36 && shift) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
@@ -80,6 +80,7 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
         if (hoveredContainerSlot > 36 && getActiveSlotId() < 0) {
             return false;
         }
-        return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside, hoveredContainerSlot);
+        return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside,
+                hasClickedInStorage, hoveredContainerSlot);
     }
 }

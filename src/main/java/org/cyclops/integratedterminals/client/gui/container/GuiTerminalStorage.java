@@ -283,11 +283,12 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
         // Handle clicks on storage slots
         if (tabOptional.isPresent()) {
-        int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+            int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
             Slot playerSlot = getSlotUnderMouse();
             boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop);
+            boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
             if (tabOptional.get().handleClick(getContainer(), getContainer().getSelectedChannel(), slot, mouseButton,
-                    hasClickedOutside, playerSlot != null ? playerSlot.slotNumber : -1)) {
+                    hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.slotNumber : -1)) {
                 return;
             }
         }
@@ -353,11 +354,15 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         }
     }
 
-    private int getStorageSlotIndexAtPosition(int mouseX, int mouseY) {
-        if (mouseX >= getGuiLeftTotal() + getSlotsOffsetX()
+    private boolean hasClickedInStorage(int mouseX, int mouseY) {
+        return mouseX >= getGuiLeftTotal() + getSlotsOffsetX()
                 && mouseX < getGuiLeftTotal() + getSlotsOffsetX() + getSlotRowLength() * GuiHelpers.SLOT_SIZE - 1
                 && mouseY >= getGuiTopTotal() + getSlotsOffsetY()
-                && mouseY < getGuiTopTotal() + getSlotsOffsetY() + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE) {
+                && mouseY < getGuiTopTotal() + getSlotsOffsetY() + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE;
+    }
+
+    private int getStorageSlotIndexAtPosition(int mouseX, int mouseY) {
+        if (hasClickedInStorage(mouseX, mouseY)) {
             if ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER
                     && (mouseY - getGuiTopTotal() - getSlotsOffsetY()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER) {
                 int rowLength = getSlotRowLength();

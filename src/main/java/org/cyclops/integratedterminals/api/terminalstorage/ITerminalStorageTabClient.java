@@ -94,11 +94,13 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @param hoveringStorageSlot The storage slot id that is being hovered. -1 if none.
      * @param mouseButton The mouse button.
      * @param hasClickedOutside If the player has clicked outside the gui.
+     * @param hasClickedInStorage If the player has clicked inside the storage space.
+     *                            This can be true even if the storage slot is -1.
      * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
      * @return If further click processing should stop.
      */
     public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
-                               boolean hasClickedOutside, int hoveredContainerSlot);
+                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot);
 
     /**
      * @return The active storage slot id.

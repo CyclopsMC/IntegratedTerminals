@@ -348,7 +348,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
-                               boolean hasClickedOutside, int hoveredContainerSlot) {
+                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
         this.activeChannel = channel;
 
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
@@ -382,7 +382,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getStack().isEmpty() && shift) {
                 // Quick move max quantity from player to storage
                 clickType = TerminalClickType.PLAYER_QUICK_MOVE;
-            } else if (hoveringStorageSlot >= 0 && !player.inventory.getItemStack().isEmpty()) {
+            } else if (hasClickedInStorage && !player.inventory.getItemStack().isEmpty()) {
                 // Move into storage
                 clickType = TerminalClickType.PLAYER_PLACE_STORAGE;
                 if (mouseButton == 0) {
@@ -412,7 +412,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         moveQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
                     }
                     this.activeSlotQuantity -= moveQuantity;
-                } else if (hoveringStorageSlot >= 0) {
+                } else if (hasClickedInStorage) {
                     if (mouseButton == 0 && this.activeSlotId == hoveringStorageSlot) {
                         // Increase the active quantity
                         this.activeSlotQuantity = (int) Math.min(ingredientComponent.getMatcher().getQuantity(hoveringStorageInstance.get()),
