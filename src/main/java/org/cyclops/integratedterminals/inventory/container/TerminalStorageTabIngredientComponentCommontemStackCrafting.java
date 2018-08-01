@@ -134,8 +134,4 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
         }
         partState.setNamedInventory(this.getId(), latestItems);
     }
-
-    public void autoRefill() {
-
-    }
 }
