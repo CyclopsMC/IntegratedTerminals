@@ -1,8 +1,9 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.core.terminalstorage;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.network.play.server.SPacketSetSlot;
+import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -15,6 +16,7 @@ import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
+import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
@@ -31,15 +33,17 @@ import javax.annotation.Nullable;
 public class TerminalStorageTabIngredientComponentServer<T, M> implements ITerminalStorageTabServer,
         IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
 
+    private final ResourceLocation name;
     private final IngredientComponent<T, M> ingredientComponent;
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
     private final PartPos pos;
     private final EntityPlayerMP player;
 
-    public TerminalStorageTabIngredientComponentServer(IngredientComponent<T, M> ingredientComponent,
+    public TerminalStorageTabIngredientComponentServer(ResourceLocation name, IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
                                                        PartPos pos,
                                                        EntityPlayerMP player) {
+        this.name = name;
         this.ingredientComponent = ingredientComponent;
         this.ingredientNetwork = ingredientNetwork;
         this.pos = pos;
@@ -47,8 +51,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     @Override
-    public String getId() {
-        return ingredientComponent.getName().toString();
+    public ResourceLocation getName() {
+        return name;
     }
 
     @Override
@@ -92,9 +96,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         // Only allow ingredient collection of a max given size to be sent in a packet
         if (event.getInstances().size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientChangeEventPacket(this.getId(), event, this.ingredientNetwork.hasPositions()), player);
+                    new TerminalStorageIngredientChangeEventPacket(this.getName().toString(), event, this.ingredientNetwork.hasPositions()), player);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientMaxQuantityPacket(this.getId(), event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
+                    new TerminalStorageIngredientMaxQuantityPacket(this.getName().toString(), event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
         } else {
             IngredientArrayList<T, M> buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
                     GeneralConfig.terminalStoragePacketMaxInstances);
@@ -147,7 +151,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 T remainingInstance = matcher.withQuantity(movedInstance,
                         matcher.getQuantity(activeStorageInstance) - matcher.getQuantity(movedInstance));
                 IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                        new TerminalStorageIngredientUpdateActiveStorageIngredientPacket(this.getId(),
+                        new TerminalStorageIngredientUpdateActiveStorageIngredientPacket(this.getName().toString(),
                                 this.ingredientComponent, channel, remainingInstance), player);
                 break;
             case PLAYER_PLACE_STORAGE:

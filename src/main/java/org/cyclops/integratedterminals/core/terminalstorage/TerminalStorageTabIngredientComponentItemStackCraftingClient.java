@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import net.minecraft.init.Blocks;
@@ -11,6 +11,9 @@ import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridBalance;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridClear;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridShiftClickOutput;
 import org.lwjgl.input.Keyboard;
 
@@ -21,23 +24,19 @@ import java.util.List;
  * A client-side storage terminal ingredient tab for crafting with {@link ItemStack} instances.
  * @author rubensworks
  */
-public class TerminalStorageTabIngredientComponentClientItemStackCrafting
+public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         extends TerminalStorageTabIngredientComponentClient<ItemStack, Integer> {
 
     private final ItemStack icon;
 
-    public TerminalStorageTabIngredientComponentClientItemStackCrafting(IngredientComponent<?, ?> ingredientComponent) {
-        super(ingredientComponent);
+    public TerminalStorageTabIngredientComponentItemStackCraftingClient(ResourceLocation name,
+                                                                        IngredientComponent<?, ?> ingredientComponent) {
+        super(name, ingredientComponent);
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
 
         this.buttons.add(new TerminalButtonItemStackCraftingGridAutoRefill<>());
         this.buttons.add(new TerminalButtonItemStackCraftingGridClear<>());
         this.buttons.add(new TerminalButtonItemStackCraftingGridBalance<>());
-    }
-
-    @Override
-    public String getId() {
-        return super.getId() + "_crafting";
     }
 
     @Override
@@ -74,7 +73,7 @@ public class TerminalStorageTabIngredientComponentClientItemStackCrafting
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
         if (hoveredContainerSlot == 36 && shift) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                    new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getId(), channel));
+                    new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getName().toString(), channel));
             return true;
         }
         if (hoveredContainerSlot > 36 && getActiveSlotId() < 0) {

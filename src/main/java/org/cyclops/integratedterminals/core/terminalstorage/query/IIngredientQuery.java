@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container.query;
+package org.cyclops.integratedterminals.core.terminalstorage.query;
 
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;

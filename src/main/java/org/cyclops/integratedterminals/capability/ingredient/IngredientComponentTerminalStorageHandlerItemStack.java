@@ -29,7 +29,7 @@ import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackIdS
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackNameSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackQuantitySorter;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
+import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;

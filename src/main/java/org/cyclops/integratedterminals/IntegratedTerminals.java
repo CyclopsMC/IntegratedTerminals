@@ -19,8 +19,11 @@ import org.cyclops.cyclopscore.init.ItemCreativeTab;
 import org.cyclops.cyclopscore.init.ModBaseVersionable;
 import org.cyclops.cyclopscore.init.RecipeHandler;
 import org.cyclops.cyclopscore.proxy.ICommonProxy;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.part.PartTypes;
 
 /**
@@ -38,7 +41,7 @@ import org.cyclops.integratedterminals.part.PartTypes;
         certificateFingerprint = Reference.MOD_FINGERPRINT
 )
 public class IntegratedTerminals extends ModBaseVersionable {
-    
+
     /**
      * The proxy of this mod, depending on 'side' a different proxy will be inside this field.
      * @see SidedProxy
@@ -73,8 +76,11 @@ public class IntegratedTerminals extends ModBaseVersionable {
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
 
+        getRegistryManager().addRegistry(ITerminalStorageTabRegistry.class, new TerminalStorageTabRegistry());
+
         PartTypes.load();
         TerminalIngredientComponentCapabilities.load();
+        TerminalStorageTabs.load();
     }
     
     /**

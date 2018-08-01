@@ -13,9 +13,9 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentServer;
 
 import java.util.List;
 
@@ -53,8 +53,8 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
-                TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon =
-                        (TerminalStorageTabIngredientComponentCommontemStackCrafting) container.getTabCommon(tabId);
+                TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon =
+                        (TerminalStorageTabIngredientComponentItemStackCraftingCommon) container.getTabCommon(tabId);
                 tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
                 balanceGrid(tabCommon.getInventoryCrafting());
             }

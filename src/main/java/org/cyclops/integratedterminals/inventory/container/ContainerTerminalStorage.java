@@ -4,29 +4,24 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.tuple.Triple;
-import org.cyclops.commoncapabilities.IngredientComponents;
-import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.IGuiContainerProvider;
 import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
-import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
-import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
-import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import javax.annotation.Nullable;
@@ -89,54 +84,32 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         this.channelAllLabel = L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel_all");
         this.channelStrings = Lists.newArrayList(this.channelAllLabel);
 
-        // Add tabs for all ingredients (and itemstack crafting)
-        for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValuesCollection()) {
-            INetwork network = NetworkHelpers.getNetwork(target.getCenter());
-            boolean addCraftingTab = ingredientComponent == IngredientComponents.ITEMSTACK; // TODO: abstract this as "auxiliary" tabs
+        // Add all tabs from the registry
+        for (ITerminalStorageTab tab : TerminalStorageTabs.REGISTRY.getTabs()) {
+            String id = tab.getName().toString();
             if (this.world.isRemote) {
-                TerminalStorageTabIngredientComponentClient tab = new TerminalStorageTabIngredientComponentClient(ingredientComponent);
-                this.tabsClient.put(tab.getId(), tab);
-                // Hard-coded crafting tab
-                if (addCraftingTab) {
-                    TerminalStorageTabIngredientComponentClientItemStackCrafting tabCrafting =
-                            new TerminalStorageTabIngredientComponentClientItemStackCrafting(ingredientComponent);
-                    this.tabsClient.put(tabCrafting.getId(), tabCrafting);
-                }
+                this.tabsClient.put(id, tab.createClientTab(this, player, target));
             } else {
-                IPositionedAddonsNetworkIngredients<?, ?> ingredientNetwork = NetworkHelpers.getIngredientNetwork(network, ingredientComponent);
-                addServerTab(new TerminalStorageTabIngredientComponentServer(ingredientComponent, ingredientNetwork,
-                        target.getCenter(), (EntityPlayerMP) player));
-                // Hard-coded crafting tab
-                if (addCraftingTab) {
-                    addServerTab(new TerminalStorageTabIngredientComponentServerItemStackCrafting(
-                            (IngredientComponent<ItemStack, Integer>) ingredientComponent,
-                            (IPositionedAddonsNetworkIngredients<ItemStack, Integer>) ingredientNetwork,
-                            target.getCenter(), (EntityPlayerMP) player));
-                }
+                this.tabsServer.put(id, tab.createServerTab(this, player, target));
             }
+            ITerminalStorageTabCommon commonTab = tab.createCommonTab(this, player, target);
+            if (commonTab != null) {
+                this.tabsCommon.put(id, commonTab);
 
-            // TODO: abstract this
-            if (addCraftingTab) {
                 int slotStartIndex = this.inventorySlots.size();
-                TerminalStorageTabIngredientComponentCommontemStackCrafting tab = new TerminalStorageTabIngredientComponentCommontemStackCrafting(IngredientComponents.ITEMSTACK);
-                this.tabsCommon.put(tab.getId(), tab);
-                List<Slot> slots = tab.loadSlots(this, slotStartIndex, player, partState);
-                this.tabSlots.put(tab.getId(), slots.stream()
+                List<Slot> slots = commonTab.loadSlots(this, slotStartIndex, player, partState);
+                this.tabSlots.put(id, slots.stream()
                         .map(slot -> Triple.of(slot, slot.xPos, slot.yPos)).collect(Collectors.toList()));
                 for (Slot slot : slots) {
                     this.addSlotToContainer(slot);
                 }
-                disableSlots(tab.getId());
+                disableSlots(id);
             }
         }
 
         setSelectedTab(player.world.isRemote && lastSelectedTab != null ? lastSelectedTab
-                : getTabsClient().size() > 0 ? Iterables.getFirst(getTabsClient().values(), null).getId() : null);
+                : getTabsClient().size() > 0 ? Iterables.getFirst(getTabsClient().values(), null).getName().toString() : null);
         setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
-    }
-
-    protected void addServerTab(TerminalStorageTabIngredientComponentServer tab) {
-        this.tabsServer.put(tab.getId(), tab);
     }
 
     @Override

@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.api.terminalstorage;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
+import net.minecraft.util.ResourceLocation;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import java.util.Collections;
@@ -15,9 +16,9 @@ import java.util.List;
 public interface ITerminalStorageTabCommon {
 
     /**
-     * @return The unique tab id, must be equal to its client-side variant.
+     * @return The unique tab name, as inherited from {@link ITerminalStorageTab#getName()}.
      */
-    public String getId();
+    public ResourceLocation getName();
 
     public default List<Slot> loadSlots(Container container, int startIndex, EntityPlayer player,
                                         PartTypeTerminalStorage.State partState) {

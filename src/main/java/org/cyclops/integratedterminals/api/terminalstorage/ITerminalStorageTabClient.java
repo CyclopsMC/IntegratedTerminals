@@ -21,9 +21,9 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     public static final int DEFAULT_SLOT_ROW_LENGTH = 9;
 
     /**
-     * @return The unique tab id, must be equal to its server-side variant.
+     * @return The unique tab name, as inherited from {@link ITerminalStorageTab#getName()}.
      */
-    public String getId();
+    public ResourceLocation getName();
 
     /**
      * @return An icon for the tab.

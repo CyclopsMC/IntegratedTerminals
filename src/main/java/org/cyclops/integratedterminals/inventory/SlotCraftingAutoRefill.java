@@ -9,8 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.util.NonNullList;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentServer;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 
 /**
  * A crafting slot that will automatically auto-refill from the storage (if enabled).
@@ -19,13 +19,13 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIng
 public class SlotCraftingAutoRefill extends SlotCrafting {
 
     private final InventoryCrafting inventoryCrafting;
-    private final TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon;
+    private final TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon;
     private final TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer;
     private final int channel;
 
     public SlotCraftingAutoRefill(EntityPlayer player, InventoryCrafting inventoryCrafting,
                                   IInventory inventoryIn, int slotIndex, int xPosition, int yPosition,
-                                  TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon,
+                                  TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon,
                                   TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer,
                                   int channel) {
         super(player, inventoryCrafting, inventoryIn, slotIndex, xPosition, yPosition);

@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.api.terminalstorage;
 
 /**
  * @author rubensworks

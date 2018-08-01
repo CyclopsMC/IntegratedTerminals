@@ -12,8 +12,8 @@ import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 /**
@@ -53,9 +53,9 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             ITerminalStorageTabCommon tabCommon = container.getTabCommon(tabId);
-            if (tabCommon instanceof TerminalStorageTabIngredientComponentCommontemStackCrafting) {
-                TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommonCrafting =
-                        (TerminalStorageTabIngredientComponentCommontemStackCrafting) tabCommon;
+            if (tabCommon instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon) {
+                TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
+                        (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
                 PartTypeTerminalStorage.State partState = container.getPartState();
 
                 // Loop until the result slot is empty

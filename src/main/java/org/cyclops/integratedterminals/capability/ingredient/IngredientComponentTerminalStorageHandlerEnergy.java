@@ -21,7 +21,7 @@ import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
+import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

@@ -29,7 +29,7 @@ import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackId
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackNameSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackQuantitySorter;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
+import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

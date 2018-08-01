@@ -9,9 +9,9 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentServer;
 
 /**
  * Packet for telling the server that the crafting grid must be cleared.
@@ -55,8 +55,8 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
                 TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer =
                         (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>) container.getTabServer(tabId);
-                TerminalStorageTabIngredientComponentCommontemStackCrafting tabCommon =
-                        (TerminalStorageTabIngredientComponentCommontemStackCrafting) container.getTabCommon(tabId);
+                TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon =
+                        (TerminalStorageTabIngredientComponentItemStackCraftingCommon) container.getTabCommon(tabId);
                 tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
                 InventoryCrafting inventoryCrafting = tabCommon.getInventoryCrafting();
                 for (int i = 0; i < inventoryCrafting.getSizeInventory(); i++) {

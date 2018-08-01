@@ -11,8 +11,8 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentClient;
 
 /**
  * Packet for sending the currently active storage stack from server to client.

@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.core.terminalstorage.button;
 
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,6 +11,7 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.client.gui.GuiButtonSort;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 
 import javax.annotation.Nullable;
 import java.util.Comparator;

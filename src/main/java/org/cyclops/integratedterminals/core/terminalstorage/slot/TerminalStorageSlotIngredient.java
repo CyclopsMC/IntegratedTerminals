@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.core.terminalstorage.slot;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraftforge.fml.relauncher.Side;
@@ -7,6 +7,7 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTermin
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 
 import javax.annotation.Nullable;
 

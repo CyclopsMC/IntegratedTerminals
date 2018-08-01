@@ -11,9 +11,9 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalClickType;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentServer;
 
 /**
  * Packet for sending a storage slot click event from client to server.

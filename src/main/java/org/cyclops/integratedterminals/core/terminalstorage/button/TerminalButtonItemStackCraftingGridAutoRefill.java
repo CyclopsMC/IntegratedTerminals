@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.core.terminalstorage.button;
 
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,6 +11,8 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.client.gui.image.Images;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridSetAutoRefill;
 
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.List;
  */
 public class TerminalButtonItemStackCraftingGridAutoRefill<T>
         implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
-        TerminalStorageTabIngredientComponentCommontemStackCrafting, GuiButtonImage> {
+        TerminalStorageTabIngredientComponentItemStackCraftingCommon, GuiButtonImage> {
 
     private boolean active = true;
 
@@ -35,11 +37,11 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
     @Override
     @SideOnly(Side.CLIENT)
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
-                        TerminalStorageTabIngredientComponentCommontemStackCrafting commomTab, GuiButtonImage guiButton,
+                        TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, GuiButtonImage guiButton,
                         int channel, int mouseButton) {
         this.active = !this.active;
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(clientTab.getId(), this.active));
+                new TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(clientTab.getName().toString(), this.active));
     }
 
     @Override

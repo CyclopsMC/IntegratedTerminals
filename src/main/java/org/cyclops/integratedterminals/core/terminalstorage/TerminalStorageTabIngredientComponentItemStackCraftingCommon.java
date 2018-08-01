@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,11 +13,13 @@ import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.InventoryCraftingDirtyable;
 import org.cyclops.integratedterminals.inventory.SlotCraftingAutoRefill;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import java.util.List;
@@ -26,8 +28,9 @@ import java.util.List;
  * A common-side storage terminal ingredient tab for crafting with {@link ItemStack} instances.
  * @author rubensworks
  */
-public class TerminalStorageTabIngredientComponentCommontemStackCrafting implements ITerminalStorageTabCommon {
+public class TerminalStorageTabIngredientComponentItemStackCraftingCommon implements ITerminalStorageTabCommon {
 
+    private final ResourceLocation name;
     private final IngredientComponent<ItemStack, Integer> ingredientComponent;
 
     private InventoryCrafting inventoryCrafting;
@@ -36,13 +39,14 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
     private List<Slot> slots;
     private boolean autoRefill = true;
 
-    public TerminalStorageTabIngredientComponentCommontemStackCrafting(IngredientComponent<ItemStack, Integer> ingredientComponent) {
+    public TerminalStorageTabIngredientComponentItemStackCraftingCommon(ResourceLocation name, IngredientComponent<ItemStack, Integer> ingredientComponent) {
+        this.name = name;
         this.ingredientComponent = ingredientComponent;
     }
 
     @Override
-    public String getId() {
-        return this.ingredientComponent.getName().toString() + "_crafting";
+    public ResourceLocation getName() {
+        return this.name;
     }
 
     @Override
@@ -65,7 +69,7 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
 
         slots.add(slotCrafting = new SlotCraftingAutoRefill(player, this.inventoryCrafting, this.inventoryCraftResult,
                 0, 115, 76, this, (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>)
-                ((ContainerTerminalStorage) container).getTabServer(getId()),
+                ((ContainerTerminalStorage) container).getTabServer(getName().toString()),
                 ((ContainerTerminalStorage) container).getSelectedChannel()));
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
@@ -74,7 +78,7 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
         }
 
         // Load the items that were stored in the part state into the crafting grid slots
-        NonNullList<ItemStack> tabItems = partState.getNamedInventory(this.getId());
+        NonNullList<ItemStack> tabItems = partState.getNamedInventory(this.getName().toString());
         if (tabItems != null) {
             int i = 0;
             for (ItemStack tabItem : tabItems) {
@@ -132,6 +136,6 @@ public class TerminalStorageTabIngredientComponentCommontemStackCrafting impleme
         for (Slot slot : slots) {
             latestItems.add(slot.getStack());
         }
-        partState.setNamedInventory(this.getId(), latestItems);
+        partState.setNamedInventory(this.getName().toString(), latestItems);
     }
 }

@@ -8,8 +8,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
 
 /**
  * Packet for telling the server the new autoRefill value.
@@ -48,8 +48,8 @@ public class TerminalStorageIngredientItemStackCraftingGridSetAutoRefill extends
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             ITerminalStorageTabCommon tabCommon = container.getTabCommon(tabId);
-            if (tabCommon instanceof TerminalStorageTabIngredientComponentCommontemStackCrafting) {
-                ((TerminalStorageTabIngredientComponentCommontemStackCrafting) tabCommon).setAutoRefill(this.autoRefill);
+            if (tabCommon instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon) {
+                ((TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon).setAutoRefill(this.autoRefill);
             }
         }
     }

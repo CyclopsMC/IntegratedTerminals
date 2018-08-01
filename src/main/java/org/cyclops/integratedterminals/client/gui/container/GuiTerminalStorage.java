@@ -33,9 +33,9 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridClear;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.TerminalButtonItemStackCraftingGridClear;
-import org.cyclops.integratedterminals.inventory.container.TerminalStorageTabIngredientComponentCommontemStackCrafting;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.opengl.GL11;
@@ -242,7 +242,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     protected void setTabByIndex(int tabIndex) {
         // Save tab index
         getTabByIndex(tabIndex).ifPresent(tab -> {
-            getContainer().setSelectedTab(tab.getId());
+            getContainer().setSelectedTab(tab.getName().toString());
 
             // Reset active slot
             tab.resetActiveSlot();
@@ -313,7 +313,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         // Handle buttons clicks
         tabOptional.ifPresent(tab -> {
             int offset = 0;
-            ITerminalStorageTabCommon tabCommon = getContainer().getTabCommon(tab.getId());
+            ITerminalStorageTabCommon tabCommon = getContainer().getTabCommon(tab.getName().toString());
             for (ITerminalButton button : tab.getButtons()) {
                 GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
                 if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset), guiButton.width, guiButton.height, mouseX, mouseY)) {
@@ -333,13 +333,17 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(keyCode)) {
             fieldSearch.setFocused(true);
         } else if (ClientProxy.TERMINAL_TAB_NEXT.isActiveAndMatches(keyCode)) {
-            // Go to next tab
-            setTabByIndex((getSelectedClientTabIndex() + 1) % getContainer().getTabsClientCount());
-            playButtonClickSound();
+            if (getContainer().getTabsClientCount() > 0) {
+                // Go to next tab
+                setTabByIndex((getSelectedClientTabIndex() + 1) % getContainer().getTabsClientCount());
+                playButtonClickSound();
+            }
         } else if (ClientProxy.TERMINAL_TAB_PREVIOUS.isActiveAndMatches(keyCode)) {
-            // Go to previous tab
-            setTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount());
-            playButtonClickSound();
+            if (getContainer().getTabsClientCount() > 0) {
+                // Go to previous tab
+                setTabByIndex((getContainer().getTabsClientCount() + getSelectedClientTabIndex() - 1) % getContainer().getTabsClientCount());
+                playButtonClickSound();
+            }
         } else if (fieldSearch.textboxKeyTyped(typedChar, keyCode)) {
             getSelectedClientTab()
                     .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
@@ -359,18 +363,18 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     protected void clearCraftingGrid(boolean toStorage) {
         ITerminalStorageTabCommon commonTab = getContainer().getTabCommon(getContainer().getSelectedTab());
-        if (commonTab instanceof TerminalStorageTabIngredientComponentCommontemStackCrafting){
+        if (commonTab instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon){
             TerminalButtonItemStackCraftingGridClear.clearGrid(
-                    (TerminalStorageTabIngredientComponentCommontemStackCrafting) commonTab,
+                    (TerminalStorageTabIngredientComponentItemStackCraftingCommon) commonTab,
                     getContainer().getSelectedChannel(), toStorage);
         }
     }
 
     protected void balanceCraftingGrid() {
         ITerminalStorageTabCommon commonTab = getContainer().getTabCommon(getContainer().getSelectedTab());
-        if (commonTab instanceof TerminalStorageTabIngredientComponentCommontemStackCrafting){
+        if (commonTab instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon){
             TerminalStorageIngredientItemStackCraftingGridBalance.balanceGrid(
-                    ((TerminalStorageTabIngredientComponentCommontemStackCrafting) commonTab).getInventoryCrafting());
+                    ((TerminalStorageTabIngredientComponentItemStackCraftingCommon) commonTab).getInventoryCrafting());
         }
     }
 
@@ -403,7 +407,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getContainer().getTabsClient().values()) {
-            boolean selected = tab.getId().equals(getContainer().getSelectedTab());
+            boolean selected = tab.getName().toString().equals(getContainer().getSelectedTab());
             int x = getGuiLeft() + offsetX;
             int y = getGuiTop();
             int width = TAB_WIDTH;

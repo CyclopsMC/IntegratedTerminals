@@ -12,7 +12,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
-import org.cyclops.integratedterminals.inventory.container.query.SearchMode;
+import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;

@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container;
+package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import gnu.trove.map.TIntLongMap;
@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -27,8 +28,12 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTermin
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
-import org.cyclops.integratedterminals.inventory.container.query.IIngredientQuery;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
+import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
+import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 import org.lwjgl.input.Keyboard;
 
@@ -54,6 +59,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         MinecraftForge.EVENT_BUS.register(TerminalStorageTabIngredientComponentClient.class);
     }
 
+    private final ResourceLocation name;
     protected final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
@@ -86,7 +92,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
     }
 
-    public TerminalStorageTabIngredientComponentClient(IngredientComponent<?, ?> ingredientComponent) {
+    public TerminalStorageTabIngredientComponentClient(ResourceLocation name, IngredientComponent<?, ?> ingredientComponent) {
+        this.name = name;
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
         this.ingredientComponentViewHandler = Objects.requireNonNull(this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY));
         this.icon = ingredientComponentViewHandler.getIcon();
@@ -108,8 +115,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public String getId() {
-        return ingredientComponent.getName().toString();
+    public ResourceLocation getName() {
+        return this.name;
     }
 
     @Override
@@ -443,7 +450,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), moveQuantity);
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
-                        this.getId(), ingredientComponent, clickType, channel,
+                        this.getName().toString(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
                         hoveredContainerSlot, movePlayerQuantity, activeInstance));
                 if (reset) {

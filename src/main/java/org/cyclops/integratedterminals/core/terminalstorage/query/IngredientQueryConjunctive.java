@@ -1,4 +1,4 @@
-package org.cyclops.integratedterminals.inventory.container.query;
+package org.cyclops.integratedterminals.core.terminalstorage.query;
 
 import java.util.List;
 
