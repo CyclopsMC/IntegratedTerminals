@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.part;
 import com.google.common.collect.Maps;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
@@ -90,6 +91,23 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         @Nullable
         public NonNullList<ItemStack> getNamedInventory(String name) {
             return this.namedInventories.get(name);
+        }
+
+        public void loadNamedInventory(String name, IInventory inventory) {
+            NonNullList<ItemStack> tabItems = this.getNamedInventory(name);
+            if (tabItems != null) {
+                for (int i = 0; i < tabItems.size(); i++) {
+                    inventory.setInventorySlotContents(i, tabItems.get(i));
+                }
+            }
+        }
+
+        public void saveNamedInventory(String name, IInventory inventory) {
+            NonNullList<ItemStack> latestItems = NonNullList.create();
+            for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                latestItems.add(inventory.getStackInSlot(i));
+            }
+            this.setNamedInventory(name, latestItems);
         }
 
         @Override

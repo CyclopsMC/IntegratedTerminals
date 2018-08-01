@@ -78,7 +78,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                         player.inventory.placeItemBackInInventory(world, resultStack.copy());
 
                         // Re-calculate recipe
-                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, 36, partState);
+                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, partState);
                     }
                 } while(!resultStack.isEmpty() && craftedAmount < resultStack.getMaxStackSize());
             }

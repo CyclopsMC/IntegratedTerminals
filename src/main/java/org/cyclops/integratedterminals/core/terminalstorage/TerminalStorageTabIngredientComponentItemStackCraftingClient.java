@@ -70,13 +70,16 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     @Override
     public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
+        int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
+                .getCraftingResultSlotIndex(container, getName());
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
-        if (hoveredContainerSlot == 36 && shift) {
+        if (hoveredContainerSlot == craftingResultSlotIndex && shift) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
                     new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getName().toString(), channel));
             return true;
         }
-        if (hoveredContainerSlot > 36 && getActiveSlotId() < 0) {
+        if (hoveredContainerSlot > craftingResultSlotIndex
+                && hoveredContainerSlot <= craftingResultSlotIndex + 9 && getActiveSlotId() < 0) {
             return false;
         }
         return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside,

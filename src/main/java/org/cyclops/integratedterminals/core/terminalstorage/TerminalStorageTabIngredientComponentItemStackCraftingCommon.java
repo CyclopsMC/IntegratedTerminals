@@ -28,10 +28,8 @@ import java.util.List;
  * A common-side storage terminal ingredient tab for crafting with {@link ItemStack} instances.
  * @author rubensworks
  */
-public class TerminalStorageTabIngredientComponentItemStackCraftingCommon implements ITerminalStorageTabCommon {
-
-    private final ResourceLocation name;
-    private final IngredientComponent<ItemStack, Integer> ingredientComponent;
+public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
+        extends TerminalStorageTabIngredientComponentCommon<ItemStack, Integer> {
 
     private InventoryCrafting inventoryCrafting;
     private InventoryCraftResult inventoryCraftResult;
@@ -39,14 +37,16 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon implem
     private List<Slot> slots;
     private boolean autoRefill = true;
 
-    public TerminalStorageTabIngredientComponentItemStackCraftingCommon(ResourceLocation name, IngredientComponent<ItemStack, Integer> ingredientComponent) {
-        this.name = name;
-        this.ingredientComponent = ingredientComponent;
+    public TerminalStorageTabIngredientComponentItemStackCraftingCommon(ResourceLocation name,
+                                                                        IngredientComponent<ItemStack, Integer> ingredientComponent) {
+        super(name, ingredientComponent);
     }
 
-    @Override
-    public ResourceLocation getName() {
-        return this.name;
+    public static int getCraftingResultSlotIndex(Container container, ResourceLocation name) {
+        ITerminalStorageTabCommon tabCommon = ((ContainerTerminalStorage) container).getTabCommon(name.toString());
+        TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
+                (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
+        return tabCommonCrafting.getSlotCrafting().slotNumber;
     }
 
     @Override
@@ -55,8 +55,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon implem
         slots = Lists.newArrayListWithCapacity(10);
 
         // Reload the recipe when the input slots are updated
-        final int firstStartIndex = startIndex;
-        IDirtyMarkListener dirtyListener = () -> updateCraftingResult(player, container, firstStartIndex, partState);
+        IDirtyMarkListener dirtyListener = () -> updateCraftingResult(player, container, partState);
 
         this.inventoryCraftResult = new InventoryCraftResult() {
             @Override
@@ -90,7 +89,9 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon implem
             }
         }
 
-        return slots;
+        List<Slot> superSlots = super.loadSlots(container, startIndex, player, partState);
+        superSlots.addAll(slots);
+        return superSlots;
     }
 
     public InventoryCrafting getInventoryCrafting() {
@@ -113,8 +114,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon implem
         this.autoRefill = autoRefill;
     }
 
-    public void updateCraftingResult(EntityPlayer player, Container container, int resultSlotIndex,
-                                     PartTypeTerminalStorage.State partState) {
+    public void updateCraftingResult(EntityPlayer player, Container container, PartTypeTerminalStorage.State partState) {
         if (!player.world.isRemote) {
             EntityPlayerMP entityplayermp = (EntityPlayerMP)player;
             ItemStack itemstack = ItemStack.EMPTY;
@@ -128,7 +128,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon implem
             }
 
             inventoryCraftResult.setInventorySlotContents(0, itemstack);
-            entityplayermp.connection.sendPacket(new SPacketSetSlot(container.windowId, resultSlotIndex, itemstack));
+            entityplayermp.connection.sendPacket(new SPacketSetSlot(container.windowId,
+                    getSlotCrafting().slotNumber, itemstack));
         }
 
         // Save changes into the part state
