@@ -17,10 +17,10 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientListMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
-import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
+import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
+import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -239,34 +239,28 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         for (T ingredient : ingredients) {
             quantity += matcher.getQuantity(ingredient);
         }
-
-        // Use a prototype-based collection so that ingredients are collapsed
-        IIngredientListMutable<T, M> persistedIngredients = getUnfilteredIngredientsView(channel);
-        IIngredientCollapsedCollectionMutable<T, M> prototypedIngredients = new IngredientCollectionPrototypeMap<>(this.ingredientComponent);
-        prototypedIngredients.addAll(persistedIngredients);
-
-        // Apply changes
-        if (changeType == IIngredientComponentStorageObservable.Change.ADDITION) {
-            prototypedIngredients.addAll(ingredients);
-        } else {
-            prototypedIngredients.removeAll(ingredients);
+        if (changeType != IIngredientComponentStorageObservable.Change.ADDITION) {
             quantity = -quantity;
         }
-
-        // Persist changes
-        persistedIngredients.clear();
-        persistedIngredients.addAll(prototypedIngredients);
-        resetFilteredIngredientsViews(channel);
-
         long newQuantity = totalQuantities.get(channel) + quantity;
         if (newQuantity != 0) {
             totalQuantities.put(channel, newQuantity);
         }
 
+        // Apply diff
+        IIngredientListMutable<T, M> persistedIngredients = getUnfilteredIngredientsView(channel);
+        IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
+                changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
+                changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
+                false);
+        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, persistedIngredients);
+
+        // Persist changes
+        resetFilteredIngredientsViews(channel);
+
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
         if (lastInstance.isPresent() && this.activeChannel == channel) {
-            this.activeChannel = channel;
             this.activeSlotId = findActiveSlotId(channel, lastInstance.get());
             Optional<T> slotIngredient = getSlotInstance(channel, this.activeSlotId);
             this.activeSlotQuantity = slotIngredient

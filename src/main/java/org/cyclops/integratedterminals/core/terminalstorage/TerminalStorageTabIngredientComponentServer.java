@@ -1,5 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.network.play.server.SPacketSetSlot;
@@ -7,8 +9,13 @@ import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
+import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
+import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
+import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
+import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
+import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffManager;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.PartPos;
@@ -23,6 +30,8 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientM
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
 
 import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.function.Predicate;
 
 /**
  * A server-side storage terminal ingredient tab.
@@ -39,6 +48,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final PartPos pos;
     private final EntityPlayerMP player;
 
+    // These collections are needed to perform server-side filtering
+    // and sending change events based on them to the client.
+    private final TIntObjectMap<IIngredientCollapsedCollectionMutable<T, M>> unfilteredIngredientsViews;
+    private final TIntObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
+
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
                                                        PartPos pos,
@@ -48,6 +62,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientNetwork = ingredientNetwork;
         this.pos = pos;
         this.player = player;
+
+        this.unfilteredIngredientsViews = new TIntObjectHashMap<>();
+        this.filteredDiffManagers = new TIntObjectHashMap<>();
     }
 
     @Override
@@ -70,7 +87,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IIngredientComponentStorage<T, M> channelInstance = this.ingredientNetwork.getChannel(channel);
         IIngredientCollection<T, M> ingredientCollection = new IngredientArrayList<>(ingredientComponent,
                 channelInstance);
-        sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, pos,
+        onChange(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, pos,
                 IIngredientComponentStorageObservable.Change.ADDITION, false,
                 ingredientCollection));
     }
@@ -85,9 +102,53 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         return true;
     }
 
+    protected IIngredientCollapsedCollectionMutable<T, M> getUnfilteredIngredientsView(int channel) {
+        IIngredientCollapsedCollectionMutable<T, M> ingredientsView = unfilteredIngredientsViews.get(channel);
+        if (ingredientsView == null) {
+            ingredientsView = new IngredientCollectionPrototypeMap<>(this.ingredientComponent);
+            unfilteredIngredientsViews.put(channel, ingredientsView);
+        }
+        return ingredientsView;
+    }
+
+    protected IngredientCollectionDiffManager<T, M> getFilteredDiffManager(int channel) {
+        IngredientCollectionDiffManager<T, M> diffManager = filteredDiffManagers.get(channel);
+        if (diffManager == null) {
+            diffManager = new IngredientCollectionDiffManager<>(this.ingredientComponent);
+            filteredDiffManagers.put(channel, diffManager);
+        }
+        return diffManager;
+    }
+
+    protected Predicate<T> getIngredientsFilter() {
+        return t -> true; // TODO: calculate based on variables
+    }
+
     @Override
     public void onChange(IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
-        sendToClient(event);
+        // We don't receive events for wildcard channel.
+        // We also don't have do handle them, as the server doesn't use it, only the client.
+        int channel = event.getChannel();
+
+        // First, apply the diff to our unfiltered overview
+        IngredientCollectionDiff<T, M> diffIn = event.getDiff();
+        IIngredientCollapsedCollectionMutable<T, M> unfilteredIngredients = getUnfilteredIngredientsView(channel);
+        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diffIn, unfilteredIngredients);
+
+        // Re-filter our complete unfiltered view
+        Iterator<T> newFilteredIngredients = unfilteredIngredients.stream().filter(getIngredientsFilter()).iterator();
+
+        // Send out the diff between the last filtered view
+        IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
+        IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
+        if (diffOut.hasAdditions()) {
+            this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, event.getPos(),
+                    IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
+        }
+        if (diffOut.hasDeletions()) {
+            this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, event.getPos(),
+                    IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+        }
     }
 
     protected void sendToClient(IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
