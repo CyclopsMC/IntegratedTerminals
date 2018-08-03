@@ -9,6 +9,7 @@ import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
+import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
@@ -16,9 +17,23 @@ import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototy
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffManager;
+import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
+import org.cyclops.integrateddynamics.api.evaluate.operator.IOperator;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
+import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
+import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
+import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeBoolean;
+import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
+import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
+import org.cyclops.integrateddynamics.core.helper.L10NValues;
+import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
+import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -31,6 +46,8 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientU
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -47,6 +64,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
     private final PartPos pos;
     private final EntityPlayerMP player;
+    private final IIngredientComponentValueHandler<?, ?, T, M, ?> valueHandler;
+
+    private Predicate<T> ingredientsFilter;
 
     // These collections are needed to perform server-side filtering
     // and sending change events based on them to the client.
@@ -62,7 +82,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientNetwork = ingredientNetwork;
         this.pos = pos;
         this.player = player;
+        this.valueHandler = Objects.requireNonNull(ingredientComponent.getCapability(Capabilities.INGREDIENTCOMPONENT_VALUEHANDLER),
+                "No value handler was found for " + ingredientComponent.getName());
 
+        this.ingredientsFilter = (instance) -> true;
         this.unfilteredIngredientsViews = new TIntObjectHashMap<>();
         this.filteredDiffManagers = new TIntObjectHashMap<>();
     }
@@ -120,8 +143,54 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         return diffManager;
     }
 
+    public void updateFilter(List<IVariable<ValueTypeOperator.ValueOperator>> variables,
+                             IVariableFacade.IValidator errorListener) {
+        this.ingredientsFilter = (instance) -> false;
+        Predicate<T> newFilter = (instance) -> true;
+        try {
+            for (IVariable<ValueTypeOperator.ValueOperator> variable : variables) {
+                if (variable.getType() == ValueTypes.OPERATOR) {
+                    ValueTypeOperator.ValueOperator operator = variable.getValue();
+                    IValueType<?> inputValueType = valueHandler.getValueType();
+                    newFilter = newFilter.and((instance) -> {
+                        if (NetworkHelpers.shouldWork()) {
+                            try {
+                                IValue inputValue = valueHandler.toValue(instance);
+                                IOperator predicate = operator.getRawValue();
+                                if (predicate.getInputTypes().length == 1
+                                        && ValueHelpers.correspondsTo(predicate.getInputTypes()[0], inputValueType)
+                                        && ValueHelpers.correspondsTo(predicate.getOutputType(), ValueTypes.BOOLEAN)) {
+                                    IValue result = ValueHelpers.evaluateOperator(predicate, inputValue);
+                                    ValueHelpers.validatePredicateOutput(predicate, result);
+                                    return ((ValueTypeBoolean.ValueBoolean) result).getRawValue();
+                                } else {
+                                    String current = ValueTypeOperator.getSignature(predicate);
+                                    String expected = ValueTypeOperator.getSignature(new IValueType[]{inputValueType}, ValueTypes.BOOLEAN);
+                                    throw new EvaluationException(new L10NHelpers.UnlocalizedString(
+                                            L10NValues.ASPECT_ERROR_INVALIDTYPE, expected, current).localize());
+                                }
+                            } catch (EvaluationException e) {
+                                errorListener.addError(new L10NHelpers.UnlocalizedString(e.getMessage()));
+                                this.ingredientsFilter = (t) -> false; // Reset our filter
+                                return false;
+                            }
+                        }
+                        return false;
+                    });
+                } else {
+                    throw new EvaluationException(new L10NHelpers.UnlocalizedString(
+                            L10NValues.ASPECT_ERROR_INVALIDTYPE, ValueTypes.OPERATOR, variable.getType()).localize());
+                }
+            }
+        } catch (EvaluationException e) {
+            errorListener.addError(new L10NHelpers.UnlocalizedString(e.getMessage()));
+            return; // Don't update our filter, deny-all
+        }
+        this.ingredientsFilter = newFilter;
+    }
+
     protected Predicate<T> getIngredientsFilter() {
-        return t -> true; // TODO: calculate based on variables
+        return this.ingredientsFilter;
     }
 
     @Override
@@ -132,22 +201,28 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
         // First, apply the diff to our unfiltered overview
         IngredientCollectionDiff<T, M> diffIn = event.getDiff();
-        IIngredientCollapsedCollectionMutable<T, M> unfilteredIngredients = getUnfilteredIngredientsView(channel);
-        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diffIn, unfilteredIngredients);
+        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diffIn, getUnfilteredIngredientsView(channel));
 
         // Re-filter our complete unfiltered view
-        Iterator<T> newFilteredIngredients = unfilteredIngredients.stream().filter(getIngredientsFilter()).iterator();
+        reApplyFilter();
+    }
 
-        // Send out the diff between the last filtered view
-        IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
-        IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
-        if (diffOut.hasAdditions()) {
-            this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, event.getPos(),
-                    IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
-        }
-        if (diffOut.hasDeletions()) {
-            this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, event.getPos(),
-                    IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+    protected void reApplyFilter() {
+        for (int channel : this.unfilteredIngredientsViews.keys()) {
+            Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
+                    .stream().filter(getIngredientsFilter()).iterator();
+
+            // Send out the diff between the last filtered view
+            IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
+            IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
+            if (diffOut.hasAdditions()) {
+                this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
+                        IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
+            }
+            if (diffOut.hasDeletions()) {
+                this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
+                        IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+            }
         }
     }
 
