@@ -68,6 +68,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         RenderHelper.enableGUIStandardItemLighting();
         GlStateManager.enableRescaleNormal();
         GlStateManager.enableDepth();
+        GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
             renderItem.renderItemAndEffectIntoGUI(instance, x, y);
             renderItem.renderItemOverlayIntoGUI(Minecraft.getMinecraft().fontRenderer, instance, x, y, label);
