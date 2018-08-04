@@ -17,6 +17,7 @@ import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.item.IVariableFacadeHandlerRegistry;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPartNetwork;
+import org.cyclops.integrateddynamics.core.evaluate.InventoryVariableEvaluator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 import org.cyclops.integrateddynamics.core.helper.L10NValues;
@@ -40,7 +41,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     private final IngredientComponent<T, M> ingredientComponent;
 
     private List<L10NHelpers.UnlocalizedString> globalErrors = Lists.newArrayList();
-    private TIntObjectMap<List<L10NHelpers.UnlocalizedString>> errors = new TIntObjectHashMap<>();
+    private final List<InventoryVariableEvaluator<ValueTypeOperator.ValueOperator>> variableEvaluators = Lists.newArrayList();
     private final List<IVariable<ValueTypeOperator.ValueOperator>> variables = Lists.newArrayList();
 
     public TerminalStorageTabIngredientComponentCommon(ResourceLocation name, IngredientComponent<T, M> ingredientComponent) {
@@ -62,34 +63,29 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
 
         SimpleInventory inventory = new SimpleInventory(3, "inv", 1);
         partState.loadNamedInventory(this.getName().toString(), inventory);
+        variableEvaluators.clear();
+        for (int i = 0; i < inventory.getSizeInventory(); i++) {
+            variableEvaluators.add(new InventoryVariableEvaluator<>(inventory, i, ValueTypes.OPERATOR));
+        }
+
         inventory.addDirtyMarkListener(() -> {
             if (!player.world.isRemote) {
                 partState.saveNamedInventory(this.getName().toString(), inventory);
 
                 // Update variable facades
-                IVariableFacadeHandlerRegistry handler = IntegratedDynamics._instance.getRegistryManager()
-                        .getRegistry(IVariableFacadeHandlerRegistry.class);
                 INetwork network = NetworkHelpers.getNetwork(containerTerminalStorage.getTarget().getCenter());
-                IPartNetwork partNetwork = NetworkHelpers.getPartNetwork(network);
+
                 this.globalErrors.clear();
-                this.errors.clear();
                 this.variables.clear();
-                if (partNetwork == null) {
+                if (network == null) {
                     this.globalErrors.add(new L10NHelpers.UnlocalizedString(L10NValues.GENERAL_ERROR_NONETWORK));
                 } else {
                     for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                        ItemStack itemStack = inventory.getStackInSlot(i);
-                        if (!itemStack.isEmpty()) {
-                            IVariableFacade variableFacade = handler.handle(itemStack);
-                            if (variableFacade != null) {
-                                try {
-                                    int slot = i;
-                                    variableFacade.validate(partNetwork, (error) -> addError(slot, error), ValueTypes.OPERATOR);
-                                    this.variables.add(variableFacade.getVariable(partNetwork));
-                                } catch (IllegalArgumentException e) {
-                                    addError(i, new L10NHelpers.UnlocalizedString(e.getMessage()));
-                                }
-                            }
+                        InventoryVariableEvaluator<ValueTypeOperator.ValueOperator> evaluator = variableEvaluators.get(i);
+                        evaluator.refreshVariable(network, false);
+                        IVariable<ValueTypeOperator.ValueOperator> variable = evaluator.getVariable(network);
+                        if (variable != null) {
+                            this.variables.add(variable);
                         }
                     }
                 }
@@ -107,15 +103,6 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         slots.add(new SlotVariable(inventory, 2, 201, 172));
 
         return slots;
-    }
-
-    private void addError(int slot, L10NHelpers.UnlocalizedString error) {
-        List<L10NHelpers.UnlocalizedString> slotErrors = errors.get(slot);
-        if (slotErrors == null) {
-            slotErrors = Lists.newArrayList();
-            errors.put(slot, slotErrors);
-        }
-        slotErrors.add(error);
     }
 
     @Override

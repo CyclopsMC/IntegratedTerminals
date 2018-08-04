@@ -64,7 +64,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
     private final PartPos pos;
     private final EntityPlayerMP player;
-    private final IIngredientComponentValueHandler<?, ?, T, M, ?> valueHandler;
+    private final IIngredientComponentValueHandler<?, ?, T, M> valueHandler;
 
     private Predicate<T> ingredientsFilter;
 
