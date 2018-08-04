@@ -32,7 +32,7 @@ import java.util.List;
 public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITerminalStorageTabCommon, IVariableFacade.IValidator {
 
     private final ResourceLocation name;
-    private final IngredientComponent<T, M> ingredientComponent;
+    protected final IngredientComponent<T, M> ingredientComponent;
 
     private SimpleInventory inventory = null;
     private boolean dirtyInv;

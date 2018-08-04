@@ -14,6 +14,7 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
@@ -89,9 +90,11 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
             }
         }
 
-        List<Slot> superSlots = super.loadSlots(container, startIndex, player, partState);
-        superSlots.addAll(slots);
-        return superSlots;
+        List<Slot> returnSlots = Lists.newArrayList(slots);
+        for (Triple<Slot, Integer, Integer> slot : ((ContainerTerminalStorage) container).getTabSlots(ingredientComponent.getName().toString())) {
+            returnSlots.add(slot.getLeft());
+        }
+        return returnSlots;
     }
 
     public InventoryCrafting getInventoryCrafting() {

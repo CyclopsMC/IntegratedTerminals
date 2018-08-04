@@ -103,8 +103,12 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
                 for (Slot slot : slots) {
                     this.addSlotToContainer(slot);
                 }
-                disableSlots(id);
             }
+        }
+
+        // Disable all tab slots
+        for (ITerminalStorageTabCommon tabCommon : this.tabsCommon.values()) {
+            disableSlots(tabCommon.getName().toString());
         }
 
         setSelectedTab(player.world.isRemote && lastSelectedTab != null ? lastSelectedTab
@@ -159,8 +163,13 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return PartHelpers.canInteractWith(getTarget(), player, this.partContainer);
     }
 
+    @Nullable
+    public List<Triple<Slot, Integer, Integer>> getTabSlots(String tabName) {
+        return this.tabSlots.get(tabName);
+    }
+
     protected void enableSlots(String tabName) {
-        List<Triple<Slot, Integer, Integer>> slots = this.tabSlots.get(tabName);
+        List<Triple<Slot, Integer, Integer>> slots = getTabSlots(tabName);
         if (slots != null) {
             for (Triple<Slot, Integer, Integer> slot : slots) {
                 slot.getLeft().xPos = slot.getMiddle();
@@ -170,7 +179,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     }
 
     protected void disableSlots(String tabName) {
-        List<Triple<Slot, Integer, Integer>> slots = this.tabSlots.get(tabName);
+        List<Triple<Slot, Integer, Integer>> slots = getTabSlots(tabName);
         if (slots != null) {
             for (Triple<Slot, Integer, Integer> slot : slots) {
                 slot.getLeft().xPos = -100;
