@@ -121,6 +121,9 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
                 tab.init();
             }
         }
+        for (ITerminalStorageTabCommon tab : this.tabsCommon.values()) {
+            tab.onUpdate(this, player, partState);
+        }
     }
 
     @Override

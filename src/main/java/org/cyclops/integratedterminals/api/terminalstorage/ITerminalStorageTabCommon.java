@@ -25,4 +25,8 @@ public interface ITerminalStorageTabCommon {
         return Collections.emptyList();
     }
 
+    public default void onUpdate(Container container, EntityPlayer player, PartTypeTerminalStorage.State partState) {
+
+    }
+
 }
