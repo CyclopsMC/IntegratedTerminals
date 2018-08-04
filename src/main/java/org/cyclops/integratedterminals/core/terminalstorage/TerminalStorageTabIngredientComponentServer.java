@@ -24,7 +24,6 @@ import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
-import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
@@ -144,7 +143,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     public void updateFilter(List<IVariable<ValueTypeOperator.ValueOperator>> variables,
-                             IVariableFacade.IValidator errorListener) {
+                             TerminalStorageTabIngredientComponentCommon<?, ?> errorListener) {
         this.ingredientsFilter = (instance) -> false;
         Predicate<T> newFilter = (instance) -> true;
         try {
@@ -170,8 +169,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                                             L10NValues.ASPECT_ERROR_INVALIDTYPE, expected, current).localize());
                                 }
                             } catch (EvaluationException e) {
-                                errorListener.addError(new L10NHelpers.UnlocalizedString(e.getMessage()));
-                                this.ingredientsFilter = (t) -> false; // Reset our filter
+                                if (!errorListener.hasErrors()) {
+                                    errorListener.addError(new L10NHelpers.UnlocalizedString(e.getMessage()));
+                                    this.ingredientsFilter = (t) -> false; // Reset our filter
+                                }
                                 return false;
                             }
                         }

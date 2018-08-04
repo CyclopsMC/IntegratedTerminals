@@ -38,9 +38,10 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
     private List<Slot> slots;
     private boolean autoRefill = true;
 
-    public TerminalStorageTabIngredientComponentItemStackCraftingCommon(ResourceLocation name,
+    public TerminalStorageTabIngredientComponentItemStackCraftingCommon(ContainerTerminalStorage containerTerminalStorage,
+                                                                        ResourceLocation name,
                                                                         IngredientComponent<ItemStack, Integer> ingredientComponent) {
-        super(name, ingredientComponent);
+        super(containerTerminalStorage, name, ingredientComponent);
     }
 
     public static int getCraftingResultSlotIndex(Container container, ResourceLocation name) {

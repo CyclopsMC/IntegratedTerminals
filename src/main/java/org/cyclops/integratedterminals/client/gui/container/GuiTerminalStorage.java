@@ -14,6 +14,7 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
 import org.cyclops.cyclopscore.client.gui.component.input.GuiArrowedListField;
@@ -168,6 +169,16 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 guiButton.drawButton(mc, mouseX, mouseY, f);
                 offset += BUTTONS_OFFSET + guiButton.height;
             }
+
+            String tabName = getContainer().getSelectedTab();
+            Optional<ITerminalStorageTabCommon> tabCommonOptional = getCommonTab(tabName);
+            tabCommonOptional.ifPresent(tabCommon -> {
+                int i = 0;
+                for (Triple<Slot, Integer, Integer> slot : getContainer().getTabSlots(tabName)) {
+                    tab.onCommonSlotRender(this, DrawLayer.BACKGROUND, 0,
+                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, i++, tabCommon);
+                }
+            });
         });
     }
 
@@ -184,7 +195,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         this.zLevel = 0.0F;
 
         // Draw button tooltips
-        Optional<ITerminalStorageTabClient<?>> tabOptional = getClientTab(getContainer().getSelectedTab());
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         tabOptional.ifPresent(tab -> {
             int offset = 0;
             for (ITerminalButton button : tab.getButtons()) {
@@ -200,6 +211,16 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                     offset += BUTTONS_OFFSET + guiButton.height;
                 }
             }
+
+            String tabName = getContainer().getSelectedTab();
+            Optional<ITerminalStorageTabCommon> tabCommonOptional = getCommonTab(tabName);
+            tabCommonOptional.ifPresent(tabCommon -> {
+                int i = 0;
+                for (Triple<Slot, Integer, Integer> slot : getContainer().getTabSlots(tabName)) {
+                    tab.onCommonSlotRender(this, DrawLayer.FOREGROUND, 0,
+                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, i++, tabCommon);
+                }
+            });
         });
     }
 
@@ -532,6 +553,10 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
     protected Optional<ITerminalStorageTabClient<?>> getClientTab(String tab) {
         return Optional.ofNullable(getContainer().getTabsClient().get(tab));
+    }
+
+    protected Optional<ITerminalStorageTabCommon> getCommonTab(String tab) {
+        return Optional.ofNullable(getContainer().getTabsCommon().get(tab));
     }
 
     protected Optional<ITerminalStorageTabClient<?>> getSelectedClientTab() {

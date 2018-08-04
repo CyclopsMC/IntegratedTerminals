@@ -49,6 +49,6 @@ public class TerminalStorageTabIngredientComponent<T, M> implements ITerminalSto
     @Nullable
     @Override
     public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
-        return new TerminalStorageTabIngredientComponentCommon<>(getName(), ingredientComponent);
+        return new TerminalStorageTabIngredientComponentCommon<>(container, getName(), ingredientComponent);
     }
 }

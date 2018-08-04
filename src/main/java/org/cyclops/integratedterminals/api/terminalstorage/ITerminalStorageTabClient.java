@@ -1,10 +1,12 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -139,5 +141,11 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     @Nullable
     public default ResourceLocation getBackgroundTexture() {
         return null;
+    }
+
+    public default void onCommonSlotRender(GuiContainer gui, GuiTerminalStorage.DrawLayer layer,
+                                           float partialTick, int x, int y, int mouseX, int mouseY,
+                                           int slot, ITerminalStorageTabCommon tabCommon) {
+
     }
 }

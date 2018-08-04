@@ -54,6 +54,6 @@ public class TerminalStorageTabIngredientComponentItemStackCrafting implements I
     @Nullable
     @Override
     public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
-        return new TerminalStorageTabIngredientComponentItemStackCraftingCommon(getName(), IngredientComponents.ITEMSTACK);
+        return new TerminalStorageTabIngredientComponentItemStackCraftingCommon(container, getName(), IngredientComponents.ITEMSTACK);
     }
 }

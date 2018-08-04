@@ -25,6 +25,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -116,6 +117,10 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
     }
 
+    public int getNextValueId() {
+        return super.getNextValueId();
+    }
+
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
@@ -163,9 +168,12 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return PartHelpers.canInteractWith(getTarget(), player, this.partContainer);
     }
 
-    @Nullable
     public List<Triple<Slot, Integer, Integer>> getTabSlots(String tabName) {
-        return this.tabSlots.get(tabName);
+        List<Triple<Slot, Integer, Integer>> slots = this.tabSlots.get(tabName);
+        if (slots == null) {
+            return Collections.emptyList();
+        }
+        return slots;
     }
 
     protected void enableSlots(String tabName) {
@@ -240,6 +248,14 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
             if (entry.getValue().isEnabled()) {
                 tabs.put(entry.getKey(), entry.getValue());
             }
+        }
+        return tabs;
+    }
+
+    public Map<String, ITerminalStorageTabCommon> getTabsCommon() {
+        Map<String, ITerminalStorageTabCommon> tabs = Maps.newLinkedHashMap();
+        for (Map.Entry<String, ITerminalStorageTabCommon> entry : tabsCommon.entrySet()) {
+            tabs.put(entry.getKey(), entry.getValue());
         }
         return tabs;
     }

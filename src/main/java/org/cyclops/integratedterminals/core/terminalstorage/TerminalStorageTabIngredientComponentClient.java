@@ -6,6 +6,7 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
@@ -15,8 +16,11 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.cyclopscore.client.gui.image.Images;
+import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientListMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
@@ -28,8 +32,10 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTermin
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
+import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
@@ -498,4 +504,24 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return sorter;
     }
 
+    @Override
+    public void onCommonSlotRender(GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick,
+                                   int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
+        TerminalStorageTabIngredientComponentCommon tab = (TerminalStorageTabIngredientComponentCommon) tabCommon;
+
+        List<L10NHelpers.UnlocalizedString> errors = Lists.newArrayList();
+        errors.addAll(tab.getGlobalErrors());
+        errors.addAll(tab.getLocalErrors(slot));
+
+        if (!errors.isEmpty()) {
+            if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+                Images.ERROR.draw(gui, x + 2, y + 2);
+            } else {
+                if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
+                    GuiHelpers.drawTooltip(gui, errors.stream().map(L10NHelpers.UnlocalizedString::localize)
+                            .collect(Collectors.toList()), mouseX, mouseY);
+                }
+            }
+        }
+    }
 }
