@@ -17,7 +17,7 @@ public class TerminalStorageTabRegistry implements ITerminalStorageTabRegistry {
 
     private static TerminalStorageTabRegistry INSTANCE = new TerminalStorageTabRegistry();
 
-    private final Map<String, ITerminalStorageTab> tabs = Maps.newHashMap();
+    private final Map<String, ITerminalStorageTab> tabs = Maps.newLinkedHashMap();
 
     /**
      * @return The unique instance.
