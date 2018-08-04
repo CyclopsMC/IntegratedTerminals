@@ -62,22 +62,20 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
             variableEvaluators.add(new InventoryVariableEvaluator<>(inventory, i, ValueTypes.OPERATOR));
         }
 
-        inventory.addDirtyMarkListener(() -> {
-            if (!player.world.isRemote) {
-                dirtyInv = true;
-            }
-        });
+        inventory.addDirtyMarkListener(() -> dirtyInv = true);
 
         slots.add(new SlotVariable(inventory, 0, 201, 136));
         slots.add(new SlotVariable(inventory, 1, 201, 154));
         slots.add(new SlotVariable(inventory, 2, 201, 172));
+
+        dirtyInv = true;
 
         return slots;
     }
 
     @Override
     public void onUpdate(Container container, EntityPlayer player, PartTypeTerminalStorage.State partState) {
-        if (this.dirtyInv) {
+        if (this.dirtyInv && !player.world.isRemote) {
             this.dirtyInv = false;
 
             ContainerTerminalStorage containerTerminalStorage = (ContainerTerminalStorage) container;
