@@ -7,6 +7,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
@@ -21,6 +22,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
+import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabCommonLoadSlotsEvent;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
@@ -99,6 +101,10 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
 
                 int slotStartIndex = this.inventorySlots.size();
                 List<Slot> slots = commonTab.loadSlots(this, slotStartIndex, player, partState);
+                TerminalStorageTabCommonLoadSlotsEvent loadSlotsEvent = new TerminalStorageTabCommonLoadSlotsEvent(
+                        commonTab, this, slots);
+                MinecraftForge.EVENT_BUS.post(loadSlotsEvent);
+                slots = loadSlotsEvent.getSlots();
                 this.tabSlots.put(id, slots.stream()
                         .map(slot -> Triple.of(slot, slot.xPos, slot.yPos)).collect(Collectors.toList()));
                 for (Slot slot : slots) {
