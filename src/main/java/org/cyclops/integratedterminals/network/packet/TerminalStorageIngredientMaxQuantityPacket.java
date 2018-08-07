@@ -11,6 +11,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 
 /**
@@ -61,7 +62,8 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 			// Hard-coded crafting tab
 			// TODO: abstract this as "auxiliary" tabs
 			if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
-				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId + "_crafting");
+				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
+						.getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
 				tabCrafting.setMaxQuantity(channel, maxQuantity);
 			}
 		}

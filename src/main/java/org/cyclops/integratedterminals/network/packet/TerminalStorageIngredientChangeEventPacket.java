@@ -14,6 +14,7 @@ import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 
 /**
@@ -68,7 +69,8 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 			// Hard-coded crafting tab
 			// TODO: abstract this as "auxiliary" tabs
 			if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
-				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId + "_crafting");
+				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
+						.getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
 				tabCrafting.onChange(channel, changeType, ingredients, enabled);
 			}
 

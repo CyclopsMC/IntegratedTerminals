@@ -18,6 +18,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 
 import javax.annotation.Nullable;
@@ -55,7 +56,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         super.addDrops(target, state, itemStacks, dropMainElement, saveState);
         for (Map.Entry<String, NonNullList<ItemStack>> entry : state.getNamedInventories().entrySet()) {
             // TODO: for now hardcoded on crafting tab
-            if (entry.getKey().equals(IngredientComponents.ITEMSTACK.getName().toString() + "_crafting")) {
+            if (entry.getKey().equals(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString())) {
                 entry.getValue().set(0, ItemStack.EMPTY);
             }
             for (ItemStack itemStack : entry.getValue()) {

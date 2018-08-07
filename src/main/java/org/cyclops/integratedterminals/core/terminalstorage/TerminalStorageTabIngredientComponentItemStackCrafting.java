@@ -24,6 +24,8 @@ import javax.annotation.Nullable;
  */
 public class TerminalStorageTabIngredientComponentItemStackCrafting implements ITerminalStorageTab {
 
+    public static ResourceLocation NAME;
+
     private final IngredientComponent<ItemStack, Integer> ingredientComponent;
     private final ResourceLocation name;
 
@@ -31,6 +33,7 @@ public class TerminalStorageTabIngredientComponentItemStackCrafting implements I
         this.ingredientComponent = ingredientComponent;
         this.name = new ResourceLocation(ingredientComponent.getName().getResourceDomain(),
                 ingredientComponent.getName().getResourcePath() + "_crafting");
+        TerminalStorageTabIngredientComponentItemStackCrafting.NAME = this.name;
     }
 
     @Override
