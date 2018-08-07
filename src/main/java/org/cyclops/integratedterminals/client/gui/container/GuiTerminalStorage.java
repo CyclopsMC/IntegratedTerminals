@@ -173,10 +173,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             String tabName = getContainer().getSelectedTab();
             Optional<ITerminalStorageTabCommon> tabCommonOptional = getCommonTab(tabName);
             tabCommonOptional.ifPresent(tabCommon -> {
-                int i = 0;
                 for (Triple<Slot, Integer, Integer> slot : getContainer().getTabSlots(tabName)) {
                     tab.onCommonSlotRender(this, DrawLayer.BACKGROUND, 0,
-                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, i++, tabCommon);
+                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, slot.getLeft().slotNumber, tabCommon);
                 }
             });
         });
@@ -215,10 +214,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             String tabName = getContainer().getSelectedTab();
             Optional<ITerminalStorageTabCommon> tabCommonOptional = getCommonTab(tabName);
             tabCommonOptional.ifPresent(tabCommon -> {
-                int i = 0;
                 for (Triple<Slot, Integer, Integer> slot : getContainer().getTabSlots(tabName)) {
                     tab.onCommonSlotRender(this, DrawLayer.FOREGROUND, 0,
-                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, i++, tabCommon);
+                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, slot.getLeft().slotNumber, tabCommon);
                 }
             });
         });

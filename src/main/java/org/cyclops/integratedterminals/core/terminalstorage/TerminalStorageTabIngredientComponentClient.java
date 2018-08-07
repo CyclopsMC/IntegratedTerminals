@@ -520,21 +520,23 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                                    int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         TerminalStorageTabIngredientComponentCommon tab = (TerminalStorageTabIngredientComponentCommon) tabCommon;
 
-        List<L10NHelpers.UnlocalizedString> errors = Lists.newArrayList();
-        errors.addAll(tab.getGlobalErrors());
-        errors.addAll(tab.getLocalErrors(slot));
+        if (slot >= tab.getVariableSlotNumberStart() && slot < tab.getVariableSlotNumberEnd()) {
+            List<L10NHelpers.UnlocalizedString> errors = Lists.newArrayList();
+            errors.addAll(tab.getGlobalErrors());
+            errors.addAll(tab.getLocalErrors(slot));
 
-        if (!errors.isEmpty()) {
-            if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
-                Images.ERROR.draw(gui, x + 2, y + 2);
-            } else {
-                if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
-                    GuiHelpers.drawTooltip(gui, errors.stream()
-                            .map(L10NHelpers.UnlocalizedString::localize)
-                            .map(s -> StringHelpers.splitLines(s, L10NHelpers.MAX_TOOLTIP_LINE_LENGTH,
-                                    TextFormatting.RED.toString()))
-                            .flatMap(List::stream)
-                            .collect(Collectors.toList()), x - gui.getGuiLeft() + 10, y - gui.getGuiTop());
+            if (!errors.isEmpty()) {
+                if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+                    Images.ERROR.draw(gui, x + 2, y + 2);
+                } else {
+                    if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
+                        GuiHelpers.drawTooltip(gui, errors.stream()
+                                .map(L10NHelpers.UnlocalizedString::localize)
+                                .map(s -> StringHelpers.splitLines(s, L10NHelpers.MAX_TOOLTIP_LINE_LENGTH,
+                                        TextFormatting.RED.toString()))
+                                .flatMap(List::stream)
+                                .collect(Collectors.toList()), x - gui.getGuiLeft() + 10, y - gui.getGuiTop());
+                    }
                 }
             }
         }

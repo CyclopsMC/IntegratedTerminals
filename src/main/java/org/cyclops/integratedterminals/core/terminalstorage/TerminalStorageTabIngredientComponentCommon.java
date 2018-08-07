@@ -44,6 +44,9 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     private final List<InventoryVariableEvaluator<ValueTypeOperator.ValueOperator>> variableEvaluators = Lists.newArrayList();
     private final List<IVariable<ValueTypeOperator.ValueOperator>> variables = Lists.newArrayList();
 
+    private int variableSlotNumberStart;
+    private int variableSlotNumberEnd;
+
     public TerminalStorageTabIngredientComponentCommon(ContainerTerminalStorage containerTerminalStorage,
                                                        ResourceLocation name,
                                                        IngredientComponent<T, M> ingredientComponent) {
@@ -64,6 +67,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
                                 PartTypeTerminalStorage.State partState) {
         List<Slot> slots = Lists.newArrayList();
 
+        variableSlotNumberStart = startIndex;
         inventory = new SimpleInventory(3, "inv", 1);
         partState.loadNamedInventory(this.getName().toString(), inventory);
         variableEvaluators.clear();
@@ -78,6 +82,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
                 }
             });
         }
+        variableSlotNumberEnd = startIndex + inventory.getSizeInventory();
 
         inventory.addDirtyMarkListener(() -> dirtyInv = true);
 
@@ -88,6 +93,14 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         dirtyInv = true;
 
         return slots;
+    }
+
+    public int getVariableSlotNumberStart() {
+        return variableSlotNumberStart;
+    }
+
+    public int getVariableSlotNumberEnd() {
+        return variableSlotNumberEnd;
     }
 
     @Override

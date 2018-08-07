@@ -108,7 +108,9 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
                 this.tabSlots.put(id, slots.stream()
                         .map(slot -> Triple.of(slot, slot.xPos, slot.yPos)).collect(Collectors.toList()));
                 for (Slot slot : slots) {
-                    this.addSlotToContainer(slot);
+                    if (slot.slotNumber == 0) {
+                        this.addSlotToContainer(slot);
+                    }
                 }
             }
         }

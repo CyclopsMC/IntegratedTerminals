@@ -40,7 +40,7 @@ public class TerminalStorageTabIngredientComponentItemStackCrafting implements I
 
     @Override
     public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
-        return new TerminalStorageTabIngredientComponentItemStackCraftingClient(getName(), ingredientComponent);
+        return new TerminalStorageTabIngredientComponentItemStackCraftingClient(container, getName(), ingredientComponent);
     }
 
     @Override

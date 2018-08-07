@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
@@ -12,9 +13,12 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
+import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridClear;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridShiftClickOutput;
 import org.lwjgl.input.Keyboard;
 
@@ -28,11 +32,14 @@ import java.util.List;
 public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         extends TerminalStorageTabIngredientComponentClient<ItemStack, Integer> {
 
+    private final ContainerTerminalStorage container;
     private final ItemStack icon;
 
-    public TerminalStorageTabIngredientComponentItemStackCraftingClient(ResourceLocation name,
+    public TerminalStorageTabIngredientComponentItemStackCraftingClient(ContainerTerminalStorage container,
+                                                                        ResourceLocation name,
                                                                         IngredientComponent<?, ?> ingredientComponent) {
         super(name, ingredientComponent);
+        this.container = container;
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
     }
 
@@ -90,5 +97,14 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         }
         return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside,
                 hasClickedInStorage, hoveredContainerSlot);
+    }
+
+    @Override
+    public void onCommonSlotRender(GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
+        // Delegate to regular itemstack tab
+        String name = ingredientComponent.getName().toString();
+        ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);
+        tabCommon = container.getTabCommon(name);
+        tabClient.onCommonSlotRender(gui, layer, partialTick, x, y, mouseX, mouseY, slot, tabCommon);
     }
 }
