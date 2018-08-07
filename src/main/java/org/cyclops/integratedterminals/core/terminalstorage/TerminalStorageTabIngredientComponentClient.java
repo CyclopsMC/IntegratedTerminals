@@ -34,6 +34,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
+import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientLoadButtonsEvent;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
@@ -69,7 +70,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
-    protected final List<ITerminalButton<?, ?, ?>> buttons;
+    private final List<ITerminalButton<?, ?, ?>> buttons;
 
     private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
     private final TIntObjectMap<IIngredientListMutable<T, M>> filteredIngredientsViews;
@@ -103,12 +104,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
         this.ingredientComponentViewHandler = Objects.requireNonNull(this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY));
         this.icon = ingredientComponentViewHandler.getIcon();
-        this.buttons = Lists.newArrayList();
 
-        // Add all sorting buttons
-        for (IIngredientInstanceSorter<T> instanceSorter : ingredientComponentViewHandler.getInstanceSorters()) {
-            this.buttons.add(new TerminalButtonSort<>(instanceSorter));
-        }
+        List<ITerminalButton<?, ?, ?>> buttons = Lists.newArrayList();
+        loadButtons(buttons);
+        TerminalStorageTabClientLoadButtonsEvent event = new TerminalStorageTabClientLoadButtonsEvent(this, buttons);
+        MinecraftForge.EVENT_BUS.post(event);
+        this.buttons = event.getButtons();
 
         this.ingredientsViews = new TIntObjectHashMap<>();
         this.filteredIngredientsViews = new TIntObjectHashMap<>();
@@ -118,6 +119,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.totalQuantities = new TIntLongHashMap();
         this.enabled = false;
         resetActiveSlot();
+
+    }
+
+    protected void loadButtons(List<ITerminalButton<?, ?, ?>> buttons) {
+        // Add all sorting buttons
+        for (IIngredientInstanceSorter<T> instanceSorter : ingredientComponentViewHandler.getInstanceSorters()) {
+            buttons.add(new TerminalButtonSort<>(instanceSorter));
+        }
     }
 
     @Override

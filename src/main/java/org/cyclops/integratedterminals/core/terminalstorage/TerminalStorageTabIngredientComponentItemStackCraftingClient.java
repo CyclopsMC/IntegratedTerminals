@@ -10,6 +10,7 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridBalance;
@@ -33,10 +34,15 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                                                                         IngredientComponent<?, ?> ingredientComponent) {
         super(name, ingredientComponent);
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
+    }
 
-        this.buttons.add(new TerminalButtonItemStackCraftingGridAutoRefill<>());
-        this.buttons.add(new TerminalButtonItemStackCraftingGridClear<>());
-        this.buttons.add(new TerminalButtonItemStackCraftingGridBalance<>());
+    @Override
+    protected void loadButtons(List<ITerminalButton<?, ?, ?>> buttons) {
+        super.loadButtons(buttons);
+
+        buttons.add(new TerminalButtonItemStackCraftingGridAutoRefill<>());
+        buttons.add(new TerminalButtonItemStackCraftingGridClear<>());
+        buttons.add(new TerminalButtonItemStackCraftingGridBalance<>());
     }
 
     @Override
