@@ -277,7 +277,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
         switch (clickType) {
             case STORAGE_QUICK_MOVE:
-                viewHandler.insertMaxIntoContainer(storage, container, hoveringStorageInstance);
+                viewHandler.insertMaxIntoContainer(storage, container, 0, 4 * 9, hoveringStorageInstance);
                 break;
             case STORAGE_PLACE_WORLD:
                 viewHandler.throwIntoWorld(storage, activeStorageInstance, player);

@@ -103,13 +103,16 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * Insert as much as possible from the given instance prototype into the container.
      * @param storage The storage to insert to.
      * @param container The container to extract from.
+     * @param containerSlotStart The container slot to start from.
+     * @param containerSlotEnd The container slot to end at (exclusive).
      * @param instance The instance to move.
      */
-    public default void insertMaxIntoContainer(IIngredientComponentStorage<T, M> storage, Container container, T instance) {
+    public default void insertMaxIntoContainer(IIngredientComponentStorage<T, M> storage, Container container,
+                                               int containerSlotStart, int containerSlotEnd, T instance) {
         IIngredientMatcher<T, M> matcher = storage.getComponent().getMatcher();
         T toAdd = instance;
-        int slot = 0;
-        while (!matcher.isEmpty(toAdd) && slot < container.inventorySlots.size()) {
+        int slot = containerSlotStart;
+        while (!matcher.isEmpty(toAdd) && slot < containerSlotEnd) {
             insertIntoContainer(storage, container, slot++, toAdd);
         }
     }
