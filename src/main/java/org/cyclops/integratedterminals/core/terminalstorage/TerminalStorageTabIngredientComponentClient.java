@@ -11,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -21,6 +22,7 @@ import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.StringHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientListMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
@@ -527,8 +529,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 Images.ERROR.draw(gui, x + 2, y + 2);
             } else {
                 if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
-                    GuiHelpers.drawTooltip(gui, errors.stream().map(L10NHelpers.UnlocalizedString::localize)
-                            .collect(Collectors.toList()), mouseX, mouseY);
+                    GuiHelpers.drawTooltip(gui, errors.stream()
+                            .map(L10NHelpers.UnlocalizedString::localize)
+                            .map(s -> StringHelpers.splitLines(s, L10NHelpers.MAX_TOOLTIP_LINE_LENGTH,
+                                    TextFormatting.RED.toString()))
+                            .flatMap(List::stream)
+                            .collect(Collectors.toList()), x - gui.getGuiLeft() + 10, y - gui.getGuiTop());
                 }
             }
         }
