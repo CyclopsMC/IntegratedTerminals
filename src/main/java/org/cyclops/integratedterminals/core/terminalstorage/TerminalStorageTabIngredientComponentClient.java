@@ -163,7 +163,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.filters.put(channel, filter.toLowerCase(Locale.ENGLISH));
     }
 
-    protected IIngredientListMutable<T, M> getUnfilteredIngredientsView(int channel) {
+    public IIngredientListMutable<T, M> getUnfilteredIngredientsView(int channel) {
         IIngredientListMutable<T, M> ingredientsView = ingredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = new IngredientArrayList<>(this.ingredientComponent);
