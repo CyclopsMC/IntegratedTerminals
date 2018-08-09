@@ -37,6 +37,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientLoadButtonsEvent;
+import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientSearchFieldUpdateEvent;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
@@ -159,6 +160,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public void setInstanceFilter(int channel, String filter) {
+        TerminalStorageTabClientSearchFieldUpdateEvent event = new TerminalStorageTabClientSearchFieldUpdateEvent(this, filter);
+        MinecraftForge.EVENT_BUS.post(event);
+        filter = event.getSearchString();
         resetFilteredIngredientsViews(channel);
         this.filters.put(channel, filter.toLowerCase(Locale.ENGLISH));
     }

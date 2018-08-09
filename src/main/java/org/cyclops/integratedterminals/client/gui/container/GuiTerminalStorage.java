@@ -242,7 +242,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     }
 
     @Override
-    protected ContainerTerminalStorage getContainer() {
+    public ContainerTerminalStorage getContainer() {
         return (ContainerTerminalStorage) super.getContainer();
     }
 
@@ -561,7 +561,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         return Optional.ofNullable(getContainer().getTabsCommon().get(tab));
     }
 
-    protected Optional<ITerminalStorageTabClient<?>> getSelectedClientTab() {
+    public Optional<ITerminalStorageTabClient<?>> getSelectedClientTab() {
         return getClientTab(getContainer().getSelectedTab());
     }
 
@@ -587,6 +587,10 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             getTabByIndex(tabIndex)
                     .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), mouseX - getGuiLeft(), mouseY - getGuiTop()));
         }
+    }
+
+    public GuiTextFieldExtended getFieldSearch() {
+        return fieldSearch;
     }
 
     /**
