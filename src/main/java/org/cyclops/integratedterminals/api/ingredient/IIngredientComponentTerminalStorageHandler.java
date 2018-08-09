@@ -113,7 +113,10 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
         T toAdd = instance;
         int slot = containerSlotStart;
         while (!matcher.isEmpty(toAdd) && slot < containerSlotEnd) {
-            insertIntoContainer(storage, container, slot++, toAdd);
+            T moved = insertIntoContainer(storage, container, slot++, toAdd);
+            if (!matcher.isEmpty(moved)) {
+                toAdd = matcher.withQuantity(toAdd, Math.max(0, matcher.getQuantity(toAdd) - matcher.getQuantity(moved)));
+            }
         }
     }
 
