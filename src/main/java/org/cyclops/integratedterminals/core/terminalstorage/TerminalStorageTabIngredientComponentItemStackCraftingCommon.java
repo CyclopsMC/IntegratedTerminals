@@ -18,6 +18,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.inventory.InventoryCraftingDirtyable;
 import org.cyclops.integratedterminals.inventory.SlotCraftingAutoRefill;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
@@ -36,7 +37,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
     private InventoryCraftResult inventoryCraftResult;
     private SlotCrafting slotCrafting;
     private List<Slot> slots;
-    private boolean autoRefill = true;
+    private TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.STORAGE;
 
     public TerminalStorageTabIngredientComponentItemStackCraftingCommon(ContainerTerminalStorage containerTerminalStorage,
                                                                         ResourceLocation name,
@@ -71,7 +72,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         slots.add(slotCrafting = new SlotCraftingAutoRefill(player, this.inventoryCrafting, this.inventoryCraftResult,
                 0, 115, 76, this, (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>)
                 ((ContainerTerminalStorage) container).getTabServer(getName().toString()),
-                ((ContainerTerminalStorage) container).getSelectedChannel()));
+                (ContainerTerminalStorage) container));
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
                 slots.add(new Slot(this.inventoryCrafting, j + i * 3, 31 + j * 18, 58 + i * 18));
@@ -110,11 +111,11 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         return slotCrafting;
     }
 
-    public boolean isAutoRefill() {
+    public TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType getAutoRefill() {
         return autoRefill;
     }
 
-    public void setAutoRefill(boolean autoRefill) {
+    public void setAutoRefill(TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill) {
         this.autoRefill = autoRefill;
     }
 

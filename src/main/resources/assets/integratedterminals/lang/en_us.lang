@@ -29,6 +29,12 @@ gui.integratedterminals.terminal_storage.craftinggrid.balance=Balance Crafting G
 gui.integratedterminals.terminal_storage.craftinggrid.balance.info=Equally distribute equal items over slots
 gui.integratedterminals.terminal_storage.craftinggrid.autorefill=Auto-refill Crafting Grid
 gui.integratedterminals.terminal_storage.craftinggrid.autorefill.info=Automatically refill the Crafting Grid after crafting
+gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.disabled=§oDisabled
+gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.storage=§aSource: Network
+gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.player=§aSource: Player
+gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.storage_player=§aSource: Network, Player
+gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.player_storage=§aSource: Player, Network
+
 
 # Keybindings
 key.categories.integratedterminals=Integrated Terminals

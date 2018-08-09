@@ -9,6 +9,7 @@ import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 
 /**
@@ -21,15 +22,16 @@ public class TerminalStorageIngredientItemStackCraftingGridSetAutoRefill extends
     @CodecField
     private String tabId;
     @CodecField
-    private boolean autoRefill;
+    private int autoRefillType;
 
     public TerminalStorageIngredientItemStackCraftingGridSetAutoRefill() {
 
     }
 
-    public TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(String tabId, boolean autoRefill) {
+    public TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(String tabId,
+                                                                       TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill) {
         this.tabId = tabId;
-        this.autoRefill = autoRefill;
+        this.autoRefillType = autoRefill.ordinal();
     }
 
     @Override
@@ -49,7 +51,8 @@ public class TerminalStorageIngredientItemStackCraftingGridSetAutoRefill extends
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             ITerminalStorageTabCommon tabCommon = container.getTabCommon(tabId);
             if (tabCommon instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon) {
-                ((TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon).setAutoRefill(this.autoRefill);
+                ((TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon)
+                        .setAutoRefill(TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.values()[this.autoRefillType]);
             }
         }
     }

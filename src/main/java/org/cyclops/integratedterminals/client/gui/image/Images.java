@@ -23,7 +23,11 @@ public class Images {
     public static final Image BUTTON_MIDDLE_ID = new Image(ICONS, 0, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_NAME = new Image(ICONS, 18, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_QUANTITY = new Image(ICONS, 36, 18, 18, 18);
-    public static final Image BUTTON_MIDDLE_AUTOREFILL = new Image(ICONS, 54, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_AUTOREFILL_DISABLED = new Image(ICONS, 54, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_AUTOREFILL_STORAGE = new Image(ICONS, 72, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_AUTOREFILL_PLAYER = new Image(ICONS, 90, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_AUTOREFILL_STORAGEPLAYER = new Image(ICONS, 108, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_AUTOREFILL_PLAYERSTORAGE = new Image(ICONS, 126, 18, 18, 18);
 
     public static final Image BUTTON_SMALL_BACKGROUND_INACTIVE = new Image(ICONS, 0, 36, 8, 8);
 
