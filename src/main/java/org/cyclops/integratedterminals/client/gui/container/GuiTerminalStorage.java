@@ -167,7 +167,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             for (ITerminalButton button : tab.getButtons()) {
                 GuiButton guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
                 guiButton.drawButton(mc, mouseX, mouseY, f);
-                offset += BUTTONS_OFFSET + guiButton.height;
+                if (button.isInLeftColumn()) {
+                    offset += BUTTONS_OFFSET + guiButton.height;
+                }
             }
 
             String tabName = getContainer().getSelectedTab();
@@ -340,7 +342,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                     playButtonClickSound();
                     return;
                 }
-                offset += BUTTONS_OFFSET + guiButton.height;
+                if (button.isInLeftColumn()) {
+                    offset += BUTTONS_OFFSET + guiButton.height;
+                }
             }
         });
 
