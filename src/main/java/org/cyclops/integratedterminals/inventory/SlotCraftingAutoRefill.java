@@ -53,8 +53,7 @@ public class SlotCraftingAutoRefill extends SlotCrafting {
             // Attempt to get and re-add removed stacks from storage
             IIngredientComponentStorage<ItemStack, Integer> storage = tabServer.getIngredientNetwork()
                     .getChannel(this.container.getSelectedChannel());
-            IIngredientComponentStorage<ItemStack, Integer> player = new IngredientComponentStorageWrapperHandlerItemStack
-                    .ComponentStorageWrapper(IngredientComponent.ITEMSTACK, new PlayerInvWrapper(thePlayer.inventory));
+            IIngredientComponentStorage<ItemStack, Integer> player = new IngredientComponentStorageWrapperHandlerItemStack.ComponentStorageWrapper(IngredientComponent.ITEMSTACK, new PlayerInvWrapper(thePlayer.inventory));
             for (int i = 0; i < removed.size(); i++) {
                 ItemStack removedStack = removed.get(i);
                 ItemStack extracted;

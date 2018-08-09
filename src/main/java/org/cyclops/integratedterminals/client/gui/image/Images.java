@@ -28,6 +28,7 @@ public class Images {
     public static final Image BUTTON_MIDDLE_AUTOREFILL_PLAYER = new Image(ICONS, 90, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_AUTOREFILL_STORAGEPLAYER = new Image(ICONS, 108, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_AUTOREFILL_PLAYERSTORAGE = new Image(ICONS, 126, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_JEI_SYNC = new Image(ICONS, 144, 18, 18, 18);
 
     public static final Image BUTTON_SMALL_BACKGROUND_INACTIVE = new Image(ICONS, 0, 36, 8, 8);
 
