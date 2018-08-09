@@ -214,7 +214,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return this.enabled;
     }
 
-    protected Optional<T> getSlotInstance(int channel, int index) {
+    public Optional<T> getSlotInstance(int channel, int index) {
         if (index >= 0) {
             List<TerminalStorageSlotIngredient<T, M>> lastSlots = getSlots(channel, index, 1);
             if (!lastSlots.isEmpty()) {

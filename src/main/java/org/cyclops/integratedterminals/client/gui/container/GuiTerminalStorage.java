@@ -408,7 +408,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 && mouseY < getGuiTopTotal() + getSlotsOffsetY() + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE;
     }
 
-    private int getStorageSlotIndexAtPosition(int mouseX, int mouseY) {
+    public int getStorageSlotIndexAtPosition(int mouseX, int mouseY) {
         if (hasClickedInStorage(mouseX, mouseY)) {
             if ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER
                     && (mouseY - getGuiTopTotal() - getSlotsOffsetY()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER) {
