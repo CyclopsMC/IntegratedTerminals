@@ -74,3 +74,16 @@ config.integratedterminals.general.crashOnModCompatCrash=Crash on Compatibility 
 config.integratedterminals.general.debug=Develop mode
 config.integratedterminals.general.version=Version
 config.integratedterminals.general.versionChecker=Version check
+
+# ------ On the Dynamics of Integration contents ------
+
+info_book.integratedterminals.section.main=Terminals
+
+info_book.integratedterminals.introduction=Introduction
+info_book.integratedterminals.introduction.text1=&lIntegrated Terminals&r is an extension to &lIntegrated Dynamics&r to manage and overview &lIntegrated Dynamics&r networks.
+info_book.integratedterminals.introduction.text2=For instance, the &lStorage Terminal&r allows you to check and interact with your &ostorage networks&r, such as your attached &oEnergy Batteries&r. When other mods are installed that adds storage capabilities, such as the &oitem&r and &ofluid&r capabilities from &lIntegrated Tunnels&r, then you will be able to interact with these as well.
+
+info_book.integratedterminals.section.tutorials=Terminal Tutorials
+
+info_book.integratedterminals.tutorials.introduction=Introduction
+info_book.integratedterminals.tutorials.introduction.text1=This section contains several tutorials that help you to learn &lIntegrated Terminals&r, the &lIntegrated Dynamics&r add-on for managing and overviewing &lIntegrated Dynamics&r networks.

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<section name="info_book.integratedterminals.section.main">
+    <section name="info_book.integratedterminals.introduction">
+        <paragraph>info_book.integratedterminals.introduction.text1</paragraph>
+        <paragraph>info_book.integratedterminals.introduction.text2</paragraph>
+    </section>
+</section>
