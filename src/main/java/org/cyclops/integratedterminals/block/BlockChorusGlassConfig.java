@@ -9,6 +9,7 @@ import net.minecraft.world.IBlockAccess;
 import org.cyclops.cyclopscore.config.configurable.ConfigurableBlockGlass;
 import org.cyclops.cyclopscore.config.extendedconfig.BlockConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.Reference;
 
 import javax.annotation.Nullable;
 
@@ -54,5 +55,9 @@ public class BlockChorusGlassConfig extends BlockConfig {
         };
         return block;
     }
-    
+
+    @Override
+    public String getOreDictionaryId() {
+        return Reference.DICT_BLOCKGLASS;
+    }
 }

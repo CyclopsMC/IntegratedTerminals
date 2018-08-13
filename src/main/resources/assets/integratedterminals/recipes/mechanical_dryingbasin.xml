@@ -7,7 +7,7 @@
 		<condition type="config">menril_glass</condition>
 		<input>
 			<fluid amount="1000">menrilresin</fluid>
-			<item type="oredict">blockGlass</item>
+			<item type="oredict">blockGlassColorless</item>
 		</input>
 		<output>
 			<item>integratedterminals:menril_glass</item>
@@ -23,7 +23,7 @@
 		<condition type="config">chorus_glass</condition>
 		<input>
 			<fluid amount="1000">liquidchorus</fluid>
-			<item type="oredict">blockGlass</item>
+			<item type="oredict">blockGlassColorless</item>
 		</input>
 		<output>
 			<item>integratedterminals:chorus_glass</item>

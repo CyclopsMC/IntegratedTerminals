@@ -12,12 +12,12 @@
 				<gridrow>
 					<item meta="0">integrateddynamics:variable_transformer</item>
 					<item>integrateddynamics:part_display_panel_item</item>
-					<item meta="0">integrateddynamics:variable_transformer</item>
+					<item meta="1">integrateddynamics:variable_transformer</item>
 				</gridrow>
 			</grid>
 		</input>
 		<output>
-			<item>integratedterminals:part_terminal_storage</item>
+			<item>integratedterminals:part_terminal_storage_item</item>
 		</output>
 	</recipe>
 
