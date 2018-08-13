@@ -3,4 +3,25 @@
     <section name="info_book.integratedterminals.tutorials.introduction">
         <paragraph>info_book.integratedterminals.tutorials.introduction.text1</paragraph>
     </section>
+
+    <section name="info_book.integratedterminals.tutorials.storage_terminal">
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal.text1</paragraph>
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal.text2</paragraph>
+        <appendix type="integrateddynamics:drying_basin_recipe">
+            <item>integratedterminals:menril_glass</item>
+            <fluid />
+        </appendix>
+        <appendix type="crafting_recipe">integratedterminals:part_terminal_storage_item</appendix>
+        <appendix type="advancement_rewards" id="integratedterminals:storage_terminal">
+            <advancements>
+                <advancement id="integratedterminals:storage_terminal/menril_glass" />
+                <advancement id="integratedterminals:storage_terminal/craft_storage_terminal" />
+                <advancement id="integratedterminals:storage_terminal/gui_storage_terminal" />
+            </advancements>
+            <rewards>
+                <reward type="item" amount="10">integratedterminals:menril_glass</reward>
+                <reward type="item" amount="3">integratedterminals:part_terminal_storage_item</reward>
+            </rewards>
+        </appendix>
+    </section>
 </section>

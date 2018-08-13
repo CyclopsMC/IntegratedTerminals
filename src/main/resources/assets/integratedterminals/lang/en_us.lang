@@ -44,6 +44,16 @@ key.integratedterminals.terminal.craftinggrid.clearplayer=Clear Crafting Grid in
 key.integratedterminals.terminal.craftinggrid.clearstorage=Clear Crafting Grid into Player Inventory
 key.integratedterminals.terminal.craftinggrid.balance=Balance Crafting Grid
 
+# Advancements
+advancement.integratedterminals.menril_glass=Meneglin Discovery
+advancement.integratedterminals.menril_glass.desc=Dry Menril Resin onto Glass to obtain Menril Glass.
+advancement.integratedterminals.craft_storage_terminal=The creation of the Storage Terminal
+advancement.integratedterminals.craft_storage_terminal.desc=Craft a Storage Terminal
+advancement.integratedterminals.gui_storage_terminal=The power of the Storage Terminal
+advancement.integratedterminals.gui_storage_terminal.desc=Open the gui of a Storage Terminal
+advancement.integratedterminals.simple_crafting=Storage Terminal Crafting for Dummies
+advancement.integratedterminals.simple_crafting.desc=Craft something in the Storage Terminal Crafting Grid
+
 # Blocks
 tile.blocks.integratedterminals.menril_glass.name=Menril Glass
 tile.blocks.integratedterminals.menril_glass.info=Illuminating glass
@@ -112,3 +122,7 @@ info_book.integratedterminals.section.tutorials=Terminal Tutorials
 
 info_book.integratedterminals.tutorials.introduction=Introduction
 info_book.integratedterminals.tutorials.introduction.text1=This section contains several tutorials that help you to learn &lIntegrated Terminals&r, the &lIntegrated Dynamics&r add-on for managing and overviewing &lIntegrated Dynamics&r networks.
+
+info_book.integratedterminals.tutorials.storage_terminal=Storage Terminal
+info_book.integratedterminals.tutorials.storage_terminal.text1=The &lStorage Terminal&r allows you to show the storage contents of the attached network and interact with its contents. Different ingredient types are available in separate tabs, and each tab can be filtered by channel, search queries and &lVariable Cards&r. They can also be sorted in various ways. Refer to the manual for further details.
+info_book.integratedterminals.tutorials.storage_terminal.text2=This tutorial is simple, craft &lMenril Glass&r, a &lStorage Terminal&r, and open its gui after attaching it to a network.
