@@ -442,7 +442,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                                         : viewHandler.getIncrementalInstanceMovementQuantity()));
                     } else if (mouseButton == 1) {
                         // Decrease active quantity
-                        this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - viewHandler.getIncrementalInstanceMovementQuantity());
+                        this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - (shift ? viewHandler.getInitialInstanceMovementQuantity()
+                                : viewHandler.getIncrementalInstanceMovementQuantity()));
                         if (this.activeSlotQuantity == 0) {
                             activeSlotId = -1;
                         }
