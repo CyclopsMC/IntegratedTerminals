@@ -1,0 +1,10 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "normal"   : { "model": "integratedterminals:menril_glass" },
+    "inventory": { "model": "integratedterminals:menril_glass" }
+  }
+}

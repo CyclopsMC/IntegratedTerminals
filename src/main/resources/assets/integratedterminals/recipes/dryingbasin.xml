@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<recipes>
+
+	<recipe type="integrateddynamics:dryingbasin">
+		<condition type="config">integrateddynamics:drying_basin</condition>
+		<condition type="config">integrateddynamics:menrilresin</condition>
+		<condition type="config">menril_glass</condition>
+		<input>
+			<fluid amount="1000">menrilresin</fluid>
+			<item type="oredict">blockGlass</item>
+		</input>
+		<output>
+			<item>integratedterminals:menril_glass</item>
+		</output>
+		<properties>
+			<duration>200</duration>
+		</properties>
+	</recipe>
+
+</recipes>

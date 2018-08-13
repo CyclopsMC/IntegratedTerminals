@@ -19,12 +19,19 @@ import org.cyclops.cyclopscore.init.ItemCreativeTab;
 import org.cyclops.cyclopscore.init.ModBaseVersionable;
 import org.cyclops.cyclopscore.init.RecipeHandler;
 import org.cyclops.cyclopscore.proxy.ICommonProxy;
+import org.cyclops.cyclopscore.recipe.xml.IRecipeConditionHandler;
+import org.cyclops.cyclopscore.recipe.xml.IRecipeTypeHandler;
+import org.cyclops.integrateddynamics.core.recipe.xml.DryingBasinRecipeTypeHandler;
+import org.cyclops.integrateddynamics.core.recipe.xml.MechanicalDryingBasinRecipeTypeHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
+import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.part.PartTypes;
+
+import java.util.Map;
 
 /**
  * The main mod class of this mod.
@@ -63,8 +70,17 @@ public class IntegratedTerminals extends ModBaseVersionable {
     protected RecipeHandler constructRecipeHandler() {
         return new RecipeHandler(this,
                 "shaped.xml",
-                "shapeless.xml"
-        );
+                "shapeless.xml",
+                "dryingbasin.xml",
+                "mechanical_dryingbasin.xml"
+        ) {
+            @Override
+            protected void registerHandlers(Map<String, IRecipeTypeHandler> recipeTypeHandlers, Map<String, IRecipeConditionHandler> recipeConditionHandlers) {
+                super.registerHandlers(recipeTypeHandlers, recipeConditionHandlers);
+                recipeTypeHandlers.put("integrateddynamics:dryingbasin", new DryingBasinRecipeTypeHandler());
+                recipeTypeHandlers.put("integrateddynamics:mechanical_dryingbasin", new MechanicalDryingBasinRecipeTypeHandler());
+            }
+        };
     }
 
     /**
@@ -148,6 +164,8 @@ public class IntegratedTerminals extends ModBaseVersionable {
         super.onMainConfigsRegister(configHandler);
 
         configHandler.add(new IngredientComponentTerminalStorageHandlerConfig());
+
+        configHandler.add(new BlockMenrilGlassConfig());
     }
 
     @Override

@@ -44,6 +44,9 @@ key.integratedterminals.terminal.craftinggrid.clearplayer=Clear Crafting Grid in
 key.integratedterminals.terminal.craftinggrid.clearstorage=Clear Crafting Grid into Player Inventory
 key.integratedterminals.terminal.craftinggrid.balance=Balance Crafting Grid
 
+# Blocks
+tile.blocks.integratedterminals.menril_glass.name=Menril Glass
+
 # Part types
 parttype.parttypes.integratedterminals.terminal_storage.name=Storage Terminal
 parttype.parttypes.integratedterminals.terminal_storage.info=Visually interact with the elements stored the attached network.
