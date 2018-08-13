@@ -5,9 +5,9 @@
 		<input>
 			<grid>
 				<gridrow>
-					<item>integrateddynamics:energy_battery</item>
-					<item type="oredict">chest</item>
-					<item>minecraft:bucket</item>
+					<item />
+					<item>integratedterminals:menril_glass</item>
+					<item />
 				</gridrow>
 				<gridrow>
 					<item meta="0">integrateddynamics:variable_transformer</item>
