@@ -17,4 +17,20 @@
 		</properties>
 	</recipe>
 
+	<recipe type="integrateddynamics:mechanical_dryingbasin">
+		<condition type="config">integrateddynamics:drying_basin</condition>
+		<condition type="config">integrateddynamics:liquidchorus</condition>
+		<condition type="config">chorus_glass</condition>
+		<input>
+			<fluid amount="1000">liquidchorus</fluid>
+			<item type="oredict">blockGlass</item>
+		</input>
+		<output>
+			<item>integratedterminals:chorus_glass</item>
+		</output>
+		<properties>
+			<duration>20</duration>
+		</properties>
+	</recipe>
+
 </recipes>

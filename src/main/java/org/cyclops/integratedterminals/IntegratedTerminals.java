@@ -24,6 +24,7 @@ import org.cyclops.cyclopscore.recipe.xml.IRecipeTypeHandler;
 import org.cyclops.integrateddynamics.core.recipe.xml.DryingBasinRecipeTypeHandler;
 import org.cyclops.integrateddynamics.core.recipe.xml.MechanicalDryingBasinRecipeTypeHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
+import org.cyclops.integratedterminals.block.BlockChorusGlassConfig;
 import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
@@ -166,6 +167,7 @@ public class IntegratedTerminals extends ModBaseVersionable {
         configHandler.add(new IngredientComponentTerminalStorageHandlerConfig());
 
         configHandler.add(new BlockMenrilGlassConfig());
+        configHandler.add(new BlockChorusGlassConfig());
     }
 
     @Override

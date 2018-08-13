@@ -46,6 +46,9 @@ key.integratedterminals.terminal.craftinggrid.balance=Balance Crafting Grid
 
 # Blocks
 tile.blocks.integratedterminals.menril_glass.name=Menril Glass
+tile.blocks.integratedterminals.menril_glass.info=Illuminating glass
+tile.blocks.integratedterminals.chorus_glass.name=Chorus Glass
+tile.blocks.integratedterminals.chorus_glass.info=Passable glass
 
 # Part types
 parttype.parttypes.integratedterminals.terminal_storage.name=Storage Terminal
