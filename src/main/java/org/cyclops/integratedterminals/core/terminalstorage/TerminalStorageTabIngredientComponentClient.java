@@ -112,7 +112,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         List<ITerminalButton<?, ?, ?>> buttons = Lists.newArrayList();
         loadButtons(buttons);
-        TerminalStorageTabClientLoadButtonsEvent event = new TerminalStorageTabClientLoadButtonsEvent(this, buttons);
+        TerminalStorageTabClientLoadButtonsEvent event = new TerminalStorageTabClientLoadButtonsEvent(container, this, buttons);
         MinecraftForge.EVENT_BUS.post(event);
         this.buttons = event.getButtons();
 
