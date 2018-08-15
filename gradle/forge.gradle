@@ -22,6 +22,21 @@ dependencies {
         compile "org.cyclops.cyclopscore:CyclopsCore:${config.minecraft_version}-${config.cyclopscore_version}:deobf"
     }
 
+    // Add something like 'integratedterminalscompat_version_local=0.1.0-DEV' to your gradle.properties if you want to use a custom local Integrated Terminals Compat version.
+    if(project.hasProperty("integratedterminalscompat_version_local")) {
+        shadow("org.cyclops.integratedterminalscompat:IntegratedTerminalsCompat:${project.integratedterminalscompat_version_local}") {
+            exclude group: 'org.cyclops.cyclopscore', module: 'CyclopsCore'
+            exclude group: 'org.cyclops.integratedterminals', module: 'IntegratedTerminals'
+            exclude group: 'org.cyclops.commoncapabilities', module: 'CommonCapabilities'
+        }
+    } else {
+        shadow("org.cyclops.integratedterminalscompat:IntegratedTerminalsCompat:${config.integratedterminalscompat_version}") {
+            exclude group: 'org.cyclops.cyclopscore', module: 'CyclopsCore'
+            exclude group: 'org.cyclops.integratedterminals', module: 'IntegratedTerminals'
+            exclude group: 'org.cyclops.commoncapabilities', module: 'CommonCapabilities'
+        }
+    }
+
     if(project.hasProperty("commoncapabilities_version_local")) {
         compile "org.cyclops.commoncapabilities:CommonCapabilities:${project.commoncapabilities_version_local}:deobf"
     } else {
@@ -34,6 +49,19 @@ dependencies {
     compile "org.projectlombok:lombok:1.14.4"
 }
 
+// A fix for the build-time warning (which for some reason only occurs on Travis):
+//   :extractAnnotationsJarError while building FML annotations cache: duplicate entry: META-INF/fml_cache_annotation.json
+//   java.util.zip.ZipException: duplicate entry: META-INF/fml_cache_annotation.json
+// FML has a fallback to derive this annotation information at runtime, so this is not a major problem.
+extractAnnotationsJar.enabled = false;
+
+shadowJar {
+    dependencies {
+        exclude(dependency {
+            it.moduleGroup == 'org.projectlombok'
+        })
+    }
+}
 
 minecraft {
     version = "${config.minecraft_version}-${config.forge_version}"
