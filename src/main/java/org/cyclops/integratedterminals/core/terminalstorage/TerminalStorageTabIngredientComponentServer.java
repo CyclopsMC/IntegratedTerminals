@@ -120,11 +120,6 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientNetwork.removeObserver(this);
     }
 
-    @Override
-    public boolean isForChannel(int channel) {
-        return true;
-    }
-
     protected IIngredientCollapsedCollectionMutable<T, M> getUnfilteredIngredientsView(int channel) {
         IIngredientCollapsedCollectionMutable<T, M> ingredientsView = unfilteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
