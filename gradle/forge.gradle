@@ -26,12 +26,14 @@ dependencies {
     if(project.hasProperty("integratedterminalscompat_version_local")) {
         shadow("org.cyclops.integratedterminalscompat:IntegratedTerminalsCompat:${project.integratedterminalscompat_version_local}") {
             exclude group: 'org.cyclops.cyclopscore', module: 'CyclopsCore'
+            exclude group: 'org.cyclops.integrateddynamics', module: 'IntegratedDynamics'
             exclude group: 'org.cyclops.integratedterminals', module: 'IntegratedTerminals'
             exclude group: 'org.cyclops.commoncapabilities', module: 'CommonCapabilities'
         }
     } else {
         shadow("org.cyclops.integratedterminalscompat:IntegratedTerminalsCompat:${config.integratedterminalscompat_version}") {
             exclude group: 'org.cyclops.cyclopscore', module: 'CyclopsCore'
+            exclude group: 'org.cyclops.integrateddynamics', module: 'IntegratedDynamics'
             exclude group: 'org.cyclops.integratedterminals', module: 'IntegratedTerminals'
             exclude group: 'org.cyclops.commoncapabilities', module: 'CommonCapabilities'
         }
