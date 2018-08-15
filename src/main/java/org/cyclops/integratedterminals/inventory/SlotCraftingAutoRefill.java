@@ -56,40 +56,42 @@ public class SlotCraftingAutoRefill extends SlotCrafting {
             IIngredientComponentStorage<ItemStack, Integer> player = new IngredientComponentStorageWrapperHandlerItemStack.ComponentStorageWrapper(IngredientComponent.ITEMSTACK, new PlayerInvWrapper(thePlayer.inventory));
             for (int i = 0; i < removed.size(); i++) {
                 ItemStack removedStack = removed.get(i);
-                ItemStack extracted;
+                if (!removedStack.isEmpty()) {
+                    ItemStack extracted;
 
-                // Different source priorities
-                switch(autoRefill) {
-                    case STORAGE:
-                        extracted = storage.extract(removedStack, ItemMatch.EXACT, false);
-                        break;
-                    case PLAYER:
-                        extracted = player.extract(removedStack, ItemMatch.EXACT, false);
-                        break;
-                    case STORAGE_PLAYER:
-                        extracted = storage.extract(removedStack, ItemMatch.EXACT, false);
-                        if (extracted.isEmpty()) {
-                            extracted = player.extract(removedStack, ItemMatch.EXACT, false);
-                        }
-                        break;
-                    case PLAYER_STORAGE:
-                        extracted = player.extract(removedStack, ItemMatch.EXACT, false);
-                        if (extracted.isEmpty()) {
+                    // Different source priorities
+                    switch (autoRefill) {
+                        case STORAGE:
                             extracted = storage.extract(removedStack, ItemMatch.EXACT, false);
-                        }
-                        break;
-                    default:
-                        extracted = ItemStack.EMPTY;
-                        break;
-                }
-                thePlayer.openContainer.detectAndSendChanges();
+                            break;
+                        case PLAYER:
+                            extracted = player.extract(removedStack, ItemMatch.EXACT, false);
+                            break;
+                        case STORAGE_PLAYER:
+                            extracted = storage.extract(removedStack, ItemMatch.EXACT, false);
+                            if (extracted.isEmpty()) {
+                                extracted = player.extract(removedStack, ItemMatch.EXACT, false);
+                            }
+                            break;
+                        case PLAYER_STORAGE:
+                            extracted = player.extract(removedStack, ItemMatch.EXACT, false);
+                            if (extracted.isEmpty()) {
+                                extracted = storage.extract(removedStack, ItemMatch.EXACT, false);
+                            }
+                            break;
+                        default:
+                            extracted = ItemStack.EMPTY;
+                            break;
+                    }
+                    thePlayer.openContainer.detectAndSendChanges();
 
-                ItemStack existingStack = inventoryCrafting.getStackInSlot(i);
-                existingStack.grow(extracted.getCount());
-                inventoryCrafting.setInventorySlotContents(i, existingStack);
-                ((EntityPlayerMP) thePlayer).connection.sendPacket(
-                        new SPacketSetSlot(thePlayer.openContainer.windowId, i + this.slotNumber + 1,
-                                inventoryCrafting.getStackInSlot(i)));
+                    ItemStack existingStack = inventoryCrafting.getStackInSlot(i);
+                    existingStack.grow(extracted.getCount());
+                    inventoryCrafting.setInventorySlotContents(i, existingStack);
+                    ((EntityPlayerMP) thePlayer).connection.sendPacket(
+                            new SPacketSetSlot(thePlayer.openContainer.windowId, i + this.slotNumber + 1,
+                                    inventoryCrafting.getStackInSlot(i)));
+                }
             }
             return taken;
         }
