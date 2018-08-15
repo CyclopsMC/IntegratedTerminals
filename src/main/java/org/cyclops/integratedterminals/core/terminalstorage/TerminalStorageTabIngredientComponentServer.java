@@ -71,6 +71,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     // and sending change events based on them to the client.
     private final TIntObjectMap<IIngredientCollapsedCollectionMutable<T, M>> unfilteredIngredientsViews;
     private final TIntObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
+    private boolean initialized; // True if the first change event has been sent to the client.
 
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
@@ -216,7 +217,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             // Send out the diff between the last filtered view
             IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
             IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
-            if (diffOut.hasAdditions()) {
+            if (!initialized || diffOut.hasAdditions()) {
                 this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
                         IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
             }
@@ -225,6 +226,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                         IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
             }
         }
+
+        initialized = true;
     }
 
     protected void sendToClient(IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
