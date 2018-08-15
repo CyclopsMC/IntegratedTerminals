@@ -167,6 +167,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         switch (searchMode) {
             case MOD:

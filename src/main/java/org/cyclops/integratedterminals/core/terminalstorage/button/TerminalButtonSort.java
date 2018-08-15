@@ -105,6 +105,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines) {
         instanceSorter.getTooltip(player, tooltipFlag, lines);
         if (active) {

@@ -173,6 +173,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public Predicate<Integer> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         return integer -> true; // Searching does not make sense here, as at most one instance exists.
     }

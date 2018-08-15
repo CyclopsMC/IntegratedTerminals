@@ -75,6 +75,7 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines) {
         lines.add(L10NHelpers.localize("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.autorefill.info"));
         lines.add(L10NHelpers.localize(active.getLabel()));

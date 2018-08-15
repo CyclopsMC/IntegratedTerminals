@@ -73,6 +73,7 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param tooltipFlag The tooltip flag.
      * @param lines The tooltip lines.
      */
+    @SideOnly(Side.CLIENT)
     public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines);
 
 }

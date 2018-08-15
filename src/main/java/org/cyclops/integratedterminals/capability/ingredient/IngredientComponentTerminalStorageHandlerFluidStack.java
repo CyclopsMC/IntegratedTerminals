@@ -194,6 +194,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         switch (searchMode) {
             case MOD:

@@ -167,6 +167,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param query A query string.
      * @return An instance matcher.
      */
+    @SideOnly(Side.CLIENT)
     public Predicate<T> getInstanceFilterPredicate(SearchMode searchMode, String query);
 
     /**
