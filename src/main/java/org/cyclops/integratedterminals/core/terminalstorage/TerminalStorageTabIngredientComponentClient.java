@@ -267,9 +267,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             quantity = -quantity;
         }
         long newQuantity = totalQuantities.get(channel) + quantity;
-        if (newQuantity != 0) {
-            totalQuantities.put(channel, newQuantity);
-        }
+        totalQuantities.put(channel, newQuantity);
 
         // Apply diff
         IIngredientListMutable<T, M> persistedIngredients = getUnfilteredIngredientsView(channel);
