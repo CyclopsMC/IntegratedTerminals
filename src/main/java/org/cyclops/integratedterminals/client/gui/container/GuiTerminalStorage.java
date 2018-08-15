@@ -407,8 +407,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     protected void balanceCraftingGrid() {
         ITerminalStorageTabCommon commonTab = getContainer().getTabCommon(getContainer().getSelectedTab());
         if (commonTab instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon){
-            TerminalStorageIngredientItemStackCraftingGridBalance.balanceGrid(
-                    ((TerminalStorageTabIngredientComponentItemStackCraftingCommon) commonTab).getInventoryCrafting());
+            IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                    new TerminalStorageIngredientItemStackCraftingGridBalance(commonTab.getName().toString()));
         }
     }
 
