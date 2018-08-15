@@ -45,14 +45,12 @@ key.integratedterminals.terminal.craftinggrid.clearstorage=Clear Crafting Grid i
 key.integratedterminals.terminal.craftinggrid.balance=Balance Crafting Grid
 
 # Advancements
-advancement.integratedterminals.menril_glass=Meneglin Discovery
+advancement.integratedterminals.menril_glass=The Glass of Illumination
 advancement.integratedterminals.menril_glass.desc=Dry Menril Resin onto Glass to obtain Menril Glass.
 advancement.integratedterminals.craft_storage_terminal=The creation of the Storage Terminal
 advancement.integratedterminals.craft_storage_terminal.desc=Craft a Storage Terminal
-advancement.integratedterminals.gui_storage_terminal=The power of the Storage Terminal
+advancement.integratedterminals.gui_storage_terminal=GUI Simulator 9000
 advancement.integratedterminals.gui_storage_terminal.desc=Open the gui of a Storage Terminal
-advancement.integratedterminals.simple_crafting=Storage Terminal Crafting for Dummies
-advancement.integratedterminals.simple_crafting.desc=Craft something in the Storage Terminal Crafting Grid
 advancement.integratedterminals.filter_enchantable=Dynamic Storage Terminal Filtering
 advancement.integratedterminals.filter_enchantable.desc=Dynamically filter enchantable items in the Storage Terminal using a Variable
 
