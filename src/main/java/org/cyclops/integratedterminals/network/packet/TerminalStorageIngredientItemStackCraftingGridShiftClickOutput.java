@@ -60,12 +60,18 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
 
                 // Loop until the result slot is empty
                 SlotCrafting slotCrafting = tabCommonCrafting.getSlotCrafting();
+                ItemStack currentCraftingItem = slotCrafting.getStack().copy();
                 ItemStack resultStack;
                 int craftedAmount = 0;
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
                     if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.inventory),
                             slotCrafting.getStack(), true).isEmpty()) {
+                        break;
+                    }
+
+                    // Break the loop if we are crafting something else
+                    if (!ItemHandlerHelper.canItemStacksStackRelaxed(currentCraftingItem, slotCrafting.getStack())) {
                         break;
                     }
 
