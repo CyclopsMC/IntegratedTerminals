@@ -73,11 +73,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
+    protected final ContainerTerminalStorage container;
     private final List<ITerminalButton<?, ?, ?>> buttons;
 
     private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
     private final TIntObjectMap<IIngredientListMutable<T, M>> filteredIngredientsViews;
-    private final TIntObjectMap<String> filters;
 
     private final TIntLongMap maxQuantities;
     private final TIntLongMap totalQuantities;
@@ -102,11 +102,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
     }
 
-    public TerminalStorageTabIngredientComponentClient(ResourceLocation name, IngredientComponent<?, ?> ingredientComponent) {
+    public TerminalStorageTabIngredientComponentClient(ContainerTerminalStorage container, ResourceLocation name,
+                                                       IngredientComponent<?, ?> ingredientComponent) {
         this.name = name;
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
         this.ingredientComponentViewHandler = Objects.requireNonNull(this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY));
         this.icon = ingredientComponentViewHandler.getIcon();
+        this.container = container;
 
         List<ITerminalButton<?, ?, ?>> buttons = Lists.newArrayList();
         loadButtons(buttons);
@@ -116,7 +118,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         this.ingredientsViews = new TIntObjectHashMap<>();
         this.filteredIngredientsViews = new TIntObjectHashMap<>();
-        this.filters = new TIntObjectHashMap<>();
 
         this.maxQuantities = new TIntLongHashMap();
         this.totalQuantities = new TIntLongHashMap();
@@ -128,7 +129,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected void loadButtons(List<ITerminalButton<?, ?, ?>> buttons) {
         // Add all sorting buttons
         for (IIngredientInstanceSorter<T> instanceSorter : ingredientComponentViewHandler.getInstanceSorters()) {
-            buttons.add(new TerminalButtonSort<>(instanceSorter));
+            buttons.add(new TerminalButtonSort<>(instanceSorter, container.getGuiState(), this));
         }
     }
 
@@ -150,8 +151,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public String getInstanceFilter(int channel) {
-        String filter = this.filters.get(channel);
-        return filter == null ? "" : filter;
+        if (container.getGuiState().hasSearch(getName().toString(), channel)) {
+            return container.getGuiState().getSearch(getName().toString(), channel);
+        }
+        return "";
     }
 
     public void resetFilteredIngredientsViews(int channel) {
@@ -164,7 +167,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         MinecraftForge.EVENT_BUS.post(event);
         filter = event.getSearchString();
         resetFilteredIngredientsViews(channel);
-        this.filters.put(channel, filter.toLowerCase(Locale.ENGLISH));
+        container.getGuiState().setSearch(getName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
     }
 
     public IIngredientListMutable<T, M> getUnfilteredIngredientsView(int channel) {

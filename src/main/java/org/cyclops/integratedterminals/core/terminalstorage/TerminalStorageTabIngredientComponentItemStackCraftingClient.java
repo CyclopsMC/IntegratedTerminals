@@ -32,14 +32,12 @@ import java.util.List;
 public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         extends TerminalStorageTabIngredientComponentClient<ItemStack, Integer> {
 
-    private final ContainerTerminalStorage container;
     private final ItemStack icon;
 
     public TerminalStorageTabIngredientComponentItemStackCraftingClient(ContainerTerminalStorage container,
                                                                         ResourceLocation name,
                                                                         IngredientComponent<?, ?> ingredientComponent) {
-        super(name, ingredientComponent);
-        this.container = container;
+        super(container, name, ingredientComponent);
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
     }
 
@@ -47,7 +45,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     protected void loadButtons(List<ITerminalButton<?, ?, ?>> buttons) {
         super.loadButtons(buttons);
 
-        buttons.add(new TerminalButtonItemStackCraftingGridAutoRefill<>());
+        buttons.add(new TerminalButtonItemStackCraftingGridAutoRefill<>(container.getGuiState(), this));
         buttons.add(new TerminalButtonItemStackCraftingGridClear<>());
         buttons.add(new TerminalButtonItemStackCraftingGridBalance<>());
     }

@@ -35,7 +35,7 @@ public class TerminalStorageTabIngredientComponent<T, M> implements ITerminalSto
 
     @Override
     public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
-        return new TerminalStorageTabIngredientComponentClient<>(getName(), ingredientComponent);
+        return new TerminalStorageTabIngredientComponentClient<>(container, getName(), ingredientComponent);
     }
 
     @Override

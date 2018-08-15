@@ -82,6 +82,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     private GuiScrollBar scrollBar;
     private GuiTextFieldExtended fieldSearch;
     private int firstRow;
+    private boolean initialized;
 
     public GuiTerminalStorage(EntityPlayer player, PartTarget target, IPartContainer partContainer, IPartType partType) {
         super(new ContainerTerminalStorage(player, target, partContainer, partType));
@@ -126,6 +127,16 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         fieldSearch.setCanLoseFocus(true);
         fieldSearch.setEnabled(true);
         fieldSearch.setEnableBackgroundDrawing(false);
+    }
+
+    @Override
+    public void updateScreen() {
+        super.updateScreen();
+        if (!initialized && getSelectedClientTab().isPresent()) {
+            initialized = true;
+
+            fieldSearch.setText(getSelectedClientTab().get().getInstanceFilter(getContainer().getSelectedChannel()));
+        }
     }
 
     @Override

@@ -54,8 +54,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     private final List<String> channelStrings;
     private String channelAllLabel;
 
-    // Fields for storing the last tab client-side
-    private static String lastSelectedTab = null;
+    private static final TerminalStorageState GLOBAL_PLAYER_STATE = new TerminalStorageState();
 
     /**
      * Make a new instance.
@@ -120,9 +119,20 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
             disableSlots(tabCommon.getName().toString());
         }
 
-        setSelectedTab(player.world.isRemote && lastSelectedTab != null ? lastSelectedTab
-                : getTabsClient().size() > 0 ? Iterables.getFirst(getTabsClient().values(), null).getName().toString() : null);
-        setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
+        // Load gui state
+        if (player.world.isRemote) {
+            TerminalStorageState state = getGuiState();
+            setSelectedTab(state.hasTab() ? state.getTab() : getTabsClient().size() > 0
+                    ? Iterables.getFirst(getTabsClient().values(), null).getName().toString() : null);
+            setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
+        } else {
+            setSelectedTab(null);
+            setSelectedChannel(IPositionedAddonsNetwork.WILDCARD_CHANNEL);
+        }
+    }
+
+    public TerminalStorageState getGuiState() {
+        return GLOBAL_PLAYER_STATE;
     }
 
     public int getNextValueId() {
@@ -212,7 +222,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         disableSlots(getSelectedTab());
 
         if (player.world.isRemote) {
-            lastSelectedTab = selectedTab;
+            getGuiState().setTab(selectedTab);
         }
         if (selectedTab != null) {
             ValueNotifierHelpers.setValue(this, selectedTabIndexValueId, selectedTab);

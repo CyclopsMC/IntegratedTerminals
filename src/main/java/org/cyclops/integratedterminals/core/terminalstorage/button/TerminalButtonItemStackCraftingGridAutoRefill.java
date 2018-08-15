@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage.button;
 
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.cyclopscore.client.gui.component.button.GuiButtonImage;
@@ -10,9 +11,11 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
+import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridSetAutoRefill;
 
 import javax.annotation.Nullable;
@@ -26,7 +29,22 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
         implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
         TerminalStorageTabIngredientComponentItemStackCraftingCommon, GuiButtonImage> {
 
-    private AutoRefillType active = AutoRefillType.STORAGE;
+    private final TerminalStorageState state;
+    private final String buttonName;
+
+    private AutoRefillType active;
+
+    public TerminalButtonItemStackCraftingGridAutoRefill(TerminalStorageState state, ITerminalStorageTabClient<?> clientTab) {
+        this.state = state;
+        this.buttonName = "itemstack_grid_autorefill";
+
+        if (state.hasButton(clientTab.getName().toString(), this.buttonName)) {
+            NBTTagCompound data = (NBTTagCompound) state.getButton(clientTab.getName().toString(), this.buttonName);
+            this.active = AutoRefillType.values()[data.getInteger("active")];
+        } else {
+            this.active = AutoRefillType.STORAGE;
+        }
+    }
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -42,6 +60,11 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
                         TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, GuiButtonImage guiButton,
                         int channel, int mouseButton) {
         this.active = mouseButton == 0 ? AutoRefillType.values()[(this.active.ordinal() + 1) % AutoRefillType.values().length] : AutoRefillType.DISABLED;
+
+        NBTTagCompound data = new NBTTagCompound();
+        data.setInteger("active", active.ordinal());
+        state.setButton(clientTab.getName().toString(), this.buttonName, data);
+
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
                 new TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(clientTab.getName().toString(), this.active));
     }
