@@ -251,7 +251,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     }
 
     public int getTabsClientCount() {
-        return tabsClient.size();
+        return getTabsClient().size();
     }
 
     public Map<String, ITerminalStorageTabClient<?>> getTabsClient() {
