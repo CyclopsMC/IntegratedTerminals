@@ -166,6 +166,10 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         return partState;
     }
 
+    public PartTypeTerminalStorage getPartType() {
+        return (PartTypeTerminalStorage) partType;
+    }
+
     @Override
     protected int getSizeInventory() {
         return inventorySlots.size() - player.inventory.mainInventory.size();

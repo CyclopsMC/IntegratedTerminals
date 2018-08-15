@@ -24,4 +24,20 @@
             </rewards>
         </appendix>
     </section>
+
+    <section name="info_book.integratedterminals.tutorials.storage_terminal_filtering">
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal_filtering.text1</paragraph>
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal_filtering.text2</paragraph>
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal_filtering.text3</paragraph>
+        <appendix type="keybinding">key.integrateddynamics.logic_programmer_focus_search</appendix>
+        <appendix type="advancement_rewards" id="integratedterminals:storage_terminal_filtering">
+            <advancements>
+                <advancement id="integratedterminals:storage_terminal_filtering/filter_enchantable" />
+            </advancements>
+            <rewards>
+                <reward type="item" amount="64">integrateddynamics:variable</reward>
+                <reward type="item" amount="3">integratedterminals:part_terminal_storage_item</reward>
+            </rewards>
+        </appendix>
+    </section>
 </section>
