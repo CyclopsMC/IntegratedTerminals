@@ -7,6 +7,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.integrateddynamics.capability.network.PositionedAddonsNetworkIngredientsHandlerConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
 
@@ -27,13 +28,18 @@ public class TerminalStorageTabs {
         if (event.getRegistry() == IngredientComponent.REGISTRY) {
             // Create tabs for all ingredient component types
             for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValuesCollection()) {
-                TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponent<>(ingredientComponent));
+                if (ingredientComponent.hasCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY)) {
+                    TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponent<>(ingredientComponent));
+                }
             }
 
             // Add custom tabs
-            TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponentItemStackCrafting(
-                    (IngredientComponent<ItemStack, Integer>) IngredientComponent.REGISTRY.getValue(
-                            new ResourceLocation("minecraft:itemstack"))));
+            IngredientComponent<ItemStack, Integer> ingredientComponentItemStack = (IngredientComponent<ItemStack, Integer>)
+                    IngredientComponent.REGISTRY.getValue(new ResourceLocation("minecraft:itemstack"));
+            if (ingredientComponentItemStack != null
+                    && ingredientComponentItemStack.hasCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY)) {
+                TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponentItemStackCrafting(ingredientComponentItemStack));
+            }
         }
     }
 
