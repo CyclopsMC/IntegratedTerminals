@@ -110,7 +110,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IIngredientComponentStorage<T, M> channelInstance = this.ingredientNetwork.getChannel(channel);
         IIngredientCollection<T, M> ingredientCollection = new IngredientArrayList<>(ingredientComponent,
                 channelInstance);
-        onChange(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, pos,
+        onChange(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
                 IIngredientComponentStorageObservable.Change.ADDITION, false,
                 ingredientCollection));
     }
