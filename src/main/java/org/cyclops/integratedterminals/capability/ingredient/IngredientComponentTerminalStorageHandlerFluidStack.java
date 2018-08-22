@@ -15,7 +15,6 @@ import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.cyclops.commoncapabilities.api.capability.fluidhandler.FluidMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
@@ -122,7 +121,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
             FluidStack moved = IngredientStorageHelpers.moveIngredients(storage, itemStorage, maxInstance,
-                    FluidMatch.FLUID | FluidMatch.NBT, false);
+                    ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), false);
 
             container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
             container.detectAndSendChanges();

@@ -294,8 +294,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected int findActiveSlotId(int channel, T instance) {
         IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
         int newActiveSlot = 0;
-        M matchCondition = matcher.withoutCondition(matcher.getExactMatchCondition(),
-                this.ingredientComponent.getPrimaryQuantifier().getMatchCondition());
+        M matchCondition = matcher.getExactMatchNoQuantityCondition();
         List<TerminalStorageSlotIngredient<T, M>> slots = getSlots(channel, 0, Integer.MAX_VALUE);
         for (TerminalStorageSlotIngredient<T, M> slot : slots) {
             T ingredient = slot.getInstance();
