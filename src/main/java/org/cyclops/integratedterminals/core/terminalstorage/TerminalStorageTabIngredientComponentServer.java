@@ -11,7 +11,6 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
-import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
@@ -23,6 +22,7 @@ import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
+import org.cyclops.integrateddynamics.api.ingredient.IIngredientPositionsIndex;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.PartPos;
@@ -107,17 +107,20 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     protected void initChannel(int channel) {
-        IIngredientComponentStorage<T, M> channelInstance = this.ingredientNetwork.getChannel(channel);
-        IIngredientCollection<T, M> ingredientCollection = new IngredientArrayList<>(ingredientComponent,
-                channelInstance);
+        IIngredientPositionsIndex<T, M> channelInstance = this.ingredientNetwork.getChannelIndex(channel);
         onChange(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
                 IIngredientComponentStorageObservable.Change.ADDITION, false,
-                ingredientCollection));
+                channelInstance));
     }
 
     @Override
     public void deInit() {
         this.ingredientNetwork.removeObserver(this);
+    }
+
+    @Override
+    public void updateActive() {
+        this.ingredientNetwork.scheduleObservation();
     }
 
     protected IIngredientCollapsedCollectionMutable<T, M> getUnfilteredIngredientsView(int channel) {

@@ -142,14 +142,23 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
+        // Init tabs
         if (!serverTabsInitialized) {
             serverTabsInitialized = true;
             for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
                 tab.init();
             }
         }
+
+        // Update common tabs
         for (ITerminalStorageTabCommon tab : this.tabsCommon.values()) {
             tab.onUpdate(this, player, partState);
+        }
+
+        // Update active server tab
+        ITerminalStorageTabServer activeServerTab = getTabServer(getSelectedTab());
+        if (activeServerTab != null) {
+            activeServerTab.updateActive();
         }
     }
 

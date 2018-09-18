@@ -23,4 +23,9 @@ public interface ITerminalStorageTabServer {
      */
     public void deInit();
 
+    /**
+     * Called on each tick this tab is active.
+     */
+    public void updateActive();
+
 }
