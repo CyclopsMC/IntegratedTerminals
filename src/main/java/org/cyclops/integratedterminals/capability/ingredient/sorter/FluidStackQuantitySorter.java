@@ -15,6 +15,6 @@ public class FluidStackQuantitySorter extends IngredientInstanceSorterAdapter<Fl
 
     @Override
     public int compare(FluidStack o1, FluidStack o2) {
-        return Integer.compare(o2.amount, o1.amount);
+        return -Integer.compare(o2.amount, o1.amount);
     }
 }

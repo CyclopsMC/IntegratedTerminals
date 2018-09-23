@@ -15,6 +15,6 @@ public class ItemStackQuantitySorter extends IngredientInstanceSorterAdapter<Ite
 
     @Override
     public int compare(ItemStack o1, ItemStack o2) {
-        return Integer.compare(o2.getCount(), o1.getCount());
+        return -Integer.compare(o2.getCount(), o1.getCount());
     }
 }
