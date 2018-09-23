@@ -120,7 +120,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         IFluidHandlerItem fluidHandler = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            FluidStack moved = IngredientStorageHelpers.moveIngredients(storage, itemStorage, maxInstance,
+            FluidStack moved = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance,
                     ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), false);
 
             container.getSlot(containerSlot).putStack(fluidHandler.getContainer());

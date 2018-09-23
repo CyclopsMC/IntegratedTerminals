@@ -119,21 +119,33 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public ItemStack insertIntoContainer(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                               Container container, int containerSlot, ItemStack maxInstance) {
-        //PlayerMainInvWrapper inv = new PlayerMainInvWrapper(playerInventory);
-        ItemStack extracted = storage.extract(maxInstance, ItemMatch.EXACT, true);
-        ItemStack playerStack = container.getSlot(containerSlot).getStack();
-        if (playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack)) {
-            int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
-            int inserted = newCount - playerStack.getCount();
-            IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
-            ItemStack moved = storage.extract(matcher.withQuantity(maxInstance, inserted), ItemMatch.EXACT, false);
+                                         Container container, int containerSlot, ItemStack maxInstance) {
+        IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
+        long requiredQuantity = matcher.getQuantity(maxInstance);
+        long movedTotal = 0;
+        while (movedTotal < requiredQuantity) {
+            ItemStack extracted = storage.extract(maxInstance, matcher.getExactMatchNoQuantityCondition(), true);
+            if (extracted.isEmpty()) {
+                break;
+            }
+            ItemStack playerStack = container.getSlot(containerSlot).getStack();
+            if (playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack)) {
+                int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
+                int inserted = newCount - playerStack.getCount();
+                ItemStack moved = storage.extract(matcher.withQuantity(maxInstance, inserted),
+                        matcher.getExactMatchNoQuantityCondition(), false);
+                if (moved.isEmpty()) {
+                    break;
+                }
+                movedTotal += moved.getCount();
 
-            container.getSlot(containerSlot).putStack(matcher.withQuantity(maxInstance, newCount));
-            container.detectAndSendChanges();
-            return moved;
+                container.getSlot(containerSlot).putStack(matcher.withQuantity(maxInstance, newCount));
+                container.detectAndSendChanges();
+            } else {
+                break;
+            }
         }
-        return ItemStack.EMPTY;
+        return matcher.withQuantity(maxInstance, movedTotal);
     }
 
     @Override
