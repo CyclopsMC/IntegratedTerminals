@@ -337,6 +337,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                     hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.slotNumber : -1)) {
                 return;
             }
+        } else if (getSlotUnderMouse() != null) {
+            // Don't allow shift clicking items into container when no tab has been selected
+            return;
         }
 
         // Click in search field
