@@ -19,6 +19,7 @@ import org.cyclops.cyclopscore.infobook.IInfoBookRegistry;
 import org.cyclops.cyclopscore.init.ItemCreativeTab;
 import org.cyclops.cyclopscore.init.ModBaseVersionable;
 import org.cyclops.cyclopscore.init.RecipeHandler;
+import org.cyclops.cyclopscore.modcompat.ModCompatLoader;
 import org.cyclops.cyclopscore.proxy.ICommonProxy;
 import org.cyclops.cyclopscore.recipe.xml.IRecipeConditionHandler;
 import org.cyclops.cyclopscore.recipe.xml.IRecipeTypeHandler;
@@ -33,6 +34,7 @@ import org.cyclops.integratedterminals.capability.ingredient.IngredientComponent
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
+import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
 import org.cyclops.integratedterminals.part.PartTypes;
 
 import java.util.Map;
@@ -68,6 +70,14 @@ public class IntegratedTerminals extends ModBaseVersionable {
 
     public IntegratedTerminals() {
         super(Reference.MOD_ID, Reference.MOD_NAME, Reference.MOD_VERSION);
+    }
+
+    @Override
+    protected void loadModCompats(ModCompatLoader modCompatLoader) {
+        super.loadModCompats(modCompatLoader);
+
+        // Mod compats
+        modCompatLoader.addModCompat(new IntegratedCraftingModCompat());
     }
 
     @Override
