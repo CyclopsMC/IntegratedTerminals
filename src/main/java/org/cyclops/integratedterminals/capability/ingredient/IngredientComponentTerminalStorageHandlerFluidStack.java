@@ -50,6 +50,11 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
+    public IngredientComponent<FluidStack, Integer> getComponent() {
+        return ingredientComponent;
+    }
+
+    @Override
     public ItemStack getIcon() {
         return new ItemStack(Items.WATER_BUCKET);
     }

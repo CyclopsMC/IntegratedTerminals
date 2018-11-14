@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import org.cyclops.cyclopscore.modcompat.IModCompat;
 import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 
 /**
  * @author rubensworks
@@ -10,8 +11,9 @@ public class IntegratedCraftingModCompat implements IModCompat {
 
     @Override
     public void onInit(Step initStep) {
-        if(initStep == Step.PREINIT) {
-            TerminalStorageCraftingHooks.register();
+        if(initStep == Step.INIT) {
+            TerminalStorageTabIngredientCraftingHandlers.REGISTRY.register(
+                    new TerminalStorageTabIngredientCraftingHandlerCraftingNetwork());
         }
     }
 

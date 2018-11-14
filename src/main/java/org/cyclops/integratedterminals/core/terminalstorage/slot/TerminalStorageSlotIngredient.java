@@ -36,6 +36,10 @@ public class TerminalStorageSlotIngredient<T, M> implements ITerminalStorageSlot
         ingredientComponentViewHandler.drawInstance(instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, channel);
     }
 
+    public IIngredientComponentTerminalStorageHandler<T, M> getIngredientComponentViewHandler() {
+        return ingredientComponentViewHandler;
+    }
+
     public T getInstance() {
         return instance;
     }

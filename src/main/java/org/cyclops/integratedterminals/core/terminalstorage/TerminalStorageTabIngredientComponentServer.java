@@ -1,7 +1,10 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
+import com.google.common.collect.Lists;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
 import net.minecraft.network.play.server.SPacketSetSlot;
@@ -24,6 +27,7 @@ import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientPositionsIndex;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
+import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
@@ -38,12 +42,18 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingOptionsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -59,11 +69,13 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
 
     private final ResourceLocation name;
+    private final INetwork network;
     private final IngredientComponent<T, M> ingredientComponent;
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
     private final PartPos pos;
     private final EntityPlayerMP player;
     private final IIngredientComponentValueHandler<?, ?, T, M> valueHandler;
+    private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
     private Predicate<T> ingredientsFilter;
 
@@ -73,17 +85,20 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final TIntObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
     private boolean initialized; // True if the first change event has been sent to the client.
 
-    public TerminalStorageTabIngredientComponentServer(ResourceLocation name, IngredientComponent<T, M> ingredientComponent,
+    public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
+                                                       IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
                                                        PartPos pos,
                                                        EntityPlayerMP player) {
         this.name = name;
+        this.network = network;
         this.ingredientComponent = ingredientComponent;
         this.ingredientNetwork = ingredientNetwork;
         this.pos = pos;
         this.player = player;
         this.valueHandler = Objects.requireNonNull(ingredientComponent.getCapability(Capabilities.INGREDIENTCOMPONENT_VALUEHANDLER),
                 "No value handler was found for " + ingredientComponent.getName());
+        this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
         this.ingredientsFilter = (instance) -> true;
         this.unfilteredIngredientsViews = new TIntObjectHashMap<>();
@@ -104,13 +119,33 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
         // Listen to future network changes
         this.ingredientNetwork.addObserver(this);
+
+
+        for (int channel : this.ingredientNetwork.getChannels()) {
+
+        }
     }
 
     protected void initChannel(int channel) {
+        // Grab ingredients
         IIngredientPositionsIndex<T, M> channelInstance = this.ingredientNetwork.getChannelIndex(channel);
         onChange(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
                 IIngredientComponentStorageObservable.Change.ADDITION, false,
                 channelInstance));
+
+        // Grab crafting options
+        // We assume that crafting options don't change that often,
+        // so we don't have any observers that listen on recipe index changes.
+        // Consequence is: players will have to re-open the terminal when they want to see recipe changes.
+        List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions = Lists.newArrayList();
+        for (ITerminalStorageTabIngredientCraftingHandler handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
+            Collection<ITerminalCraftingOption<T>> options = handler.getCraftingOptions(this, channel);
+            for (ITerminalCraftingOption<T> option : options) {
+                channeledCraftingOptions.add(new HandlerWrappedTerminalCraftingOption<>(handler, option));
+            }
+        }
+        this.craftingOptions.put(channel, channeledCraftingOptions);
+        this.sendCraftingOptionsToClient(channel, channeledCraftingOptions);
     }
 
     @Override
@@ -261,6 +296,36 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 ));
             }
         }
+    }
+
+    private void sendCraftingOptionsToClient(int channel, List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions) {
+        // Only allow collection of a max given size to be sent in a packet
+        if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
+            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions), player);
+        } else {
+            List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
+
+            for (HandlerWrappedTerminalCraftingOption<T> instance : channeledCraftingOptions) {
+                buffer.add(instance);
+
+                // If our buffer reaches its capacity,
+                // flush it, and create a new buffer
+                if (buffer.size() == GeneralConfig.terminalStoragePacketMaxInstances) {
+                    sendCraftingOptionsToClient(channel, buffer);
+                    buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
+                }
+            }
+
+            // Our buffer can contain some remaining instances, make sure to flush them as well.
+            if (!buffer.isEmpty()) {
+                sendCraftingOptionsToClient(channel, buffer);
+            }
+        }
+    }
+
+    public INetwork getNetwork() {
+        return network;
     }
 
     public IPositionedAddonsNetworkIngredients<T, M> getIngredientNetwork() {

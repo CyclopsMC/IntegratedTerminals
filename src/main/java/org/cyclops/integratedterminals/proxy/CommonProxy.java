@@ -5,14 +5,7 @@ import org.cyclops.cyclopscore.network.PacketHandler;
 import org.cyclops.cyclopscore.proxy.CommonProxyComponent;
 import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridBalance;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridClear;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridSetAutoRefill;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridShiftClickOutput;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
+import org.cyclops.integratedterminals.network.packet.*;
 
 /**
  * Proxy for server and client side.
@@ -32,8 +25,10 @@ public class CommonProxy extends CommonProxyComponent {
 
         // Register packets.
         packetHandler.register(TerminalStorageIngredientChangeEventPacket.class);
+        packetHandler.register(TerminalStorageIngredientCraftingOptionsPacket.class);
         packetHandler.register(TerminalStorageIngredientMaxQuantityPacket.class);
         packetHandler.register(TerminalStorageIngredientSlotClickPacket.class);
+        packetHandler.register(TerminalStorageIngredientCalculateCraftingJob.class);
         packetHandler.register(TerminalStorageIngredientUpdateActiveStorageIngredientPacket.class);
         packetHandler.register(TerminalStorageIngredientItemStackCraftingGridClear.class);
         packetHandler.register(TerminalStorageIngredientItemStackCraftingGridBalance.class);

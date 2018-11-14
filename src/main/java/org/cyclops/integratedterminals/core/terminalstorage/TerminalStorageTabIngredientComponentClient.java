@@ -1,10 +1,13 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import gnu.trove.map.TIntLongMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -41,20 +44,27 @@ import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorage
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
+import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredientCraftingOption;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCalculateCraftingJob;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * A client-side storage terminal ingredient tab.
@@ -78,6 +88,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
     private final TIntObjectMap<IIngredientListMutable<T, M>> filteredIngredientsViews;
+    private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
+    private final Map<T, HandlerWrappedTerminalCraftingOption<T>> instanceCraftingOptions;
 
     private final TIntLongMap maxQuantities;
     private final TIntLongMap totalQuantities;
@@ -118,6 +130,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         this.ingredientsViews = new TIntObjectHashMap<>();
         this.filteredIngredientsViews = new TIntObjectHashMap<>();
+        this.craftingOptions = new Int2ObjectOpenHashMap<>();
+        this.instanceCraftingOptions = Maps.newIdentityHashMap();
 
         this.maxQuantities = new TIntLongHashMap();
         this.totalQuantities = new TIntLongHashMap();
@@ -131,6 +145,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         for (IIngredientInstanceSorter<T> instanceSorter : ingredientComponentViewHandler.getInstanceSorters()) {
             buttons.add(new TerminalButtonSort<>(instanceSorter, container.getGuiState(), this));
         }
+    }
+
+    public IngredientComponent<T, M> getIngredientComponent() {
+        return ingredientComponent;
     }
 
     @Override
@@ -170,7 +188,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         container.getGuiState().setSearch(getName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
     }
 
-    public IIngredientListMutable<T, M> getUnfilteredIngredientsView(int channel) {
+    public IIngredientListMutable<T, M> getRawUnfilteredIngredientsView(int channel) {
         IIngredientListMutable<T, M> ingredientsView = ingredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = new IngredientArrayList<>(this.ingredientComponent);
@@ -179,15 +197,39 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return ingredientsView;
     }
 
+    @Nullable
+    public Collection<HandlerWrappedTerminalCraftingOption<T>> getCraftingOptions(int channel) {
+        return craftingOptions.get(channel);
+    }
+
+    public IIngredientListMutable<T, M> getUnfilteredIngredientsView(int channel) {
+        Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions = getCraftingOptions(channel);
+        if (craftingOptions == null) {
+            return getRawUnfilteredIngredientsView(channel);
+        } else {
+            IIngredientListMutable<T, M> enrichedIngredients = new IngredientArrayList<>(this.ingredientComponent);
+            enrichedIngredients.addAll(getRawUnfilteredIngredientsView(channel));
+            // Add all crafting option outputs
+            for (HandlerWrappedTerminalCraftingOption<T> craftingOption : craftingOptions) {
+                Iterator<T> it = craftingOption.getCraftingOption().getOutputs();
+                while (it.hasNext()) {
+                    enrichedIngredients.add(it.next());
+                }
+            }
+            return enrichedIngredients;
+        }
+    }
+
     protected IIngredientListMutable<T, M> getFilteredIngredientsView(int channel) {
         IIngredientListMutable<T, M> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = getUnfilteredIngredientsView(channel);
 
             // Filter
-            ingredientsView = new IngredientArrayList<>(ingredientsView.getComponent(), ingredientsView.stream()
-                    .filter(IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)))
-                    .collect(Collectors.toList()));
+            ingredientsView = new IngredientArrayList<>(ingredientsView.getComponent(),
+                    this.transformIngredientsView(ingredientsView.stream())
+                            .filter(IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)))
+                            .collect(Collectors.toList()));
 
             // Sort
             Comparator<T> sorter = getInstanceSorter();
@@ -200,6 +242,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return ingredientsView;
     }
 
+    protected Stream<T> transformIngredientsView(Stream<T> ingredientStream) {
+        return ingredientStream;
+    }
+
     @Override
     public List<TerminalStorageSlotIngredient<T, M>> getSlots(int channel, int offset, int limit) {
         IIngredientListMutable<T, M> ingredients = getFilteredIngredientsView(channel);
@@ -208,7 +254,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             return Lists.newArrayList();
         }
         return ingredients.subList(offset, Math.min(offset + limit, size)).stream()
-                .map(instance -> new TerminalStorageSlotIngredient<>(ingredientComponentViewHandler, instance))
+                .map(instance -> {
+                    HandlerWrappedTerminalCraftingOption<T> craftingOption = getCraftingOption(instance);
+                    if (craftingOption == null) {
+                        return new TerminalStorageSlotIngredient<>(ingredientComponentViewHandler, instance);
+                    } else {
+                        return new TerminalStorageSlotIngredientCraftingOption<>(ingredientComponentViewHandler, instance, craftingOption.getCraftingOption());
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
@@ -246,7 +299,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      */
     public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType,
                                       IngredientArrayList<T, M> ingredients, boolean enabled) {
-        this.enabled = enabled;
+        this.enabled = enabled || this.craftingOptions.containsKey(channel);
 
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
@@ -270,7 +323,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         totalQuantities.put(channel, newQuantity);
 
         // Apply diff
-        IIngredientListMutable<T, M> persistedIngredients = getUnfilteredIngredientsView(channel);
+        IIngredientListMutable<T, M> persistedIngredients = getRawUnfilteredIngredientsView(channel);
         IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
                 changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
                 changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
@@ -282,6 +335,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
+        updateActiveInstance(lastInstance, channel);
+    }
+
+    protected void updateActiveInstance(Optional<T> lastInstance, int channel) {
         if (lastInstance.isPresent() && this.activeChannel == channel) {
             this.activeSlotId = findActiveSlotId(channel, lastInstance.get());
             Optional<T> slotIngredient = getSlotInstance(channel, this.activeSlotId);
@@ -289,6 +346,45 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     .map(t -> Math.min(this.activeSlotQuantity, Helpers.castSafe(this.ingredientComponent.getMatcher().getQuantity(t))))
                     .orElse(0);
         }
+    }
+
+    public synchronized void addCraftingOptions(int channel, List<HandlerWrappedTerminalCraftingOption<T>> craftingOptions) {
+        // Remember the selected instance, as this change event might change its position or quantity.
+        // This is handled at the end of this method.
+        Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
+
+        // Store a mapping between the instances (identity) and their crafting options
+        for (HandlerWrappedTerminalCraftingOption<T> craftingOption : craftingOptions) {
+            Iterator<T> it = craftingOption.getCraftingOption().getOutputs();
+            while (it.hasNext()) {
+                this.instanceCraftingOptions.put(it.next(), craftingOption);
+            }
+        }
+
+        // Apply the change to the wildcard channel as well
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+            addCraftingOptions(IPositionedAddonsNetwork.WILDCARD_CHANNEL, craftingOptions);
+        }
+
+        this.enabled = true;
+        Collection<HandlerWrappedTerminalCraftingOption<T>> existingOptions = this.craftingOptions.get(channel);
+        if (existingOptions == null) {
+            this.craftingOptions.put(channel, craftingOptions);
+        } else {
+            existingOptions.addAll(craftingOptions);
+        }
+
+        // Persist changes
+        resetFilteredIngredientsViews(channel);
+
+        // Update the active instance by searching for its new position in the slots
+        // If this becomes a performance bottleneck, we could search _around_ the previous position.
+        updateActiveInstance(lastInstance, channel);
+    }
+
+    @Nullable
+    private HandlerWrappedTerminalCraftingOption<T> getCraftingOption(T instance) {
+        return this.instanceCraftingOptions.get(instance);
     }
 
     protected int findActiveSlotId(int channel, T instance) {
@@ -376,10 +472,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
         Optional<T> hoveringStorageInstance = getSlotInstance(channel, hoveringStorageSlot);
         boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
+        HandlerWrappedTerminalCraftingOption<T> craftingOption = null;
+        boolean isCraftingOption = hoveringStorageInstance.isPresent() && (craftingOption = getCraftingOption(hoveringStorageInstance.get())) != null;
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
 
         EntityPlayer player = Minecraft.getMinecraft().player;
+        boolean initiateCraftingOption = false;
         if (mouseButton == 0 || mouseButton == 1 || mouseButton == 2) {
             TerminalClickType clickType = null;
             long moveQuantity = this.activeSlotQuantity;
@@ -390,15 +489,20 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     // Quick move max quantity from storage to player
                     clickType = TerminalClickType.STORAGE_QUICK_MOVE;
                 } else {
-                    // Pick up
-                    this.activeSlotId = hoveringStorageSlot;
-                    this.activeSlotQuantity = Math.min((int) ingredientComponent.getMatcher()
-                                    .getQuantity(hoveringStorageInstance.orElse(matcher.getEmptyInstance())),
-                            viewHandler.getInitialInstanceMovementQuantity());
-                    if (mouseButton == 1) {
-                        this.activeSlotQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
-                    } else if (mouseButton == 2) {
-                        this.activeSlotQuantity = 1;
+                    if (isCraftingOption) {
+                        // Craft
+                        initiateCraftingOption = true;
+                    } else {
+                        // Pick up
+                        this.activeSlotId = hoveringStorageSlot;
+                        this.activeSlotQuantity = Math.min((int) ingredientComponent.getMatcher()
+                                        .getQuantity(hoveringStorageInstance.orElse(matcher.getEmptyInstance())),
+                                viewHandler.getInitialInstanceMovementQuantity());
+                        if (mouseButton == 1) {
+                            this.activeSlotQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
+                        } else if (mouseButton == 2) {
+                            this.activeSlotQuantity = 1;
+                        }
                     }
                 }
             } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getStack().isEmpty() && shift) {
@@ -460,7 +564,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     activeSlotId = -1;
                 }
             }
-            if (clickType != null) {
+            if (initiateCraftingOption) {
+                IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                        new TerminalStorageIngredientCalculateCraftingJob<>(this.getName().toString(),
+                                ingredientComponent, channel, craftingOption));
+            } else if (clickType != null) {
                 T activeInstance = matcher.getEmptyInstance();
                 if (activeSlotId >= 0) {
                     activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), moveQuantity);

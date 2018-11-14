@@ -42,6 +42,11 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
+    public IngredientComponent<Integer, Boolean> getComponent() {
+        return ingredientComponent;
+    }
+
+    @Override
     public ItemStack getIcon() {
         return new ItemStack(BlockEnergyBattery.getInstance());
     }

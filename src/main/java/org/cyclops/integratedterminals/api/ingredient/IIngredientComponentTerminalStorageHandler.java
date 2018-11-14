@@ -9,6 +9,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
+import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
@@ -26,6 +27,11 @@ import java.util.function.Predicate;
  * @author rubensworks
  */
 public interface IIngredientComponentTerminalStorageHandler<T, M> {
+
+    /**
+     * @return The ingredient component.
+     */
+    public IngredientComponent<T, M> getComponent();
 
     /**
      * @return The item that can be used to visually represent this ingredient component type.
@@ -56,7 +62,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param instance An instance.
      */
     public default void addQuantityTooltip(List<String> lines, T instance) {
-        String line = TextFormatting.DARK_GRAY.toString() + L10NHelpers.localize(
+        String line = TextFormatting.DARK_GRAY + L10NHelpers.localize(
                 "gui.integratedterminals.terminal_storage.tooltip.quantity",
                 formatQuantity(instance));
         if (lines.size() <= 1) {

@@ -50,7 +50,7 @@ public class TerminalStorageTabIngredientComponentItemStackCrafting implements I
     public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
         INetwork network = NetworkHelpers.getNetwork(target.getCenter());
         IPositionedAddonsNetworkIngredients<ItemStack, Integer> ingredientNetwork = NetworkHelpers.getIngredientNetwork(network, ingredientComponent);
-        return new TerminalStorageTabIngredientComponentItemStackCraftingServer(getName(), ingredientComponent,
+        return new TerminalStorageTabIngredientComponentItemStackCraftingServer(getName(), network, ingredientComponent,
                 ingredientNetwork, target.getCenter(), (EntityPlayerMP) player);
     }
 

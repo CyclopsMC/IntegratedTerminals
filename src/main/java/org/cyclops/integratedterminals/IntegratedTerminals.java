@@ -28,12 +28,15 @@ import org.cyclops.integrateddynamics.core.recipe.xml.DryingBasinRecipeTypeHandl
 import org.cyclops.integrateddynamics.core.recipe.xml.MechanicalDryingBasinRecipeTypeHandler;
 import org.cyclops.integrateddynamics.infobook.OnTheDynamicsOfIntegrationBook;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandlerRegistry;
 import org.cyclops.integratedterminals.block.BlockChorusGlassConfig;
 import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlerRegistry;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
 import org.cyclops.integratedterminals.part.PartTypes;
 
@@ -107,10 +110,12 @@ public class IntegratedTerminals extends ModBaseVersionable {
         super.preInit(event);
 
         getRegistryManager().addRegistry(ITerminalStorageTabRegistry.class, new TerminalStorageTabRegistry());
+        getRegistryManager().addRegistry(ITerminalStorageTabIngredientCraftingHandlerRegistry.class, TerminalStorageTabIngredientCraftingHandlerRegistry.getInstance());
 
         PartTypes.load();
         TerminalIngredientComponentCapabilities.load();
         TerminalStorageTabs.load();
+        TerminalStorageTabIngredientCraftingHandlers.load();
     }
     
     /**

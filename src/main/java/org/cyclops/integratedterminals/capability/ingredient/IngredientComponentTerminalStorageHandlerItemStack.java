@@ -53,6 +53,11 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
+    public IngredientComponent<ItemStack, Integer> getComponent() {
+        return ingredientComponent;
+    }
+
+    @Override
     public ItemStack getIcon() {
         return new ItemStack(Blocks.CHEST);
     }

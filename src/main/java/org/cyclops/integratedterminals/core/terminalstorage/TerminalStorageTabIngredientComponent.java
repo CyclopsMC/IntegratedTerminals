@@ -42,7 +42,7 @@ public class TerminalStorageTabIngredientComponent<T, M> implements ITerminalSto
     public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
         INetwork network = NetworkHelpers.getNetwork(target.getCenter());
         IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork = NetworkHelpers.getIngredientNetwork(network, ingredientComponent);
-        return new TerminalStorageTabIngredientComponentServer<>(getName(), ingredientComponent,
+        return new TerminalStorageTabIngredientComponentServer<>(getName(), network, ingredientComponent,
                 ingredientNetwork, target.getCenter(), (EntityPlayerMP) player);
     }
 
