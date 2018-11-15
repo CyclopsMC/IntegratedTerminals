@@ -62,7 +62,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     @SideOnly(Side.CLIENT)
     public void drawInstance(FluidStack instance, long maxQuantity, @Nullable String label, GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick,
-                             int x, int y, int mouseX, int mouseY, int channel) {
+                             int x, int y, int mouseX, int mouseY) {
         if (instance != null) {
             if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid

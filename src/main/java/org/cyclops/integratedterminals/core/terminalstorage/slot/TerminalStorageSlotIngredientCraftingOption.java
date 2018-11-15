@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage.slot;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -38,7 +39,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getIngredientComponentViewHandler();
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
             long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-            viewHandler.drawInstance(getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, channel);
+            viewHandler.drawInstance(getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY);
             drawCraftLabel(x, y);
         } else {
             super.drawGuiContainerLayer(gui, layer, partialTick, x, y, mouseX, mouseY, tab, channel, label);
@@ -52,6 +53,8 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     private void drawCraftLabel(int x, int y) {
         RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer,
                 TextFormatting.GOLD + L10NHelpers.localize("gui.integratedterminals.terminal_storage.craft"), x, y - 11);
+        GlStateManager.color(1, 1, 1, 1);
+        GlStateManager.disableLighting();
     }
 
 }

@@ -65,7 +65,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     @SideOnly(Side.CLIENT)
     public void drawInstance(ItemStack instance, long maxQuantity, @Nullable String label, GuiContainer gui,
-                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int channel) {
+                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY) {
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();

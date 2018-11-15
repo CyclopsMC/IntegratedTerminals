@@ -7,6 +7,7 @@ import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.cyclopscore.proxy.ClientProxyComponent;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
 import org.lwjgl.input.Keyboard;
 
 /**
@@ -47,6 +48,13 @@ public class ClientProxy extends ClientProxyComponent {
 	@Override
 	public ModBase getMod() {
 		return IntegratedTerminals._instance;
+	}
+
+	@Override
+	public void registerRenderers() {
+		super.registerRenderers();
+
+		GuiProviders.register();
 	}
 
 }

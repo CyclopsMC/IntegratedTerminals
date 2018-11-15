@@ -4,6 +4,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedcrafting.api.recipe.PrioritizedRecipe;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 
+import java.util.Collection;
 import java.util.Iterator;
 
 /**
@@ -26,6 +27,16 @@ public class TerminalCraftingOptionPrioritizedRecipe<T, M> implements ITerminalC
     @Override
     public Iterator<T> getOutputs() {
         return prioritizedRecipe.getRecipe().getOutput().getInstances(ingredientComponent).iterator();
+    }
+
+    @Override
+    public Collection<IngredientComponent<?, ?>> getOutputComponents() {
+        return prioritizedRecipe.getRecipe().getOutput().getComponents();
+    }
+
+    @Override
+    public <T1, M> Collection<T1> getOutputs(IngredientComponent<T1, M> ingredientComponent) {
+        return prioritizedRecipe.getRecipe().getOutput().getInstances(ingredientComponent);
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {

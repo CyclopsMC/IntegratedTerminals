@@ -62,12 +62,12 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public <T> ITerminalCraftingJob<T> calculateCraftingJob(ITerminalCraftingOption<T> craftingOption, long quantity) {
+    public <T, M> ITerminalCraftingJob<T> calculateCraftingJob(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel, ITerminalCraftingOption<T> craftingOption, long quantity) {
         throw new UnsupportedOperationException("Not yet implemented"); // TODO
     }
 
     @Override
-    public <T> void startCraftingJob(ITerminalCraftingJob<T> craftingJob) {
+    public <T, M> void startCraftingJob(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel, ITerminalCraftingJob<T> craftingJob) {
         throw new UnsupportedOperationException("Not yet implemented"); // TODO
     }
 }

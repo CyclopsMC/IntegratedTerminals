@@ -50,11 +50,10 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param y The slot Y position.
      * @param mouseX The mouse X position.
      * @param mouseY The mouse Y position.
-     * @param channel The current channel.
      */
     @SideOnly(Side.CLIENT)
     public void drawInstance(T instance, long maxQuantity, @Nullable String label, GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, int channel);
+                             int mouseX, int mouseY);
 
     /**
      * Show the quantity of the given instance on the second tooltip line.

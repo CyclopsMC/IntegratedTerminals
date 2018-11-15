@@ -33,7 +33,7 @@ public class TerminalStorageSlotIngredient<T, M> implements ITerminalStorageSlot
                                       float partialTick, int x, int y, int mouseX, int mouseY,
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-        ingredientComponentViewHandler.drawInstance(instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, channel);
+        ingredientComponentViewHandler.drawInstance(instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY);
     }
 
     public IIngredientComponentTerminalStorageHandler<T, M> getIngredientComponentViewHandler() {
