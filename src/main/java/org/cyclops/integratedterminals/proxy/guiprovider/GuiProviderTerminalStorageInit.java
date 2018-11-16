@@ -6,18 +6,18 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.cyclopscore.inventory.IGuiContainerProvider;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorageCraftingOptionAmount;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmount;
+import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 
 /**
  * @author rubensworks
  */
-public class GuiProviderTerminalStorageCraftingOptionAmount implements IGuiContainerProvider {
+public class GuiProviderTerminalStorageInit implements IGuiContainerProvider {
 
     private final int guiID;
     private final ModBase modGui;
 
-    public GuiProviderTerminalStorageCraftingOptionAmount(int guiID, ModBase modGui) {
+    public GuiProviderTerminalStorageInit(int guiID, ModBase modGui) {
         this.guiID = guiID;
         this.modGui = modGui;
     }
@@ -29,13 +29,13 @@ public class GuiProviderTerminalStorageCraftingOptionAmount implements IGuiConta
 
     @Override
     public Class<? extends Container> getContainer() {
-        return ContainerTerminalStorageCraftingOptionAmount.class;
+        return ContainerTerminalStorage.class;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public Class<? extends GuiScreen> getGui() {
-        return GuiTerminalStorageCraftingOptionAmount.class;
+        return GuiTerminalStorage.class;
     }
 
     @Override

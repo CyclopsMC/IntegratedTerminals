@@ -25,6 +25,7 @@ public class CommonProxy extends CommonProxyComponent {
         super.registerPacketHandlers(packetHandler);
 
         // Register packets.
+        packetHandler.register(TerminalStorageIngredientOpenPacket.class);
         packetHandler.register(TerminalStorageIngredientChangeEventPacket.class);
         packetHandler.register(TerminalStorageIngredientCraftingOptionsPacket.class);
         packetHandler.register(TerminalStorageIngredientMaxQuantityPacket.class);

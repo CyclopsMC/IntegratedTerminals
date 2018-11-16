@@ -33,6 +33,7 @@ import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDi
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
+import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
@@ -568,7 +569,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 }
             }
             if (initiateCraftingOption) {
-                CraftingOptionGuiData<T, M> craftingOptionData = new CraftingOptionGuiData<>(ingredientComponent, channel, craftingOption, 1);
+                ContainerTerminalStorage containerTerminalStorage = ((ContainerTerminalStorage) container);
+                PartPos pos = containerTerminalStorage.getTarget().getCenter();
+                CraftingOptionGuiData<T, M> craftingOptionData = new CraftingOptionGuiData<>(pos.getPos().getBlockPos(), pos.getSide(),
+                        ingredientComponent, this.getName().toString(), channel, craftingOption, 1);
                 IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
                         Pair.of(((ContainerTerminalStorage) container).getTarget().getCenter().getSide(), craftingOptionData)); // Pass the side as extra data to the gui
                 if (shift) {
@@ -576,7 +580,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     System.out.println("Start"); // TODO
                 } else {
                     IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                            new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<>(this.getName().toString(), craftingOptionData));
+                            new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<>(craftingOptionData));
                 }
             } else if (clickType != null) {
                 T activeInstance = matcher.getEmptyInstance();

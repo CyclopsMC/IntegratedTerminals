@@ -18,8 +18,8 @@ public class TerminalStorageIngredientCalculateCraftingJobPacket<T, M> extends T
 
     }
 
-    public TerminalStorageIngredientCalculateCraftingJobPacket(String tabId, CraftingOptionGuiData<T, M> craftingOptionData) {
-        super(tabId, craftingOptionData);
+    public TerminalStorageIngredientCalculateCraftingJobPacket(CraftingOptionGuiData<T, M> craftingOptionData) {
+        super(craftingOptionData);
     }
 
     @Override
@@ -27,7 +27,7 @@ public class TerminalStorageIngredientCalculateCraftingJobPacket<T, M> extends T
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             TerminalStorageTabIngredientComponentServer<T, M> tab = (TerminalStorageTabIngredientComponentServer<T, M>)
-                    container.getTabServer(getTabId());
+                    container.getTabServer(getTabName());
             HandlerWrappedTerminalCraftingOption<T> craftingOption = getCraftingOption(tab.getIngredientNetwork().getComponent());
 
             // TODO: calculate crafing job, and send back to client

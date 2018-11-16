@@ -22,8 +22,8 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M> exten
 
     }
 
-    public TerminalStorageIngredientOpenCraftingJobAmountGuiPacket(String tabId, CraftingOptionGuiData<T, M> craftingOptionData) {
-        super(tabId, craftingOptionData);
+    public TerminalStorageIngredientOpenCraftingJobAmountGuiPacket(CraftingOptionGuiData<T, M> craftingOptionData) {
+        super(craftingOptionData);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M> exten
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             TerminalStorageTabIngredientComponentServer<T, M> tab = (TerminalStorageTabIngredientComponentServer<T, M>)
-                    container.getTabServer(getTabId());
+                    container.getTabServer(getTabName());
             CraftingOptionGuiData<T, M> craftingOptionData = getCraftingOptionData(tab.getIngredientNetwork().getComponent());
 
             IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,

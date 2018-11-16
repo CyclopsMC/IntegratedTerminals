@@ -25,6 +25,7 @@ import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
+import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -88,6 +89,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         super(new ContainerTerminalStorage(player, target, partContainer, partType));
     }
 
+    public GuiTerminalStorage(EntityPlayer player, PartTarget target, IPartContainer partContainer, IPartType partType,
+                              ContainerTerminalStorage.InitTabData initTabData) {
+        super(new ContainerTerminalStorage(player, target, partContainer, partType, initTabData));
+    }
+
     @Override
     public void initGui() {
         super.initGui();
@@ -99,6 +105,10 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         fieldChannel.setTextColor(16777215);
         fieldChannel.setCanLoseFocus(true);
         fieldChannel.setEnabled(true);
+        int activeChannel = getContainer().getSelectedChannel();
+        if (activeChannel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+            fieldChannel.setText(Integer.toString(activeChannel));
+        }
 
         scrollBar = new GuiScrollBar(guiLeft + SCROLL_X, guiTop + SCROLL_Y, SCROLL_HEIGHT,
                 firstRow -> this.firstRow = firstRow, 0) {

@@ -131,6 +131,21 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         }
     }
 
+    /**
+     * Make a new instance.
+     * @param target The target.
+     * @param player The player.
+     * @param partContainer The part container.
+     * @param partType The part type.
+     * @param initTabData The tab and channel to select.
+     */
+    public ContainerTerminalStorage(EntityPlayer player, PartTarget target, IPartContainer partContainer,
+                                    IPartType partType, ContainerTerminalStorage.InitTabData initTabData) {
+        this(player, target, partContainer, partType);
+        setSelectedTab(initTabData.getTabName());
+        setSelectedChannel(initTabData.getChannel());
+    }
+
     public TerminalStorageState getGuiState() {
         return GLOBAL_PLAYER_STATE;
     }
@@ -308,6 +323,26 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
                 this.channelStrings.add(String.valueOf(channel));
             }
         }
+    }
+
+    public static class InitTabData {
+
+        private final String tabName;
+        private final int channel;
+
+        public InitTabData(String tabName, int channel) {
+            this.tabName = tabName;
+            this.channel = channel;
+        }
+
+        public String getTabName() {
+            return tabName;
+        }
+
+        public int getChannel() {
+            return channel;
+        }
+
     }
 
 }

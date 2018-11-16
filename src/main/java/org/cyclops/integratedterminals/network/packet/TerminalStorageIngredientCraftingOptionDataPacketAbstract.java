@@ -2,6 +2,8 @@ package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -19,7 +21,11 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrap
 public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M> extends PacketCodec {
 
     @CodecField
-    private String tabId;
+    private BlockPos pos;
+    @CodecField
+    private EnumFacing side;
+    @CodecField
+    private String tabName;
     @CodecField
     private int channel;
     @CodecField
@@ -31,8 +37,10 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
 
     }
 
-    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(String tabId, CraftingOptionGuiData<T, M> craftingOptionData) {
-        this.tabId = tabId;
+    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(CraftingOptionGuiData<T, M> craftingOptionData) {
+        this.pos = craftingOptionData.getPos();
+        this.side = craftingOptionData.getSide();
+        this.tabName = craftingOptionData.getTabName();
         this.channel = craftingOptionData.getChannel();
         this.craftingOption = HandlerWrappedTerminalCraftingOption.serialize(craftingOptionData.getCraftingOption());
         this.amount = craftingOptionData.getAmount();
@@ -57,8 +65,8 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         return channel;
     }
 
-    public String getTabId() {
-        return tabId;
+    public String getTabName() {
+        return tabName;
     }
 
     public int getAmount() {
@@ -66,6 +74,6 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     public CraftingOptionGuiData<T, M> getCraftingOptionData(IngredientComponent<T, M> ingredientComponent) {
-        return new CraftingOptionGuiData<>(ingredientComponent, channel, getCraftingOption(ingredientComponent), amount);
+        return new CraftingOptionGuiData<>(pos, side, ingredientComponent, tabName, channel, getCraftingOption(ingredientComponent), amount);
     }
 }

@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
@@ -28,7 +29,10 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
+import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmount;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
 import org.lwjgl.input.Keyboard;
 
 import java.io.IOException;
@@ -42,6 +46,7 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
     public static int OUTPUT_SLOT_X = 135;
     public static int OUTPUT_SLOT_Y = 15;
 
+    private final CraftingOptionGuiData craftingOptionGuiData;
     private final List<IPrototypedIngredient<?, ?>> outputs;
 
     private GuiNumberField numberField = null;
@@ -52,6 +57,8 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
     public GuiTerminalStorageCraftingOptionAmount(EntityPlayer player, PartTarget target, IPartContainer partContainer,
                                                   IPartType partType, CraftingOptionGuiData craftingOptionGuiData) {
         super(new ContainerTerminalStorageCraftingOptionAmount(player, target, partContainer, partType, craftingOptionGuiData));
+
+        this.craftingOptionGuiData = craftingOptionGuiData;
 
         this.outputs = Lists.newArrayList();
         ITerminalCraftingOption<?> option = craftingOptionGuiData.getCraftingOption().getCraftingOption();
@@ -119,13 +126,21 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         if (!this.checkHotbarKeys(keyCode)) {
             if (keyCode == Keyboard.KEY_ESCAPE) {
-                // TODO: go back to terminal storage gui
-                super.keyTyped(typedChar, keyCode); // TODO: rm
+                returnToTerminalStorage();
             } else if (!this.numberField.textboxKeyTyped(typedChar, keyCode)
                     && !this.numberField.textboxKeyTyped(typedChar, keyCode)) {
                 super.keyTyped(typedChar, keyCode);
             }
         }
+    }
+
+    private void returnToTerminalStorage() {
+        IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
+                Pair.of(craftingOptionGuiData.getSide(), new ContainerTerminalStorage.InitTabData(
+                        craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel())));
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientOpenPacket(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
+                        craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel()));
     }
 
     @Override
