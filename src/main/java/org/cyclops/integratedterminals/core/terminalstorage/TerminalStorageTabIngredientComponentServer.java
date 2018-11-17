@@ -136,7 +136,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         for (ITerminalStorageTabIngredientCraftingHandler handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
             Collection<ITerminalCraftingOption<T>> options = handler.getCraftingOptions(this, channel);
             for (ITerminalCraftingOption<T> option : options) {
-                channeledCraftingOptions.add(new HandlerWrappedTerminalCraftingOption<>(handler, option));
+                if (option.getOutputComponents().contains(this.ingredientComponent)) {
+                    channeledCraftingOptions.add(new HandlerWrappedTerminalCraftingOption<>(handler, option));
+                }
             }
         }
         this.craftingOptions.put(channel, channeledCraftingOptions);
