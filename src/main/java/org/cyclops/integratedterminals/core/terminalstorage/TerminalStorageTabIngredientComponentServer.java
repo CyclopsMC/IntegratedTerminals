@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -57,6 +58,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 
 /**
@@ -112,8 +114,19 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
     @Override
     public void init() {
-        // Send _all_ current network contents
+        // Calculate set of available channels from the storage AND the crafting options.
+        Set<Integer> channels = Sets.newHashSet();
         for (int channel : this.ingredientNetwork.getChannels()) {
+            channels.add(channel);
+        }
+        for (ITerminalStorageTabIngredientCraftingHandler handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
+            for (int channel : handler.getChannels(this)) {
+                channels.add(channel);
+            }
+        }
+
+        // Send _all_ current network contents
+        for (int channel : channels) {
             initChannel(channel);
         }
 

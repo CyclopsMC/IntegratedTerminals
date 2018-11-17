@@ -41,6 +41,13 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
+    public <T, M> int[] getChannels(TerminalStorageTabIngredientComponentServer<T, M> tab) {
+        INetwork network = tab.getNetwork();
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        return craftingNetwork.getChannels();
+    }
+
+    @Override
     public <T, M> Collection<TerminalCraftingOptionPrioritizedRecipe<?, ?>> getCraftingOptions(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel) {
         IngredientComponent<T, M> ingredientComponent = tab.getIngredientNetwork().getComponent();
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();

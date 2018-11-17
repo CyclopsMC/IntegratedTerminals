@@ -19,6 +19,14 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
     public ResourceLocation getId();
 
     /**
+     * @param tab An ingredient tab.
+     * @param <T> The instance type.
+     * @param <M> The matching condition parameter.
+     * @return All channels that have crafting options.
+     */
+    public <T, M> int[] getChannels(TerminalStorageTabIngredientComponentServer<T, M> tab);
+
+    /**
      * Get all crafting options in the given tab.
      * @param tab An ingredient tab.
      * @param channel The channel to get the options for.
