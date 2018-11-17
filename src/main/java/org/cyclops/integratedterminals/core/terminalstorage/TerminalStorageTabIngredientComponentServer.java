@@ -119,11 +119,6 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
         // Listen to future network changes
         this.ingredientNetwork.addObserver(this);
-
-
-        for (int channel : this.ingredientNetwork.getChannels()) {
-
-        }
     }
 
     protected void initChannel(int channel) {
@@ -145,7 +140,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             }
         }
         this.craftingOptions.put(channel, channeledCraftingOptions);
-        this.sendCraftingOptionsToClient(channel, channeledCraftingOptions);
+        if (channeledCraftingOptions.size() > 0) {
+            this.sendCraftingOptionsToClient(channel, channeledCraftingOptions);
+        }
     }
 
     @Override
