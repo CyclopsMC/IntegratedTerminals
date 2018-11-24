@@ -1,5 +1,7 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
+import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
+
 import java.util.List;
 
 /**
@@ -8,20 +10,19 @@ import java.util.List;
  * It is possible that a job requires no actual crafting,
  * but can be fetched from storage completely.
  *
- * @param <T> The instance type.
  * @author rubensworks
  */
-public interface ITerminalCraftingJob<T> {
+public interface ITerminalCraftingPlan {
 
     /**
      * @return The dependencies of this job.
      */
-    public List<ITerminalCraftingJob<T>> getDependencies();
+    public List<ITerminalCraftingPlan> getDependencies();
 
     /**
-     * @return The output instance of this job.
+     * @return The output instances of this job.
      */
-    public T getOutput();
+    public List<IPrototypedIngredient<?, ?>> getOutputs();
 
     /**
      * @return The job status.
@@ -29,14 +30,14 @@ public interface ITerminalCraftingJob<T> {
     public TerminalCraftingJobStatus getStatus();
 
     /**
-     * @return The number of craftable instances that are still missing.
+     * @return The number of instances that will be crafted..
      * (These are expected to become available later on because of a dependency job)
      */
-    public long getCraftingMissing();
+    public long getCraftingQuantity();
 
     /**
-     * @return The number of non-craftable instances that are missing.
+     * @return The ingredients that will be used from storage.
      */
-    public long getStorageMissing();
+    public List<IPrototypedIngredient<?, ?>> getStorageIngredients();
 
 }

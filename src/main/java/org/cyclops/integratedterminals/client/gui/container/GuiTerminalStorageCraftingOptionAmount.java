@@ -32,6 +32,7 @@ import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmount;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
 import org.lwjgl.input.Keyboard;
 
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * A gui for setting the amount for a given crafting option.
  * @author rubensworks
  */
 public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended {
@@ -171,8 +173,11 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
     }
 
     private void calculateCraftingJob() {
-        // TODO
-        System.out.println("Calculate"); // TODO
+        CraftingOptionGuiData craftingOptionData = CraftingOptionGuiData.copyWithAmount(craftingOptionGuiData, getAmount());
+        IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
+                Pair.of(craftingOptionData.getSide(), craftingOptionData));
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientOpenCraftingPlanGuiPacket(craftingOptionData));
     }
 
     private void calculateCraftingJobAndStart() {

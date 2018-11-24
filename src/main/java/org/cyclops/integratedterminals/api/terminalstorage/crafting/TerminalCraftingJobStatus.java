@@ -6,6 +6,10 @@ package org.cyclops.integratedterminals.api.terminalstorage.crafting;
  */
 public enum TerminalCraftingJobStatus {
     /**
+     * If this job, or its dependencies, have missing storage instances.
+     */
+    INVALID,
+    /**
      * No outputs have been crafted yet, and they are not scheduled yet for crafting.
      */
     UNSTARTED,

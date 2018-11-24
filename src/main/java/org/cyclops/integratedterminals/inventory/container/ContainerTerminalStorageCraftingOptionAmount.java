@@ -10,6 +10,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 
 /**
+ * A container for setting the amount for a given crafting option.
  * @author rubensworks
  */
 public class ContainerTerminalStorageCraftingOptionAmount extends ExtendedInventoryContainer {

@@ -10,6 +10,7 @@ import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
 public class GuiProviders {
 
     public static int GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT;
+    public static int GUI_TERMINAL_STORAGE_CRAFTNG_PLAN;
     /**
      * This is a variant of the default terminal storage gui constructor (which is register by ID).
      * This alternative allows additional init data to be passed to the constructor.
@@ -20,6 +21,11 @@ public class GuiProviders {
         IntegratedTerminals._instance.getGuiHandler().registerGUI(
                 new GuiProviderTerminalStorageCraftingOptionAmount(
                         GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT = Helpers.getNewId(IntegratedTerminals._instance, Helpers.IDType.GUI),
+                        IntegratedTerminals._instance), ExtendedGuiHandler.CRAFTING_OPTION);
+
+        IntegratedTerminals._instance.getGuiHandler().registerGUI(
+                new GuiProviderTerminalStorageCraftingPlan(
+                        GUI_TERMINAL_STORAGE_CRAFTNG_PLAN = Helpers.getNewId(IntegratedTerminals._instance, Helpers.IDType.GUI),
                         IntegratedTerminals._instance), ExtendedGuiHandler.CRAFTING_OPTION);
 
         IntegratedTerminals._instance.getGuiHandler().registerGUI(

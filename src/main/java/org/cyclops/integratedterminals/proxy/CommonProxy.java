@@ -30,8 +30,9 @@ public class CommonProxy extends CommonProxyComponent {
         packetHandler.register(TerminalStorageIngredientCraftingOptionsPacket.class);
         packetHandler.register(TerminalStorageIngredientMaxQuantityPacket.class);
         packetHandler.register(TerminalStorageIngredientSlotClickPacket.class);
-        packetHandler.register(TerminalStorageIngredientCalculateCraftingJobPacket.class);
+        packetHandler.register(TerminalStorageIngredientOpenCraftingPlanGuiPacket.class);
         packetHandler.register(TerminalStorageIngredientOpenCraftingJobAmountGuiPacket.class);
+        packetHandler.register(TerminalStorageIngredientOpenCraftingPlanGuiPacket.class);
         packetHandler.register(TerminalStorageIngredientUpdateActiveStorageIngredientPacket.class);
         packetHandler.register(TerminalStorageIngredientItemStackCraftingGridClear.class);
         packetHandler.register(TerminalStorageIngredientItemStackCraftingGridBalance.class);

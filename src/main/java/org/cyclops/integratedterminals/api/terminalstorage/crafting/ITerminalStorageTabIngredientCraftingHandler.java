@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 
 import java.util.Collection;
@@ -54,25 +55,43 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
     public <T, M> O deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, NBTTagCompound tag) throws IllegalArgumentException;
 
     /**
-     * Calculate a crafting job for the given crafting option.
-     * @param tab An ingredient tab.
+     * Calculate a crafting plan for the given crafting option.
+     * @param network The network in which the plan should be calculated.
      * @param channel The channel to get the options for.
      * @param craftingOption A crafting option.
      * @param quantity The requested output quantity.
-     * @param <T> The instance type.
-     * @param <M> The matching condition parameter.
-     * @return The calculated crafting job.
+     * @return The calculated crafting plan.
+     * @throws FailedCraftingPlanException If the crafting plan significantly failed.
      */
-    public <T, M> ITerminalCraftingJob<T> calculateCraftingJob(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel, ITerminalCraftingOption<T> craftingOption, long quantity);
+    public ITerminalCraftingPlan calculateCraftingPlan(INetwork network, int channel,
+                                                       ITerminalCraftingOption craftingOption, long quantity)
+            throws FailedCraftingPlanException;
+
+    /**
+     * Serialize a crafting plan to NBT.
+     * @param craftingPlan A crafting plan.
+     * @return An NBT tag.
+     */
+    public default NBTTagCompound serializeCraftingPlan(ITerminalCraftingPlan craftingPlan) {
+        return TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) craftingPlan);
+    }
+
+    /**
+     * Deserialize a crafting plan from NBT.
+     * @param tag An NBT tag representing a crafting plan.
+     * @return A crafting option.
+     * @throws IllegalArgumentException If the given tag was invalid.
+     */
+    public default ITerminalCraftingPlan deserializeCraftingPlan(NBTTagCompound tag) throws IllegalArgumentException {
+        return TerminalCraftingPlanStatic.deserialize(tag);
+    }
 
     /**
      * Start a crafting job.
-     * @param tab An ingredient tab.
+     * @param network The network in which the plan should be started.
      * @param channel The channel to get the options for.
-     * @param craftingJob A crafting job.
-     * @param <T> The instance type.
-     * @param <M> The matching condition parameter.
+     * @param craftingPlan A crafting plan.
      */
-    public <T, M> void startCraftingJob(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel, ITerminalCraftingJob<T> craftingJob);
+    public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan craftingPlan);
 
 }

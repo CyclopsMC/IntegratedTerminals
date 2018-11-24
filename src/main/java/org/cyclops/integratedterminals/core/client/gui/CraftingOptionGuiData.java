@@ -56,4 +56,16 @@ public class CraftingOptionGuiData<T, M> {
     public int getAmount() {
         return amount;
     }
+
+    public static <T, M> CraftingOptionGuiData<T, M> copyWithAmount(CraftingOptionGuiData<T, M> craftingOptionGuiData, int amount) {
+        return new CraftingOptionGuiData<>(
+                craftingOptionGuiData.getPos(),
+                craftingOptionGuiData.getSide(),
+                craftingOptionGuiData.getComponent(),
+                craftingOptionGuiData.getTabName(),
+                craftingOptionGuiData.getChannel(),
+                craftingOptionGuiData.getCraftingOption(),
+                amount
+        );
+    }
 }

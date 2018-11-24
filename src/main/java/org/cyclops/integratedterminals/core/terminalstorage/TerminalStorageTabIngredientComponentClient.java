@@ -54,6 +54,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorage
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredientCraftingOption;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 import org.lwjgl.input.Keyboard;
 
@@ -576,8 +577,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
                         Pair.of(((ContainerTerminalStorage) container).getTarget().getCenter().getSide(), craftingOptionData)); // Pass the side as extra data to the gui
                 if (shift) {
-                    // TODO: craft exactly one, and skip amount and plan gui
-                    System.out.println("Start"); // TODO
+                    IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                            new TerminalStorageIngredientOpenCraftingPlanGuiPacket<>(craftingOptionData));
                 } else {
                     IntegratedTerminals._instance.getPacketHandler().sendToServer(
                             new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<>(craftingOptionData));

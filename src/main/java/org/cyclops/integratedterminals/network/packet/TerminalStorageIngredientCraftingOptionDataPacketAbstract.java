@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.network.packet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -21,6 +22,8 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrap
 public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M> extends PacketCodec {
 
     @CodecField
+    private String ingredientComponent;
+    @CodecField
     private BlockPos pos;
     @CodecField
     private EnumFacing side;
@@ -38,6 +41,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     public TerminalStorageIngredientCraftingOptionDataPacketAbstract(CraftingOptionGuiData<T, M> craftingOptionData) {
+        this.ingredientComponent = craftingOptionData.getComponent().getName().toString();
         this.pos = craftingOptionData.getPos();
         this.side = craftingOptionData.getSide();
         this.tabName = craftingOptionData.getTabName();
@@ -61,6 +65,14 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         return HandlerWrappedTerminalCraftingOption.deserialize(ingredientComponent, this.craftingOption);
     }
 
+    public IngredientComponent<T, M> getIngredientComponent() {
+        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(ingredientComponent));
+        if (component == null) {
+            throw new IllegalArgumentException("Could not find the ingredient component type " + ingredientComponent);
+        }
+        return (IngredientComponent<T, M>) component;
+    }
+
     public int getChannel() {
         return channel;
     }
@@ -73,7 +85,8 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         return amount;
     }
 
-    public CraftingOptionGuiData<T, M> getCraftingOptionData(IngredientComponent<T, M> ingredientComponent) {
+    public CraftingOptionGuiData<T, M> getCraftingOptionData() {
+        IngredientComponent<T, M> ingredientComponent = getIngredientComponent();
         return new CraftingOptionGuiData<>(pos, side, ingredientComponent, tabName, channel, getCraftingOption(ingredientComponent), amount);
     }
 }

@@ -10,17 +10,17 @@ import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
 import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
 
 /**
- * Packet for opening the crafting job amount gui.
+ * Packet for opening the crafting plan gui.
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M> extends TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M> {
+public class TerminalStorageIngredientOpenCraftingPlanGuiPacket<T, M> extends TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M> {
 
-    public TerminalStorageIngredientOpenCraftingJobAmountGuiPacket() {
+    public TerminalStorageIngredientOpenCraftingPlanGuiPacket() {
 
     }
 
-    public TerminalStorageIngredientOpenCraftingJobAmountGuiPacket(CraftingOptionGuiData<T, M> craftingOptionData) {
+    public TerminalStorageIngredientOpenCraftingPlanGuiPacket(CraftingOptionGuiData<T, M> craftingOptionData) {
         super(craftingOptionData);
     }
 
@@ -28,9 +28,9 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M> exten
     public void actionServer(World world, EntityPlayerMP player) {
         CraftingOptionGuiData<T, M> data = getCraftingOptionData();
         IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
-                Pair.of(data.getSide(), data)); // Pass the side as extra data to the gui
+                Pair.of(data.getSide(), data));
         BlockPos cPos = data.getPos();
-        player.openGui(IntegratedTerminals._instance, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT,
+        player.openGui(IntegratedTerminals._instance, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_PLAN,
                 world, cPos.getX(), cPos.getY(), cPos.getZ());
     }
 
