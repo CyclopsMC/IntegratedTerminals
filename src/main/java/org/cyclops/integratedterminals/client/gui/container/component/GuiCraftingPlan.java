@@ -2,16 +2,20 @@ package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
+import org.cyclops.cyclopscore.client.gui.image.Image;
+import org.cyclops.cyclopscore.client.gui.image.Images;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
@@ -22,6 +26,8 @@ import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nullable;
+import java.awt.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +40,7 @@ import java.util.List;
  * * {@link #drawCurrentScreen(int, int, float)}
  * * {@link #drawGuiContainerBackgroundLayer(float, int, int)}
  * * {@link #drawGuiContainerForegroundLayer(int, int)}
+ * * {@link #mouseClicked(int, int, int)}
  *
  * @author rubensworks
  */
@@ -41,6 +48,7 @@ public class GuiCraftingPlan extends Gui {
 
     private static final int ELEMENT_WIDTH = 221;
     private static final int ELEMENT_HEIGHT = 16;
+    private static final int ELEMENT_HEIGHT_TOTAL = 18;
 
     private final GuiContainer parentGui;
     private final int guiLeft;
@@ -48,6 +56,7 @@ public class GuiCraftingPlan extends Gui {
     private final int x;
     private final int y;
     private final List<GuiCraftingPlan.Element> elements;
+    private final List<GuiCraftingPlan.Element> visibleElements;
     private final boolean valid;
     private final GuiScrollBar scrollBar;
 
@@ -60,9 +69,25 @@ public class GuiCraftingPlan extends Gui {
         this.x = x;
         this.y = y;
         this.elements = getElements(craftingPlan);
+        this.visibleElements = Lists.newArrayList(this.elements);
         this.valid = craftingPlan.getStatus() != TerminalCraftingJobStatus.INVALID;
         this.scrollBar = new GuiScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, this::setFirstRow, visibleRows);
-        this.scrollBar.setTotalRows(elements.size() - 1);
+        this.scrollBar.setTotalRows(visibleElements.size() - 1);
+    }
+
+    protected void refreshList() {
+        visibleElements.clear();
+        addActiveElements(elements.get(0), visibleElements);
+        this.scrollBar.setTotalRows(visibleElements.size());
+    }
+
+    protected static void addActiveElements(GuiCraftingPlan.Element root, List<GuiCraftingPlan.Element> elements) {
+        if (root.isEnabled()) {
+            elements.add(root);
+            for (Element child : root.getChildren()) {
+                addActiveElements(child, elements);
+            }
+        }
     }
 
     public void setFirstRow(int firstRow) {
@@ -73,12 +98,19 @@ public class GuiCraftingPlan extends Gui {
         scrollBar.drawCurrentScreen(mouseX, mouseY, partialTicks);
     }
 
+    protected List<Element> getVisibleElements() {
+        return this.visibleElements.subList(firstRow, Math.min(this.visibleElements.size(), firstRow + scrollBar.getVisibleRows()));
+    }
+
+    protected int getAbsoluteElementIndent(Element element) {
+        return element.getIndent() * 8;
+    }
+
     public void drawGuiContainerLayer(int guiLeft, int guiTop, GuiTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int offsetY = 0;
-        for (GuiCraftingPlan.Element element : this.elements.subList(firstRow, Math.min(this.elements.size(), firstRow + scrollBar.getVisibleRows()))) {
-            int indent = element.getIndent() * 8;
-            drawElement(element,  indent, guiLeft + x, guiTop + y + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
-            offsetY += 18;
+        for (GuiCraftingPlan.Element element : getVisibleElements()) {
+            drawElement(element,  getAbsoluteElementIndent(element), guiLeft + x, guiTop + y + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
+            offsetY += ELEMENT_HEIGHT_TOTAL;
         }
     }
 
@@ -90,6 +122,14 @@ public class GuiCraftingPlan extends Gui {
 
         int xOriginal = x;
         x += indent;
+
+        // Draw dropdown arrow
+        if (!element.getChildren().isEmpty() && layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+            GlStateManager.color(1, 1, 1, 1);
+            Image image = element.getChildren().get(0).isEnabled() ? Images.ARROW_DOWN : Images.ARROW_RIGHT;
+            image.draw(this, x, y);
+        }
+        x += 16;
 
         // Draw outputs
         for (IPrototypedIngredient<?, ?> output : element.getOutputs()) {
@@ -156,30 +196,52 @@ public class GuiCraftingPlan extends Gui {
         scrollBar.handleMouseInput();
     }
 
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        int offsetY = 0;
+        for (GuiCraftingPlan.Element element : getVisibleElements()) {
+            int x = this.guiLeft + this.x + getAbsoluteElementIndent(element);
+            int y = this.guiTop + this.y + offsetY;
+            offsetY += ELEMENT_HEIGHT_TOTAL;
+            if (RenderHelpers.isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point(mouseX, mouseY))) {
+                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                // Toggle children
+                for (Element child : element.getChildren()) {
+                    child.setEnabled(!child.isEnabled());
+                }
+                refreshList();
+                break;
+            }
+        }
+    }
+
     public static List<GuiCraftingPlan.Element> getElements(ITerminalCraftingPlan craftingPlan) {
         List<GuiCraftingPlan.Element> elements = Lists.newArrayList();
-        addElements(0, craftingPlan, elements);
+        addElements(null, 0, craftingPlan, elements);
         return elements;
     }
 
-    protected static void addElements(int indent, ITerminalCraftingPlan craftingPlan, List<GuiCraftingPlan.Element> elements) {
+    protected static void addElements(@Nullable Element parent, int indent, ITerminalCraftingPlan craftingPlan, List<GuiCraftingPlan.Element> elements) {
         boolean valid = craftingPlan.getStatus() != TerminalCraftingJobStatus.INVALID
                 || (!craftingPlan.getStorageIngredients().isEmpty() || !craftingPlan.getDependencies().isEmpty());
-        elements.add(new Element(
+        Element currentElement = new Element(
                 indent,
                 craftingPlan.getOutputs(),
                 0,
                 valid ? craftingPlan.getCraftingQuantity() : 0,
                 valid ? 0 : craftingPlan.getCraftingQuantity(),
                 craftingPlan.getStatus().getColor()
-        ));
+        );
+        if (parent != null) {
+            parent.addChild(currentElement);
+        }
+        elements.add(currentElement);
         for (IPrototypedIngredient storageIngredient : craftingPlan.getStorageIngredients()) {
-            elements.add(new Element(indent + 1, Collections.singletonList(storageIngredient),
+            elements.add(currentElement.addChild(new Element(indent + 1, Collections.singletonList(storageIngredient),
                     storageIngredient.getComponent().getMatcher().getQuantity(storageIngredient.getPrototype()),
-                    0, 0, TerminalCraftingJobStatus.FINISHED.getColor()));
+                    0, 0, TerminalCraftingJobStatus.FINISHED.getColor())));
         }
         for (ITerminalCraftingPlan dependency : craftingPlan.getDependencies()) {
-            addElements(indent + 1, dependency, elements);
+            addElements(currentElement, indent + 1, dependency, elements);
         }
     }
 
@@ -195,6 +257,9 @@ public class GuiCraftingPlan extends Gui {
         private final long craftQuantity;
         private final long missingQuantity;
         private final int color;
+        private final List<Element> children;
+
+        private boolean enabled;
 
         public Element(int indent, List<IPrototypedIngredient<?, ?>> outputs, long storageQuantity, long craftQuantity,
                        long missingQuantity, int color) {
@@ -204,6 +269,9 @@ public class GuiCraftingPlan extends Gui {
             this.craftQuantity = craftQuantity;
             this.missingQuantity = missingQuantity;
             this.color = color;
+            this.children = Lists.newArrayList();
+
+            this.enabled = true;
         }
 
         public int getIndent() {
@@ -228,6 +296,23 @@ public class GuiCraftingPlan extends Gui {
 
         public int getColor() {
             return color;
+        }
+
+        public Element addChild(Element element) {
+            children.add(element);
+            return element;
+        }
+
+        public List<Element> getChildren() {
+            return children;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
         }
     }
 

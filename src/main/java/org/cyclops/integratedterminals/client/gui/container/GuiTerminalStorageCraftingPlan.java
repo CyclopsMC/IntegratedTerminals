@@ -163,6 +163,14 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
     }
 
     @Override
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+        if (this.guiCraftingPlan != null) {
+            guiCraftingPlan.mouseClicked(mouseX, mouseY, mouseButton);
+        }
+    }
+
+    @Override
     public void onUpdate(int valueId, NBTTagCompound value) {
         super.onUpdate(valueId, value);
 
