@@ -25,6 +25,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIn
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -96,12 +97,13 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     protected static ITerminalCraftingPlan newCraftingPlan(CraftingJob craftingJob, CraftingJobDependencyGraph dependencyGraph) {
+        List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getRecipe().getOutput());
         return new TerminalCraftingPlanStatic(
                 dependencyGraph.getDependencies(craftingJob)
                         .stream()
                         .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph))
                         .collect(Collectors.toList()),
-                IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getRecipe().getOutput()),
+                CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
                 TerminalCraftingJobStatus.UNSTARTED,
                 craftingJob.getAmount(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()));
@@ -121,12 +123,13 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     protected static ITerminalCraftingPlan newCraftingPlanFailed(FailedCraftingRecipeException exception) {
+        List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getRecipe().getRecipe().getOutput());
         return new TerminalCraftingPlanStatic(
                 exception.getMissingChildRecipes()
                         .stream()
                         .map(TerminalStorageTabIngredientCraftingHandlerCraftingNetwork::newCraftingPlanUnknown)
                         .collect(Collectors.toList()),
-                IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getRecipe().getRecipe().getOutput()),
+                CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, exception.getQuantityMissing()),
                 TerminalCraftingJobStatus.INVALID,
                 exception.getQuantityMissing(),
                 Collections.emptyList()

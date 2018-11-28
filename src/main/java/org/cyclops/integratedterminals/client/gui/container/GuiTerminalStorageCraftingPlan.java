@@ -61,7 +61,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
 
     @Override
     public int getBaseXSize() {
-        return 195;
+        return 256;
     }
 
     @Override
@@ -74,15 +74,18 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
         super.initGui();
 
         if (this.craftingPlan != null) {
-            this.guiCraftingPlan = new GuiCraftingPlan(this.craftingPlan, guiLeft + 9, guiTop + 18, 6);
+            this.guiCraftingPlan = new GuiCraftingPlan(this, this.craftingPlan, guiLeft, guiTop, 9, 18, 10);
         } else {
             this.guiCraftingPlan = null;
         }
 
+        GuiButtonText button;
+        this.buttonList.clear();
         this.buttonList.addAll(Lists.newArrayList(
-                new GuiButtonText(6, guiLeft + 74, guiTop + 127, 50, 20, TextFormatting.BOLD
+                button = new GuiButtonText(6, guiLeft + 95, guiTop + 198, 50, 20, TextFormatting.BOLD
                         + L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.craft"), true)
         ));
+        button.enabled = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
     }
 
     @Override

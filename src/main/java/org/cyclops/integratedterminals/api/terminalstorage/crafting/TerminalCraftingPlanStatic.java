@@ -75,7 +75,7 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
 
         tag.setInteger("status", plan.getStatus().ordinal());
 
-        tag.setLong("missing", plan.getCraftingQuantity());
+        tag.setLong("craftingQuantity", plan.getCraftingQuantity());
 
         NBTTagList storageIngredients = new NBTTagList();
         for (IPrototypedIngredient<?, ?> storageIngredient : plan.getStorageIngredients()) {
@@ -96,8 +96,8 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
         if (!tag.hasKey("status", Constants.NBT.TAG_INT)) {
             throw new IllegalArgumentException("Could not find a status entry in the given tag");
         }
-        if (!tag.hasKey("missing", Constants.NBT.TAG_LONG)) {
-            throw new IllegalArgumentException("Could not find a missing entry in the given tag");
+        if (!tag.hasKey("craftingQuantity", Constants.NBT.TAG_LONG)) {
+            throw new IllegalArgumentException("Could not find a craftingQuantity entry in the given tag");
         }
         if (!tag.hasKey("storageIngredients", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a storageIngredients entry in the given tag");
