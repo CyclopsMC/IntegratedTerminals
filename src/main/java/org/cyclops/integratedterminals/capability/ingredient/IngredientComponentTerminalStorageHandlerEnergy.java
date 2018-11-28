@@ -58,7 +58,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     @SideOnly(Side.CLIENT)
     public void drawInstance(Integer instance, long maxQuantity, @Nullable String label, GuiContainer gui,
-                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY) {
+                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+                             int mouseX, int mouseY, @Nullable List<String> additionalTooltipLines) {
         if (instance > 0) {
             if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND){
 
@@ -81,6 +82,9 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                         mouseX, mouseY, () -> {
                             List<String> lines = Lists.newArrayList();
                             addQuantityTooltip(lines, instance);
+                            if (additionalTooltipLines != null) {
+                                lines.addAll(additionalTooltipLines);
+                            }
                             return lines;
                         });
             }

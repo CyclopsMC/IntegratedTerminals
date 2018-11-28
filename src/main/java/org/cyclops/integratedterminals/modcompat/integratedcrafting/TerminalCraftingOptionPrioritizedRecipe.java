@@ -6,6 +6,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 /**
  * Identifies a crafting job possibility based on a {@link PrioritizedRecipe}.
@@ -37,6 +38,19 @@ public class TerminalCraftingOptionPrioritizedRecipe<T, M> implements ITerminalC
     @Override
     public <T1, M> Collection<T1> getOutputs(IngredientComponent<T1, M> ingredientComponent) {
         return prioritizedRecipe.getRecipe().getOutput().getInstances(ingredientComponent);
+    }
+
+    @Override
+    public Collection<IngredientComponent<?, ?>> getInputComponents() {
+        return prioritizedRecipe.getRecipe().getInputComponents();
+    }
+
+    @Override
+    public <T1, M> Collection<T1> getInputs(IngredientComponent<T1, M> ingredientComponent) {
+        return prioritizedRecipe.getRecipe().getInputs(ingredientComponent)
+                .stream()
+                .map(prototype -> prototype.get(0).getPrototype())
+                .collect(Collectors.toList());
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {

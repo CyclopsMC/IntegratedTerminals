@@ -188,7 +188,7 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
     protected <T, M> void drawInstance(IngredientComponent<T, M> ingredientComponent, T instance, int x, int y, GuiTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         long quantity = ingredientComponent.getMatcher().getQuantity(instance) * getAmount();
         ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
-                .drawInstance(ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY);
+                .drawInstance(ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null);
     }
 
     private int getAmount() {

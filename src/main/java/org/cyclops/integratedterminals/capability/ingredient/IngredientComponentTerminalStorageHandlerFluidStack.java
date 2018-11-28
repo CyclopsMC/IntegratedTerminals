@@ -61,8 +61,10 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void drawInstance(FluidStack instance, long maxQuantity, @Nullable String label, GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick,
-                             int x, int y, int mouseX, int mouseY) {
+    public void drawInstance(FluidStack instance, long maxQuantity, @Nullable String label, GuiContainer gui,
+                             GuiTerminalStorage.DrawLayer layer, float partialTick,
+                             int x, int y, int mouseX, int mouseY,
+                             @Nullable List<String> additionalTooltipLines) {
         if (instance != null) {
             if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
@@ -78,6 +80,9 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         lines.add(label);
                     } else {
                         addQuantityTooltip(lines, instance);
+                    }
+                    if (additionalTooltipLines != null) {
+                        lines.addAll(additionalTooltipLines);
                     }
                     return lines;
                 });

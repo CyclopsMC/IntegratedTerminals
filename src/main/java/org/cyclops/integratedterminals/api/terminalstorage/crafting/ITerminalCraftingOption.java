@@ -31,4 +31,18 @@ public interface ITerminalCraftingOption<T> {
      */
     public <T, M> Collection<T> getOutputs(IngredientComponent<T, M> ingredientComponent);
 
+    /**
+     * @return All input components.
+     */
+    public Collection<IngredientComponent<?, ?>> getInputComponents();
+
+    /**
+     * The inputs of this crafting job option for the given ingredient component.
+     * @param ingredientComponent An ingredient component,
+     * @param <T1> The instance type.
+     * @param <M> The matching condition parameter, may be Void.
+     * @return The inputs
+     */
+    public <T1, M> Collection<T1> getInputs(IngredientComponent<T1, M> ingredientComponent);
+
 }

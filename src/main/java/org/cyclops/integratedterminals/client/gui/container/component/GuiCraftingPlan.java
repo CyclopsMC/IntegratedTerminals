@@ -137,7 +137,7 @@ public class GuiCraftingPlan extends Gui {
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
             ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
                     .drawInstance(output.getPrototype(), quantity, GuiHelpers.quantityToScaledString(quantity),
-                            this.parentGui, layer, partialTick, x, y, mouseX, mouseY);
+                            this.parentGui, layer, partialTick, x, y, mouseX, mouseY, null);
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
 

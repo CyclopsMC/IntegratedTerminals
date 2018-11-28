@@ -65,7 +65,8 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     @SideOnly(Side.CLIENT)
     public void drawInstance(ItemStack instance, long maxQuantity, @Nullable String label, GuiContainer gui,
-                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY) {
+                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+                             int mouseX, int mouseY, @Nullable List<String> additionalTooltipLines) {
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
@@ -83,6 +84,9 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 List<String> lines = instance.getTooltip(
                         Minecraft.getMinecraft().player, Minecraft.getMinecraft().gameSettings.advancedItemTooltips
                                 ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
+                if (additionalTooltipLines != null) {
+                    lines.addAll(additionalTooltipLines);
+                }
                 addQuantityTooltip(lines, instance);
                 return lines;
             });
