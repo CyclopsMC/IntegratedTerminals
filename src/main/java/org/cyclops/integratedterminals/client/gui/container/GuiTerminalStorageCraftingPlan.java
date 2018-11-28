@@ -82,7 +82,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
         GuiButtonText button;
         this.buttonList.clear();
         this.buttonList.addAll(Lists.newArrayList(
-                button = new GuiButtonText(6, guiLeft + 95, guiTop + 198, 50, 20, TextFormatting.BOLD
+                button = new GuiButtonText(0, guiLeft + 95, guiTop + 198, 50, 20, TextFormatting.BOLD
                         + L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.craft"), true)
         ));
         button.enabled = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
