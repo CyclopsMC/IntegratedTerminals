@@ -20,17 +20,20 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
     private final TerminalCraftingJobStatus status;
     private final long craftingQuantity;
     private final List<IPrototypedIngredient<?, ?>> storageIngredients;
+    private final String unlocalizedLabel;
 
     public TerminalCraftingPlanStatic(List<ITerminalCraftingPlan> dependencies,
                                       List<IPrototypedIngredient<?, ?>> outputs,
                                       TerminalCraftingJobStatus status,
                                       long craftingQuantity,
-                                      List<IPrototypedIngredient<?, ?>> storageIngredients) {
+                                      List<IPrototypedIngredient<?, ?>> storageIngredients,
+                                      String unlocalizedLabel) {
         this.dependencies = dependencies;
         this.outputs = outputs;
         this.status = status;
         this.craftingQuantity = craftingQuantity;
         this.storageIngredients = storageIngredients;
+        this.unlocalizedLabel = unlocalizedLabel;
     }
 
     @Override
@@ -58,6 +61,11 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
         return storageIngredients;
     }
 
+    @Override
+    public String getUnlocalizedLabel() {
+        return unlocalizedLabel;
+    }
+
     public static NBTTagCompound serialize(TerminalCraftingPlanStatic plan) {
         NBTTagCompound tag = new NBTTagCompound();
 
@@ -83,6 +91,8 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
         }
         tag.setTag("storageIngredients", storageIngredients);
 
+        tag.setString("unlocalizedLabel", plan.getUnlocalizedLabel());
+
         return tag;
     }
 
@@ -101,6 +111,9 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
         }
         if (!tag.hasKey("storageIngredients", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a storageIngredients entry in the given tag");
+        }
+        if (!tag.hasKey("unlocalizedLabel", Constants.NBT.TAG_STRING)) {
+            throw new IllegalArgumentException("Could not find a unlocalizedLabel entry in the given tag");
         }
 
         NBTTagList dependenciesTag = tag.getTagList("dependencies", Constants.NBT.TAG_COMPOUND);
@@ -125,6 +138,8 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
             storageIngredients.add(IPrototypedIngredient.deserialize((NBTTagCompound) nbtBase));
         }
 
-        return new TerminalCraftingPlanStatic(dependencies, outputs, status, craftingQuantity, storageIngredients);
+        String unlocalizedLabel = tag.getString("unlocalizedLabel");
+
+        return new TerminalCraftingPlanStatic(dependencies, outputs, status, craftingQuantity, storageIngredients, unlocalizedLabel);
     }
 }

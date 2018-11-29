@@ -59,6 +59,7 @@ public class GuiCraftingPlan extends Gui {
     private final List<GuiCraftingPlan.Element> visibleElements;
     private final boolean valid;
     private final GuiScrollBar scrollBar;
+    private final String label;
 
     private int firstRow;
 
@@ -73,6 +74,7 @@ public class GuiCraftingPlan extends Gui {
         this.valid = craftingPlan.getStatus() != TerminalCraftingJobStatus.INVALID;
         this.scrollBar = new GuiScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size() - 1);
+        this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
     }
 
     protected void refreshList() {
@@ -184,6 +186,9 @@ public class GuiCraftingPlan extends Gui {
     }
 
     public void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+        // Draw plan label
+        drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2, y - 3, 16777215);
+
         drawGuiContainerLayer(guiLeft, guiTop, GuiTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
     }

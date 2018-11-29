@@ -9,7 +9,6 @@ import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.FailedCraftingPlanException;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
@@ -69,14 +68,9 @@ public class ContainerTerminalStorageCraftingPlan extends ExtendedInventoryConta
     protected void updateCraftingPlan() {
         HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
         INetwork network = NetworkHelpers.getNetwork(target.getCenter());
-        try {
-            this.craftingPlan = craftingOptionWrapper.getHandler().calculateCraftingPlan(network,
-                    this.craftingOptionGuiData.getChannel(), craftingOptionWrapper.getCraftingOption(), this.craftingOptionGuiData.getAmount());
-            setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(this.craftingPlan));
-        } catch (FailedCraftingPlanException e) {
-            e.printStackTrace();
-            // TODO: show error dialog
-        }
+        this.craftingPlan = craftingOptionWrapper.getHandler().calculateCraftingPlan(network,
+                this.craftingOptionGuiData.getChannel(), craftingOptionWrapper.getCraftingOption(), this.craftingOptionGuiData.getAmount());
+        setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(this.craftingPlan));
     }
 
     @Override

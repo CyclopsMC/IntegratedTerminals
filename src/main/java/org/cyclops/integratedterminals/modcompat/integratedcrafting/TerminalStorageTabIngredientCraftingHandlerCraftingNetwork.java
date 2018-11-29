@@ -1,8 +1,10 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
+import com.google.common.collect.Lists;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
+import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedcrafting.api.crafting.CraftingJob;
 import org.cyclops.integratedcrafting.api.crafting.CraftingJobDependencyGraph;
@@ -15,7 +17,6 @@ import org.cyclops.integratedcrafting.api.recipe.PrioritizedRecipe;
 import org.cyclops.integratedcrafting.core.CraftingHelpers;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.FailedCraftingPlanException;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
@@ -79,8 +80,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
     @Override
     public ITerminalCraftingPlan calculateCraftingPlan(INetwork network, int channel,
-                                                       ITerminalCraftingOption craftingOption, long quantity)
-            throws FailedCraftingPlanException {
+                                                       ITerminalCraftingOption craftingOption, long quantity) {
         TerminalCraftingOptionPrioritizedRecipe<?, ?> safeCraftingOption = (TerminalCraftingOptionPrioritizedRecipe<?, ?>) craftingOption;
         PrioritizedRecipe recipe = safeCraftingOption.getPrioritizedRecipe();
 
@@ -92,7 +92,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         } catch (FailedCraftingRecipeException e) {
             return newCraftingPlanFailed(e);
         } catch (RecursiveCraftingRecipeException e) {
-            throw new FailedCraftingPlanException(e.getMessage());
+            return newCraftingPlanErrorRecursive(Lists.reverse(e.getRecipeStack()));
         }
     }
 
@@ -106,7 +106,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
                 TerminalCraftingJobStatus.UNSTARTED,
                 craftingJob.getAmount(),
-                IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()));
+                IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
+                "gui.integratedterminals.terminal_storage.craftingplan.label.valid");
     }
 
     protected static ITerminalCraftingPlan newCraftingPlanUnknown(UnknownCraftingRecipeException exception) {
@@ -118,8 +119,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.singletonList(exception.getIngredient()),
                 TerminalCraftingJobStatus.INVALID,
                 exception.getQuantityMissing(),
-                Collections.emptyList()
-        );
+                Collections.emptyList(),
+                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete");
     }
 
     protected static ITerminalCraftingPlan newCraftingPlanFailed(FailedCraftingRecipeException exception) {
@@ -132,8 +133,22 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, exception.getQuantityMissing()),
                 TerminalCraftingJobStatus.INVALID,
                 exception.getQuantityMissing(),
-                Collections.emptyList()
-        );
+                Collections.emptyList(),
+                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete");
+    }
+
+    protected static ITerminalCraftingPlan newCraftingPlanErrorRecursive(List<PrioritizedRecipe> childRecipes) {
+        List<IPrototypedIngredient<?, ?>> recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(childRecipes.get(0).getRecipe().getOutput());
+        return new TerminalCraftingPlanStatic(
+                childRecipes.size() > 1 ?
+                        Lists.newArrayList(TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                                .newCraftingPlanErrorRecursive(childRecipes.subList(1, childRecipes.size())))
+                        : Collections.emptyList(),
+                recipeOutputs,
+                TerminalCraftingJobStatus.INVALID,
+                0,
+                Collections.emptyList(),
+                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.recursion");
     }
 
     @Override

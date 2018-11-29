@@ -134,7 +134,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
             guiCraftingPlan.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
         } else {
             drawCenteredString(fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
-                    guiLeft + 87, guiTop + 23, 16777215);
+                    guiLeft + getBaseXSize() / 2, guiTop + 23, 16777215);
         }
     }
 

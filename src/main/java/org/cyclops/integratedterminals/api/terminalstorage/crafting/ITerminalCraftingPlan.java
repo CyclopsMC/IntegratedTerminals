@@ -40,4 +40,9 @@ public interface ITerminalCraftingPlan {
      */
     public List<IPrototypedIngredient<?, ?>> getStorageIngredients();
 
+    /**
+     * @return A visual label for this plan, such as an error or plan type.
+     */
+    public String getUnlocalizedLabel();
+
 }

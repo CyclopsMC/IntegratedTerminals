@@ -61,11 +61,9 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param craftingOption A crafting option.
      * @param quantity The requested output quantity.
      * @return The calculated crafting plan.
-     * @throws FailedCraftingPlanException If the crafting plan significantly failed.
      */
     public ITerminalCraftingPlan calculateCraftingPlan(INetwork network, int channel,
-                                                       ITerminalCraftingOption craftingOption, long quantity)
-            throws FailedCraftingPlanException;
+                                                       ITerminalCraftingOption craftingOption, long quantity);
 
     /**
      * Serialize a crafting plan to NBT.
