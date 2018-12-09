@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import gnu.trove.map.TIntLongMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntLongHashMap;
@@ -41,6 +42,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientLoadButtonsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientSearchFieldUpdateEvent;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
@@ -59,15 +61,7 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientS
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -216,13 +210,21 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             enrichedIngredients.addAll(getRawUnfilteredIngredientsView(channel));
             // Add all crafting option outputs
             for (HandlerWrappedTerminalCraftingOption<T> craftingOption : craftingOptions) {
-                Iterator<T> it = craftingOption.getCraftingOption().getOutputs();
-                while (it.hasNext()) {
-                    enrichedIngredients.add(it.next());
+                for (T output : getUniqueCraftingOptionOutputs(craftingOption.getCraftingOption())) {
+                    enrichedIngredients.add(output);
                 }
             }
             return enrichedIngredients;
         }
+    }
+
+    protected Collection<T> getUniqueCraftingOptionOutputs(ITerminalCraftingOption<T> craftingOption) {
+        TreeSet<T> uniqueOutputs = Sets.newTreeSet(ingredientComponent.getMatcher());
+        Iterator<T> it = craftingOption.getOutputs();
+        while (it.hasNext()) {
+            uniqueOutputs.add(it.next());
+        }
+        return uniqueOutputs;
     }
 
     protected IIngredientListMutable<T, M> getFilteredIngredientsView(int channel) {
@@ -360,9 +362,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Store a mapping between the instances (identity) and their crafting options
         for (HandlerWrappedTerminalCraftingOption<T> craftingOption : craftingOptions) {
-            Iterator<T> it = craftingOption.getCraftingOption().getOutputs();
-            while (it.hasNext()) {
-                this.instanceCraftingOptions.put(it.next(), craftingOption);
+            for (T output : getUniqueCraftingOptionOutputs(craftingOption.getCraftingOption())) {
+                this.instanceCraftingOptions.put(output, craftingOption);
             }
         }
 
