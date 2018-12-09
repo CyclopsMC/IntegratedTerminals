@@ -90,7 +90,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     true, CraftingHelpers.getGlobalCraftingJobIdentifier(), dependencyGraph, true);
             return newCraftingPlan(rootJob, dependencyGraph);
         } catch (FailedCraftingRecipeException e) {
-            return newCraftingPlanFailed(e);
+            return newCraftingPlanFailed(e, dependencyGraph);
         } catch (RecursiveCraftingRecipeException e) {
             return newCraftingPlanErrorRecursive(Lists.reverse(e.getRecipeStack()));
         }
@@ -110,30 +110,48 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 "gui.integratedterminals.terminal_storage.craftingplan.label.valid");
     }
 
-    protected static ITerminalCraftingPlan newCraftingPlanUnknown(UnknownCraftingRecipeException exception) {
-        return new TerminalCraftingPlanStatic(
-                exception.getMissingChildRecipes()
+    protected static ITerminalCraftingPlan newCraftingPlanUnknown(UnknownCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
+        List<ITerminalCraftingPlan> dependencies = Lists.newArrayList();
+        // Add all valid jobs
+        dependencies.addAll(
+                exception.getPartialCraftingJobs()
                         .stream()
-                        .map(TerminalStorageTabIngredientCraftingHandlerCraftingNetwork::newCraftingPlanUnknown)
-                        .collect(Collectors.toList()),
+                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph))
+                        .collect(Collectors.toList()));
+        // Add all sub-unknown jobs
+        dependencies.addAll(exception.getMissingChildRecipes()
+                .stream()
+                .map(subCraftingJob -> newCraftingPlanUnknown(subCraftingJob, dependencyGraph))
+                .collect(Collectors.toList()));
+        return new TerminalCraftingPlanStatic(
+                dependencies,
                 Collections.singletonList(exception.getIngredient()),
                 TerminalCraftingJobStatus.INVALID,
                 exception.getQuantityMissing(),
-                Collections.emptyList(),
+                IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete");
     }
 
-    protected static ITerminalCraftingPlan newCraftingPlanFailed(FailedCraftingRecipeException exception) {
+    protected static ITerminalCraftingPlan newCraftingPlanFailed(FailedCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
+        List<ITerminalCraftingPlan> dependencies = Lists.newArrayList();
+        // Add all valid jobs
+        dependencies.addAll(
+                exception.getPartialCraftingJobs()
+                        .stream()
+                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph))
+                        .collect(Collectors.toList()));
+        // Add all sub-unknown jobs
+        dependencies.addAll(exception.getMissingChildRecipes()
+                .stream()
+                .map(subCraftingJob -> newCraftingPlanUnknown(subCraftingJob, dependencyGraph))
+                .collect(Collectors.toList()));
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getRecipe().getRecipe().getOutput());
         return new TerminalCraftingPlanStatic(
-                exception.getMissingChildRecipes()
-                        .stream()
-                        .map(TerminalStorageTabIngredientCraftingHandlerCraftingNetwork::newCraftingPlanUnknown)
-                        .collect(Collectors.toList()),
+                dependencies,
                 CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, exception.getQuantityMissing()),
                 TerminalCraftingJobStatus.INVALID,
                 exception.getQuantityMissing(),
-                Collections.emptyList(),
+                IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete");
     }
 
