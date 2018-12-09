@@ -20,6 +20,7 @@ import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponen
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.FluidHelpers;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -76,11 +77,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<String> lines = Lists.newArrayList();
                     lines.add(instance.getFluid().getRarity().rarityColor + instance.getLocalizedName());
-                    if (label != null) {
-                        lines.add(label);
-                    } else {
-                        addQuantityTooltip(lines, instance);
-                    }
+                    addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
                         lines.addAll(additionalTooltipLines);
                     }
@@ -92,7 +89,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public String formatQuantity(FluidStack instance) {
-        return String.format("%,d", FluidHelpers.getAmount(instance)) + " mB";
+        return L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.fluid.amount",
+                String.format("%,d", FluidHelpers.getAmount(instance)));
     }
 
     @Override

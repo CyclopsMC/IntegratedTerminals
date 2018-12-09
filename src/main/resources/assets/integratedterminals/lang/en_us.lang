@@ -3,6 +3,9 @@ itemGroup.integratedterminals=Integrated Terminals
 general.integratedterminals.description=Terminals for managing and overviewing Integrated Dynamics networks.
 
 # Gui
+gui.integratedterminals.terminal_storage.tooltip.energy=Energy
+gui.integratedterminals.terminal_storage.tooltip.energy.amount=%s FE
+gui.integratedterminals.terminal_storage.tooltip.fluid.amount=%s mB
 gui.integratedterminals.terminal_storage.storage_name=%s Storage
 gui.integratedterminals.terminal_storage.crafting_name=%s Crafting
 gui.integratedterminals.terminal_storage.channel=Chan:

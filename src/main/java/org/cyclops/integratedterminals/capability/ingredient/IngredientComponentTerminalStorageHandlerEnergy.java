@@ -17,6 +17,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integrateddynamics.block.BlockEnergyBattery;
@@ -81,6 +82,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> {
                             List<String> lines = Lists.newArrayList();
+                            lines.add(L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.energy"));
                             addQuantityTooltip(lines, instance);
                             if (additionalTooltipLines != null) {
                                 lines.addAll(additionalTooltipLines);
@@ -93,7 +95,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public String formatQuantity(Integer instance) {
-        return String.format("%,d", instance) + " FE";
+        return L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.energy.amount",
+                String.format("%,d", instance));
     }
 
     @Override
