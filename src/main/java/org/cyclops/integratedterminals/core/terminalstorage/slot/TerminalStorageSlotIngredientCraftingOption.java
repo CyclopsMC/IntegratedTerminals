@@ -16,6 +16,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -28,9 +29,9 @@ import java.util.List;
  */
 public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalStorageSlotIngredient<T, M> {
 
-    private final ITerminalCraftingOption<T> craftingOption;
+    private final HandlerWrappedTerminalCraftingOption<T> craftingOption;
 
-    public TerminalStorageSlotIngredientCraftingOption(IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler, T instance, ITerminalCraftingOption<T> craftingOption) {
+    public TerminalStorageSlotIngredientCraftingOption(IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler, T instance, HandlerWrappedTerminalCraftingOption<T> craftingOption) {
         super(ingredientComponentViewHandler, instance);
         this.craftingOption = craftingOption;
     }
@@ -54,9 +55,10 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     protected List<String> getTooltipLines() {
         List<String> tooltipLines = Lists.newArrayList();
         tooltipLines.add(TextFormatting.YELLOW + L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.requirements"));
-        for (IngredientComponent<?, ?> inputComponent : getCraftingOption().getInputComponents()) {
+        ITerminalCraftingOption<T> option = getCraftingOption().getCraftingOption();
+        for (IngredientComponent<?, ?> inputComponent : option.getInputComponents()) {
             IIngredientMatcher matcher = inputComponent.getMatcher();
-            for (Object inputInstance : getCraftingOption().getInputs(inputComponent)) {
+            for (Object inputInstance : option.getInputs(inputComponent)) {
                 if (!matcher.isEmpty(inputInstance)) {
                     tooltipLines.add(String.format("%s- %s (%s)",
                             TextFormatting.GRAY, matcher.localize(inputInstance), matcher.getQuantity(inputInstance)));
@@ -66,7 +68,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         return tooltipLines;
     }
 
-    public ITerminalCraftingOption<T> getCraftingOption() {
+    public HandlerWrappedTerminalCraftingOption<T> getCraftingOption() {
         return craftingOption;
     }
 

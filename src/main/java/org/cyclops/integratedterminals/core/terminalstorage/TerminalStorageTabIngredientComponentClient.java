@@ -1,7 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import gnu.trove.map.TIntLongMap;
 import gnu.trove.map.TIntObjectMap;
@@ -61,7 +60,15 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientS
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -85,10 +92,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected final ContainerTerminalStorage container;
     private final List<ITerminalButton<?, ?, ?>> buttons;
 
-    private final TIntObjectMap<IIngredientListMutable<T, M>> ingredientsViews;
-    private final TIntObjectMap<IIngredientListMutable<T, M>> filteredIngredientsViews;
+    private final TIntObjectMap<List<InstanceWithMetadata<T>>> ingredientsViews;
+    private final TIntObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
-    private final Map<T, HandlerWrappedTerminalCraftingOption<T>> instanceCraftingOptions;
 
     private final TIntLongMap maxQuantities;
     private final TIntLongMap totalQuantities;
@@ -130,7 +136,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.ingredientsViews = new TIntObjectHashMap<>();
         this.filteredIngredientsViews = new TIntObjectHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
-        this.instanceCraftingOptions = Maps.newIdentityHashMap();
 
         this.maxQuantities = new TIntLongHashMap();
         this.totalQuantities = new TIntLongHashMap();
@@ -187,10 +192,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         container.getGuiState().setSearch(getName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
     }
 
-    public IIngredientListMutable<T, M> getRawUnfilteredIngredientsView(int channel) {
-        IIngredientListMutable<T, M> ingredientsView = ingredientsViews.get(channel);
+    public List<InstanceWithMetadata<T>> getRawUnfilteredIngredientsView(int channel) {
+        List<InstanceWithMetadata<T>> ingredientsView = ingredientsViews.get(channel);
         if (ingredientsView == null) {
-            ingredientsView = new IngredientArrayList<>(this.ingredientComponent);
+            ingredientsView = Lists.newArrayList();
             ingredientsViews.put(channel, ingredientsView);
         }
         return ingredientsView;
@@ -201,17 +206,17 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return craftingOptions.get(channel);
     }
 
-    public IIngredientListMutable<T, M> getUnfilteredIngredientsView(int channel) {
+    public List<InstanceWithMetadata<T>> getUnfilteredIngredientsView(int channel) {
         Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions = getCraftingOptions(channel);
         if (craftingOptions == null) {
             return getRawUnfilteredIngredientsView(channel);
         } else {
-            IIngredientListMutable<T, M> enrichedIngredients = new IngredientArrayList<>(this.ingredientComponent);
+            List<InstanceWithMetadata<T>> enrichedIngredients = Lists.newArrayList();
             enrichedIngredients.addAll(getRawUnfilteredIngredientsView(channel));
             // Add all crafting option outputs
             for (HandlerWrappedTerminalCraftingOption<T> craftingOption : craftingOptions) {
                 for (T output : getUniqueCraftingOptionOutputs(craftingOption.getCraftingOption())) {
-                    enrichedIngredients.add(output);
+                    enrichedIngredients.add(new InstanceWithMetadata<>(output, craftingOption));
                 }
             }
             return enrichedIngredients;
@@ -227,21 +232,21 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return uniqueOutputs;
     }
 
-    protected IIngredientListMutable<T, M> getFilteredIngredientsView(int channel) {
-        IIngredientListMutable<T, M> ingredientsView = filteredIngredientsViews.get(channel);
+    protected List<InstanceWithMetadata<T>> getFilteredIngredientsView(int channel) {
+        List<InstanceWithMetadata<T>> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = getUnfilteredIngredientsView(channel);
 
             // Filter
-            ingredientsView = new IngredientArrayList<>(ingredientsView.getComponent(),
+            ingredientsView = Lists.newArrayList(
                     this.transformIngredientsView(ingredientsView.stream())
-                            .filter(IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)))
+                            .filter(im -> IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)).test(im.getInstance()))
                             .collect(Collectors.toList()));
 
             // Sort
             Comparator<T> sorter = getInstanceSorter();
             if (sorter != null) {
-                ingredientsView.sort(sorter);
+                ingredientsView.sort((o1, o2) -> sorter.compare(o1.getInstance(), o2.getInstance()));
             }
 
             filteredIngredientsViews.put(channel, ingredientsView);
@@ -249,24 +254,25 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return ingredientsView;
     }
 
-    protected Stream<T> transformIngredientsView(Stream<T> ingredientStream) {
+    protected Stream<InstanceWithMetadata<T>> transformIngredientsView(Stream<InstanceWithMetadata<T>> ingredientStream) {
         return ingredientStream;
     }
 
     @Override
     public List<TerminalStorageSlotIngredient<T, M>> getSlots(int channel, int offset, int limit) {
-        IIngredientListMutable<T, M> ingredients = getFilteredIngredientsView(channel);
+        List<InstanceWithMetadata<T>> ingredients = getFilteredIngredientsView(channel);
         int size = ingredients.size();
         if (offset >= size) {
             return Lists.newArrayList();
         }
         return ingredients.subList(offset, Math.min(offset + limit, size)).stream()
-                .map(instance -> {
-                    HandlerWrappedTerminalCraftingOption<T> craftingOption = getCraftingOption(instance);
+                .map(instanceWithMetadata -> {
+                    T instance = instanceWithMetadata.getInstance();
+                    HandlerWrappedTerminalCraftingOption<T> craftingOption = instanceWithMetadata.getCraftingOption();
                     if (craftingOption == null) {
                         return new TerminalStorageSlotIngredient<>(ingredientComponentViewHandler, instance);
                     } else {
-                        return new TerminalStorageSlotIngredientCraftingOption<>(ingredientComponentViewHandler, instance, craftingOption.getCraftingOption());
+                        return new TerminalStorageSlotIngredientCraftingOption<>(ingredientComponentViewHandler, instance, craftingOption);
                     }
                 })
                 .collect(Collectors.toList());
@@ -278,10 +284,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     public Optional<T> getSlotInstance(int channel, int index) {
+        return getSlot(channel, index).map(TerminalStorageSlotIngredient::getInstance);
+    }
+
+    public Optional<TerminalStorageSlotIngredient<T, M>> getSlot(int channel, int index) {
         if (index >= 0) {
             List<TerminalStorageSlotIngredient<T, M>> lastSlots = getSlots(channel, index, 1);
             if (!lastSlots.isEmpty()) {
-                return Optional.of(lastSlots.get(0).getInstance());
+                return Optional.of(lastSlots.get(0));
             }
         }
         return Optional.empty();
@@ -330,12 +340,21 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         totalQuantities.put(channel, newQuantity);
 
         // Apply diff
-        IIngredientListMutable<T, M> persistedIngredients = getRawUnfilteredIngredientsView(channel);
+        List<InstanceWithMetadata<T>> rawPersistedIngredients = getRawUnfilteredIngredientsView(channel);
+        IIngredientListMutable<T, M> persistedIngredients = new IngredientArrayList<>(ingredientComponent,
+                rawPersistedIngredients
+                .stream()
+                .map(InstanceWithMetadata::getInstance)
+                .collect(Collectors.toList()));
         IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
                 changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
                 changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
                 false);
         IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, persistedIngredients);
+        rawPersistedIngredients.clear();
+        for (T persistedIngredient : persistedIngredients) {
+            rawPersistedIngredients.add(new InstanceWithMetadata<>(persistedIngredient, null));
+        }
 
         // Persist changes
         resetFilteredIngredientsViews(channel);
@@ -360,13 +379,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         // This is handled at the end of this method.
         Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
 
-        // Store a mapping between the instances (identity) and their crafting options
-        for (HandlerWrappedTerminalCraftingOption<T> craftingOption : craftingOptions) {
-            for (T output : getUniqueCraftingOptionOutputs(craftingOption.getCraftingOption())) {
-                this.instanceCraftingOptions.put(output, craftingOption);
-            }
-        }
-
         // Apply the change to the wildcard channel as well
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             addCraftingOptions(IPositionedAddonsNetwork.WILDCARD_CHANNEL, craftingOptions);
@@ -386,11 +398,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
         updateActiveInstance(lastInstance, channel);
-    }
-
-    @Nullable
-    private HandlerWrappedTerminalCraftingOption<T> getCraftingOption(T instance) {
-        return this.instanceCraftingOptions.get(instance);
     }
 
     protected int findActiveSlotId(int channel, T instance) {
@@ -476,10 +483,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.activeChannel = channel;
 
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
-        Optional<T> hoveringStorageInstance = getSlotInstance(channel, hoveringStorageSlot);
+        Optional<TerminalStorageSlotIngredient<T, M>> hoveringStorageSlotObject = getSlot(channel, hoveringStorageSlot);
+        Optional<T> hoveringStorageInstance = hoveringStorageSlotObject.map(TerminalStorageSlotIngredient::getInstance);
         boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
-        HandlerWrappedTerminalCraftingOption<T> craftingOption = null;
-        boolean isCraftingOption = hoveringStorageInstance.isPresent() && (craftingOption = getCraftingOption(hoveringStorageInstance.get())) != null;
+        boolean isCraftingOption = hoveringStorageSlotObject.isPresent() && hoveringStorageSlotObject.get() instanceof TerminalStorageSlotIngredientCraftingOption;
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
         boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
 
@@ -574,7 +581,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 ContainerTerminalStorage containerTerminalStorage = ((ContainerTerminalStorage) container);
                 PartPos pos = containerTerminalStorage.getTarget().getCenter();
                 CraftingOptionGuiData<T, M> craftingOptionData = new CraftingOptionGuiData<>(pos.getPos().getBlockPos(), pos.getSide(),
-                        ingredientComponent, this.getName().toString(), channel, craftingOption, 1);
+                        ingredientComponent, this.getName().toString(), channel, ((TerminalStorageSlotIngredientCraftingOption<T, M>) hoveringStorageSlotObject.get()).getCraftingOption(), 1);
                 IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
                         Pair.of(((ContainerTerminalStorage) container).getTarget().getCenter().getSide(), craftingOptionData)); // Pass the side as extra data to the gui
                 if (shift) {
@@ -670,4 +677,26 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             }
         }
     }
+
+    public static class InstanceWithMetadata<T> {
+
+        private final T instance;
+        @Nullable
+        private final HandlerWrappedTerminalCraftingOption<T> craftingOption;
+
+        public InstanceWithMetadata(T instance, @Nullable HandlerWrappedTerminalCraftingOption<T> craftingOption) {
+            this.instance = instance;
+            this.craftingOption = craftingOption;
+        }
+
+        public T getInstance() {
+            return instance;
+        }
+
+        @Nullable
+        public HandlerWrappedTerminalCraftingOption<T> getCraftingOption() {
+            return craftingOption;
+        }
+    }
+
 }
