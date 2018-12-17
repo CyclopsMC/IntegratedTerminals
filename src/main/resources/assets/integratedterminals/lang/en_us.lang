@@ -49,6 +49,11 @@ gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.storage=§
 gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.player=§aSource: Player
 gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.storage_player=§aSource: Network, Player
 gui.integratedterminals.terminal_storage.craftinggrid.autorefill.type.player_storage=§aSource: Player, Network
+gui.integratedterminals.terminal_storage.crafting.filter=Crafting filter
+gui.integratedterminals.terminal_storage.crafting.filter.info=Filter by stored or craftable ingredients.
+gui.integratedterminals.terminal_storage.crafting.filter.type.all=§oBoth
+gui.integratedterminals.terminal_storage.crafting.filter.type.storage=§aStorage
+gui.integratedterminals.terminal_storage.crafting.filter.type.craftable=§aCraftable
 
 
 # Keybindings

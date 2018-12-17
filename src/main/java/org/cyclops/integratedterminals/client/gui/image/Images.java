@@ -29,6 +29,9 @@ public class Images {
     public static final Image BUTTON_MIDDLE_AUTOREFILL_STORAGEPLAYER = new Image(ICONS, 108, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_AUTOREFILL_PLAYERSTORAGE = new Image(ICONS, 126, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_JEI_SYNC = new Image(ICONS, 144, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_ALL = new Image(ICONS, 162, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_STORAGE = new Image(ICONS, 180, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_CRAFTABLE = new Image(ICONS, 198, 18, 18, 18);
 
     public static final Image BUTTON_SMALL_BACKGROUND_INACTIVE = new Image(ICONS, 0, 36, 8, 8);
 

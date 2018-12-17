@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import gnu.trove.map.TIntLongMap;
@@ -48,6 +49,7 @@ import org.cyclops.integratedterminals.capability.ingredient.IngredientComponent
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonFilterCrafting;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
@@ -70,6 +72,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -153,7 +156,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Add all crafting-related buttons
         if (!TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
-
+            buttons.add(new TerminalButtonFilterCrafting<>(container.getGuiState(), this));
         }
     }
 
@@ -183,6 +186,16 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             return container.getGuiState().getSearch(getName().toString(), channel);
         }
         return "";
+    }
+
+    public Predicate<InstanceWithMetadata<T>> getInstanceFilterMetadata() {
+        for (ITerminalButton<?, ?, ?> button : this.buttons) {
+            if (button instanceof TerminalButtonFilterCrafting) {
+                return ((TerminalButtonFilterCrafting) button).getEffectiveFilter();
+            }
+        }
+
+        return Predicates.alwaysTrue();
     }
 
     public void resetFilteredIngredientsViews(int channel) {
@@ -247,6 +260,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             ingredientsView = Lists.newArrayList(
                     this.transformIngredientsView(ingredientsView.stream())
                             .filter(im -> IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)).test(im.getInstance()))
+                            .filter(getInstanceFilterMetadata())
                             .collect(Collectors.toList()));
 
             // Sort
