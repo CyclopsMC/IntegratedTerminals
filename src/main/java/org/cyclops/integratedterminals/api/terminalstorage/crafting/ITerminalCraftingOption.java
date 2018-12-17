@@ -10,7 +10,7 @@ import java.util.Iterator;
  * @param <T> The instance type.
  * @author rubensworks
  */
-public interface ITerminalCraftingOption<T> {
+public interface ITerminalCraftingOption<T> extends Comparable<ITerminalCraftingOption<T>> {
 
     /**
      * @return The outputs of this crafting job option for the configured ingredient component.

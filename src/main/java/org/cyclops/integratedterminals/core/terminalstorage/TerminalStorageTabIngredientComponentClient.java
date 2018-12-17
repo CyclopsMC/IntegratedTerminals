@@ -50,6 +50,7 @@ import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredientCraftingOption;
@@ -149,6 +150,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         for (IIngredientInstanceSorter<T> instanceSorter : ingredientComponentViewHandler.getInstanceSorters()) {
             buttons.add(new TerminalButtonSort<>(instanceSorter, container.getGuiState(), this));
         }
+
+        // Add all crafting-related buttons
+        if (!TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
+
+        }
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
@@ -246,7 +252,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             // Sort
             Comparator<T> sorter = getInstanceSorter();
             if (sorter != null) {
-                ingredientsView.sort((o1, o2) -> sorter.compare(o1.getInstance(), o2.getInstance()));
+                ingredientsView.sort(InstanceWithMetadata.createComparator(sorter));
             }
 
             filteredIngredientsViews.put(channel, ingredientsView);
@@ -698,6 +704,31 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         public HandlerWrappedTerminalCraftingOption<T> getCraftingOption() {
             return craftingOption;
         }
+
+        public static <T> Comparator<InstanceWithMetadata<T>> createComparator(Comparator<T> comparator) {
+            return (o1, o2) -> {
+                int comp = comparator.compare(o1.getInstance(), o2.getInstance());
+                if (comp == 0) {
+                    HandlerWrappedTerminalCraftingOption<T> c1 = o1.getCraftingOption();
+                    HandlerWrappedTerminalCraftingOption<T> c2 = o2.getCraftingOption();
+                    if (c1 == null) {
+                        if (c2 == null) {
+                            return 0;
+                        } else {
+                            return -1;
+                        }
+                    } else {
+                        if (c2 == null) {
+                            return 1;
+                        } else {
+                            return c1.getCraftingOption().compareTo(c2.getCraftingOption());
+                        }
+                    }
+                }
+                return comp;
+            };
+        }
+
     }
 
 }

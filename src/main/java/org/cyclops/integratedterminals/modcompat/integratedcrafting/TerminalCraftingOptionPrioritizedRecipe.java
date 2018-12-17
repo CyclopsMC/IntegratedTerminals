@@ -60,4 +60,25 @@ public class TerminalCraftingOptionPrioritizedRecipe<T, M> implements ITerminalC
     public PrioritizedRecipe getPrioritizedRecipe() {
         return prioritizedRecipe;
     }
+
+    @Override
+    public int compareTo(ITerminalCraftingOption<T> o) {
+        if (!(o instanceof TerminalCraftingOptionPrioritizedRecipe)) {
+            throw new IllegalArgumentException("Could not compare TerminalCraftingOptionPrioritizedRecipe to " + o);
+        }
+        TerminalCraftingOptionPrioritizedRecipe that = (TerminalCraftingOptionPrioritizedRecipe) o;
+        int compRecipe = this.getPrioritizedRecipe().getRecipe().compareTo(that.getPrioritizedRecipe().getRecipe());
+        if (compRecipe == 0) {
+            int[] p1 = this.getPrioritizedRecipe().getPriorities();
+            int[] p2 = that.getPrioritizedRecipe().getPriorities();
+            int minLength = Math.min(p1.length, p2.length);
+            for (int i = 0; i < minLength; i++) {
+                int comp = Integer.compare(p1[i], p2[i]);
+                if (comp != 0) {
+                    return comp;
+                }
+            }
+        }
+        return compRecipe;
+    }
 }
