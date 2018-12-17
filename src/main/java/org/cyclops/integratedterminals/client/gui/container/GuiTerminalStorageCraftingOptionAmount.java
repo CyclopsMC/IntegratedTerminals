@@ -159,11 +159,7 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
             int diff = ((GuiButtonChangeQuantity) button).getDiff();
             setAmount(getAmount() + diff);
         } else if (button instanceof GuiButtonText) {
-            if (MinecraftHelpers.isShifted()) {
-                calculateCraftingJobAndStart();
-            } else {
-                calculateCraftingJob();
-            }
+            calculateCraftingJob();
         }
     }
 
@@ -173,11 +169,6 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
                 Pair.of(craftingOptionData.getSide(), craftingOptionData));
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
                 new TerminalStorageIngredientOpenCraftingPlanGuiPacket(craftingOptionData));
-    }
-
-    private void calculateCraftingJobAndStart() {
-        // TODO
-        System.out.println("Start"); // TODO
     }
 
     protected <T, M> void drawInstance(IngredientComponent<T, M> ingredientComponent, T instance, int x, int y, GuiTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {

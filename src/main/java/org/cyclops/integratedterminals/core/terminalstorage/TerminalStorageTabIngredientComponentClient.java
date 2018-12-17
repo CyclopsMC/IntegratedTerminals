@@ -488,7 +488,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
         boolean isCraftingOption = hoveringStorageSlotObject.isPresent() && hoveringStorageSlotObject.get() instanceof TerminalStorageSlotIngredientCraftingOption;
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
-        boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
+        boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
 
         EntityPlayer player = Minecraft.getMinecraft().player;
         boolean initiateCraftingOption = false;
@@ -498,13 +498,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             long movePlayerQuantity = 0;
             boolean reset = false; // So that a reset occurs after the packet is sent
             if (validHoveringStorageSlot && player.inventory.getItemStack().isEmpty() && activeSlotId < 0) {
-                if (shift) {
-                    // Quick move max quantity from storage to player
-                    clickType = TerminalClickType.STORAGE_QUICK_MOVE;
+                if (isCraftingOption) {
+                    // Craft
+                    initiateCraftingOption = true;
                 } else {
-                    if (isCraftingOption) {
-                        // Craft
-                        initiateCraftingOption = true;
+                    if (shift) {
+                        // Quick move max quantity from storage to player
+                        clickType = TerminalClickType.STORAGE_QUICK_MOVE;
                     } else {
                         // Pick up
                         this.activeSlotId = hoveringStorageSlot;
