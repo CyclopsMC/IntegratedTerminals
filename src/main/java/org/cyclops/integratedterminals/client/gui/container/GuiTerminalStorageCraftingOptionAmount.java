@@ -30,7 +30,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmount;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
@@ -137,12 +136,8 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
     }
 
     private void returnToTerminalStorage() {
-        IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
-                Pair.of(craftingOptionGuiData.getSide(), new ContainerTerminalStorage.InitTabData(
-                        craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel())));
-        IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientOpenPacket(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
-                        craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel()));
+        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
+                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
     }
 
     @Override

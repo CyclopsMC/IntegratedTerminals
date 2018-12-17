@@ -6,7 +6,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.client.gui.component.button.GuiButtonText;
 import org.cyclops.cyclopscore.client.gui.container.GuiContainerExtended;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -19,10 +18,10 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlan;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientStartCraftingJobPacket;
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
@@ -34,7 +33,7 @@ import java.io.IOException;
  */
 public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
 
-    private final CraftingOptionGuiData craftingOptionGuiData;
+    private final CraftingOptionGuiData<?, ?> craftingOptionGuiData;
 
     @Nullable
     private GuiCraftingPlan guiCraftingPlan;
@@ -100,12 +99,8 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
     }
 
     private void returnToTerminalStorage() {
-        IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
-                Pair.of(craftingOptionGuiData.getSide(), new ContainerTerminalStorage.InitTabData(
-                        craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel())));
-        IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientOpenPacket(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
-                        craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel()));
+        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
+                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
     }
 
     @Override
@@ -123,8 +118,24 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
     }
 
     private void startCraftingJob() {
-        // TODO
-        System.out.println("Start"); // TODO
+        CraftingOptionGuiData<?, ?> craftingOptionData = new CraftingOptionGuiData<>(
+                craftingOptionGuiData.getPos(),
+                craftingOptionGuiData.getSide(),
+                craftingOptionGuiData.getComponent(),
+                craftingOptionGuiData.getTabName(),
+                craftingOptionGuiData.getChannel(),
+                null,
+                craftingOptionGuiData.getAmount(),
+                new HandlerWrappedTerminalCraftingPlan(craftingOptionGuiData.getCraftingOption().getHandler(), craftingPlan)
+        );
+
+        // Send packet to start crafting jon
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientStartCraftingJobPacket<>(craftingOptionData));
+
+        // Send packet to re-open terminal gui
+        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
+                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
     }
 
     @Override

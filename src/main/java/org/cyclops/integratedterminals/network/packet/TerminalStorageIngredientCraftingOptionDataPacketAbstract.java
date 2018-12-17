@@ -13,6 +13,9 @@ import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
+
+import javax.annotation.Nullable;
 
 /**
  * Packet for sending a storage slot click event from client to server.
@@ -35,6 +38,8 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     private NBTTagCompound craftingOption;
     @CodecField
     private int amount;
+    @CodecField
+    private NBTTagCompound craftingPlan;
 
     public TerminalStorageIngredientCraftingOptionDataPacketAbstract() {
 
@@ -46,8 +51,13 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         this.side = craftingOptionData.getSide();
         this.tabName = craftingOptionData.getTabName();
         this.channel = craftingOptionData.getChannel();
-        this.craftingOption = HandlerWrappedTerminalCraftingOption.serialize(craftingOptionData.getCraftingOption());
+        this.craftingOption = craftingOptionData.getCraftingOption() != null
+                ? HandlerWrappedTerminalCraftingOption.serialize(craftingOptionData.getCraftingOption())
+                : new NBTTagCompound();
         this.amount = craftingOptionData.getAmount();
+        this.craftingPlan = craftingOptionData.getCraftingPlan() != null
+                ? HandlerWrappedTerminalCraftingPlan.serialize(craftingOptionData.getCraftingPlan())
+                : new NBTTagCompound();
     }
 
     @Override
@@ -61,8 +71,22 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
 
     }
 
+    @Nullable
     protected HandlerWrappedTerminalCraftingOption<T> getCraftingOption(IngredientComponent<T, M> ingredientComponent) {
-        return HandlerWrappedTerminalCraftingOption.deserialize(ingredientComponent, this.craftingOption);
+        try {
+            return HandlerWrappedTerminalCraftingOption.deserialize(ingredientComponent, this.craftingOption);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    @Nullable
+    protected HandlerWrappedTerminalCraftingPlan getCraftingPlan() {
+        try {
+            return HandlerWrappedTerminalCraftingPlan.deserialize(this.craftingPlan);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
@@ -87,6 +111,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
 
     public CraftingOptionGuiData<T, M> getCraftingOptionData() {
         IngredientComponent<T, M> ingredientComponent = getIngredientComponent();
-        return new CraftingOptionGuiData<>(pos, side, ingredientComponent, tabName, channel, getCraftingOption(ingredientComponent), amount);
+        return new CraftingOptionGuiData<>(pos, side, ingredientComponent, tabName, channel,
+                getCraftingOption(ingredientComponent), amount, getCraftingPlan());
     }
 }

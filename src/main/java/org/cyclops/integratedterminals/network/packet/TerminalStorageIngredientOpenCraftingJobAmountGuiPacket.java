@@ -30,7 +30,7 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M> exten
         IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
                 Pair.of(data.getSide(), data)); // Pass the side as extra data to the gui
         BlockPos cPos = data.getPos();
-        player.openGui(IntegratedTerminals._instance, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT,
+        player.openGui(IntegratedTerminals._instance, GuiProviders.ID_GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT,
                 world, cPos.getX(), cPos.getY(), cPos.getZ());
     }
 

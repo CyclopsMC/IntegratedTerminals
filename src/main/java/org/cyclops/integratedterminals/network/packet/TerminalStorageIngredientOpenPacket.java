@@ -57,8 +57,15 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 	public void actionServer(World world, EntityPlayerMP player) {
 		IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
 				Pair.of(side, new ContainerTerminalStorage.InitTabData(tabName, channel)));
-		player.openGui(IntegratedTerminals._instance, GuiProviders.GUI_TERMINAL_STORAGE_INIT,
+		player.openGui(IntegratedTerminals._instance, GuiProviders.ID_GUI_TERMINAL_STORAGE_INIT,
 				world, pos.getX(), pos.getY(), pos.getZ());
+	}
+
+	public static void send(BlockPos pos, EnumFacing side, String tabName, int channel) {
+		IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
+				Pair.of(side, new ContainerTerminalStorage.InitTabData(tabName, channel)));
+		IntegratedTerminals._instance.getPacketHandler().sendToServer(
+				new TerminalStorageIngredientOpenPacket(pos, side, tabName, channel));
 	}
 	
 }

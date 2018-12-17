@@ -2,12 +2,12 @@ package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
-import org.cyclops.cyclopscore.inventory.IGuiContainerProvider;
 import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
+import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
 
 /**
  * A container for setting the amount for a given crafting option.
@@ -31,7 +31,7 @@ public class ContainerTerminalStorageCraftingOptionAmount extends ExtendedInvent
     public ContainerTerminalStorageCraftingOptionAmount(final EntityPlayer player, PartTarget target,
                                                         IPartContainer partContainer, IPartType partType,
                                                         CraftingOptionGuiData craftingOptionGuiData) {
-        super(player.inventory, (IGuiContainerProvider) partType);
+        super(player.inventory, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT);
 
         addPlayerInventory(player.inventory, 9, 80);
 

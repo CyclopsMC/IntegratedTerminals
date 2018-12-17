@@ -581,7 +581,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 ContainerTerminalStorage containerTerminalStorage = ((ContainerTerminalStorage) container);
                 PartPos pos = containerTerminalStorage.getTarget().getCenter();
                 CraftingOptionGuiData<T, M> craftingOptionData = new CraftingOptionGuiData<>(pos.getPos().getBlockPos(), pos.getSide(),
-                        ingredientComponent, this.getName().toString(), channel, ((TerminalStorageSlotIngredientCraftingOption<T, M>) hoveringStorageSlotObject.get()).getCraftingOption(), 1);
+                        ingredientComponent, this.getName().toString(), channel,
+                        ((TerminalStorageSlotIngredientCraftingOption<T, M>) hoveringStorageSlotObject.get()).getCraftingOption(), 1, null);
                 IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
                         Pair.of(((ContainerTerminalStorage) container).getTarget().getCenter().getSide(), craftingOptionData)); // Pass the side as extra data to the gui
                 if (shift) {

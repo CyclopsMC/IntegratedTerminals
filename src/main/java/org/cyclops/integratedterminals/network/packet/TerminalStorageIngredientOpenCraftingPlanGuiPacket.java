@@ -30,7 +30,7 @@ public class TerminalStorageIngredientOpenCraftingPlanGuiPacket<T, M> extends Te
         IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
                 Pair.of(data.getSide(), data));
         BlockPos cPos = data.getPos();
-        player.openGui(IntegratedTerminals._instance, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_PLAN,
+        player.openGui(IntegratedTerminals._instance, GuiProviders.ID_GUI_TERMINAL_STORAGE_CRAFTNG_PLAN,
                 world, cPos.getX(), cPos.getY(), cPos.getZ());
     }
 

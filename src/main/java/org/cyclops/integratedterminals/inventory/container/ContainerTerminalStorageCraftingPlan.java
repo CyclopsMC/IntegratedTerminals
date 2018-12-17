@@ -2,7 +2,6 @@ package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
-import org.cyclops.cyclopscore.inventory.IGuiContainerProvider;
 import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -12,6 +11,7 @@ import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
 
 /**
  * A container for visualizing a crafting plan.
@@ -39,7 +39,7 @@ public class ContainerTerminalStorageCraftingPlan extends ExtendedInventoryConta
     public ContainerTerminalStorageCraftingPlan(final EntityPlayer player, PartTarget target,
                                                 IPartContainer partContainer, IPartType partType,
                                                 CraftingOptionGuiData craftingOptionGuiData) {
-        super(player.inventory, (IGuiContainerProvider) partType);
+        super(player.inventory, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_PLAN);
 
         this.world = target.getCenter().getPos().getWorld();
         this.target = target;
