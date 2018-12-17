@@ -92,6 +92,8 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
         if (!this.checkHotbarKeys(keyCode)) {
             if (keyCode == Keyboard.KEY_ESCAPE) {
                 returnToTerminalStorage();
+            } else if (keyCode == Keyboard.KEY_NUMPADENTER || keyCode == Keyboard.KEY_RETURN) {
+                startCraftingJob();
             } else {
                 super.keyTyped(typedChar, keyCode);
             }

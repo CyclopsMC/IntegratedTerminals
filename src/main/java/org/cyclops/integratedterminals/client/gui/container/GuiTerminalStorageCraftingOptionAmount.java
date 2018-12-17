@@ -128,6 +128,8 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
         if (!this.checkHotbarKeys(keyCode)) {
             if (keyCode == Keyboard.KEY_ESCAPE) {
                 returnToTerminalStorage();
+            } else if (keyCode == Keyboard.KEY_NUMPADENTER || keyCode == Keyboard.KEY_RETURN) {
+                calculateCraftingJob();
             } else if (!this.numberField.textboxKeyTyped(typedChar, keyCode)
                     && !this.numberField.textboxKeyTyped(typedChar, keyCode)) {
                 super.keyTyped(typedChar, keyCode);
