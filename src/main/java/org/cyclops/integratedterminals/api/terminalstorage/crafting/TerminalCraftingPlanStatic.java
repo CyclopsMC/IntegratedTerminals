@@ -13,21 +13,24 @@ import java.util.List;
 /**
  * @author rubensworks
  */
-public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
+public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
-    private final List<ITerminalCraftingPlan> dependencies;
+    private final I id;
+    private final List<ITerminalCraftingPlan<I>> dependencies;
     private final List<IPrototypedIngredient<?, ?>> outputs;
     private final TerminalCraftingJobStatus status;
     private final long craftingQuantity;
     private final List<IPrototypedIngredient<?, ?>> storageIngredients;
     private final String unlocalizedLabel;
 
-    public TerminalCraftingPlanStatic(List<ITerminalCraftingPlan> dependencies,
+    public TerminalCraftingPlanStatic(I id,
+                                      List<ITerminalCraftingPlan<I>> dependencies,
                                       List<IPrototypedIngredient<?, ?>> outputs,
                                       TerminalCraftingJobStatus status,
                                       long craftingQuantity,
                                       List<IPrototypedIngredient<?, ?>> storageIngredients,
                                       String unlocalizedLabel) {
+        this.id = id;
         this.dependencies = dependencies;
         this.outputs = outputs;
         this.status = status;
@@ -37,7 +40,12 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
     }
 
     @Override
-    public List<ITerminalCraftingPlan> getDependencies() {
+    public I getId() {
+        return id;
+    }
+
+    @Override
+    public List<ITerminalCraftingPlan<I>> getDependencies() {
         return dependencies;
     }
 
@@ -66,12 +74,15 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
         return unlocalizedLabel;
     }
 
-    public static NBTTagCompound serialize(TerminalCraftingPlanStatic plan) {
+    public static <I> NBTTagCompound serialize(TerminalCraftingPlanStatic<I> plan,
+                                               ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
         NBTTagCompound tag = new NBTTagCompound();
 
+        tag.setTag("id", handler.serializeCraftingJobId(plan.getId()));
+
         NBTTagList dependencies = new NBTTagList();
-        for (ITerminalCraftingPlan dependency : plan.getDependencies()) {
-            dependencies.appendTag(TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) dependency));
+        for (ITerminalCraftingPlan<I> dependency : plan.getDependencies()) {
+            dependencies.appendTag(TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) dependency, handler));
         }
         tag.setTag("dependencies", dependencies);
 
@@ -96,7 +107,11 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
         return tag;
     }
 
-    public static TerminalCraftingPlanStatic deserialize(NBTTagCompound tag) {
+    public static <I> TerminalCraftingPlanStatic<I> deserialize(NBTTagCompound tag,
+                                                                ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
+        if (!tag.hasKey("id")) {
+            throw new IllegalArgumentException("Could not find an id entry in the given tag");
+        }
         if (!tag.hasKey("dependencies", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a dependencies entry in the given tag");
         }
@@ -116,10 +131,12 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
             throw new IllegalArgumentException("Could not find a unlocalizedLabel entry in the given tag");
         }
 
+        I id = handler.deserializeCraftingJobId(tag.getTag("id"));
+
         NBTTagList dependenciesTag = tag.getTagList("dependencies", Constants.NBT.TAG_COMPOUND);
-        List<ITerminalCraftingPlan> dependencies = Lists.newArrayListWithExpectedSize(dependenciesTag.tagCount());
+        List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayListWithExpectedSize(dependenciesTag.tagCount());
         for (NBTBase nbtBase : dependenciesTag) {
-            dependencies.add(TerminalCraftingPlanStatic.deserialize((NBTTagCompound) nbtBase));
+            dependencies.add(TerminalCraftingPlanStatic.deserialize((NBTTagCompound) nbtBase, handler));
         }
 
         NBTTagList outputsTag = tag.getTagList("outputs", Constants.NBT.TAG_COMPOUND);
@@ -140,6 +157,6 @@ public class TerminalCraftingPlanStatic implements ITerminalCraftingPlan {
 
         String unlocalizedLabel = tag.getString("unlocalizedLabel");
 
-        return new TerminalCraftingPlanStatic(dependencies, outputs, status, craftingQuantity, storageIngredients, unlocalizedLabel);
+        return new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients, unlocalizedLabel);
     }
 }

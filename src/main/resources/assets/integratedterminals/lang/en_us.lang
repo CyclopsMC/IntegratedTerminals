@@ -54,7 +54,9 @@ gui.integratedterminals.terminal_storage.crafting.filter.info=Filter by stored o
 gui.integratedterminals.terminal_storage.crafting.filter.type.all=§oBoth
 gui.integratedterminals.terminal_storage.crafting.filter.type.storage=§aStorage
 gui.integratedterminals.terminal_storage.crafting.filter.type.craftable=§aCraftable
-gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies=Dependencies: %s
+gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies=Size: %s
+gui.integratedterminals.terminal_crafting_job.craftingplan.cancel=Cancel Job
+gui.integratedterminals.terminal_crafting_job.craftingplan.empty=Empty crafting job
 
 
 # Keybindings

@@ -1,6 +1,5 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
-import com.google.common.collect.Lists;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,39 +11,36 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
+import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
-import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlan;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientStartCraftingJobPacket;
+import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlan;
+import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsGuiPacket;
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 
 /**
- * A gui for previewing a crafting plan.
+ * A gui for visualizing a live crafting plan.
  * @author rubensworks
  */
-public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
+public class GuiTerminalCraftingJobsPlan extends GuiContainerExtended {
 
-    private final CraftingOptionGuiData<?, ?> craftingOptionGuiData;
+    private final EntityPlayer player;
 
     @Nullable
     private GuiCraftingPlan guiCraftingPlan;
 
-    private ITerminalCraftingPlan craftingPlan;
+    public GuiTerminalCraftingJobsPlan(EntityPlayer player, PartTarget target, IPartContainer partContainer,
+                                       IPartType partType, CraftingJobGuiData craftingPlanGuiData) {
+        super(new ContainerTerminalCraftingJobsPlan(player, target, partContainer, partType, craftingPlanGuiData));
 
-    public GuiTerminalStorageCraftingPlan(EntityPlayer player, PartTarget target, IPartContainer partContainer,
-                                          IPartType partType, CraftingOptionGuiData craftingOptionGuiData) {
-        super(new ContainerTerminalStorageCraftingPlan(player, target, partContainer, partType, craftingOptionGuiData));
-
-        this.craftingOptionGuiData = craftingOptionGuiData;
+        this.player = player;
     }
 
     @Override
@@ -72,37 +68,40 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
     public void initGui() {
         super.initGui();
 
-        if (this.craftingPlan != null) {
-            this.guiCraftingPlan = new GuiCraftingPlan(this, this.craftingPlan, guiLeft, guiTop, 9, 18, 10);
+        this.buttonList.clear();
+
+        ITerminalCraftingPlan craftingPlan = getContainer().getCraftingPlan();
+        if (craftingPlan != null) {
+            this.guiCraftingPlan = new GuiCraftingPlan(this, craftingPlan, guiLeft, guiTop, 9, 18, 10);
+            // TODO: remember state? or just update the inner plan instead of recreating?
+
+            this.buttonList.add(new GuiButtonText(0, guiLeft + 70, guiTop + 198, 100, 20, TextFormatting.BOLD
+                    + L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"), true)
+            );
         } else {
             this.guiCraftingPlan = null;
         }
-
-        GuiButtonText button;
-        this.buttonList.clear();
-        this.buttonList.addAll(Lists.newArrayList(
-                button = new GuiButtonText(0, guiLeft + 95, guiTop + 198, 50, 20, TextFormatting.BOLD
-                        + L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.craft"), true)
-        ));
-        button.enabled = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
     }
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         if (!this.checkHotbarKeys(keyCode)) {
             if (keyCode == Keyboard.KEY_ESCAPE) {
-                returnToTerminalStorage();
-            } else if (keyCode == Keyboard.KEY_NUMPADENTER || keyCode == Keyboard.KEY_RETURN) {
-                startCraftingJob();
+                returnToOverview();
             } else {
                 super.keyTyped(typedChar, keyCode);
             }
         }
     }
 
-    private void returnToTerminalStorage() {
-        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
-                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
+    @Override
+    protected ContainerTerminalCraftingJobsPlan getContainer() {
+        return (ContainerTerminalCraftingJobsPlan) super.getContainer();
+    }
+
+    private void returnToOverview() {
+        PartPos center = getContainer().getTarget().getCenter();
+        OpenCraftingJobsGuiPacket.send(center.getPos().getBlockPos(), center.getSide());
     }
 
     @Override
@@ -115,29 +114,16 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
         super.onButtonClick(buttonId);
         GuiButton button = buttonList.get(buttonId);
         if (button instanceof GuiButtonText) {
-            startCraftingJob();
+            cancelCraftingJob();
         }
     }
 
-    private void startCraftingJob() {
-        CraftingOptionGuiData<?, ?> craftingOptionData = new CraftingOptionGuiData<>(
-                craftingOptionGuiData.getPos(),
-                craftingOptionGuiData.getSide(),
-                craftingOptionGuiData.getComponent(),
-                craftingOptionGuiData.getTabName(),
-                craftingOptionGuiData.getChannel(),
-                null,
-                craftingOptionGuiData.getAmount(),
-                new HandlerWrappedTerminalCraftingPlan(craftingOptionGuiData.getCraftingOption().getHandler(), craftingPlan)
-        );
+    private void cancelCraftingJob() {
+        // Send packet to cancel crafting job
+        // TODO
 
-        // Send packet to start crafting jon
-        IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientStartCraftingJobPacket<>(craftingOptionData));
-
-        // Send packet to re-open terminal gui
-        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
-                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
+        // Return to overview
+        returnToOverview();
     }
 
     @Override
@@ -146,7 +132,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
         } else {
-            drawCenteredString(fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
+            drawCenteredString(fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.empty"),
                     guiLeft + getBaseXSize() / 2, guiTop + 23, 16777215);
         }
     }
@@ -187,8 +173,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
     public void onUpdate(int valueId, NBTTagCompound value) {
         super.onUpdate(valueId, value);
 
-        if (((ContainerTerminalStorageCraftingPlan) getContainer()).getCraftingPlanNotifierId() == valueId) {
-            this.craftingPlan = craftingOptionGuiData.getCraftingOption().getHandler().deserializeCraftingPlan(value);
+        if (getContainer().getCraftingPlanNotifierId() == valueId) {
             this.initGui();
         }
     }

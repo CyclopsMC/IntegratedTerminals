@@ -63,7 +63,7 @@ public class GuiCraftingPlan extends Gui {
 
     private int firstRow;
 
-    public GuiCraftingPlan(GuiContainer parentGui, ITerminalCraftingPlan craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
+    public GuiCraftingPlan(GuiContainer parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
         this.parentGui = parentGui;
         this.guiLeft = guiLeft;
         this.guiTop = guiTop;
@@ -219,13 +219,13 @@ public class GuiCraftingPlan extends Gui {
         }
     }
 
-    public static List<GuiCraftingPlan.Element> getElements(ITerminalCraftingPlan craftingPlan) {
+    public static List<GuiCraftingPlan.Element> getElements(ITerminalCraftingPlan<?> craftingPlan) {
         List<GuiCraftingPlan.Element> elements = Lists.newArrayList();
         addElements(null, 0, craftingPlan, elements);
         return elements;
     }
 
-    protected static void addElements(@Nullable Element parent, int indent, ITerminalCraftingPlan craftingPlan, List<GuiCraftingPlan.Element> elements) {
+    protected static void addElements(@Nullable Element parent, int indent, ITerminalCraftingPlan<?> craftingPlan, List<GuiCraftingPlan.Element> elements) {
         boolean valid = craftingPlan.getStatus() != TerminalCraftingJobStatus.INVALID
                 || (!craftingPlan.getStorageIngredients().isEmpty() || !craftingPlan.getDependencies().isEmpty());
         Element currentElement = new Element(
@@ -245,7 +245,7 @@ public class GuiCraftingPlan extends Gui {
                     storageIngredient.getComponent().getMatcher().getQuantity(storageIngredient.getPrototype()),
                     0, 0, TerminalCraftingJobStatus.FINISHED.getColor())));
         }
-        for (ITerminalCraftingPlan dependency : craftingPlan.getDependencies()) {
+        for (ITerminalCraftingPlan<?> dependency : craftingPlan.getDependencies()) {
             addElements(currentElement, indent + 1, dependency, elements);
         }
     }

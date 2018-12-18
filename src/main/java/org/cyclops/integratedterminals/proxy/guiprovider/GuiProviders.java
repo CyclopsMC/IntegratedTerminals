@@ -14,6 +14,8 @@ public class GuiProviders {
     public static IGuiContainerProvider GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT;
     public static int ID_GUI_TERMINAL_STORAGE_CRAFTNG_PLAN;
     public static IGuiContainerProvider GUI_TERMINAL_STORAGE_CRAFTNG_PLAN;
+    public static int ID_GUI_TERMINAL_CRAFTING_JOBS_PLAN;
+    public static IGuiContainerProvider GUI_TERMINAL_CRAFTING_JOBS_PLAN;
     /**
      * This is a variant of the default terminal storage gui constructor (which is register by ID).
      * This alternative allows additional init data to be passed to the constructor.
@@ -35,6 +37,11 @@ public class GuiProviders {
                 new GuiProviderTerminalStorageInit(
                         ID_GUI_TERMINAL_STORAGE_INIT = Helpers.getNewId(IntegratedTerminals._instance, Helpers.IDType.GUI),
                         IntegratedTerminals._instance), ExtendedGuiHandler.TERMINAL_STORAGE);
+
+        IntegratedTerminals._instance.getGuiHandler().registerGUI(
+                GUI_TERMINAL_CRAFTING_JOBS_PLAN = new GuiProviderTerminalCraftingJobsPlan(
+                        ID_GUI_TERMINAL_CRAFTING_JOBS_PLAN = Helpers.getNewId(IntegratedTerminals._instance, Helpers.IDType.GUI),
+                        IntegratedTerminals._instance), ExtendedGuiHandler.CRAFTING_PLAN);
     }
 
 }

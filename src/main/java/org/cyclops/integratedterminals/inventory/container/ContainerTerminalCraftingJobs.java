@@ -36,10 +36,10 @@ public class ContainerTerminalCraftingJobs extends ExtendedInventoryContainer {
     private final IPartType partType;
     private final PartStateEmpty<PartTypeTerminalCraftingJob> partState;
     private final INetwork network;
+    private final int valueIdCraftingJobs;
 
     private long lastUpdate;
     private List<HandlerWrappedTerminalCraftingPlan> craftingJobs;
-    private int valueIdCraftingJobs;
 
     /**
      * Make a new instance.
@@ -64,6 +64,14 @@ public class ContainerTerminalCraftingJobs extends ExtendedInventoryContainer {
         this.valueIdCraftingJobs = getNextValueId();
     }
 
+    public PartTarget getTarget() {
+        return target;
+    }
+
+    public int getChannel() {
+        return this.partState.getChannel();
+    }
+
     public int getValueIdCraftingJobs() {
         return valueIdCraftingJobs;
     }
@@ -81,9 +89,9 @@ public class ContainerTerminalCraftingJobs extends ExtendedInventoryContainer {
             this.lastUpdate = Minecraft.getSystemTime() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
 
             // Load crafting jobs
-            int channel = this.partState.getChannel();
+            int channel = getChannel();
             this.craftingJobs = Lists.newArrayList();
-            for (ITerminalStorageTabIngredientCraftingHandler<?> handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
+            for (ITerminalStorageTabIngredientCraftingHandler<?, ?> handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
                 for (ITerminalCraftingPlan craftingJob : handler.getCraftingJobs(network, channel)) {
                     this.craftingJobs.add(new HandlerWrappedTerminalCraftingPlan(handler, craftingJob));
                 }

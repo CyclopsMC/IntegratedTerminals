@@ -35,6 +35,10 @@ public class ExtendedGuiHandler extends GuiHandler {
      * Gui type for storage terminals with a preselected tab and channel.
      */
     public static final GuiType<Pair<EnumFacing, ContainerTerminalStorage.InitTabData>> TERMINAL_STORAGE = GuiType.create(true);
+    /**
+     * Gui type for guis for selecting crafting options.
+     */
+    public static final GuiType<Pair<EnumFacing, CraftingJobGuiData>> CRAFTING_PLAN = GuiType.create(true);
 
     static {
         CRAFTING_OPTION.setContainerConstructor((id, player, world, x, y, z, containerClass, dataIn) -> {
@@ -108,6 +112,38 @@ public class ExtendedGuiHandler extends GuiHandler {
                                 IPartType.class, ContainerTerminalStorage.InitTabData.class);
                     }
                     return guiConstructor.newInstance(player, data.getRight(), data.getLeft(), data.getMiddle(), in.getRight());
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            });
+        }
+
+        CRAFTING_PLAN.setContainerConstructor((id, player, world, x, y, z, containerClass, dataIn) -> {
+            try {
+                Triple<IPartContainer, PartTypeBase, PartTarget> data = getPartConstructionData(world,
+                        new BlockPos(x, y, z), dataIn.getLeft());
+                if(data == null) return null;
+                Constructor<? extends Container> containerConstructor = containerClass.getConstructor(
+                        EntityPlayer.class, PartTarget.class, IPartContainer.class,
+                        IPartType.class, CraftingJobGuiData.class);
+                return containerConstructor.newInstance(player, data.getRight(), data.getLeft(), data.getMiddle(), dataIn.getRight());
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException
+                    | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+        if(MinecraftHelpers.isClientSide()) {
+            CRAFTING_PLAN.setGuiConstructor((id, player, world, x, y, z, guiClass, dataIn) -> {
+                try {
+                    Triple<IPartContainer, PartTypeBase, PartTarget> data = getPartConstructionData(world,
+                            new BlockPos(x, y, z), dataIn.getLeft());
+                    if(data == null) return null;
+                    Constructor<? extends GuiScreen> guiConstructor = guiClass.getConstructor(
+                            EntityPlayer.class, PartTarget.class, IPartContainer.class,
+                            IPartType.class, CraftingJobGuiData.class);
+                    return guiConstructor.newInstance(player, data.getRight(), data.getLeft(), data.getMiddle(), dataIn.getRight());
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     e.printStackTrace();
                 }

@@ -1,19 +1,23 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
 /**
  * Handles crafting actions inside ingredient-based terminal storage tabs.
+ * @param <O> The type of crafting option.
+ * @param <I> The type of crafting plan identifier.
  * @author rubensworks
  */
-public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITerminalCraftingOption<?>> {
+public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITerminalCraftingOption<?>, I> {
 
     /**
      * @return The unique id of this handler.
@@ -63,7 +67,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param quantity The requested output quantity.
      * @return The calculated crafting plan.
      */
-    public ITerminalCraftingPlan calculateCraftingPlan(INetwork network, int channel,
+    public ITerminalCraftingPlan<I> calculateCraftingPlan(INetwork network, int channel,
                                                        ITerminalCraftingOption craftingOption, long quantity);
 
     /**
@@ -71,8 +75,8 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param craftingPlan A crafting plan.
      * @return An NBT tag.
      */
-    public default NBTTagCompound serializeCraftingPlan(ITerminalCraftingPlan craftingPlan) {
-        return TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) craftingPlan);
+    public default NBTTagCompound serializeCraftingPlan(ITerminalCraftingPlan<I> craftingPlan) {
+        return TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) craftingPlan, this);
     }
 
     /**
@@ -81,9 +85,23 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @return A crafting option.
      * @throws IllegalArgumentException If the given tag was invalid.
      */
-    public default ITerminalCraftingPlan deserializeCraftingPlan(NBTTagCompound tag) throws IllegalArgumentException {
-        return TerminalCraftingPlanStatic.deserialize(tag);
+    public default ITerminalCraftingPlan<I> deserializeCraftingPlan(NBTTagCompound tag) throws IllegalArgumentException {
+        return TerminalCraftingPlanStatic.deserialize(tag, this);
     }
+
+    /**
+     * Serializes a crafting job id.
+     * @param id An id.
+     * @return An NBT tag.
+     */
+    public NBTBase serializeCraftingJobId(I id);
+
+    /**
+     * Deserialize a crafting job id.
+     * @param tag An NBT tag.
+     * @return An id.
+     */
+    public I deserializeCraftingJobId(NBTBase tag);
 
     /**
      * Start a crafting job.
@@ -91,13 +109,32 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param channel The channel to get the options for.
      * @param craftingPlan A crafting plan.
      */
-    public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan craftingPlan);
+    public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan);
 
     /**
      * @param network The network in which the plan should be started.
      * @param channel The channel to get the options for.
      * @return All running crafting plans.
      */
-    public List<ITerminalCraftingPlan> getCraftingJobs(INetwork network, int channel);
+    public List<ITerminalCraftingPlan<I>> getCraftingJobs(INetwork network, int channel);
+
+    /**
+     * Get the crafting job with the given id.
+     * @param network The network in which the plan should be started.
+     * @param channel The channel to get the options for.
+     * @param craftingJobId A crafting job id.
+     * @return A crafting job or null.
+     */
+    @Nullable
+    public ITerminalCraftingPlan<I> getCraftingJob(INetwork network, int channel, I craftingJobId);
+
+    /**
+     * Cancel the crafting job with the given id.
+     * @param network The network in which the plan should be started.
+     * @param channel The channel to get the options for.
+     * @param craftingJobId A crafting job id.
+     * @return If the crafting job was successfully cancelled.
+     */
+    public boolean cancelCraftingJob(INetwork network, int channel, I craftingJobId);
 
 }

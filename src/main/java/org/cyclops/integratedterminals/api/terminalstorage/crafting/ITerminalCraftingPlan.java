@@ -10,14 +10,20 @@ import java.util.List;
  * It is possible that a job requires no actual crafting,
  * but can be fetched from storage completely.
  *
+ * @param <I> The type of identifier.
  * @author rubensworks
  */
-public interface ITerminalCraftingPlan {
+public interface ITerminalCraftingPlan<I> {
+
+    /**
+     * @return The unique id of this plan.
+     */
+    public I getId();
 
     /**
      * @return The dependencies of this job.
      */
-    public List<ITerminalCraftingPlan> getDependencies();
+    public List<ITerminalCraftingPlan<I>> getDependencies();
 
     /**
      * @return The output instances of this job.

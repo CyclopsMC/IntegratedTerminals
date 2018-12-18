@@ -12,18 +12,19 @@ import java.util.List;
  * An extension of {@link TerminalCraftingPlanStatic} that saves a {@link CraftingJobDependencyGraph}.
  * @author rubensworks
  */
-public class TerminalCraftingPlanCraftingJobDependencyGraph extends TerminalCraftingPlanStatic {
+public class TerminalCraftingPlanCraftingJobDependencyGraph extends TerminalCraftingPlanStatic<Integer> {
 
     private final CraftingJobDependencyGraph craftingJobDependencyGraph;
 
-    public TerminalCraftingPlanCraftingJobDependencyGraph(List<ITerminalCraftingPlan> dependencies,
+    public TerminalCraftingPlanCraftingJobDependencyGraph(int id,
+                                                          List<ITerminalCraftingPlan<Integer>> dependencies,
                                                           List<IPrototypedIngredient<?, ?>> outputs,
                                                           TerminalCraftingJobStatus status,
                                                           long craftingQuantity,
                                                           List<IPrototypedIngredient<?, ?>> storageIngredients,
                                                           String unlocalizedLabel,
                                                           CraftingJobDependencyGraph craftingJobDependencyGraph) {
-        super(dependencies, outputs, status, craftingQuantity, storageIngredients, unlocalizedLabel);
+        super(id, dependencies, outputs, status, craftingQuantity, storageIngredients, unlocalizedLabel);
         this.craftingJobDependencyGraph = craftingJobDependencyGraph;
     }
 

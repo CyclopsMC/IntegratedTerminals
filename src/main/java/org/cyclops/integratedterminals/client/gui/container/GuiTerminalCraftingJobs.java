@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -13,6 +14,7 @@ import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
+import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
@@ -20,8 +22,11 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobs;
+import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsPlanGuiPacket;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * The crafting jobs overview gui.
@@ -77,6 +82,11 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
         scrollBar.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
         RenderHelpers.bindTexture(this.texture);
         drawCraftingPlans(guiLeft, guiTop, partialTicks, mouseX - guiLeft, mouseY - guiTop, GuiTerminalStorage.DrawLayer.BACKGROUND);
+
+        // Draw plan label
+        drawString(Minecraft.getMinecraft().fontRenderer,
+                L10NHelpers.localize("parttype.parttypes.integratedterminals.terminal_crafting_job.name"),
+                guiLeft + 8, guiTop + 5, 16777215);
     }
 
     @Override
@@ -85,9 +95,13 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
         drawCraftingPlans(0, 0, 0, mouseX, mouseY, GuiTerminalStorage.DrawLayer.FOREGROUND);
     }
 
+    protected List<HandlerWrappedTerminalCraftingPlan> getVisiblePlans() {
+        return this.getContainer().getCraftingJobs().subList(firstRow, Math.min(this.getContainer().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
+    }
+
     protected void drawCraftingPlans(int x, int y, float partialTicks, int mouseX, int mouseY, GuiTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
-        for (HandlerWrappedTerminalCraftingPlan craftingPlan : this.getContainer().getCraftingJobs().subList(firstRow, Math.min(this.getContainer().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()))) {
+        for (HandlerWrappedTerminalCraftingPlan craftingPlan : getVisiblePlans()) {
             drawCraftingPlan(craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
             offsetY += GuiHelpers.SLOT_SIZE;
         }
@@ -96,7 +110,7 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
     protected void drawCraftingPlan(HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
                                     GuiTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int xOriginal = x;
-        ITerminalCraftingPlan plan = craftingPlan.getCraftingPlan();
+        ITerminalCraftingPlan<?> plan = craftingPlan.getCraftingPlan();
 
         // Draw background color if hovering
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND
@@ -112,7 +126,7 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
             ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
                     .drawInstance(output.getPrototype(), quantity, GuiHelpers.quantityToScaledString(quantity),
-                            this, layer, partialTick, x, y, mouseX, mouseY, null);
+                            this, layer, partialTick, x, y + 1, mouseX, mouseY, null);
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
 
@@ -120,13 +134,13 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
             int dependencies = getDependencies(plan);
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            RenderHelpers.drawScaledString(fontRenderer, dependenciesString, xOriginal + LINE_WIDTH - 50, y + 6, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledString(fontRenderer, dependenciesString, xOriginal + LINE_WIDTH - 30, y + 6, 0.5f, 16777215, true);
         }
     }
 
-    protected static int getDependencies(ITerminalCraftingPlan plan) {
+    protected static int getDependencies(ITerminalCraftingPlan<?> plan) {
         int count = 1;
-        for (ITerminalCraftingPlan dependency : plan.getDependencies()) {
+        for (ITerminalCraftingPlan<?> dependency : plan.getDependencies()) {
             count += getDependencies(dependency);
         }
         return count;
@@ -149,10 +163,29 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
         scrollBar.handleMouseInput();
     }
 
+    @Nullable
+    protected HandlerWrappedTerminalCraftingPlan getHoveredPlan(int mouseX, int mouseY) {
+        mouseX -= guiLeft;
+        mouseY -= guiTop;
+        if (mouseX > OUTPUT_SLOT_X && mouseX < OUTPUT_SLOT_X + LINE_WIDTH
+                && mouseY > OUTPUT_SLOT_Y && mouseY < OUTPUT_SLOT_Y + GuiHelpers.SLOT_SIZE) {
+            int index = (mouseY - OUTPUT_SLOT_Y) / GuiHelpers.SLOT_SIZE;
+            List<HandlerWrappedTerminalCraftingPlan> plans = getVisiblePlans();
+            if (index >= 0 && index < plans.size()) {
+                return plans.get(index);
+            }
+        }
+        return null;
+    }
+
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         super.mouseClicked(mouseX, mouseY, mouseButton);
-        // TODO: go to new gui when clicking on a plan
+        HandlerWrappedTerminalCraftingPlan plan = getHoveredPlan(mouseX, mouseY);
+        if (plan != null) {
+            PartPos pos = getContainer().getTarget().getCenter();
+            OpenCraftingJobsPlanGuiPacket.send(pos.getPos().getBlockPos(), pos.getSide(), getContainer().getChannel(), plan);
+        }
     }
 
     public void setFirstRow(int firstRow) {
