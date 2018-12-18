@@ -7,6 +7,7 @@ import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Handles crafting actions inside ingredient-based terminal storage tabs.
@@ -91,5 +92,12 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param craftingPlan A crafting plan.
      */
     public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan craftingPlan);
+
+    /**
+     * @param network The network in which the plan should be started.
+     * @param channel The channel to get the options for.
+     * @return All running crafting plans.
+     */
+    public List<ITerminalCraftingPlan> getCraftingJobs(INetwork network, int channel);
 
 }

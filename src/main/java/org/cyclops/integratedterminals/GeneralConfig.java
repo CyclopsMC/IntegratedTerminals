@@ -95,6 +95,12 @@ public class GeneralConfig extends DummyConfig {
     public static int guiStorageEnergyIncrementalQuantity = 1000;
 
     /**
+     * The update frequency in milliseconds for the crafting jobs gui.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.MACHINE, comment = "The update frequency in milliseconds for the crafting jobs gui.", isCommandable = true)
+    public static int guiTerminalCraftingJobsUpdateFrequency = 1000;
+
+    /**
      * The type of this config.
      */
     public static ConfigurableType TYPE = ConfigurableType.DUMMY;

@@ -26,6 +26,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraf
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -90,7 +91,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         try {
             CraftingJob rootJob = CraftingHelpers.calculateCraftingJobs(network, channel, recipe, (int) quantity,
                     true, CraftingHelpers.getGlobalCraftingJobIdentifier(), dependencyGraph, true);
-            return newCraftingPlan(rootJob, dependencyGraph, true);
+            return newCraftingPlan(rootJob, dependencyGraph, true, TerminalCraftingJobStatus.UNSTARTED);
         } catch (FailedCraftingRecipeException e) {
             return newCraftingPlanFailed(e, dependencyGraph);
         } catch (RecursiveCraftingRecipeException e) {
@@ -98,17 +99,26 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         }
     }
 
-    protected static ITerminalCraftingPlan newCraftingPlan(CraftingJob craftingJob, CraftingJobDependencyGraph dependencyGraph, boolean root) {
+    protected static ITerminalCraftingPlan newCraftingPlan(CraftingJob craftingJob, CraftingJobDependencyGraph dependencyGraph,
+                                                           boolean root, @Nullable TerminalCraftingJobStatus overriddenStatus) {
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getRecipe().getOutput());
         List<ITerminalCraftingPlan> dependencies = dependencyGraph.getDependencies(craftingJob)
                 .stream()
-                .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false))
+                .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false, overriddenStatus))
                 .collect(Collectors.toList());
+        TerminalCraftingJobStatus currentStatus = overriddenStatus;
+        if (currentStatus == null) {
+            if (craftingJob.getDependencyCraftingJobs().isEmpty()) {
+                currentStatus = TerminalCraftingJobStatus.CRAFTING;
+            } else {
+                currentStatus = TerminalCraftingJobStatus.SCHEDULED;
+            }
+        }
         if (root) {
             return new TerminalCraftingPlanCraftingJobDependencyGraph(
                     dependencies,
                     CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
-                    TerminalCraftingJobStatus.UNSTARTED,
+                    currentStatus,
                     craftingJob.getAmount(),
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
@@ -117,7 +127,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
             return new TerminalCraftingPlanStatic(
                     dependencies,
                     CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
-                    TerminalCraftingJobStatus.UNSTARTED,
+                    currentStatus,
                     craftingJob.getAmount(),
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     "gui.integratedterminals.terminal_storage.craftingplan.label.valid");
@@ -130,7 +140,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         dependencies.addAll(
                 exception.getPartialCraftingJobs()
                         .stream()
-                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false))
+                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false, null))
                         .collect(Collectors.toList()));
         // Add all sub-unknown jobs
         dependencies.addAll(exception.getMissingChildRecipes()
@@ -152,7 +162,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         dependencies.addAll(
                 exception.getPartialCraftingJobs()
                         .stream()
-                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false))
+                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false,
+                                TerminalCraftingJobStatus.INVALID))
                         .collect(Collectors.toList()));
         // Add all sub-unknown jobs
         dependencies.addAll(exception.getMissingChildRecipes()
@@ -192,6 +203,17 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         } else {
             IntegratedTerminals.clog(Level.WARN, "Tried to start an invalid crafting plan with status " + craftingPlan.getStatus());
         }
+    }
+
+    @Override
+    public List<ITerminalCraftingPlan> getCraftingJobs(INetwork network, int channel) {
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        Iterable<CraftingJob> iterable = () -> craftingNetwork.getCraftingJobs(channel);
+        CraftingJobDependencyGraph dependencyGraph = craftingNetwork.getCraftingJobDependencyGraph();
+        return StreamSupport.stream(iterable.spliterator(), false)
+                .filter(job -> job.getDependentCraftingJobs().isEmpty()) // Only expose root jobs
+                .map(job -> newCraftingPlan(job, dependencyGraph, true, null))
+                .collect(Collectors.toList());
     }
 
     @Override
