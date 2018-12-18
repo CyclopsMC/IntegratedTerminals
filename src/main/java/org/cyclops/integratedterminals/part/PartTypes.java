@@ -13,5 +13,6 @@ public class PartTypes {
     public static void load() {}
 
     public static final PartTypeTerminalStorage TERMINAL_STORAGE = REGISTRY.register(new PartTypeTerminalStorage("terminal_storage"));
+    public static final PartTypeTerminalCraftingJob TERMINAL_CRAFTING_JOB = REGISTRY.register(new PartTypeTerminalCraftingJob("terminal_crafting_job"));
 
 }

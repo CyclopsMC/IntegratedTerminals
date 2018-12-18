@@ -83,6 +83,9 @@ tile.blocks.integratedterminals.chorus_glass.info=Passable glass
 # Part types
 parttype.parttypes.integratedterminals.terminal_storage.name=Storage Terminal
 parttype.parttypes.integratedterminals.terminal_storage.info=Visually interact with the ingredients stored the network.
+parttype.parttypes.integratedterminals.terminal_crafting_job.name=Crafting Job Terminal
+parttype.parttypes.integratedterminals.terminal_crafting_job.info=Manage and overview all crafting jobs in the network.
+parttype.parttypes.integratedterminals.terminal_crafting_job.tooltip.nohandlers=WARNING: No crafting handlers available. This will become usable when other mods such as Integrated Crafting are installed.
 
 # Configuration
 config.integratedterminals=%s configuration
