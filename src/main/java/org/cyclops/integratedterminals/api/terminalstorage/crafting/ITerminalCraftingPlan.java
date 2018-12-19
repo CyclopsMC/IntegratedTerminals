@@ -47,6 +47,13 @@ public interface ITerminalCraftingPlan<I> {
     public List<IPrototypedIngredient<?, ?>> getStorageIngredients();
 
     /**
+     * @return The ingredients that were missing for 1 job amount.
+     *         This should contain something when the status is {@link TerminalCraftingJobStatus#PENDING_INPUTS}.
+     *         The inner list represents alternatives.
+     */
+    public List<List<IPrototypedIngredient<?, ?>>> getLastMissingIngredients();
+
+    /**
      * @return A visual label for this plan, such as an error or plan type.
      */
     public String getUnlocalizedLabel();

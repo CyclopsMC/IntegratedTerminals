@@ -10,8 +10,10 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
 import org.cyclops.cyclopscore.client.gui.image.Image;
@@ -31,6 +33,9 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A gui component for visualizing {@link CraftingOptionGuiData}.
@@ -49,6 +54,8 @@ public class GuiCraftingPlan extends Gui {
     private static final int ELEMENT_WIDTH = 221;
     private static final int ELEMENT_HEIGHT = 16;
     private static final int ELEMENT_HEIGHT_TOTAL = 18;
+
+    protected static final int TICK_DELAY = 30;
 
     private final GuiContainer parentGui;
     private final int guiLeft;
@@ -116,6 +123,10 @@ public class GuiCraftingPlan extends Gui {
         }
     }
 
+    protected int getTick() {
+        return (int) Minecraft.getMinecraft().world.getWorldTime() / TICK_DELAY;
+    }
+
     private void drawElement(Element element, int indent, int x, int y, int width, int height, GuiTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw background
@@ -134,7 +145,9 @@ public class GuiCraftingPlan extends Gui {
         x += 16;
 
         // Draw outputs
-        for (IPrototypedIngredient<?, ?> output : element.getOutputs()) {
+        int tick = getTick();
+        for (List<IPrototypedIngredient<?, ?>> alternatives : element.getOutputs()) {
+            IPrototypedIngredient<?, ?> output = alternatives.get(tick % alternatives.size());
             IngredientComponent<?, ?> ingredientComponent = output.getComponent();
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
             ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
@@ -143,8 +156,8 @@ public class GuiCraftingPlan extends Gui {
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
 
+        x = xOriginal + width - 50;
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
-            x = xOriginal + width - 50;
             // Draw counters
             if (element.getStorageQuantity() > 0) {
                 renderItem(new ItemStack(Blocks.CHEST), x, y, 0.45F);
@@ -161,6 +174,15 @@ public class GuiCraftingPlan extends Gui {
                 RenderHelpers.drawScaledString(Minecraft.getMinecraft().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215, true);
             }
             GlStateManager.color(1, 1, 1);
+        } else {
+            // Draw tooltip over crafting status
+            GuiHelpers.renderTooltipOptional(this.parentGui, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
+                String unlocalizedName = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH) + ".";
+                return Optional.of(Lists.newArrayList(
+                        L10NHelpers.localize(unlocalizedName + "name"),
+                        L10NHelpers.localize(unlocalizedName + "desc")
+                ));
+            });
         }
     }
 
@@ -230,20 +252,40 @@ public class GuiCraftingPlan extends Gui {
                 || (!craftingPlan.getStorageIngredients().isEmpty() || !craftingPlan.getDependencies().isEmpty());
         Element currentElement = new Element(
                 indent,
-                craftingPlan.getOutputs(),
+                (List) craftingPlan.getOutputs()
+                    .stream()
+                    .map(Collections::singletonList)
+                    .collect(Collectors.toList()),
                 0,
                 valid ? craftingPlan.getCraftingQuantity() : 0,
                 valid ? 0 : craftingPlan.getCraftingQuantity(),
-                craftingPlan.getStatus().getColor()
-        );
+                craftingPlan.getStatus().getColor(),
+                craftingPlan.getStatus());
         if (parent != null) {
             parent.addChild(currentElement);
         }
         elements.add(currentElement);
-        for (IPrototypedIngredient storageIngredient : craftingPlan.getStorageIngredients()) {
-            elements.add(currentElement.addChild(new Element(indent + 1, Collections.singletonList(storageIngredient),
-                    storageIngredient.getComponent().getMatcher().getQuantity(storageIngredient.getPrototype()),
-                    0, 0, TerminalCraftingJobStatus.FINISHED.getColor())));
+        if (craftingPlan.getStatus() == TerminalCraftingJobStatus.PENDING_INPUTS) {
+            // Add last missing ingredients
+            for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : craftingPlan.getLastMissingIngredients()) {
+                List outputs = Collections.singletonList(lastMissingIngredient
+                        .stream()
+                        .map(prototypedIngredient -> {
+                            IIngredientMatcher matcher = prototypedIngredient.getComponent().getMatcher();
+                            Object instance = matcher.withQuantity(prototypedIngredient.getPrototype(),
+                                    matcher.getQuantity(prototypedIngredient.getPrototype()) * craftingPlan.getCraftingQuantity());
+                            return new PrototypedIngredient(prototypedIngredient.getComponent(), instance, prototypedIngredient.getCondition());
+                        })
+                        .collect(Collectors.toList()));
+                elements.add(currentElement.addChild(new Element(indent + 1, outputs,
+                        0, 0, craftingPlan.getCraftingQuantity(), TerminalCraftingJobStatus.INVALID.getColor(), TerminalCraftingJobStatus.INVALID)));
+            }
+        } else if (craftingPlan.getStatus() != TerminalCraftingJobStatus.CRAFTING) {
+            for (IPrototypedIngredient storageIngredient : craftingPlan.getStorageIngredients()) {
+                elements.add(currentElement.addChild(new Element(indent + 1, Collections.singletonList(Collections.singletonList(storageIngredient)),
+                        storageIngredient.getComponent().getMatcher().getQuantity(storageIngredient.getPrototype()),
+                        0, 0, TerminalCraftingJobStatus.FINISHED.getColor(), TerminalCraftingJobStatus.FINISHED)));
+            }
         }
         for (ITerminalCraftingPlan<?> dependency : craftingPlan.getDependencies()) {
             addElements(currentElement, indent + 1, dependency, elements);
@@ -257,23 +299,25 @@ public class GuiCraftingPlan extends Gui {
     public static class Element {
 
         private final int indent;
-        private final List<IPrototypedIngredient<?, ?>> outputs;
+        private final List<List<IPrototypedIngredient<?, ?>>> outputs;
         private final long storageQuantity;
         private final long craftQuantity;
         private final long missingQuantity;
         private final int color;
         private final List<Element> children;
+        private final TerminalCraftingJobStatus status;
 
         private boolean enabled;
 
-        public Element(int indent, List<IPrototypedIngredient<?, ?>> outputs, long storageQuantity, long craftQuantity,
-                       long missingQuantity, int color) {
+        public Element(int indent, List<List<IPrototypedIngredient<?, ?>>> outputs, long storageQuantity, long craftQuantity,
+                       long missingQuantity, int color, TerminalCraftingJobStatus status) {
             this.indent = indent;
             this.outputs = outputs;
             this.storageQuantity = storageQuantity;
             this.craftQuantity = craftQuantity;
             this.missingQuantity = missingQuantity;
             this.color = color;
+            this.status = status;
             this.children = Lists.newArrayList();
 
             this.enabled = true;
@@ -283,7 +327,7 @@ public class GuiCraftingPlan extends Gui {
             return indent;
         }
 
-        public List<IPrototypedIngredient<?, ?>> getOutputs() {
+        public List<List<IPrototypedIngredient<?, ?>>> getOutputs() {
             return outputs;
         }
 
@@ -318,6 +362,10 @@ public class GuiCraftingPlan extends Gui {
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
+        }
+
+        public TerminalCraftingJobStatus getStatus() {
+            return status;
         }
     }
 

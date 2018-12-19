@@ -16,13 +16,19 @@ public enum TerminalCraftingJobStatus {
      */
     UNSTARTED(Helpers.RGBAToInt(225, 225, 225, 150)),
     /**
-     * The job is scheduled for crafting.
+     * The crafting job has been scheduled,
+     * but is not processing yet because a dependency is still being processed.
      */
-    SCHEDULED(Helpers.RGBAToInt(243, 245, 4, 150)),
+    PENDING_DEPENDENCIES(Helpers.RGBAToInt(243, 245, 4, 150)),
+    /**
+     * The crafting job has been scheduled,
+     * but is not processing yet because input ingredients are missing.
+     */
+    PENDING_INPUTS(Helpers.RGBAToInt(245, 172, 3, 150)),
     /**
      * The output is actively being crafted.
      */
-    CRAFTING(Helpers.RGBAToInt(43, 231, 47, 150)),
+    CRAFTING(Helpers.RGBAToInt(43, 174, 231, 150)),
     /**
      * All expected outputs are crafted.
      */

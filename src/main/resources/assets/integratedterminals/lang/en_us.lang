@@ -16,6 +16,7 @@ gui.integratedterminals.terminal_storage.start_crafting_job=Start crafting job
 gui.integratedterminals.terminal_storage.craftingplan.label.valid=Crafting plan - Valid
 gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete=Crafting plan - Incomplete
 gui.integratedterminals.terminal_storage.craftingplan.label.failed.recursion=Crafting plan - Recursive recipe detected!
+gui.integratedterminals.terminal_storage.craftingplan.label.running=Crafting plan - Running
 gui.integratedterminals.terminal_storage.step.next=Next
 gui.integratedterminals.terminal_storage.step.craft=Craft
 gui.integratedterminals.terminal_storage.step.crafting_plan_calculating=Calculating crafting plan...
@@ -58,6 +59,18 @@ gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies=Size: %s
 gui.integratedterminals.terminal_crafting_job.craftingplan.cancel=Cancel Job
 gui.integratedterminals.terminal_crafting_job.craftingplan.empty=Empty crafting job
 
+gui.integratedterminals.craftingplan.status.invalid.name=Invalid
+gui.integratedterminals.craftingplan.status.invalid.desc=Missing storage ingredients
+gui.integratedterminals.craftingplan.status.unstarted.name=Valid
+gui.integratedterminals.craftingplan.status.unstarted.desc=Not started yet
+gui.integratedterminals.craftingplan.status.pending_dependencies.name=Pending Dependencies
+gui.integratedterminals.craftingplan.status.pending_dependencies.desc=Waiting for dependencies to finish
+gui.integratedterminals.craftingplan.status.pending_inputs.name=Pending Inputs
+gui.integratedterminals.craftingplan.status.pending_inputs.desc=Missing input ingredients
+gui.integratedterminals.craftingplan.status.crafting.name=Crafting
+gui.integratedterminals.craftingplan.status.crafting.desc=Job started, waiting for outputs
+gui.integratedterminals.craftingplan.status.finished.name=Finished
+gui.integratedterminals.craftingplan.status.finished.desc=Job completed, outputs have been received
 
 # Keybindings
 key.categories.integratedterminals=Integrated Terminals

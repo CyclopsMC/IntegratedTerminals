@@ -21,6 +21,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     private final TerminalCraftingJobStatus status;
     private final long craftingQuantity;
     private final List<IPrototypedIngredient<?, ?>> storageIngredients;
+    private final List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients;
     private final String unlocalizedLabel;
 
     public TerminalCraftingPlanStatic(I id,
@@ -29,6 +30,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                                       TerminalCraftingJobStatus status,
                                       long craftingQuantity,
                                       List<IPrototypedIngredient<?, ?>> storageIngredients,
+                                      List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
                                       String unlocalizedLabel) {
         this.id = id;
         this.dependencies = dependencies;
@@ -36,6 +38,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         this.status = status;
         this.craftingQuantity = craftingQuantity;
         this.storageIngredients = storageIngredients;
+        this.lastMissingIngredients = lastMissingIngredients;
         this.unlocalizedLabel = unlocalizedLabel;
     }
 
@@ -67,6 +70,11 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     @Override
     public List<IPrototypedIngredient<?, ?>> getStorageIngredients() {
         return storageIngredients;
+    }
+
+    @Override
+    public List<List<IPrototypedIngredient<?, ?>>> getLastMissingIngredients() {
+        return lastMissingIngredients;
     }
 
     @Override
@@ -102,6 +110,16 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
         tag.setTag("storageIngredients", storageIngredients);
 
+        NBTTagList lastMissingIngredients = new NBTTagList();
+        for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : plan.getLastMissingIngredients()) {
+            NBTTagList lastMissingIngredientTag = new NBTTagList();
+            for (IPrototypedIngredient<?, ?> prototypedIngredient : lastMissingIngredient) {
+                lastMissingIngredientTag.appendTag(IPrototypedIngredient.serialize((PrototypedIngredient) prototypedIngredient));
+            }
+            lastMissingIngredients.appendTag(lastMissingIngredientTag);
+        }
+        tag.setTag("lastMissingIngredients", lastMissingIngredients);
+
         tag.setString("unlocalizedLabel", plan.getUnlocalizedLabel());
 
         return tag;
@@ -126,6 +144,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
         if (!tag.hasKey("storageIngredients", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a storageIngredients entry in the given tag");
+        }
+        if (!tag.hasKey("lastMissingIngredients", Constants.NBT.TAG_LIST)) {
+            throw new IllegalArgumentException("Could not find a lastMissingIngredients entry in the given tag");
         }
         if (!tag.hasKey("unlocalizedLabel", Constants.NBT.TAG_STRING)) {
             throw new IllegalArgumentException("Could not find a unlocalizedLabel entry in the given tag");
@@ -155,8 +176,20 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             storageIngredients.add(IPrototypedIngredient.deserialize((NBTTagCompound) nbtBase));
         }
 
+        NBTTagList lastMissingIngredientsTag = tag.getTagList("lastMissingIngredients", Constants.NBT.TAG_LIST);
+        List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients = Lists.newArrayListWithExpectedSize(lastMissingIngredientsTag.tagCount());
+        for (NBTBase nbtBase : lastMissingIngredientsTag) {
+            NBTTagList list = ((NBTTagList) nbtBase);
+            List<IPrototypedIngredient<?, ?>> lastMissingIngredient = Lists.newArrayListWithExpectedSize(list.tagCount());
+            for (NBTBase base : list) {
+                lastMissingIngredient.add(IPrototypedIngredient.deserialize((NBTTagCompound) base));
+            }
+            lastMissingIngredients.add(lastMissingIngredient);
+        }
+
         String unlocalizedLabel = tag.getString("unlocalizedLabel");
 
-        return new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients, unlocalizedLabel);
+        return new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients,
+                lastMissingIngredients, unlocalizedLabel);
     }
 }
