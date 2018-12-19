@@ -19,6 +19,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlan;
+import org.cyclops.integratedterminals.network.packet.CancelCraftingJobPacket;
 import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsGuiPacket;
 import org.lwjgl.input.Keyboard;
 
@@ -120,7 +121,8 @@ public class GuiTerminalCraftingJobsPlan extends GuiContainerExtended {
 
     private void cancelCraftingJob() {
         // Send packet to cancel crafting job
-        // TODO
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new CancelCraftingJobPacket(getContainer().getCraftingJobGuiData()));
 
         // Return to overview
         returnToOverview();

@@ -55,6 +55,10 @@ public class ContainerTerminalCraftingJobsPlan extends ExtendedInventoryContaine
         this.craftingPlanNotifierId = getNextValueId();
     }
 
+    public CraftingJobGuiData getCraftingJobGuiData() {
+        return craftingJobGuiData;
+    }
+
     public PartTarget getTarget() {
         return target;
     }

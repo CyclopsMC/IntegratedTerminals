@@ -222,11 +222,11 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 .collect(Collectors.toList());
 
         int craftingJobId = craftingJob.getId();
-        ICraftingInterface craftingInterface = craftingNetwork.getCraftingJobInterface(channel, craftingJobId);
+        ICraftingInterface craftingInterface = craftingNetwork.getCraftingJobInterface(craftingJob.getChannel(), craftingJobId);
 
         // Determine status
         TerminalCraftingJobStatus jobStatus = TerminalCraftingJobStatus.UNSTARTED;
-        switch (craftingInterface.getCraftingJobStatus(craftingNetwork, channel, craftingJobId)) {
+        switch (craftingInterface.getCraftingJobStatus(craftingNetwork, craftingJob.getChannel(), craftingJobId)) {
             case PENDING_DEPENDENCIES:
                 jobStatus = TerminalCraftingJobStatus.PENDING_DEPENDENCIES;
                 break;
@@ -316,7 +316,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
     @Override
     public boolean cancelCraftingJob(INetwork network, int channel, Integer craftingJobId) {
-        return false; // TODO
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        return craftingNetwork.cancelCraftingJob(channel, craftingJobId);
     }
 
     @Override
