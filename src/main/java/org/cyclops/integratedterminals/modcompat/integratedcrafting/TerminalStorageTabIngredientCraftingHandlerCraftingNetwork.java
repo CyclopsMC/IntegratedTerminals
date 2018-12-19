@@ -122,6 +122,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     Collections.emptyList(),
                     "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
+                    -1,
                     dependencyGraph);
         } else {
             return new TerminalCraftingPlanStatic<Integer>(
@@ -132,7 +133,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     craftingJob.getAmount(),
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     Collections.emptyList(),
-                    "gui.integratedterminals.terminal_storage.craftingplan.label.valid");
+                    "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
+                    -1);
         }
     }
 
@@ -157,7 +159,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 exception.getQuantityMissing(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 Collections.emptyList(),
-                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete");
+                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
+                -1);
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlanFailed(FailedCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
@@ -182,7 +185,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 exception.getQuantityMissing(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 Collections.emptyList(),
-                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete");
+                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
+                -1);
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlanErrorRecursive(List<PrioritizedRecipe> childRecipes) {
@@ -198,7 +202,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 0,
                 Collections.emptyList(),
                 Collections.emptyList(),
-                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.recursion");
+                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.recursion",
+                -1);
     }
 
     @Override
@@ -288,7 +293,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 craftingJob.getAmount(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                 lastMissingIngredients,
-                "gui.integratedterminals.terminal_storage.craftingplan.label.running");
+                "gui.integratedterminals.terminal_storage.craftingplan.label.running",
+                craftingNetwork.getRunningTicks(craftingJob));
     }
 
     @Override
@@ -346,6 +352,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     planStatic.getStorageIngredients(),
                     planStatic.getLastMissingIngredients(),
                     planStatic.getUnlocalizedLabel(),
+                    planStatic.getTickDuration(),
                     craftingJobDependencyGraph
             );
         } else {

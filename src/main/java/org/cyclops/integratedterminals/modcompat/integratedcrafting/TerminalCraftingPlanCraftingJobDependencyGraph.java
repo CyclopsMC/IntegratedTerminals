@@ -24,8 +24,9 @@ public class TerminalCraftingPlanCraftingJobDependencyGraph extends TerminalCraf
                                                           List<IPrototypedIngredient<?, ?>> storageIngredients,
                                                           List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
                                                           String unlocalizedLabel,
+                                                          long tickDuration,
                                                           CraftingJobDependencyGraph craftingJobDependencyGraph) {
-        super(id, dependencies, outputs, status, craftingQuantity, storageIngredients, lastMissingIngredients, unlocalizedLabel);
+        super(id, dependencies, outputs, status, craftingQuantity, storageIngredients, lastMissingIngredients, unlocalizedLabel, tickDuration);
         this.craftingJobDependencyGraph = craftingJobDependencyGraph;
     }
 

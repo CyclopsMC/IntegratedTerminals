@@ -58,6 +58,7 @@ gui.integratedterminals.terminal_storage.crafting.filter.type.craftable=§aCraft
 gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies=Size: %s
 gui.integratedterminals.terminal_crafting_job.craftingplan.cancel=Cancel Job
 gui.integratedterminals.terminal_crafting_job.craftingplan.empty=Empty crafting job
+gui.integratedterminals.terminal_crafting_job.craftingplan.duration=Duration: %s
 
 gui.integratedterminals.craftingplan.status=Status: %s
 gui.integratedterminals.craftingplan.status.invalid.name=Invalid

@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.client.gui.container.component;
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -10,6 +11,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -20,6 +22,7 @@ import org.cyclops.cyclopscore.client.gui.image.Image;
 import org.cyclops.cyclopscore.client.gui.image.Images;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
@@ -67,6 +70,7 @@ public class GuiCraftingPlan extends Gui {
     private final boolean valid;
     private final GuiScrollBar scrollBar;
     private final String label;
+    private final long tickDuration;
 
     private int firstRow;
 
@@ -82,6 +86,7 @@ public class GuiCraftingPlan extends Gui {
         this.scrollBar = new GuiScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size() - 1);
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
+        this.tickDuration = craftingPlan.getTickDuration();
     }
 
     protected void refreshList() {
@@ -207,9 +212,21 @@ public class GuiCraftingPlan extends Gui {
         GlStateManager.popMatrix();
     }
 
+    public static String getDurationString(long tickDuration) {
+        long durationMs = tickDuration * 1000 / MinecraftHelpers.SECOND_IN_TICKS;
+        return L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
+                DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
+    }
+
     public void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
+
         // Draw plan label
         drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2, y - 3, 16777215);
+
+        // Draw duration
+        String durationString = getDurationString(tickDuration);
+        RenderHelpers.drawScaledString(fontRenderer, durationString, guiLeft + x + 200, y - 3, 0.5f, 16777215, true);
 
         drawGuiContainerLayer(guiLeft, guiTop, GuiTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);

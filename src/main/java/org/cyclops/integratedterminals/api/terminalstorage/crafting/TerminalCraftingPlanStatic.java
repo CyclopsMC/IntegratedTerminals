@@ -23,6 +23,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     private final List<IPrototypedIngredient<?, ?>> storageIngredients;
     private final List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients;
     private final String unlocalizedLabel;
+    private final long tickDuration;
 
     public TerminalCraftingPlanStatic(I id,
                                       List<ITerminalCraftingPlan<I>> dependencies,
@@ -31,7 +32,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                                       long craftingQuantity,
                                       List<IPrototypedIngredient<?, ?>> storageIngredients,
                                       List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
-                                      String unlocalizedLabel) {
+                                      String unlocalizedLabel,
+                                      long tickDuration) {
         this.id = id;
         this.dependencies = dependencies;
         this.outputs = outputs;
@@ -40,6 +42,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         this.storageIngredients = storageIngredients;
         this.lastMissingIngredients = lastMissingIngredients;
         this.unlocalizedLabel = unlocalizedLabel;
+        this.tickDuration = tickDuration;
     }
 
     @Override
@@ -82,6 +85,11 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         return unlocalizedLabel;
     }
 
+    @Override
+    public long getTickDuration() {
+        return tickDuration;
+    }
+
     public static <I> NBTTagCompound serialize(TerminalCraftingPlanStatic<I> plan,
                                                ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
         NBTTagCompound tag = new NBTTagCompound();
@@ -122,6 +130,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         tag.setString("unlocalizedLabel", plan.getUnlocalizedLabel());
 
+        tag.setLong("tickDuration", plan.getTickDuration());
+
         return tag;
     }
 
@@ -150,6 +160,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
         if (!tag.hasKey("unlocalizedLabel", Constants.NBT.TAG_STRING)) {
             throw new IllegalArgumentException("Could not find a unlocalizedLabel entry in the given tag");
+        }
+        if (!tag.hasKey("tickDuration", Constants.NBT.TAG_LONG)) {
+            throw new IllegalArgumentException("Could not find a tickDuration entry in the given tag");
         }
 
         I id = handler.deserializeCraftingJobId(tag.getTag("id"));
@@ -189,7 +202,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         String unlocalizedLabel = tag.getString("unlocalizedLabel");
 
+        long tickDuration = tag.getLong("tickDuration");
+
         return new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients,
-                lastMissingIngredients, unlocalizedLabel);
+                lastMissingIngredients, unlocalizedLabel, tickDuration);
     }
 }

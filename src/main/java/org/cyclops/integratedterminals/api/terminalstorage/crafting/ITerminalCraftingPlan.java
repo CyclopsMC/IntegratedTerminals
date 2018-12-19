@@ -58,4 +58,9 @@ public interface ITerminalCraftingPlan<I> {
      */
     public String getUnlocalizedLabel();
 
+    /**
+     * @return The tick duration for this job. -1 indicates no duration.
+     */
+    public long getTickDuration();
+
 }

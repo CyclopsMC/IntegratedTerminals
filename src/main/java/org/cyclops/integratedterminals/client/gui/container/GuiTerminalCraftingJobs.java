@@ -20,6 +20,7 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
+import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobs;
 import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsPlanGuiPacket;
@@ -135,11 +136,14 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
             String statusString = L10NHelpers.localize("gui.integratedterminals.craftingplan.status",
                     L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH) + ".name"));
-            RenderHelpers.drawScaledString(fontRenderer, statusString, xOriginal + LINE_WIDTH - 80, y + 2, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledString(fontRenderer, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215, true);
 
             int dependencies = getDependencies(plan);
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            RenderHelpers.drawScaledString(fontRenderer, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 8, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledString(fontRenderer, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215, true);
+
+            String durationString = GuiCraftingPlan.getDurationString(plan.getTickDuration());
+            RenderHelpers.drawScaledString(fontRenderer, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true);
         }
     }
 
