@@ -27,6 +27,7 @@ import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsPlanGuiPac
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The crafting jobs overview gui.
@@ -132,9 +133,13 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
 
         // Draw dependency count
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+            String statusString = L10NHelpers.localize("gui.integratedterminals.craftingplan.status",
+                    L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH) + ".name"));
+            RenderHelpers.drawScaledString(fontRenderer, statusString, xOriginal + LINE_WIDTH - 80, y + 2, 0.5f, 16777215, true);
+
             int dependencies = getDependencies(plan);
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            RenderHelpers.drawScaledString(fontRenderer, dependenciesString, xOriginal + LINE_WIDTH - 30, y + 6, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledString(fontRenderer, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 8, 0.5f, 16777215, true);
         }
     }
 

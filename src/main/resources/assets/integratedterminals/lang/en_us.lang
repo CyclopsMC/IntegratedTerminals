@@ -59,6 +59,7 @@ gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies=Size: %s
 gui.integratedterminals.terminal_crafting_job.craftingplan.cancel=Cancel Job
 gui.integratedterminals.terminal_crafting_job.craftingplan.empty=Empty crafting job
 
+gui.integratedterminals.craftingplan.status=Status: %s
 gui.integratedterminals.craftingplan.status.invalid.name=Invalid
 gui.integratedterminals.craftingplan.status.invalid.desc=Missing storage ingredients
 gui.integratedterminals.craftingplan.status.unstarted.name=Valid
