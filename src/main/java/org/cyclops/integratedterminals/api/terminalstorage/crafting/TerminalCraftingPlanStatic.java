@@ -24,6 +24,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     private final List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients;
     private final String unlocalizedLabel;
     private final long tickDuration;
+    private final int channel;
 
     public TerminalCraftingPlanStatic(I id,
                                       List<ITerminalCraftingPlan<I>> dependencies,
@@ -33,7 +34,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                                       List<IPrototypedIngredient<?, ?>> storageIngredients,
                                       List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
                                       String unlocalizedLabel,
-                                      long tickDuration) {
+                                      long tickDuration,
+                                      int channel) {
         this.id = id;
         this.dependencies = dependencies;
         this.outputs = outputs;
@@ -43,6 +45,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         this.lastMissingIngredients = lastMissingIngredients;
         this.unlocalizedLabel = unlocalizedLabel;
         this.tickDuration = tickDuration;
+        this.channel = channel;
     }
 
     @Override
@@ -90,6 +93,11 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         return tickDuration;
     }
 
+    @Override
+    public int getChannel() {
+        return channel;
+    }
+
     public static <I> NBTTagCompound serialize(TerminalCraftingPlanStatic<I> plan,
                                                ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
         NBTTagCompound tag = new NBTTagCompound();
@@ -132,6 +140,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         tag.setLong("tickDuration", plan.getTickDuration());
 
+        tag.setInteger("channel", plan.getChannel());
+
         return tag;
     }
 
@@ -163,6 +173,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
         if (!tag.hasKey("tickDuration", Constants.NBT.TAG_LONG)) {
             throw new IllegalArgumentException("Could not find a tickDuration entry in the given tag");
+        }
+        if (!tag.hasKey("channel", Constants.NBT.TAG_INT)) {
+            throw new IllegalArgumentException("Could not find a channel entry in the given tag");
         }
 
         I id = handler.deserializeCraftingJobId(tag.getTag("id"));
@@ -204,7 +217,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         long tickDuration = tag.getLong("tickDuration");
 
+        int channel = tag.getInteger("channel");
+
         return new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients,
-                lastMissingIngredients, unlocalizedLabel, tickDuration);
+                lastMissingIngredients, unlocalizedLabel, tickDuration, channel);
     }
 }

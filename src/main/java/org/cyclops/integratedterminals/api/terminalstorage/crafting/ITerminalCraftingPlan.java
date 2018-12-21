@@ -63,4 +63,9 @@ public interface ITerminalCraftingPlan<I> {
      */
     public long getTickDuration();
 
+    /**
+     * @return The channel id, or -1 for non-applicable.
+     */
+    public int getChannel();
+
 }

@@ -123,6 +123,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     Collections.emptyList(),
                     "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
                     -1,
+                    craftingJob.getChannel(),
                     dependencyGraph);
         } else {
             return new TerminalCraftingPlanStatic<Integer>(
@@ -134,7 +135,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     Collections.emptyList(),
                     "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
-                    -1);
+                    -1,
+                    craftingJob.getChannel());
         }
     }
 
@@ -160,6 +162,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 Collections.emptyList(),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
+                -1,
                 -1);
     }
 
@@ -186,6 +189,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 Collections.emptyList(),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
+                -1,
                 -1);
     }
 
@@ -203,6 +207,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 Collections.emptyList(),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.recursion",
+                -1,
                 -1);
     }
 
@@ -297,7 +302,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                 lastMissingIngredients,
                 "gui.integratedterminals.terminal_storage.craftingplan.label.running",
-                craftingNetwork.getRunningTicks(craftingJob));
+                craftingNetwork.getRunningTicks(craftingJob),
+                craftingJob.getChannel());
     }
 
     @Override
@@ -356,6 +362,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     planStatic.getLastMissingIngredients(),
                     planStatic.getUnlocalizedLabel(),
                     planStatic.getTickDuration(),
+                    planStatic.getChannel(),
                     craftingJobDependencyGraph
             );
         } else {
