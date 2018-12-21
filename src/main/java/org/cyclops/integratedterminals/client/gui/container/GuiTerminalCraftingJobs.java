@@ -142,8 +142,11 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
             RenderHelpers.drawScaledString(fontRenderer, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215, true);
 
-            String durationString = GuiCraftingPlan.getDurationString(plan.getTickDuration());
-            RenderHelpers.drawScaledString(fontRenderer, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true);
+            long tickDuration = plan.getTickDuration();
+            if (tickDuration >= 0) {
+                String durationString = GuiCraftingPlan.getDurationString(tickDuration);
+                RenderHelpers.drawScaledString(fontRenderer, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true);
+            }
         }
     }
 

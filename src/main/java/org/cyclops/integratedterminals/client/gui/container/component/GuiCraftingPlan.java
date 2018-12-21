@@ -225,8 +225,10 @@ public class GuiCraftingPlan extends Gui {
         drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2, y - 3, 16777215);
 
         // Draw duration
-        String durationString = getDurationString(tickDuration);
-        RenderHelpers.drawScaledString(fontRenderer, durationString, guiLeft + x + 200, y - 3, 0.5f, 16777215, true);
+        if (tickDuration >= 0) {
+            String durationString = getDurationString(tickDuration);
+            RenderHelpers.drawScaledString(fontRenderer, durationString, guiLeft + x + 200, y - 3, 0.5f, 16777215, true);
+        }
 
         drawGuiContainerLayer(guiLeft, guiTop, GuiTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
