@@ -10,17 +10,16 @@ import net.minecraftforge.common.util.Constants;
 import org.cyclops.cyclopscore.inventory.IGuiContainerProvider;
 import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
+import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
-import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
-import org.cyclops.integratedterminals.part.PartTypeTerminalCraftingJob;
 
 import java.util.List;
 
@@ -34,7 +33,6 @@ public class ContainerTerminalCraftingJobs extends ExtendedInventoryContainer {
     private final PartTarget target;
     private final IPartContainer partContainer;
     private final IPartType partType;
-    private final PartStateEmpty<PartTypeTerminalCraftingJob> partState;
     private final INetwork network;
     private final int valueIdCraftingJobs;
 
@@ -56,7 +54,6 @@ public class ContainerTerminalCraftingJobs extends ExtendedInventoryContainer {
         this.partContainer = partContainer;
         this.partType = partType;
         this.world = player.world;
-        this.partState = (PartStateEmpty<PartTypeTerminalCraftingJob>) partContainer.getPartState(target.getCenter().getSide());
         this.network = NetworkHelpers.getNetwork(target.getCenter());
 
         this.lastUpdate = 0;
@@ -69,7 +66,7 @@ public class ContainerTerminalCraftingJobs extends ExtendedInventoryContainer {
     }
 
     public int getChannel() {
-        return this.partState.getChannel();
+        return IPositionedAddonsNetwork.WILDCARD_CHANNEL;
     }
 
     public int getValueIdCraftingJobs() {
