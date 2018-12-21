@@ -26,6 +26,10 @@ public enum TerminalCraftingJobStatus {
      */
     PENDING_INPUTS(Helpers.RGBAToInt(245, 172, 3, 150)),
     /**
+     * The recipe inputs could not be inserted into the crafting handler.
+     */
+    INVALID_INPUTS(Helpers.RGBAToInt(250, 10, 13, 150)),
+    /**
      * The output is actively being crafted.
      */
     CRAFTING(Helpers.RGBAToInt(43, 174, 231, 150)),

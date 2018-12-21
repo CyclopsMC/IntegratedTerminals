@@ -238,6 +238,9 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
             case PENDING_INGREDIENTS:
                 jobStatus = TerminalCraftingJobStatus.PENDING_INPUTS;
                 break;
+            case INVALID_INPUTS:
+                jobStatus = TerminalCraftingJobStatus.INVALID_INPUTS;
+                break;
             case PROCESSING:
                 jobStatus = TerminalCraftingJobStatus.CRAFTING;
                 break;
