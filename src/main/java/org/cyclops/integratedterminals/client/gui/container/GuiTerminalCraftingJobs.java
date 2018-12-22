@@ -185,7 +185,7 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
         mouseX -= guiLeft;
         mouseY -= guiTop;
         if (mouseX > OUTPUT_SLOT_X && mouseX < OUTPUT_SLOT_X + LINE_WIDTH
-                && mouseY > OUTPUT_SLOT_Y && mouseY < OUTPUT_SLOT_Y + GuiHelpers.SLOT_SIZE) {
+                && mouseY > OUTPUT_SLOT_Y && mouseY < OUTPUT_SLOT_Y + GuiHelpers.SLOT_SIZE * scrollBar.getVisibleRows()) {
             int index = (mouseY - OUTPUT_SLOT_Y) / GuiHelpers.SLOT_SIZE;
             List<HandlerWrappedTerminalCraftingPlan> plans = getVisiblePlans();
             if (index >= 0 && index < plans.size()) {
