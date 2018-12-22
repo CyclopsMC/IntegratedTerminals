@@ -57,6 +57,7 @@ gui.integratedterminals.terminal_storage.crafting.filter.type.storage=§aStorage
 gui.integratedterminals.terminal_storage.crafting.filter.type.craftable=§aCraftable
 gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies=Size: %s
 gui.integratedterminals.terminal_crafting_job.craftingplan.cancel=Cancel Job
+gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all=Cancel All Jobs
 gui.integratedterminals.terminal_crafting_job.craftingplan.empty=Empty crafting job
 gui.integratedterminals.terminal_crafting_job.craftingplan.duration=Duration: %s
 gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel=Channel: %s

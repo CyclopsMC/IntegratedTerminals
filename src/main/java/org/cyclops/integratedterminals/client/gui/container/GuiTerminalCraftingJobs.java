@@ -1,12 +1,15 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
+import org.cyclops.cyclopscore.client.gui.component.button.GuiButtonText;
 import org.cyclops.cyclopscore.client.gui.container.GuiContainerExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -21,8 +24,10 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
+import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobs;
+import org.cyclops.integratedterminals.network.packet.CancelCraftingJobPacket;
 import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsPlanGuiPacket;
 
 import javax.annotation.Nullable;
@@ -41,12 +46,15 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
 
     public static int LINE_WIDTH = 221;
 
+    private final EntityPlayer player;
+
     private GuiScrollBar scrollBar;
     private int firstRow;
 
     public GuiTerminalCraftingJobs(EntityPlayer player, PartTarget target, IPartContainer partContainer,
                                    IPartType partType) {
         super(new ContainerTerminalCraftingJobs(player, target, partContainer, partType));
+        this.player = player;
     }
 
     @Override
@@ -55,6 +63,9 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
 
         scrollBar = new GuiScrollBar(guiLeft + 236, guiTop + 18, 178, this::setFirstRow, 10);
         scrollBar.setTotalRows(getContainer().getCraftingJobs().size() - 1);
+
+        this.buttonList.add(new GuiButtonText(0, guiLeft + 70, guiTop + 198, 120, 20, TextFormatting.BOLD
+                + L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"), true));
     }
 
     @Override
@@ -172,6 +183,34 @@ public class GuiTerminalCraftingJobs extends GuiContainerExtended {
     @Override
     public ContainerTerminalCraftingJobs getContainer() {
         return (ContainerTerminalCraftingJobs) super.getContainer();
+    }
+
+    @Override
+    public boolean requiresAction(int buttonId) {
+        return true;
+    }
+
+    @Override
+    public void onButtonClick(int buttonId) {
+        super.onButtonClick(buttonId);
+        GuiButton button = buttonList.get(buttonId);
+        if (button instanceof GuiButtonText) {
+            cancelCraftingJobs();
+        }
+    }
+
+    private void cancelCraftingJobs() {
+        // Send packets to cancel crafting jobs
+        for (HandlerWrappedTerminalCraftingPlan craftingJob : getContainer().getCraftingJobs()) {
+            PartPos center = getContainer().getTarget().getCenter();
+            CraftingJobGuiData data = new CraftingJobGuiData(center.getPos().getBlockPos(), center.getSide(),
+                    getContainer().getChannel(), craftingJob.getHandler(),
+                    craftingJob.getCraftingPlan().getId());
+            IntegratedTerminals._instance.getPacketHandler().sendToServer(new CancelCraftingJobPacket(data));
+        }
+
+        // Close the gui
+        this.player.closeScreen();
     }
 
     @Override
