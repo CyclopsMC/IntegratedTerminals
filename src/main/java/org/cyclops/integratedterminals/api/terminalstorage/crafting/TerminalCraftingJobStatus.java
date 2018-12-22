@@ -17,6 +17,11 @@ public enum TerminalCraftingJobStatus {
     UNSTARTED(Helpers.RGBAToInt(225, 225, 225, 150)),
     /**
      * The crafting job has been scheduled,
+     * but is not processing yet because other jobs are still processing.
+     */
+    QUEUEING(Helpers.RGBAToInt(243, 245, 150, 150)),
+    /**
+     * The crafting job has been scheduled,
      * but is not processing yet because a dependency is still being processed.
      */
     PENDING_DEPENDENCIES(Helpers.RGBAToInt(243, 245, 4, 150)),

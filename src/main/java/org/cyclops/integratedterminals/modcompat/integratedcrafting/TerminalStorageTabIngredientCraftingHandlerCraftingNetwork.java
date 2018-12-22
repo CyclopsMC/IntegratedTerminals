@@ -239,6 +239,9 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         // Determine status
         TerminalCraftingJobStatus jobStatus = TerminalCraftingJobStatus.UNSTARTED;
         switch (craftingInterface.getCraftingJobStatus(craftingNetwork, craftingJob.getChannel(), craftingJobId)) {
+            case PENDING_INTERFACE:
+                jobStatus = TerminalCraftingJobStatus.QUEUEING;
+                break;
             case PENDING_DEPENDENCIES:
                 jobStatus = TerminalCraftingJobStatus.PENDING_DEPENDENCIES;
                 break;
