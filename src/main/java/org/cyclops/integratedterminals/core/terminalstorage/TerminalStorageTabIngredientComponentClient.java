@@ -7,6 +7,8 @@ import gnu.trove.map.TIntLongMap;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntLongHashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
@@ -102,6 +104,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     private final TIntLongMap maxQuantities;
     private final TIntLongMap totalQuantities;
+    private final TIntSet channels;
     private boolean enabled;
     private int activeSlotId;
     private int activeSlotQuantity;
@@ -144,6 +147,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.maxQuantities = new TIntLongHashMap();
         this.totalQuantities = new TIntLongHashMap();
         this.enabled = false;
+        this.channels = new TIntHashSet();
         resetActiveSlot();
 
     }
@@ -337,6 +341,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType,
                                       IngredientArrayList<T, M> ingredients, boolean enabled) {
         this.enabled = enabled || this.craftingOptions.containsKey(channel);
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+            this.channels.add(channel);
+        }
 
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
@@ -405,6 +412,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
 
         this.enabled = true;
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+            this.channels.add(channel);
+        }
         Collection<HandlerWrappedTerminalCraftingOption<T>> existingOptions = this.craftingOptions.get(channel);
         if (existingOptions == null) {
             this.craftingOptions.put(channel, Lists.newArrayList(craftingOptions));
@@ -485,7 +495,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public int[] getChannels() {
-        int[] channels = maxQuantities.keys();
+        int[] channels = this.channels.toArray();
         Arrays.sort(channels);
         return channels;
     }
