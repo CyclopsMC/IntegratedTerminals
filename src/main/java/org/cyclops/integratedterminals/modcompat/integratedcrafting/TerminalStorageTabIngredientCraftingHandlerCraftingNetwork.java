@@ -35,7 +35,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -229,7 +228,6 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getRecipe().getOutput());
         List<ITerminalCraftingPlan<Integer>> dependencies = dependencyGraph.getDependencies(craftingJob)
                 .stream()
-                .filter(Objects::nonNull) // This should not be needed, and may indicate a corrupted dependency graph
                 .map(subCraftingJob -> newActiveCraftingJob(craftingNetwork, channel, subCraftingJob, dependencyGraph))
                 .collect(Collectors.toList());
 
