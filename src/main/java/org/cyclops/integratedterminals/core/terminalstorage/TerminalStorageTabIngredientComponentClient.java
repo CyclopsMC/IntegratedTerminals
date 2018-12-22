@@ -407,7 +407,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.enabled = true;
         Collection<HandlerWrappedTerminalCraftingOption<T>> existingOptions = this.craftingOptions.get(channel);
         if (existingOptions == null) {
-            this.craftingOptions.put(channel, craftingOptions);
+            this.craftingOptions.put(channel, Lists.newArrayList(craftingOptions));
         } else {
             existingOptions.addAll(craftingOptions);
         }
