@@ -272,7 +272,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
             recipeOutputAmount--;
         }
 
-        List<IPrototypedIngredient<?, ?>> pendingOutputs = CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, recipeOutputAmount);
+        List<IPrototypedIngredient<?, ?>> pendingOutputs = recipeOutputAmount == 0
+                ? Lists.newArrayList() : CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, recipeOutputAmount);
         pendingOutputs.addAll(auxiliaryPendingOutputs);
 
         // If the job is missing inputs, add those to the plan
