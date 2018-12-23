@@ -8,16 +8,22 @@ import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * A container for previewing a crafting plan.
  * @author rubensworks
  */
 public class ContainerTerminalStorageCraftingPlan extends ExtendedInventoryContainer {
+
+    private static final ExecutorService WORKER_POOL = Executors.newFixedThreadPool(GeneralConfig.craftingPlannerThreads);
 
     private final World world;
     private final PartTarget target;
@@ -66,6 +72,14 @@ public class ContainerTerminalStorageCraftingPlan extends ExtendedInventoryConta
     }
 
     protected void updateCraftingPlan() {
+        if (GeneralConfig.craftingPlannerEnableMultithreading) {
+            WORKER_POOL.execute(this::updateCraftingPlanJob);
+        } else {
+            this.updateCraftingPlanJob();
+        }
+    }
+
+    protected void updateCraftingPlanJob() {
         HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
         INetwork network = NetworkHelpers.getNetwork(target.getCenter());
         this.craftingPlan = craftingOptionWrapper.getHandler().calculateCraftingPlan(network,

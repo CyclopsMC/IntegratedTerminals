@@ -101,6 +101,18 @@ public class GeneralConfig extends DummyConfig {
     public static int guiTerminalCraftingJobsUpdateFrequency = 1000;
 
     /**
+     * The number of threads that the crafting plan calculator can use.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.CORE, comment = "The number of threads that the crafting plan calculator can use.", minimalValue = 1, requiresMcRestart = true)
+    public static int craftingPlannerThreads = 2;
+
+    /**
+     * If the crafting planners can work on separate thread.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.CORE, comment = "If the crafting planners can work on separate thread.", isCommandable = true)
+    public static boolean craftingPlannerEnableMultithreading = true;
+
+    /**
      * The type of this config.
      */
     public static ConfigurableType TYPE = ConfigurableType.DUMMY;
