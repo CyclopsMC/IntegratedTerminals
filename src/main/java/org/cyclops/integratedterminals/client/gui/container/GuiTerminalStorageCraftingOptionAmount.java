@@ -18,7 +18,6 @@ import org.cyclops.cyclopscore.client.gui.component.input.GuiNumberField;
 import org.cyclops.cyclopscore.client.gui.container.GuiContainerExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -119,7 +118,8 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
                 new GuiButtonChangeQuantity(4, guiLeft + 91, guiTop + 10, +1000),
                 new GuiButtonChangeQuantity(5, guiLeft + 91, guiTop + 55, -1000),
 
-                nextButton = new GuiButtonText(6, guiLeft + 81, guiTop + 33, 50, 20, "", true)
+                nextButton = new GuiButtonText(6, guiLeft + 81, guiTop + 33, 50, 20,
+                        TextFormatting.BOLD + L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.next"), true)
         ));
     }
 
@@ -220,10 +220,6 @@ public class GuiTerminalStorageCraftingOptionAmount extends GuiContainerExtended
     protected void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawCurrentScreen(mouseX, mouseY, partialTicks);
         scrollBar.drawCurrentScreen(mouseX, mouseY, partialTicks);
-
-        nextButton.displayString = TextFormatting.BOLD + (MinecraftHelpers.isShifted()
-                ? L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.craft")
-                : L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.next"));
     }
 
     @Override
