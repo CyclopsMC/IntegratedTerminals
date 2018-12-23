@@ -26,6 +26,11 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
     }
 
     @Override
+    public int getConsumptionRate(PartStateEmpty<PartTypeTerminalCraftingJob> state) {
+        return 1;
+    }
+
+    @Override
     protected PartStateEmpty<PartTypeTerminalCraftingJob> constructDefaultState() {
         return new PartStateEmpty<>();
     }

@@ -13,7 +13,6 @@ import net.minecraft.util.NonNullList;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
@@ -33,6 +32,11 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
     public PartTypeTerminalStorage(String name) {
         super(name);
+    }
+
+    @Override
+    public int getConsumptionRate(State state) {
+        return 2;
     }
 
     @Override
