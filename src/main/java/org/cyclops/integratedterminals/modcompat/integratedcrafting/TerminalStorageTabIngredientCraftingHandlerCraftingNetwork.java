@@ -225,6 +225,20 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     protected static ITerminalCraftingPlan<Integer> newActiveCraftingJob(ICraftingNetwork craftingNetwork, int channel,
                                                                          CraftingJob craftingJob,
                                                                          CraftingJobDependencyGraph dependencyGraph) {
+        if (craftingJob == null) {
+            return new TerminalCraftingPlanStatic<>(
+                    0,
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    TerminalCraftingJobStatus.INVALID,
+                    0,
+                    Collections.emptyList(),
+                    Collections.emptyList(),
+                    "ERROR",
+                    -1,
+                    -1);
+        }
+
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getOutput());
         List<ITerminalCraftingPlan<Integer>> dependencies = dependencyGraph.getDependencies(craftingJob)
                 .stream()
