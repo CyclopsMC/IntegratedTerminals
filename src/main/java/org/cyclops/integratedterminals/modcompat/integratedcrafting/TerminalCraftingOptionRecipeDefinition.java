@@ -49,6 +49,7 @@ public class TerminalCraftingOptionRecipeDefinition<T, M> implements ITerminalCr
     public <T1, M> Collection<T1> getInputs(IngredientComponent<T1, M> ingredientComponent) {
         return prioritizedRecipe.getInputs(ingredientComponent)
                 .stream()
+                .filter(prototype -> !prototype.isEmpty())
                 .map(prototype -> prototype.get(0).getPrototype())
                 .collect(Collectors.toList());
     }
