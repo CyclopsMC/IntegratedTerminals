@@ -37,6 +37,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIn
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -359,6 +360,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         return StreamSupport.stream(iterable.spliterator(), false)
                 .filter(job -> job.getDependentCraftingJobs().isEmpty()) // Only expose root jobs
                 .map(job -> newActiveCraftingJob(craftingNetwork, channel, job, dependencyGraph))
+                .sorted(Comparator.comparingInt(ITerminalCraftingPlan::getId))
                 .collect(Collectors.toList());
     }
 
