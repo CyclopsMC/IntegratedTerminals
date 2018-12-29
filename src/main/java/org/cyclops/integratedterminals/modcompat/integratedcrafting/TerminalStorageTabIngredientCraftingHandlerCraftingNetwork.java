@@ -1,10 +1,13 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
+import com.mojang.authlib.GameProfile;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.apache.logging.log4j.Level;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -35,6 +38,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -124,6 +128,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
                     -1,
                     craftingJob.getChannel(),
+                    null,
                     dependencyGraph);
         } else {
             return new TerminalCraftingPlanStatic<Integer>(
@@ -136,7 +141,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     Collections.emptyList(),
                     "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
                     -1,
-                    craftingJob.getChannel());
+                    craftingJob.getChannel(),
+                    null);
         }
     }
 
@@ -163,7 +169,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
                 -1,
-                -1);
+                -1,
+                null);
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlanFailed(FailedCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
@@ -190,7 +197,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
                 -1,
-                -1);
+                -1,
+                null);
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlanErrorRecursive(List<IRecipeDefinition> childRecipes) {
@@ -208,15 +216,17 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 "gui.integratedterminals.terminal_storage.craftingplan.label.failed.recursion",
                 -1,
-                -1);
+                -1,
+                null);
     }
 
     @Override
-    public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<Integer> craftingPlan) {
+    public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<Integer> craftingPlan,
+                                 EntityPlayerMP player) {
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph
                 && craftingPlan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph();
-            CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetwork(network), craftingJobDependencyGraph, true);
+            CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetwork(network), craftingJobDependencyGraph, true, player.getUniqueID());
         } else {
             IntegratedTerminals.clog(Level.WARN, "Tried to start an invalid crafting plan with status " + craftingPlan.getStatus());
         }
@@ -236,7 +246,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     Collections.emptyList(),
                     "ERROR",
                     -1,
-                    -1);
+                    -1,
+                    null);
         }
 
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getOutput());
@@ -321,7 +332,23 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 lastMissingIngredients,
                 "gui.integratedterminals.terminal_storage.craftingplan.label.running",
                 craftingNetwork.getRunningTicks(craftingJob),
-                craftingJob.getChannel());
+                craftingJob.getChannel(),
+                uuidToName(craftingJob.getInitiatorUuid()));
+    }
+
+    @Nullable
+    protected static String uuidToName(@Nullable String uuid) {
+        if (uuid != null) {
+            try {
+                UUID uuidObject = UUID.fromString(uuid);
+                GameProfile profile = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerProfileCache()
+                        .getProfileByUUID(uuidObject);
+                if (profile != null) {
+                    return profile.getName();
+                }
+            } catch (IllegalArgumentException e) {}
+        }
+        return null;
     }
 
     @Override
@@ -381,6 +408,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     planStatic.getUnlocalizedLabel(),
                     planStatic.getTickDuration(),
                     planStatic.getChannel(),
+                    planStatic.getInitiatorName(),
                     craftingJobDependencyGraph
             );
         } else {

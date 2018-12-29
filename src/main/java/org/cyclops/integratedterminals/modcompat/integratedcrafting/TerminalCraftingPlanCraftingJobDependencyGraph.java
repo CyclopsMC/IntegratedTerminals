@@ -6,6 +6,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -26,9 +27,10 @@ public class TerminalCraftingPlanCraftingJobDependencyGraph extends TerminalCraf
                                                           String unlocalizedLabel,
                                                           long tickDuration,
                                                           int channel,
+                                                          @Nullable String initiatorName,
                                                           CraftingJobDependencyGraph craftingJobDependencyGraph) {
         super(id, dependencies, outputs, status, craftingQuantity, storageIngredients, lastMissingIngredients,
-                unlocalizedLabel, tickDuration, channel);
+                unlocalizedLabel, tickDuration, channel, initiatorName);
         this.craftingJobDependencyGraph = craftingJobDependencyGraph;
     }
 

@@ -61,6 +61,7 @@ gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all=Cancel All
 gui.integratedterminals.terminal_crafting_job.craftingplan.empty=Empty crafting job
 gui.integratedterminals.terminal_crafting_job.craftingplan.duration=Duration: %s
 gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel=Channel: %s
+gui.integratedterminals.terminal_crafting_job.craftingplan.owner=Owner: %s
 
 gui.integratedterminals.craftingplan.status=Status: %s
 gui.integratedterminals.craftingplan.status.invalid.name=Invalid

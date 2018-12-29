@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -108,8 +109,10 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param network The network in which the plan should be started.
      * @param channel The channel to get the options for.
      * @param craftingPlan A crafting plan.
+     * @param player The player that started the crafting job.
      */
-    public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan);
+    public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan,
+                                 EntityPlayerMP player);
 
     /**
      * @param network The network in which the plan should be started.

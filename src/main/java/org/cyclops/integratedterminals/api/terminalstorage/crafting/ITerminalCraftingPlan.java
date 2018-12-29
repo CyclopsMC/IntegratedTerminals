@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -67,5 +68,11 @@ public interface ITerminalCraftingPlan<I> {
      * @return The channel id, or -1 for non-applicable.
      */
     public int getChannel();
+
+    /**
+     * @return The initiator name of the crafting job.
+     */
+    @Nullable
+    public String getInitiatorName();
 
 }

@@ -8,6 +8,7 @@ import net.minecraftforge.common.util.Constants;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -25,6 +26,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     private final String unlocalizedLabel;
     private final long tickDuration;
     private final int channel;
+    @Nullable
+    private final String initiatorName;
 
     public TerminalCraftingPlanStatic(I id,
                                       List<ITerminalCraftingPlan<I>> dependencies,
@@ -35,7 +38,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                                       List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
                                       String unlocalizedLabel,
                                       long tickDuration,
-                                      int channel) {
+                                      int channel,
+                                      @Nullable String initiatorName) {
         this.id = id;
         this.dependencies = dependencies;
         this.outputs = outputs;
@@ -46,6 +50,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         this.unlocalizedLabel = unlocalizedLabel;
         this.tickDuration = tickDuration;
         this.channel = channel;
+        this.initiatorName = initiatorName;
     }
 
     @Override
@@ -98,6 +103,12 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         return channel;
     }
 
+    @Override
+    @Nullable
+    public String getInitiatorName() {
+        return initiatorName;
+    }
+
     public static <I> NBTTagCompound serialize(TerminalCraftingPlanStatic<I> plan,
                                                ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
         NBTTagCompound tag = new NBTTagCompound();
@@ -141,6 +152,10 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         tag.setLong("tickDuration", plan.getTickDuration());
 
         tag.setInteger("channel", plan.getChannel());
+
+        if (plan.getInitiatorName() != null) {
+            tag.setString("initiatorName", plan.getInitiatorName());
+        }
 
         return tag;
     }
@@ -219,7 +234,12 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         int channel = tag.getInteger("channel");
 
+        String initiatorName = null;
+        if (tag.hasKey("initiatorName", Constants.NBT.TAG_STRING)) {
+            initiatorName = tag.getString("initiatorName");
+        }
+
         return new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients,
-                lastMissingIngredients, unlocalizedLabel, tickDuration, channel);
+                lastMissingIngredients, unlocalizedLabel, tickDuration, channel, initiatorName);
     }
 }

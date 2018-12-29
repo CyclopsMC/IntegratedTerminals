@@ -72,6 +72,8 @@ public class GuiCraftingPlan extends Gui {
     private final String label;
     private final long tickDuration;
     private final int channel;
+    @Nullable
+    private final String initiatorName;
 
     private int firstRow;
 
@@ -89,6 +91,7 @@ public class GuiCraftingPlan extends Gui {
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
         this.channel = craftingPlan.getChannel();
+        this.initiatorName = craftingPlan.getInitiatorName();
     }
 
     protected void refreshList() {
@@ -236,6 +239,12 @@ public class GuiCraftingPlan extends Gui {
         if (channel != -1) {
             String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
             RenderHelpers.drawScaledString(fontRenderer, channelString, guiLeft + x + 200, y + 2, 0.5f, 16777215, true);
+        }
+
+        // Draw initiator
+        if (initiatorName != null) {
+            String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
+            RenderHelpers.drawScaledString(fontRenderer, initiatorString, guiLeft + x - 4, y - 4, 0.5f, 16777215, true);
         }
 
         drawGuiContainerLayer(guiLeft, guiTop, GuiTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);

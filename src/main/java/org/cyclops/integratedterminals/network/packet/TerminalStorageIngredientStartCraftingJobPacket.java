@@ -30,7 +30,7 @@ public class TerminalStorageIngredientStartCraftingJobPacket<T, M> extends Termi
             CraftingOptionGuiData<T, M> data = getCraftingOptionData();
             INetwork network = NetworkHelpers.getNetwork(PartPos.of(world, data.getPos(), data.getSide()));
             if (network != null) {
-                craftingPlan.getHandler().startCraftingJob(network, getChannel(), craftingPlan.getCraftingPlan());
+                craftingPlan.getHandler().startCraftingJob(network, getChannel(), craftingPlan.getCraftingPlan(), player);
             }
         }
     }
