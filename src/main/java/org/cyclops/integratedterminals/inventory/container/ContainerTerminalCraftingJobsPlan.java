@@ -40,6 +40,7 @@ public class ContainerTerminalCraftingJobsPlan extends ExtendedInventoryContaine
      * @param player The player.
      * @param partContainer The part container.
      * @param partType The part type.
+     * @param craftingJobGuiData The job data.
      */
     public ContainerTerminalCraftingJobsPlan(final EntityPlayer player, PartTarget target,
                                              IPartContainer partContainer, IPartType partType,

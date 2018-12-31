@@ -27,6 +27,7 @@ public class ContainerTerminalStorageCraftingOptionAmount extends ExtendedInvent
      * @param player The player.
      * @param partContainer The part container.
      * @param partType The part type.
+     * @param craftingOptionGuiData The job data.
      */
     public ContainerTerminalStorageCraftingOptionAmount(final EntityPlayer player, PartTarget target,
                                                         IPartContainer partContainer, IPartType partType,

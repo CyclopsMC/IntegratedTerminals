@@ -52,6 +52,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
 
     /**
      * Deserialize a crafting option from NBT.
+     * @param ingredientComponent The ingredient component for the crafting option.
      * @param tag An NBT tag representing a crafting option.
      * @param <T> The instance type.
      * @param <M> The matching condition parameter.
