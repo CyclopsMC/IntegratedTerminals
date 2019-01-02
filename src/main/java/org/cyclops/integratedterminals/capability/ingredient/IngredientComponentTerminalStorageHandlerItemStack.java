@@ -102,8 +102,18 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
+    public boolean isInstance(ItemStack itemStack) {
+        return itemStack != null;
+    }
+
+    @Override
     public ItemStack getInstance(ItemStack itemStack) {
         return itemStack;
+    }
+
+    @Override
+    public long getMaxQuantity(ItemStack itemStack) {
+        return itemStack.getMaxStackSize();
     }
 
     @Override

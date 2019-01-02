@@ -94,6 +94,11 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
+    public boolean isInstance(ItemStack itemStack) {
+        return itemStack.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+    }
+
+    @Override
     public FluidStack getInstance(ItemStack itemStack) {
         IFluidHandlerItem fluidHandler = itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
@@ -103,6 +108,18 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             }
         }
         return null;
+    }
+
+    @Override
+    public long getMaxQuantity(ItemStack itemStack) {
+        IFluidHandlerItem fluidHandler = itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+        if (fluidHandler != null) {
+            IFluidTankProperties[] props = fluidHandler.getTankProperties();
+            if (props.length > 0) {
+                return props[0].getCapacity();
+            }
+        }
+        return 0;
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiButton;
@@ -14,6 +15,7 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
@@ -46,6 +48,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author rubensworks
@@ -84,6 +87,11 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     private GuiTextFieldExtended fieldSearch;
     private int firstRow;
     private boolean initialized;
+    protected final Set<Slot> terminalDragSplittingSlots = Sets.<Slot>newHashSet();
+    protected boolean terminalDragSplitting;
+    private int terminalDragMode;
+    private int terminalDragSplittingButton;
+    private int terminalDragSplittingRemnant;
 
     public GuiTerminalStorage(EntityPlayer player, PartTarget target, IPartContainer partContainer, IPartType partType) {
         super(new ContainerTerminalStorage(player, target, partContainer, partType));
@@ -259,7 +267,41 @@ public class GuiTerminalStorage extends GuiContainerExtended {
 
         super.drawCurrentScreen(mouseX, mouseY, partialTicks);
 
+        // Draw slots
+        GlStateManager.disableLighting();
+        GlStateManager.disableDepth();
+        this.zLevel = 0F;
+        for (int i1 = 0; i1 < this.inventorySlots.inventorySlots.size(); ++i1) {
+            Slot slot = this.inventorySlots.inventorySlots.get(i1);
+
+            if (slot.isEnabled()) {
+                this.drawSlotOverlay(slot);
+            }
+        }
+        this.zLevel = 0F;
+
         this.texture = oldTexture;
+    }
+
+    private void drawSlotOverlay(Slot slot) {
+        getSelectedClientTab().ifPresent(tab -> {
+            if (this.terminalDragSplitting && this.terminalDragSplittingSlots.contains(slot)) {
+                if (tab.isSlotValidForDraggingInto(getContainer().getSelectedChannel(), slot)) {
+                    if (this.terminalDragSplittingSlots.size() == 1) {
+                        return;
+                    }
+
+                    int dragQuantity = tab.computeDraggingQuantity(this.terminalDragSplittingSlots, this.terminalDragMode, slot.getStack(), tab.getActiveSlotQuantity());
+                    if (dragQuantity > 0) {
+                        String dragString = "+" + GuiHelpers.quantityToScaledString(dragQuantity);
+                        RenderHelpers.drawScaledString(fontRenderer, dragString, guiLeft + slot.xPos, guiTop + slot.yPos, 0.5F, 16777045, true);
+                    }
+                } else {
+                    this.terminalDragSplittingSlots.remove(slot);
+                    this.updateTerminalDragSplitting(tab);
+                }
+            }
+        });
     }
 
     @Override
@@ -337,15 +379,27 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             return;
         }
 
-        // Handle clicks on storage slots
         if (tabOptional.isPresent()) {
-            int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+            ITerminalStorageTabClient<?> tab = tabOptional.get();
             Slot playerSlot = getSlotUnderMouse();
-            boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop);
-            boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
-            if (tabOptional.get().handleClick(getContainer(), getContainer().getSelectedChannel(), slot, mouseButton,
-                    hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.slotNumber : -1)) {
-                return;
+
+            // Start dragging over container slots when a storage slot is selected
+            if (tab.getActiveSlotId() >= 0
+                    && (mouseButton == 0 || mouseButton == 1 || this.mc.gameSettings.keyBindPickBlock.isActiveAndMatches(mouseButton - 100))) {
+                if (playerSlot != null && !this.terminalDragSplitting) {
+                    this.terminalDragSplitting = true;
+                    this.terminalDragSplittingButton = mouseButton;
+                    this.terminalDragSplittingSlots.clear();
+
+                    if (mouseButton == 0) {
+                        this.terminalDragMode = 0;
+                    } else if (mouseButton == 1) {
+                        this.terminalDragMode = 1;
+                    } else if (this.mc.gameSettings.keyBindPickBlock.isActiveAndMatches(mouseButton - 100)) {
+                        this.terminalDragMode = 2;
+                    }
+                    return;
+                }
             }
         } else if (getSlotUnderMouse() != null) {
             // Don't allow shift clicking items into container when no tab has been selected
@@ -373,6 +427,97 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         });
 
         super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        getSelectedClientTab().ifPresent(tab -> {
+            if (this.terminalDragSplitting & tab.getActiveSlotId() >= 0) {
+                Slot slot = this.getSlotUnderMouse();
+                if (slot != null
+                        && (tab.getActiveSlotQuantity() > this.terminalDragSplittingSlots.size() || this.terminalDragMode == 2)
+                        && tab.isSlotValidForDraggingInto(getContainer().getSelectedChannel(), slot)) {
+                    this.terminalDragSplittingSlots.add(slot);
+                    this.updateTerminalDragSplitting(tab);
+                    return;
+                }
+            }
+        });
+
+        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+    }
+
+    private void updateTerminalDragSplitting(ITerminalStorageTabClient<?> tab) {
+        if (this.terminalDragSplitting) {
+            int quantityTotal = tab.getActiveSlotQuantity();
+            this.terminalDragSplittingRemnant = tab.getActiveSlotQuantity();
+
+            for (Slot slot : this.terminalDragSplittingSlots) {
+                if (tab.isSlotValidForDraggingInto(getContainer().getSelectedChannel(), slot)) {
+                    int dragQuantity = tab.computeDraggingQuantity(this.terminalDragSplittingSlots, this.terminalDragMode, slot.getStack(), quantityTotal);
+                    this.terminalDragSplittingRemnant -= tab.dragIntoSlot(container, getContainer().getSelectedChannel(), slot, dragQuantity, true);
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void mouseReleased(int mouseX, int mouseY, int mouseButton) {
+        // Validate dragging process
+        if (this.terminalDragSplitting
+                && (this.terminalDragSplittingSlots.size() <= 1 || this.terminalDragSplittingButton != mouseButton)) {
+            this.terminalDragSplitting = false;
+            this.terminalDragSplittingSlots.clear();
+            if (this.terminalDragSplittingButton != mouseButton) {
+                return;
+            }
+        }
+
+        // Handle dragging ends
+        boolean dragged = false;
+        if (this.terminalDragSplitting) {
+            dragged = true;
+            // If we were dragging, distribute the dragging instance over the dragged slots.
+            getSelectedClientTab().ifPresent(tab -> {
+                if (tab.getActiveSlotQuantity() > 0) {
+                    int quantityTotal = tab.getActiveSlotQuantity();
+                    int quantity = quantityTotal;
+                    for (Slot slot : this.terminalDragSplittingSlots) {
+                        if (tab.isSlotValidForDraggingInto(getContainer().getSelectedChannel(), slot)) {
+                            int dragQuantity = tab.computeDraggingQuantity(this.terminalDragSplittingSlots, this.terminalDragMode, slot.getStack(), quantityTotal);
+                            quantity -= tab.dragIntoSlot(container, getContainer().getSelectedChannel(), slot, dragQuantity, false);
+                        }
+                    }
+                    tab.setActiveSlotQuantity(quantity);
+                }
+            });
+        }
+
+        // Reset dragging state
+        this.terminalDragSplitting = false;
+        this.terminalDragSplittingSlots.clear();
+        this.terminalDragSplittingButton = -1;
+        this.terminalDragMode = -1;
+        this.terminalDragSplittingRemnant = 0;
+
+        // Handle plain clicks
+        if (!dragged) {
+            Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+            if (tabOptional.isPresent()) {
+                int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+                Slot playerSlot = getSlotUnderMouse();
+
+                // Handle clicks on storage slots
+                boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop);
+                boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
+                if (tabOptional.get().handleClick(getContainer(), getContainer().getSelectedChannel(), slot, mouseButton,
+                        hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.slotNumber : -1)) {
+                    return;
+                }
+            }
+        }
+
+        super.mouseReleased(mouseX, mouseY, mouseButton);
     }
 
     @Override
@@ -565,14 +710,23 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         optionalTab.ifPresent(tab -> {
             int slotId = tab.getActiveSlotId();
             if (slotId >= 0) {
-                int maxQuantity = tab.getActiveSlotQuantity();
+                int quantity = tab.getActiveSlotQuantity();
                 ITerminalStorageSlot slot = tab.getSlots(getContainer().getSelectedChannel(), slotId, 1).get(0);
                 RenderHelpers.bindTexture(this.texture);
                 GlStateManager.color(1, 1, 1, 1);
 
+                if (this.terminalDragSplitting && this.terminalDragSplittingSlots.size() > 1) {
+                    quantity = this.terminalDragSplittingRemnant;
+                }
+
+                String quantityString = GuiHelpers.quantityToScaledString(quantity);
+                if (quantity == 0) {
+                    quantityString = TextFormatting.YELLOW + quantityString;
+                }
+
                 slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
                         mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
-                        mouseX, mouseY, tab, getContainer().getSelectedChannel(), GuiHelpers.quantityToScaledString(maxQuantity));
+                        mouseX, mouseY, tab, getContainer().getSelectedChannel(), quantityString);
             }
         });
     }

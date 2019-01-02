@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.api.terminalstorage;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
@@ -10,6 +11,7 @@ import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A client-side terminal storage tab.
@@ -115,6 +117,12 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     public int getActiveSlotQuantity();
 
     /**
+     * Set the active quantity.
+     * @param quantity A quantity to set.
+     */
+    void setActiveSlotQuantity(int quantity);
+
+    /**
      * @return Buttons that are available for this tab.
      */
     public List<ITerminalButton<?, ?, ?>> getButtons();
@@ -148,4 +156,34 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
                                            int slot, ITerminalStorageTabCommon tabCommon) {
 
     }
+
+    /**
+     * Check if we can drag over the current slot with an active instance.
+     * @param channel The active channel.
+     * @param slot The slot to drag over.
+     * @return If we can drag over the slot.
+     */
+    boolean isSlotValidForDraggingInto(int channel, Slot slot);
+
+    /**
+     * Calculate the quantity that will be added to the given stack based on the drag mode and the given list of slots.
+     * @param dragSlots The list of slots to drag over.
+     * @param dragMode The drag mode.
+     * @param stack The stack to calculate the quantity for.
+     * @param quantity The available quantity to drag.
+     * @return The quantity that will be added.
+     */
+    int computeDraggingQuantity(Set<Slot> dragSlots, int dragMode, ItemStack stack, int quantity);
+
+    /**
+     * Drag the given quantity into the given slot with the currently active instance.
+     * @param container The active container.
+     * @param channel The active channel.
+     * @param slot The slot to drag into.
+     * @param quantity The quantity to insert.
+     * @param simulate If insertion should only be simulated.
+     * @return The quantity that was inserted.
+     */
+    int dragIntoSlot(Container container, int channel, Slot slot, int quantity, boolean simulate);
+
 }

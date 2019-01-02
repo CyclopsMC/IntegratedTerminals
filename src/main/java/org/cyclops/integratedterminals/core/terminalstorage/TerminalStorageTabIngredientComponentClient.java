@@ -15,8 +15,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -65,15 +67,7 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientS
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -652,6 +646,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
+    public void setActiveSlotQuantity(int quantity) {
+        this.activeSlotQuantity = quantity;
+        if (quantity == 0) {
+            this.activeSlotId = -1;
+        }
+    }
+
+    @Override
     public List<ITerminalButton<?, ?, ?>> getButtons() {
         return this.buttons;
     }
@@ -707,6 +709,73 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 }
             }
         }
+    }
+
+    protected IIngredientComponentTerminalStorageHandler<T, M> getViewHandler() {
+        return ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
+    }
+
+    @Override
+    public boolean isSlotValidForDraggingInto(int channel, Slot slot) {
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getViewHandler();
+
+        ItemStack stack = slot.getStack();
+        if (!viewHandler.isInstance(stack)) {
+            return false;
+        }
+
+        T stackInstance = viewHandler.getInstance(stack);
+        Optional<T> activeInstance = getSlotInstance(channel, getActiveSlotId());
+        IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
+        if (!activeInstance.isPresent() ||
+                (!matcher.isEmpty(stackInstance) &&
+                        !matcher.matches(stackInstance, activeInstance.get(), matcher.getExactMatchNoQuantityCondition()))
+                || matcher.getQuantity(stackInstance) == viewHandler.getMaxQuantity(stack)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int computeDraggingQuantity(Set<Slot> dragSlots, int dragMode, ItemStack stack, int quantity) {
+        int instanceQuantity = 0;
+        switch (dragMode) {
+            case 0:
+                instanceQuantity = MathHelper.floor((float)quantity / (float)dragSlots.size());
+                break;
+            case 1:
+                instanceQuantity = getViewHandler().getIncrementalInstanceMovementQuantity();
+                break;
+            case 2:
+                instanceQuantity = Helpers.castSafe(getViewHandler().getMaxQuantity(stack));
+        }
+
+        return instanceQuantity;
+    }
+
+    @Override
+    public int dragIntoSlot(Container container, int channel, Slot slot, int quantity, boolean simulate) {
+        if (!simulate) {
+            // We temporarily set the activeSlotQuantity to a fixed value, and reset the old value afterwards.
+            int oldActiveSlotId = this.activeSlotId;
+            int activeSlotQuantityOld = this.activeSlotQuantity;
+
+            this.activeSlotQuantity = quantity;
+            this.handleClick(container, channel, getActiveSlotId(), 0, false, false, slot.slotNumber);
+
+            this.activeSlotId = oldActiveSlotId;
+            this.activeSlotQuantity = activeSlotQuantityOld;
+        }
+
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getViewHandler();
+        ItemStack stack = slot.getStack();
+        T stackInstance = viewHandler.getInstance(stack);
+        IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
+        int instanceQuantity = Helpers.castSafe(matcher.getQuantity(stackInstance));
+        int maxQuantity = Helpers.castSafe(viewHandler.getMaxQuantity(stack));
+        int freeQuantity = maxQuantity - instanceQuantity;
+        return Math.min(Math.max(0, quantity), freeQuantity);
     }
 
     public static class InstanceWithMetadata<T> {

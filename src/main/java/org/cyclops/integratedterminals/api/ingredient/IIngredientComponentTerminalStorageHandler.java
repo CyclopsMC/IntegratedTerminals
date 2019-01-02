@@ -82,9 +82,23 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
     /**
      * Get the ingredient instance from the given item.
      * @param itemStack An item.
+     * @return If the stack represents an ingredient.
+     */
+    public boolean isInstance(ItemStack itemStack);
+
+    /**
+     * Get the ingredient instance from the given item.
+     * @param itemStack An item.
      * @return An ingredient.
      */
     public T getInstance(ItemStack itemStack);
+
+    /**
+     * Get the max instance quantity in the given item.
+     * @param itemStack An item.
+     * @return The max quantity.
+     */
+    public long getMaxQuantity(ItemStack itemStack);
 
     /**
      * @return The number that should be selected when clicking on an instance in the storage terminal.

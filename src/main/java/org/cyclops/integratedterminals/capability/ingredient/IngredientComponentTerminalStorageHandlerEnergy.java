@@ -100,10 +100,24 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
+    public boolean isInstance(ItemStack itemStack) {
+        return itemStack.hasCapability(CapabilityEnergy.ENERGY, null);
+    }
+
+    @Override
     public Integer getInstance(ItemStack itemStack) {
         IEnergyStorage energyStorage = itemStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             return energyStorage.getEnergyStored();
+        }
+        return 0;
+    }
+
+    @Override
+    public long getMaxQuantity(ItemStack itemStack) {
+        IEnergyStorage energyStorage = itemStack.getCapability(CapabilityEnergy.ENERGY, null);
+        if (energyStorage != null) {
+            return energyStorage.getMaxEnergyStored();
         }
         return 0;
     }
