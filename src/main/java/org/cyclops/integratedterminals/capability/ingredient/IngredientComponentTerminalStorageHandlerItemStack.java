@@ -158,7 +158,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 }
                 movedTotal += moved.getCount();
 
-                container.getSlot(containerSlot).putStack(matcher.withQuantity(maxInstance, newCount));
+                container.getSlot(containerSlot).putStack(matcher.withQuantity(maxInstance, newCount).copy());
                 container.detectAndSendChanges();
             } else {
                 break;
@@ -172,7 +172,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                                                       InventoryPlayer playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = IngredientComponent.ITEMSTACK.getMatcher().withQuantity(playerInventory.getItemStack(),
                 moveQuantityPlayerSlot);
-        int remaining = storage.insert(playerStack, false).getCount();
+        int remaining = storage.insert(playerStack.copy(), false).getCount();
         int moved = (int) (moveQuantityPlayerSlot - remaining);
         playerInventory.getItemStack().shrink(moved);
     }
