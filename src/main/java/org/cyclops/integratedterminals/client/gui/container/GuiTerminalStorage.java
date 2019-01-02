@@ -426,7 +426,9 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             }
         });
 
-        super.mouseClicked(mouseX, mouseY, mouseButton);
+        if (!isShiftKeyDown()) {
+            super.mouseClicked(mouseX, mouseY, mouseButton);
+        }
     }
 
     @Override
