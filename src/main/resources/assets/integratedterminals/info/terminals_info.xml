@@ -39,11 +39,11 @@
             <paragraph>info_book.integratedterminals.storage_terminal.usage.text8</paragraph>
         </section>
 
-        <section name="info_book.integratedterminals.storage_terminal.integratedcrafting">
-            <tag type="mod">integratedcrafting</tag>
-            <paragraph>info_book.integratedterminals.storage_terminal.integratedcrafting.text1</paragraph>
-            <paragraph>info_book.integratedterminals.storage_terminal.integratedcrafting.text2</paragraph>
-            <paragraph>info_book.integratedterminals.storage_terminal.integratedcrafting.text3</paragraph>
+        <section name="info_book.integratedterminals.storage_terminal.autocrafting">
+            <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text1</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text2</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text3</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text4</paragraph>
         </section>
 
         <section name="info_book.integratedterminals.storage_terminal.power_usage">
@@ -57,5 +57,14 @@
             <appendix type="keybinding">key.integratedterminals.terminal.craftinggrid.clearstorage</appendix>
             <appendix type="keybinding">key.integratedterminals.terminal.craftinggrid.balance</appendix>
         </section>
+    </section>
+
+    <section name="info_book.integratedterminals.crafting_job_terminal">
+        <tag>integratedterminals:part_terminal_crafting_job_item</tag>
+        <paragraph>info_book.integratedterminals.crafting_job_terminal.text1</paragraph>
+        <paragraph>info_book.integratedterminals.crafting_job_terminal.text2</paragraph>
+        <paragraph>info_book.integratedterminals.crafting_job_terminal.text3</paragraph>
+        <paragraph>info_book.integratedterminals.crafting_job_terminal.text4</paragraph>
+        <appendix type="crafting_recipe">integratedterminals:part_terminal_crafting_job_item</appendix>
     </section>
 </section>
