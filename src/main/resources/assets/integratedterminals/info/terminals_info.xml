@@ -33,10 +33,17 @@
             <paragraph>info_book.integratedterminals.storage_terminal.usage.text2</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.usage.text3</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.usage.text4</paragraph>
-            <paragraph>info_book.integratedterminals.storage_terminal.usage.text5</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.usage.text6</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.usage.text5</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.usage.text7</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.usage.text8</paragraph>
+        </section>
+
+        <section name="info_book.integratedterminals.storage_terminal.integratedcrafting">
+            <tag type="mod">integratedcrafting</tag>
+            <paragraph>info_book.integratedterminals.storage_terminal.integratedcrafting.text1</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.integratedcrafting.text2</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.integratedcrafting.text3</paragraph>
         </section>
 
         <section name="info_book.integratedterminals.storage_terminal.power_usage">
