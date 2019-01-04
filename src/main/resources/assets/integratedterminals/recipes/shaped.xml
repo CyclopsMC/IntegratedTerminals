@@ -5,14 +5,19 @@
 		<input>
 			<grid>
 				<gridrow>
-					<item />
+					<item type="oredict">dustGlowstone</item>
 					<item>integratedterminals:menril_glass</item>
-					<item />
+					<item type="oredict">dustGlowstone</item>
 				</gridrow>
 				<gridrow>
 					<item meta="0">integrateddynamics:variable_transformer</item>
 					<item>integrateddynamics:part_display_panel_item</item>
 					<item meta="1">integrateddynamics:variable_transformer</item>
+				</gridrow>
+				<gridrow>
+					<item type="oredict">dustGlowstone</item>
+					<item />
+					<item type="oredict">dustGlowstone</item>
 				</gridrow>
 			</grid>
 		</input>
@@ -25,9 +30,9 @@
 		<input>
 			<grid>
 				<gridrow>
-					<item />
+					<item type="oredict">dustGlowstone</item>
 					<item>integratedterminals:menril_glass</item>
-					<item />
+					<item type="oredict">dustGlowstone</item>
 				</gridrow>
 				<gridrow>
 					<item />
@@ -35,9 +40,9 @@
 					<item />
 				</gridrow>
 				<gridrow>
-					<item />
+					<item type="oredict">dustGlowstone</item>
 					<item>minecraft:crafting_table</item>
-					<item />
+					<item type="oredict">dustGlowstone</item>
 				</gridrow>
 			</grid>
 		</input>
