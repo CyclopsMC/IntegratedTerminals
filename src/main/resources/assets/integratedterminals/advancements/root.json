@@ -13,6 +13,13 @@
     "announce_to_chat": false
   },
   "parent": "integrateddynamics:basic_network_components/value_displaying",
+  "rewards": {
+    "recipes": [
+      "integratedterminals:part_terminal_storage_item",
+      "integratedterminals:part_terminal_crafting_job_item"
+
+    ]
+  },
   "criteria": {
     "criteria_0": {
       "trigger": "minecraft:inventory_changed",
