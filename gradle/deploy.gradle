@@ -14,7 +14,8 @@ curseforge {
             relations {
                 requiredDependency 'cyclops-core'
                 requiredDependency 'integrated-dynamics'
-                optionalDependency 'integrated-tunnels'
+                requiredDependency 'integrated-tunnels'
+                optionalDependency 'integrated-crafting'
             }
         }
 
