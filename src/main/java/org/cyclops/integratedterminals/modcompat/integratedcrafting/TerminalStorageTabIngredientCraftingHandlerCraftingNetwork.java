@@ -233,22 +233,26 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         }
     }
 
+    protected static ITerminalCraftingPlan<Integer> newErroredCraftingJob() {
+        return new TerminalCraftingPlanStatic<>(
+                0,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                TerminalCraftingJobStatus.INVALID,
+                0,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                "ERROR",
+                -1,
+                -1,
+                null);
+    }
+
     protected static ITerminalCraftingPlan<Integer> newActiveCraftingJob(ICraftingNetwork craftingNetwork, int channel,
                                                                          CraftingJob craftingJob,
                                                                          CraftingJobDependencyGraph dependencyGraph) {
         if (craftingJob == null) {
-            return new TerminalCraftingPlanStatic<>(
-                    0,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    TerminalCraftingJobStatus.INVALID,
-                    0,
-                    Collections.emptyList(),
-                    Collections.emptyList(),
-                    "ERROR",
-                    -1,
-                    -1,
-                    null);
+            return newErroredCraftingJob();
         }
 
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getOutput());
@@ -259,6 +263,10 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
         int craftingJobId = craftingJob.getId();
         ICraftingInterface craftingInterface = craftingNetwork.getCraftingJobInterface(craftingJob.getChannel(), craftingJobId);
+
+        if (craftingInterface == null) {
+            return newErroredCraftingJob();
+        }
 
         // Determine status
         TerminalCraftingJobStatus jobStatus = TerminalCraftingJobStatus.UNSTARTED;
