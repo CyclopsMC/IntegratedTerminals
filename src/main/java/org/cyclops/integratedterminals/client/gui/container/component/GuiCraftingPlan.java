@@ -227,24 +227,24 @@ public class GuiCraftingPlan extends Gui {
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
 
         // Draw plan label
-        drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2, y - 3, 16777215);
+        drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2, guiTop + y - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {
             String durationString = getDurationString(tickDuration);
-            RenderHelpers.drawScaledString(fontRenderer, durationString, guiLeft + x + 200, y - 4, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledString(fontRenderer, durationString, guiLeft + x + 200, guiTop + y - 14, 0.5f, 16777215, true);
         }
 
         // Draw channel
         if (channel != -1) {
             String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            RenderHelpers.drawScaledString(fontRenderer, channelString, guiLeft + x + 200, y + 2, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledString(fontRenderer, channelString, guiLeft + x + 200, guiTop + y - 8, 0.5f, 16777215, true);
         }
 
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledString(fontRenderer, initiatorString, guiLeft + x - 4, y - 4, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledString(fontRenderer, initiatorString, guiLeft + x - 4, guiTop + y - 14, 0.5f, 16777215, true);
         }
 
         drawGuiContainerLayer(guiLeft, guiTop, GuiTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
