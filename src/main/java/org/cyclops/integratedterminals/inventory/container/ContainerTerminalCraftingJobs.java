@@ -6,7 +6,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import org.cyclops.cyclopscore.inventory.IGuiContainerProvider;
 import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
@@ -82,8 +81,8 @@ public class ContainerTerminalCraftingJobs extends ExtendedInventoryContainer {
         super.detectAndSendChanges();
 
         if (!this.world.isRemote
-                && this.lastUpdate < FMLCommonHandler.instance().getMinecraftServerInstance().getCurrentTime()) {
-            this.lastUpdate = FMLCommonHandler.instance().getMinecraftServerInstance().getCurrentTime() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
+                && this.lastUpdate < System.currentTimeMillis()) {
+            this.lastUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
 
             // Load crafting jobs
             int channel = getChannel();
