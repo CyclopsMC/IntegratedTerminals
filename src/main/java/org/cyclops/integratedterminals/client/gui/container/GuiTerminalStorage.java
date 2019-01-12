@@ -713,22 +713,25 @@ public class GuiTerminalStorage extends GuiContainerExtended {
             int slotId = tab.getActiveSlotId();
             if (slotId >= 0) {
                 int quantity = tab.getActiveSlotQuantity();
-                ITerminalStorageSlot slot = tab.getSlots(getContainer().getSelectedChannel(), slotId, 1).get(0);
-                RenderHelpers.bindTexture(this.texture);
-                GlStateManager.color(1, 1, 1, 1);
+                List<?> slots = tab.getSlots(getContainer().getSelectedChannel(), slotId, 1);
+                if (!slots.isEmpty()) {
+                    ITerminalStorageSlot slot = (ITerminalStorageSlot) slots.get(0);
+                    RenderHelpers.bindTexture(this.texture);
+                    GlStateManager.color(1, 1, 1, 1);
 
-                if (this.terminalDragSplitting && this.terminalDragSplittingSlots.size() > 1) {
-                    quantity = this.terminalDragSplittingRemnant;
+                    if (this.terminalDragSplitting && this.terminalDragSplittingSlots.size() > 1) {
+                        quantity = this.terminalDragSplittingRemnant;
+                    }
+
+                    String quantityString = GuiHelpers.quantityToScaledString(quantity);
+                    if (quantity == 0) {
+                        quantityString = TextFormatting.YELLOW + quantityString;
+                    }
+
+                    slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
+                            mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
+                            mouseX, mouseY, tab, getContainer().getSelectedChannel(), quantityString);
                 }
-
-                String quantityString = GuiHelpers.quantityToScaledString(quantity);
-                if (quantity == 0) {
-                    quantityString = TextFormatting.YELLOW + quantityString;
-                }
-
-                slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
-                        mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
-                        mouseX, mouseY, tab, getContainer().getSelectedChannel(), quantityString);
             }
         });
     }
