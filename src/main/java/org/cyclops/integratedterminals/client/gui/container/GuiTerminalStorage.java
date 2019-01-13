@@ -92,6 +92,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     private int terminalDragMode;
     private int terminalDragSplittingButton;
     private int terminalDragSplittingRemnant;
+    private boolean clicked;
 
     public GuiTerminalStorage(EntityPlayer player, PartTarget target, IPartContainer partContainer, IPartType partType) {
         super(new ContainerTerminalStorage(player, target, partContainer, partType));
@@ -346,6 +347,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+        this.clicked = true;
 
         // Select a tab
         if (mouseButton == 0
@@ -503,7 +505,8 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         this.terminalDragSplittingRemnant = 0;
 
         // Handle plain clicks
-        if (!dragged) {
+        if (!dragged && this.clicked) {
+            this.clicked = false;
             Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
             if (tabOptional.isPresent()) {
                 int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
