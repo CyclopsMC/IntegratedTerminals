@@ -129,7 +129,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                     return 0;
                 }
                 int totalSlots = tabOptional.get().getSlotCount(container.getSelectedChannel());
-                return totalSlots / getSlotRowLength();
+                return (int) Math.ceil((double) totalSlots / getSlotRowLength());
             }
 
             @Override
