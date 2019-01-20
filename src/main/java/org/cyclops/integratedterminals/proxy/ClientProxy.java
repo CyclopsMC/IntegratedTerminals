@@ -3,6 +3,8 @@ package org.cyclops.integratedterminals.proxy;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
+import org.cyclops.cyclopscore.client.key.IKeyRegistry;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.cyclopscore.proxy.ClientProxyComponent;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -55,6 +57,15 @@ public class ClientProxy extends ClientProxyComponent {
 		super.registerRenderers();
 
 		GuiProviders.register();
+	}
+
+	@Override
+	public void registerKeyBindings(IKeyRegistry keyRegistry) {
+		ClientRegistry.registerKeyBinding(TERMINAL_TAB_NEXT);
+		ClientRegistry.registerKeyBinding(TERMINAL_TAB_PREVIOUS);
+		ClientRegistry.registerKeyBinding(TERMINAL_CRAFTINGGRID_CLEARPLAYER);
+		ClientRegistry.registerKeyBinding(TERMINAL_CRAFTINGGRID_CLEARSTORAGE);
+		ClientRegistry.registerKeyBinding(TERMINAL_CRAFTINGGRID_BALANCE);
 	}
 
 }
