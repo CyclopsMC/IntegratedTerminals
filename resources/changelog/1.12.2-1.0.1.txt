@@ -1,0 +1,9 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.0.0 or higher.
+
+Changes:
+* Improve key binding descriptions
+
+Fixes:
+* Fix crash when opening controls settings, Closes #2
+  This was because we registered key bindings incorrectly.
