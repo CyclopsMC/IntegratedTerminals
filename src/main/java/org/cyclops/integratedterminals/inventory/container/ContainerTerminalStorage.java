@@ -236,8 +236,8 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         List<Triple<Slot, Integer, Integer>> slots = getTabSlots(tabName);
         if (slots != null) {
             for (Triple<Slot, Integer, Integer> slot : slots) {
-                slot.getLeft().xPos = -100;
-                slot.getLeft().yPos = -100;
+                slot.getLeft().xPos = Integer.MIN_VALUE;
+                slot.getLeft().yPos = Integer.MIN_VALUE;
             }
         }
     }

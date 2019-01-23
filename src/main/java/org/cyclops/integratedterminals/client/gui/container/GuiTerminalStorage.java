@@ -44,6 +44,7 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientI
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.opengl.GL11;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
@@ -431,6 +432,17 @@ public class GuiTerminalStorage extends GuiContainerExtended {
         if (!isShiftKeyDown()) {
             super.mouseClicked(mouseX, mouseY, mouseButton);
         }
+    }
+
+    @Nullable
+    @Override
+    public Slot getSlotUnderMouse() {
+        Slot slot = super.getSlotUnderMouse();
+        // Safety for hacky disabled slots
+        if (slot != null && slot.xPos < 0) {
+            return null;
+        }
+        return slot;
     }
 
     @Override
