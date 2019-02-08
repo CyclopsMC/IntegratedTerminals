@@ -1,0 +1,8 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.0.0 or higher.
+
+Fixes:
+* Avoid sending craft plan back from client to server
+  This causesd issues where the client to server packet is too large,
+  Closes CyclopsMC/IntegratedCrafting#14
+* Fix mysterious slot being visible and sometimes interactable, Closes #3
