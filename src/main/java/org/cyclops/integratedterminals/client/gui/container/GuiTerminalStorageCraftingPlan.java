@@ -1,7 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
 import com.google.common.collect.Lists;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -18,10 +17,8 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlan;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientStartCraftingJobPacket;
 import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
@@ -81,7 +78,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
         GuiButtonText button;
         this.buttonList.clear();
         this.buttonList.addAll(Lists.newArrayList(
-                button = new GuiButtonText(0, guiLeft + 95, guiTop + 198, 50, 20, TextFormatting.BOLD
+                button = new GuiButtonText(ContainerTerminalStorageCraftingPlan.BUTTON_START, guiLeft + 95, guiTop + 198, 50, 20, TextFormatting.BOLD
                         + L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.craft"), true)
         ));
         button.enabled = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
@@ -94,7 +91,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
                 returnToTerminalStorage();
             } else if (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()
                     && keyCode == Keyboard.KEY_NUMPADENTER || keyCode == Keyboard.KEY_RETURN) {
-                startCraftingJob();
+                actionPerformed(this.buttonList.get(0));
             } else {
                 super.keyTyped(typedChar, keyCode);
             }
@@ -109,36 +106,6 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
     @Override
     public boolean requiresAction(int buttonId) {
         return true;
-    }
-
-    @Override
-    public void onButtonClick(int buttonId) {
-        super.onButtonClick(buttonId);
-        GuiButton button = buttonList.get(buttonId);
-        if (button instanceof GuiButtonText) {
-            startCraftingJob();
-        }
-    }
-
-    private void startCraftingJob() {
-        CraftingOptionGuiData<?, ?> craftingOptionData = new CraftingOptionGuiData<>(
-                craftingOptionGuiData.getPos(),
-                craftingOptionGuiData.getSide(),
-                craftingOptionGuiData.getComponent(),
-                craftingOptionGuiData.getTabName(),
-                craftingOptionGuiData.getChannel(),
-                null,
-                craftingOptionGuiData.getAmount(),
-                new HandlerWrappedTerminalCraftingPlan(craftingOptionGuiData.getCraftingOption().getHandler(), craftingPlan)
-        );
-
-        // Send packet to start crafting jon
-        IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientStartCraftingJobPacket<>(craftingOptionData));
-
-        // Send packet to re-open terminal gui
-        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
-                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
     }
 
     @Override
