@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * A server-side storage terminal ingredient tab.
@@ -156,7 +157,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         }
         this.craftingOptions.put(channel, channeledCraftingOptions);
         if (channeledCraftingOptions.size() > 0) {
-            this.sendCraftingOptionsToClient(channel, channeledCraftingOptions);
+            this.sendCraftingOptionsToClient(channel, channeledCraftingOptions, false);
         }
     }
 
@@ -256,8 +257,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
     protected void reApplyFilter() {
         for (int channel : this.unfilteredIngredientsViews.keys()) {
+            Predicate<T> ingredientsFilter = getIngredientsFilter();
             Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
-                    .stream().filter(getIngredientsFilter()).iterator();
+                    .stream().filter(ingredientsFilter).iterator();
 
             // Send out the diff between the last filtered view
             IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
@@ -269,6 +271,24 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             if (diffOut.hasDeletions()) {
                 this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
                         IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+            }
+
+            // Filter crafting options and re-send to client
+            Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions = this.craftingOptions.get(channel);
+            if (channeledCraftingOptions != null) {
+                List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptionsFiltered = channeledCraftingOptions
+                        .stream()
+                        .filter(o -> {
+                            Iterator<T> it = o.getCraftingOption().getOutputs();
+                            while (it.hasNext()) {
+                                if (ingredientsFilter.test(it.next())) {
+                                    return true;
+                                }
+                            }
+                            return false;
+                        })
+                        .collect(Collectors.toList());
+                this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true);
             }
         }
 
@@ -310,11 +330,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         }
     }
 
-    private void sendCraftingOptionsToClient(int channel, List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions) {
+    private void sendCraftingOptionsToClient(int channel, List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions, boolean reset) {
         // Only allow collection of a max given size to be sent in a packet
         if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions), player);
+                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset), player);
         } else {
             List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
 
@@ -324,14 +344,15 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 // If our buffer reaches its capacity,
                 // flush it, and create a new buffer
                 if (buffer.size() == GeneralConfig.terminalStoragePacketMaxInstances) {
-                    sendCraftingOptionsToClient(channel, buffer);
+                    sendCraftingOptionsToClient(channel, buffer, reset);
+                    reset = false; // Only reset in first packet
                     buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
                 }
             }
 
             // Our buffer can contain some remaining instances, make sure to flush them as well.
             if (!buffer.isEmpty()) {
-                sendCraftingOptionsToClient(channel, buffer);
+                sendCraftingOptionsToClient(channel, buffer, reset);
             }
         }
     }

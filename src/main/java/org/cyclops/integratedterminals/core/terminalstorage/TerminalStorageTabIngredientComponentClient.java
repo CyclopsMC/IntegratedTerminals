@@ -395,14 +395,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
     }
 
-    public synchronized void addCraftingOptions(int channel, List<HandlerWrappedTerminalCraftingOption<T>> craftingOptions) {
+    public synchronized void addCraftingOptions(int channel, List<HandlerWrappedTerminalCraftingOption<T>> craftingOptions, boolean reset) {
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
         Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
 
         // Apply the change to the wildcard channel as well
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
-            addCraftingOptions(IPositionedAddonsNetwork.WILDCARD_CHANNEL, craftingOptions);
+            addCraftingOptions(IPositionedAddonsNetwork.WILDCARD_CHANNEL, craftingOptions, reset);
         }
 
         this.enabled = true;
@@ -410,7 +410,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             this.channels.add(channel);
         }
         Collection<HandlerWrappedTerminalCraftingOption<T>> existingOptions = this.craftingOptions.get(channel);
-        if (existingOptions == null) {
+        if (existingOptions == null || reset) {
             this.craftingOptions.put(channel, Lists.newArrayList(craftingOptions));
         } else {
             existingOptions.addAll(craftingOptions);
