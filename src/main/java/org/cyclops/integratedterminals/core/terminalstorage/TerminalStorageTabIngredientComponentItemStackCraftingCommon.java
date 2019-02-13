@@ -11,17 +11,18 @@ import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
+import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.inventory.InventoryCraftingDirtyable;
 import org.cyclops.integratedterminals.inventory.SlotCraftingAutoRefill;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridSetResult;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import java.util.List;
@@ -133,8 +134,9 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
             }
 
             inventoryCraftResult.setInventorySlotContents(0, itemstack);
-            entityplayermp.connection.sendPacket(new SPacketSetSlot(container.windowId,
-                    getSlotCrafting().slotNumber, itemstack));
+            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                    new TerminalStorageIngredientItemStackCraftingGridSetResult(getName().toString(), itemstack),
+                    (EntityPlayerMP) player);
         }
 
         // Save changes into the part state
