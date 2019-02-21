@@ -15,6 +15,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabSe
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 /**
  * Terminal storage tab for ingredient components.
@@ -40,8 +41,8 @@ public class TerminalStorageTabIngredientComponent<T, M> implements ITerminalSto
 
     @Override
     public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
-        INetwork network = NetworkHelpers.getNetwork(target.getCenter());
-        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork = NetworkHelpers.getIngredientNetwork(network, ingredientComponent);
+        INetwork network = Objects.requireNonNull(NetworkHelpers.getNetwork(target.getCenter()));
+        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork = Objects.requireNonNull(NetworkHelpers.getIngredientNetwork(network, ingredientComponent));
         return new TerminalStorageTabIngredientComponentServer<>(getName(), network, ingredientComponent,
                 ingredientNetwork, target.getCenter(), (EntityPlayerMP) player);
     }
