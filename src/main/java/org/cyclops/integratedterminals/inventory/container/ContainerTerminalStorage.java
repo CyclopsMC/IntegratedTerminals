@@ -159,10 +159,10 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
         super.detectAndSendChanges();
         // Init tabs
         if (!serverTabsInitialized) {
-            serverTabsInitialized = true;
             for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
                 tab.init();
             }
+            serverTabsInitialized = true;
         }
 
         // Update common tabs
@@ -185,7 +185,7 @@ public class ContainerTerminalStorage extends ExtendedInventoryContainer {
     @Override
     public void onContainerClosed(EntityPlayer playerIn) {
         super.onContainerClosed(playerIn);
-        if (!world.isRemote) {
+        if (!world.isRemote && serverTabsInitialized) {
             for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
                 tab.deInit();
             }
