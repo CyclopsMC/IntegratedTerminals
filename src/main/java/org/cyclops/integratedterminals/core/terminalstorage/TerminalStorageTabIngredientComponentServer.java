@@ -2,8 +2,6 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -84,8 +82,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
     // These collections are needed to perform server-side filtering
     // and sending change events based on them to the client.
-    private final TIntObjectMap<IIngredientCollapsedCollectionMutable<T, M>> unfilteredIngredientsViews;
-    private final TIntObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
+    private final Int2ObjectMap<IIngredientCollapsedCollectionMutable<T, M>> unfilteredIngredientsViews;
+    private final Int2ObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
     private boolean initialized; // True if the first change event has been sent to the client.
 
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
@@ -104,8 +102,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
         this.ingredientsFilter = (instance) -> true;
-        this.unfilteredIngredientsViews = new TIntObjectHashMap<>();
-        this.filteredDiffManagers = new TIntObjectHashMap<>();
+        this.unfilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
+        this.filteredDiffManagers = new Int2ObjectOpenHashMap<>();
     }
 
     @Override
@@ -256,7 +254,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     protected void reApplyFilter() {
-        for (int channel : this.unfilteredIngredientsViews.keys()) {
+        for (int channel : this.unfilteredIngredientsViews.keySet()) {
             Predicate<T> ingredientsFilter = getIngredientsFilter();
             Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
                     .stream().filter(ingredientsFilter).iterator();

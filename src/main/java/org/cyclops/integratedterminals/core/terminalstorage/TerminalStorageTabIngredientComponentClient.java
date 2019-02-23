@@ -3,14 +3,12 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import gnu.trove.map.TIntLongMap;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntLongHashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
+import it.unimi.dsi.fastutil.ints.Int2LongMap;
+import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -92,13 +90,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected final ContainerTerminalStorage container;
     private final List<ITerminalButton<?, ?, ?>> buttons;
 
-    private final TIntObjectMap<List<InstanceWithMetadata<T>>> ingredientsViews;
-    private final TIntObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
+    private final Int2ObjectMap<List<InstanceWithMetadata<T>>> ingredientsViews;
+    private final Int2ObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
-    private final TIntLongMap maxQuantities;
-    private final TIntLongMap totalQuantities;
-    private final TIntSet channels;
+    private final Int2LongMap maxQuantities;
+    private final Int2LongMap totalQuantities;
+    private final IntSet channels;
     private boolean enabled;
     private int activeSlotId;
     private int activeSlotQuantity;
@@ -134,14 +132,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         MinecraftForge.EVENT_BUS.post(event);
         this.buttons = event.getButtons();
 
-        this.ingredientsViews = new TIntObjectHashMap<>();
-        this.filteredIngredientsViews = new TIntObjectHashMap<>();
+        this.ingredientsViews = new Int2ObjectOpenHashMap<>();
+        this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
-        this.maxQuantities = new TIntLongHashMap();
-        this.totalQuantities = new TIntLongHashMap();
+        this.maxQuantities = new Int2LongOpenHashMap();
+        this.totalQuantities = new Int2LongOpenHashMap();
         this.enabled = false;
-        this.channels = new TIntHashSet();
+        this.channels = new IntOpenHashSet();
         resetActiveSlot();
 
     }
@@ -489,7 +487,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public int[] getChannels() {
-        int[] channels = this.channels.toArray();
+        int[] channels = this.channels.toIntArray();
         Arrays.sort(channels);
         return channels;
     }
