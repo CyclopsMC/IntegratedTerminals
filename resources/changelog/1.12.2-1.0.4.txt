@@ -1,0 +1,10 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.0.0 or higher.
+
+Changes:
+* Switch from trove to fastutil collections
+  This slightly improves performance.
+
+Fixes:
+* Add check to fail earlier if terminal gui is opened on invalid network, #22
+* Fix terminal tabs crashing when deinitialized before initialized, Closes #22
