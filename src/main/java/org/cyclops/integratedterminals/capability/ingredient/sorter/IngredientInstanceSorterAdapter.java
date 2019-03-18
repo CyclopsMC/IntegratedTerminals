@@ -31,7 +31,7 @@ public abstract class IngredientInstanceSorterAdapter<T> implements IIngredientI
     }
 
     @Override
-    public String getUnlocalizedName() {
+    public String getTranslationKey() {
         return this.unlocalizedName;
     }
 

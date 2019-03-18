@@ -28,7 +28,7 @@ public interface IIngredientInstanceSorter<T> extends Comparator<T> {
     /**
      * @return The unlocalized name
      */
-    public String getUnlocalizedName();
+    public String getTranslationKey();
 
     /**
      * Get the tooltip of this sorter.

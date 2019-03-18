@@ -78,7 +78,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<String> lines = Lists.newArrayList();
-                    lines.add(instance.getFluid().getRarity().rarityColor + instance.getLocalizedName());
+                    lines.add(instance.getFluid().getRarity().color + instance.getLocalizedName());
                     addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
                         lines.addAll(additionalTooltipLines);

@@ -18,7 +18,7 @@ public class ItemStackIdSorter extends IngredientInstanceSorterAdapter<ItemStack
 
     protected String getItemStackId(ItemStack itemStack) {
         return Optional.ofNullable(itemStack.getItem().getRegistryName())
-                .orElseGet(() -> new ResourceLocation(itemStack.getItem().getUnlocalizedName())).toString();
+                .orElseGet(() -> new ResourceLocation(itemStack.getItem().getTranslationKey())).toString();
     }
 
     @Override

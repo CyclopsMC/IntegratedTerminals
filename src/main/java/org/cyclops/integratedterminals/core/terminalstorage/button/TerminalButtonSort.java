@@ -39,7 +39,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
                               ITerminalStorageTabClient<?> clientTab) {
         this.instanceSorter = instanceSorter;
         this.state = state;
-        this.buttonName = "sort_" + instanceSorter.getUnlocalizedName();
+        this.buttonName = "sort_" + instanceSorter.getTranslationKey();
 
         if (state.hasButton(clientTab.getName().toString(), this.buttonName)) {
             NBTTagCompound data = (NBTTagCompound) state.getButton(clientTab.getName().toString(), this.buttonName);
@@ -100,8 +100,8 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     }
 
     @Override
-    public String getUnlocalizedName() {
-        return instanceSorter.getUnlocalizedName();
+    public String getTranslationKey() {
+        return instanceSorter.getTranslationKey();
     }
 
     @Override

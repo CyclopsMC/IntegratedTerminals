@@ -235,7 +235,7 @@ public class GuiTerminalStorage extends GuiContainerExtended {
                 if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset),
                         guiButton.width, guiButton.height, mouseX, mouseY)) {
                     List<String> lines = Lists.newArrayList();
-                    lines.add(L10NHelpers.localize(button.getUnlocalizedName()));
+                    lines.add(L10NHelpers.localize(button.getTranslationKey()));
                     button.getTooltip(mc.player, ITooltipFlag.TooltipFlags.NORMAL, lines);
                     drawTooltip(lines, mouseX - guiLeft, mouseY - guiTop);
                 }

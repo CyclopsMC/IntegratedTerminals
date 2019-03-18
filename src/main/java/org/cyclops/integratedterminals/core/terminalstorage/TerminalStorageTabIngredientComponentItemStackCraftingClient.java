@@ -58,7 +58,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     @Override
     public List<String> getTooltip() {
         return Lists.newArrayList(L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting_name",
-                L10NHelpers.localize(this.ingredientComponent.getUnlocalizedName())));
+                L10NHelpers.localize(this.ingredientComponent.getTranslationKey())));
     }
 
     @Override

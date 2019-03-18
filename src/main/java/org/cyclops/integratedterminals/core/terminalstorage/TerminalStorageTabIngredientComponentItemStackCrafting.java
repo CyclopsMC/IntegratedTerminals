@@ -31,8 +31,8 @@ public class TerminalStorageTabIngredientComponentItemStackCrafting implements I
 
     public TerminalStorageTabIngredientComponentItemStackCrafting(IngredientComponent<ItemStack, Integer> ingredientComponent) {
         this.ingredientComponent = ingredientComponent;
-        this.name = new ResourceLocation(ingredientComponent.getName().getResourceDomain(),
-                ingredientComponent.getName().getResourcePath() + "_crafting");
+        this.name = new ResourceLocation(ingredientComponent.getName().getNamespace(),
+                ingredientComponent.getName().getPath() + "_crafting");
         TerminalStorageTabIngredientComponentItemStackCrafting.NAME = this.name;
     }
 

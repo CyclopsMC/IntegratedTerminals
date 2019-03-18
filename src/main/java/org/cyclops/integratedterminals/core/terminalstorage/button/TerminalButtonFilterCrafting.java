@@ -68,7 +68,7 @@ public class TerminalButtonFilterCrafting<T>
     }
 
     @Override
-    public String getUnlocalizedName() {
+    public String getTranslationKey() {
         return "gui." + Reference.MOD_ID + ".terminal_storage.crafting.filter";
     }
 

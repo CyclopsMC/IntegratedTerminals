@@ -65,7 +65,7 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
     /**
      * @return The unlocalized name
      */
-    public String getUnlocalizedName();
+    public String getTranslationKey();
 
     /**
      * Get the tooltip of this sorter.

@@ -42,7 +42,7 @@ public class BlockChorusGlassConfig extends BlockConfig {
     protected ConfigurableBlockGlass initSubInstance() {
         ConfigurableBlockGlass block = new ConfigurableBlockGlass(this, Material.GLASS, true) {
             @Override
-            public BlockRenderLayer getBlockLayer() {
+            public BlockRenderLayer getRenderLayer() {
                 return BlockRenderLayer.TRANSLUCENT;
             }
 

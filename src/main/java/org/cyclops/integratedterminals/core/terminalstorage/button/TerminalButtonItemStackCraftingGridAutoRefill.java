@@ -70,7 +70,7 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
     }
 
     @Override
-    public String getUnlocalizedName() {
+    public String getTranslationKey() {
         return "gui.integratedterminals.terminal_storage.craftinggrid.autorefill";
     }
 
