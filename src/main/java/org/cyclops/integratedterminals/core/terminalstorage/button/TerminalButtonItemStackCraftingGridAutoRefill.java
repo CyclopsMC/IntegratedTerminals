@@ -44,6 +44,13 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
         } else {
             this.active = AutoRefillType.STORAGE;
         }
+
+        notifyServer((TerminalStorageTabIngredientComponentClient<T, ?>) clientTab);
+    }
+
+    protected void notifyServer(TerminalStorageTabIngredientComponentClient<T, ?> clientTab) {
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(clientTab.getName().toString(), this.active));
     }
 
     @Override
@@ -65,8 +72,7 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
         data.setInteger("active", active.ordinal());
         state.setButton(clientTab.getName().toString(), this.buttonName, data);
 
-        IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(clientTab.getName().toString(), this.active));
+        notifyServer(clientTab);
     }
 
     @Override
