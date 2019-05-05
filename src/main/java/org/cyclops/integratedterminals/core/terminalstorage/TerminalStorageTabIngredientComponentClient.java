@@ -444,8 +444,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      */
     public synchronized void handleActiveIngredientUpdate(int channel, T activeInstance) {
         IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+        this.activeChannel = channel;
         if (!matcher.isEmpty(activeInstance)) {
-            this.activeChannel = channel;
             this.activeSlotId = findActiveSlotId(channel, activeInstance);
             Optional<T> slotIngredient = getSlotInstance(channel, this.activeSlotId);
             this.activeSlotQuantity += slotIngredient
