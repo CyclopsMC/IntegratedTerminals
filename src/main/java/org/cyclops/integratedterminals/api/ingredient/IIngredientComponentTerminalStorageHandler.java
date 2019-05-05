@@ -133,7 +133,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
         T toAdd = instance;
         int slot = containerSlotStart;
         while (!matcher.isEmpty(toAdd) && slot < containerSlotEnd) {
-            T moved = insertIntoContainer(storage, container, slot++, toAdd, null);
+            T moved = insertIntoContainer(storage, container, slot++, toAdd, null, true);
             if (!matcher.isEmpty(moved)) {
                 toAdd = matcher.withQuantity(toAdd, Math.max(0, matcher.getQuantity(toAdd) - matcher.getQuantity(moved)));
             }
@@ -147,9 +147,10 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param containerSlot The container slot to insert to.
      * @param maxInstance The instance to move.
      * @param player The player. If null, the container slot will not be picked up by the player if not empty.
+     * @param transferFullSelection
      * @return The instance quantity that was moved.
      */
-    public T insertIntoContainer(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, T maxInstance, @Nullable EntityPlayer player);
+    public T insertIntoContainer(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, T maxInstance, @Nullable EntityPlayer player, boolean transferFullSelection);
 
     /**
      * Move the ingredient in the active player stack to the storage.

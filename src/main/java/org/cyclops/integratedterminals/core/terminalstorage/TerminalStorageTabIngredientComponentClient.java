@@ -511,6 +511,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         boolean isCraftingOption = hoveringStorageSlotObject.isPresent() && hoveringStorageSlotObject.get() instanceof TerminalStorageSlotIngredientCraftingOption;
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
         boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+        boolean transferFullSelection = true;
 
         EntityPlayer player = Minecraft.getMinecraft().player;
         boolean initiateCraftingOption = false;
@@ -568,8 +569,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         reset = true;
                         moveQuantity = this.activeSlotQuantity;
                     } else if (mouseButton == 1) {
+                        transferFullSelection = false;
                         moveQuantity = viewHandler.getIncrementalInstanceMovementQuantity();
                     } else {
+                        transferFullSelection = false;
                         moveQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
                     }
                     this.activeSlotQuantity -= moveQuantity;
@@ -622,7 +625,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         this.getName().toString(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
-                        hoveredContainerSlot, movePlayerQuantity, activeInstance));
+                        hoveredContainerSlot, movePlayerQuantity, activeInstance, transferFullSelection));
                 if (reset) {
                     resetActiveSlot();
                 }

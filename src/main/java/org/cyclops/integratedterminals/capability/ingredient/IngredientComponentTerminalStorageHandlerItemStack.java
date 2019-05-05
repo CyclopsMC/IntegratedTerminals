@@ -140,18 +140,21 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     public ItemStack insertIntoContainer(IIngredientComponentStorage<ItemStack, Integer> storage,
                                          Container container, int containerSlotIndex, ItemStack maxInstance,
-                                         @Nullable EntityPlayer player) {
+                                         @Nullable EntityPlayer player, boolean transferFullSelection) {
+        IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
+
         Slot containerSlot = container.getSlot(containerSlotIndex);
-        if (player != null) {
+        if (transferFullSelection && player != null && player.inventory.getItemStack().isEmpty()) {
             // Pick up container slot contents if not empty
             ItemStack containerStack = containerSlot.getStack();
-            if (!containerStack.isEmpty() && containerSlot.canTakeStack(player)) {
+            if (!containerStack.isEmpty()
+                    && !matcher.matches(containerStack, maxInstance, matcher.getExactMatchNoQuantityCondition())
+                    && containerSlot.canTakeStack(player)) {
                 player.inventory.setItemStack(containerStack);
                 containerSlot.putStack(ItemStack.EMPTY);
             }
         }
 
-        IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
         long requiredQuantity = matcher.getQuantity(maxInstance);
         long movedTotal = 0;
         while (movedTotal < requiredQuantity) {

@@ -38,6 +38,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
     private long moveQuantityPlayerSlot;
     @CodecField
     private NBTTagCompound activeStorageInstanceData;
+    @CodecField
+    private boolean transferFullSelection;
 
     public TerminalStorageIngredientSlotClickPacket() {
 
@@ -47,7 +49,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
                                                     TerminalClickType clickType,
                                                     int channel, T hoveringStorageInstance,
                                                     int hoveredContainerSlot, long moveQuantityPlayerSlot,
-                                                    T activeStorageInstance) {
+                                                    T activeStorageInstance, boolean transferFullSelection) {
         this.tabId = tabId;
         this.clickType = clickType.ordinal();
         this.ingredientName = component.getName().toString();
@@ -59,6 +61,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
         this.moveQuantityPlayerSlot = moveQuantityPlayerSlot;
         this.activeStorageInstanceData = new NBTTagCompound();
         this.activeStorageInstanceData.setTag("i", serializer.serializeInstance(activeStorageInstance));
+        this.transferFullSelection = transferFullSelection;
     }
 
     @Override
@@ -82,7 +85,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
             T hoveringStorageInstance = serializer.deserializeInstance(this.hoveringStorageInstanceData.getTag("i"));
             T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.getTag("i"));
             tab.handleStorageSlotClick(container, player, getClickType(), getChannel(), hoveringStorageInstance,
-                    hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance);
+                    hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection);
         }
     }
 
