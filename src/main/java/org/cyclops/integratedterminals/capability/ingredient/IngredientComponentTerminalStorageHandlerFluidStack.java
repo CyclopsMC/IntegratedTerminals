@@ -142,7 +142,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public FluidStack insertIntoContainer(IIngredientComponentStorage<FluidStack, Integer> storage,
-                                          Container container, int containerSlot, FluidStack maxInstance) {
+                                          Container container, int containerSlot, FluidStack maxInstance,
+                                          @Nullable EntityPlayer player) {
         ItemStack stack = container.getSlot(containerSlot).getStack();
         IFluidHandlerItem fluidHandler = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {

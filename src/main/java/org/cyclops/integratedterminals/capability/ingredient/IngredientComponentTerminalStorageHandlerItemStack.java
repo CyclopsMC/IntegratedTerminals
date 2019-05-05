@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import net.minecraftforge.fml.relauncher.Side;
@@ -138,7 +139,18 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public ItemStack insertIntoContainer(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                         Container container, int containerSlot, ItemStack maxInstance) {
+                                         Container container, int containerSlotIndex, ItemStack maxInstance,
+                                         @Nullable EntityPlayer player) {
+        Slot containerSlot = container.getSlot(containerSlotIndex);
+        if (player != null) {
+            // Pick up container slot contents if not empty
+            ItemStack containerStack = containerSlot.getStack();
+            if (!containerStack.isEmpty() && containerSlot.canTakeStack(player)) {
+                player.inventory.setItemStack(containerStack);
+                containerSlot.putStack(ItemStack.EMPTY);
+            }
+        }
+
         IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
         long requiredQuantity = matcher.getQuantity(maxInstance);
         long movedTotal = 0;
@@ -147,7 +159,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             if (extracted.isEmpty()) {
                 break;
             }
-            ItemStack playerStack = container.getSlot(containerSlot).getStack();
+            ItemStack playerStack = containerSlot.getStack();
             if (playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack)) {
                 int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
                 int inserted = newCount - playerStack.getCount();
@@ -158,7 +170,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 }
                 movedTotal += moved.getCount();
 
-                container.getSlot(containerSlot).putStack(matcher.withQuantity(maxInstance, newCount).copy());
+                containerSlot.putStack(matcher.withQuantity(maxInstance, newCount).copy());
                 container.detectAndSendChanges();
             } else {
                 break;

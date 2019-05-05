@@ -380,7 +380,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 viewHandler.throwIntoWorld(storage, activeStorageInstance, player);
                 break;
             case STORAGE_PLACE_PLAYER:
-                T movedInstance = viewHandler.insertIntoContainer(storage, container, hoveredContainerSlot, activeStorageInstance);
+                T movedInstance = viewHandler.insertIntoContainer(storage, container, hoveredContainerSlot, activeStorageInstance, player);
+                updateActivePlayerStack = true;
                 IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
                 T remainingInstance = matcher.withQuantity(movedInstance,
                         matcher.getQuantity(activeStorageInstance) - matcher.getQuantity(movedInstance));

@@ -147,7 +147,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public Integer insertIntoContainer(IIngredientComponentStorage<Integer, Boolean> storage,
-                                       Container container, int containerSlot, Integer maxInstance) {
+                                       Container container, int containerSlot, Integer maxInstance,
+                                       @Nullable EntityPlayer player) {
         ItemStack stack = container.getSlot(containerSlot).getStack();
         IEnergyStorage energyStorage = stack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
