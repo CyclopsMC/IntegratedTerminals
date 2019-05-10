@@ -57,7 +57,6 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
     @Override
     public void addDrops(PartTarget target, State state, List<ItemStack> itemStacks, boolean dropMainElement, boolean saveState) {
-        super.addDrops(target, state, itemStacks, dropMainElement, saveState);
         for (Map.Entry<String, NonNullList<ItemStack>> entry : state.getNamedInventories().entrySet()) {
             // TODO: for now hardcoded on crafting tab
             if (entry.getKey().equals(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString())) {
@@ -70,6 +69,8 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             }
         }
         state.clearNamedInventories();
+
+        super.addDrops(target, state, itemStacks, dropMainElement, saveState);
     }
 
     public static class State extends PartStateEmpty<PartTypeTerminalStorage> {
