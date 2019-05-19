@@ -104,6 +104,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientsFilter = (instance) -> true;
         this.unfilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.filteredDiffManagers = new Int2ObjectOpenHashMap<>();
+
+        // Schedule an observation on creation, as the channel may not have been indexed yet.
+        ingredientNetwork.scheduleObservation();
     }
 
     @Override
