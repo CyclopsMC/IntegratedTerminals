@@ -35,6 +35,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
     private NBTTagCompound data;
     @CodecField
 	private boolean reset;
+	@CodecField
+	private boolean firstChannel;
 
     public TerminalStorageIngredientCraftingOptionsPacket() {
 
@@ -43,7 +45,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	public <T> TerminalStorageIngredientCraftingOptionsPacket(String tabId,
 															  int channel,
 															  List<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
-															  boolean reset) {
+															  boolean reset,
+															  boolean firstChannel) {
 		this.tabId = tabId;
 		this.channel = channel;
 		this.data = new NBTTagCompound();
@@ -53,6 +56,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 		}
 		this.data.setTag("craftingOptions", list);
 		this.reset = reset;
+		this.firstChannel = firstChannel;
 	}
 
 	@Override
@@ -78,14 +82,14 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 				craftingOptions.add(option);
 			}
 
-			tab.addCraftingOptions(channel, (List) craftingOptions, this.reset);
+			tab.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
 
 			// Hard-coded crafting tab
 			// TODO: abstract this as "auxiliary" tabs
 			if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
 				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
 						.getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
-				tabCrafting.addCraftingOptions(channel, (List) craftingOptions, this.reset);
+				tabCrafting.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
 			}
 
 			container.refreshChannelStrings();

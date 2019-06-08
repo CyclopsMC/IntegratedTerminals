@@ -157,8 +157,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             }
         }
         this.craftingOptions.put(channel, channeledCraftingOptions);
+        boolean firstChannel = true;
         if (channeledCraftingOptions.size() > 0) {
-            this.sendCraftingOptionsToClient(channel, channeledCraftingOptions, false);
+            this.sendCraftingOptionsToClient(channel, channeledCraftingOptions, false, firstChannel);
+            firstChannel = false;
         }
     }
 
@@ -257,6 +259,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     protected void reApplyFilter() {
+        boolean firstChannel = true;
         for (int channel : this.unfilteredIngredientsViews.keySet()) {
             Predicate<T> ingredientsFilter = getIngredientsFilter();
             Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
@@ -289,8 +292,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                             return false;
                         })
                         .collect(Collectors.toList());
-                this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true);
+                this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true, firstChannel);
             }
+
+            firstChannel = false;
         }
 
         initialized = true;
@@ -331,11 +336,12 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         }
     }
 
-    private void sendCraftingOptionsToClient(int channel, List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions, boolean reset) {
+    private void sendCraftingOptionsToClient(int channel, List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions,
+                                             boolean reset, boolean firstChannel) {
         // Only allow collection of a max given size to be sent in a packet
         if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset), player);
+                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel), player);
         } else {
             List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
 
@@ -345,7 +351,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 // If our buffer reaches its capacity,
                 // flush it, and create a new buffer
                 if (buffer.size() == GeneralConfig.terminalStoragePacketMaxInstances) {
-                    sendCraftingOptionsToClient(channel, buffer, reset);
+                    sendCraftingOptionsToClient(channel, buffer, reset, firstChannel);
                     reset = false; // Only reset in first packet
                     buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
                 }
@@ -353,7 +359,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
             // Our buffer can contain some remaining instances, make sure to flush them as well.
             if (!buffer.isEmpty()) {
-                sendCraftingOptionsToClient(channel, buffer, reset);
+                sendCraftingOptionsToClient(channel, buffer, reset, firstChannel);
             }
         }
     }
