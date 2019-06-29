@@ -94,6 +94,11 @@ public class GuiCraftingPlan extends Gui {
         this.initiatorName = craftingPlan.getInitiatorName();
     }
 
+    public void inheritVisualizationState(GuiCraftingPlan guiCraftingPlan) {
+        float lastScroll = guiCraftingPlan.scrollBar.getCurrentScroll();
+        this.scrollBar.scrollTo(lastScroll);
+    }
+
     protected void refreshList() {
         visibleElements.clear();
         addActiveElements(elements.get(0), visibleElements);

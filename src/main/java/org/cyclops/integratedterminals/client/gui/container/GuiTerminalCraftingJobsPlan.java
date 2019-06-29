@@ -73,8 +73,11 @@ public class GuiTerminalCraftingJobsPlan extends GuiContainerExtended {
 
         ITerminalCraftingPlan craftingPlan = getContainer().getCraftingPlan();
         if (craftingPlan != null) {
+            GuiCraftingPlan previousGuiCraftingPlan = this.guiCraftingPlan;
             this.guiCraftingPlan = new GuiCraftingPlan(this, craftingPlan, guiLeft, guiTop, 9, 18, 10);
-            // TODO: remember state? or just update the inner plan instead of recreating?
+            if (previousGuiCraftingPlan != null) {
+                this.guiCraftingPlan.inheritVisualizationState(previousGuiCraftingPlan);
+            }
 
             this.buttonList.add(new GuiButtonText(0, guiLeft + 70, guiTop + 198, 100, 20, TextFormatting.BOLD
                     + L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"), true)
