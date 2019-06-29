@@ -85,7 +85,7 @@ public class GuiCraftingPlan extends Gui {
         this.y = y;
         this.elements = getElements(craftingPlan);
         this.visibleElements = Lists.newArrayList(this.elements);
-        this.valid = craftingPlan.getStatus() != TerminalCraftingJobStatus.INVALID;
+        this.valid = craftingPlan.getStatus().isValid();
         this.scrollBar = new GuiScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size() - 1);
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
@@ -232,7 +232,7 @@ public class GuiCraftingPlan extends Gui {
         FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
 
         // Draw plan label
-        drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2, guiTop + y - 13, 16777215);
+        drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2 + 8, guiTop + y - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {
@@ -289,7 +289,7 @@ public class GuiCraftingPlan extends Gui {
     }
 
     protected static void addElements(@Nullable Element parent, int indent, ITerminalCraftingPlan<?> craftingPlan, List<GuiCraftingPlan.Element> elements) {
-        boolean valid = craftingPlan.getStatus() != TerminalCraftingJobStatus.INVALID
+        boolean valid = craftingPlan.getStatus().isValid()
                 || (!craftingPlan.getStorageIngredients().isEmpty() || !craftingPlan.getDependencies().isEmpty());
         Element currentElement = new Element(
                 indent,

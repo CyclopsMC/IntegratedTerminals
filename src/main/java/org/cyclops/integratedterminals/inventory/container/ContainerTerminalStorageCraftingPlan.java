@@ -14,6 +14,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.CraftingJobStartException;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
@@ -92,8 +93,12 @@ public class ContainerTerminalStorageCraftingPlan extends ExtendedInventoryConta
     protected void updateCraftingPlanJob() {
         HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
         INetwork network = NetworkHelpers.getNetwork(target.getCenter());
-        this.craftingPlan = craftingOptionWrapper.getHandler().calculateCraftingPlan(network,
-                this.craftingOptionGuiData.getChannel(), craftingOptionWrapper.getCraftingOption(), this.craftingOptionGuiData.getAmount());
+        this.setCraftingPlan(craftingOptionWrapper.getHandler().calculateCraftingPlan(network,
+                this.craftingOptionGuiData.getChannel(), craftingOptionWrapper.getCraftingOption(), this.craftingOptionGuiData.getAmount()));
+    }
+
+    protected void setCraftingPlan(ITerminalCraftingPlan craftingPlan) {
+        this.craftingPlan = craftingPlan;
         setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(this.craftingPlan));
     }
 
@@ -113,16 +118,22 @@ public class ContainerTerminalStorageCraftingPlan extends ExtendedInventoryConta
             if (craftingPlan != null) {
                 INetwork network = NetworkHelpers.getNetwork(PartPos.of(world, craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide()));
                 if (network != null) {
-                    craftingOptionGuiData.getCraftingOption().getHandler()
-                            .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (EntityPlayerMP) player);
+                    try {
+                        craftingOptionGuiData.getCraftingOption().getHandler()
+                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (EntityPlayerMP) player);
 
-                    // Re-open terminal gui
-                    IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
-                            Pair.of(craftingOptionGuiData.getSide(), new ContainerTerminalStorage.InitTabData(
-                                    craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel())));
-                    BlockPos pos = craftingOptionGuiData.getPos();
-                    player.openGui(IntegratedTerminals._instance, GuiProviders.ID_GUI_TERMINAL_STORAGE_INIT,
-                            world, pos.getX(), pos.getY(), pos.getZ());
+                        // Re-open terminal gui
+                        IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
+                                Pair.of(craftingOptionGuiData.getSide(), new ContainerTerminalStorage.InitTabData(
+                                        craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel())));
+                        BlockPos pos = craftingOptionGuiData.getPos();
+                        player.openGui(IntegratedTerminals._instance, GuiProviders.ID_GUI_TERMINAL_STORAGE_INIT,
+                                world, pos.getX(), pos.getY(), pos.getZ());
+                    } catch (CraftingJobStartException e) {
+                        // If the job could not be started, display the error in the plan
+                        craftingPlan.setError(e.getUnlocalizedError());
+                        this.setCraftingPlan(craftingPlan);
+                    }
                 }
             }
         } else {

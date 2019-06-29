@@ -19,11 +19,11 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     private final I id;
     private final List<ITerminalCraftingPlan<I>> dependencies;
     private final List<IPrototypedIngredient<?, ?>> outputs;
-    private final TerminalCraftingJobStatus status;
+    private TerminalCraftingJobStatus status;
     private final long craftingQuantity;
     private final List<IPrototypedIngredient<?, ?>> storageIngredients;
     private final List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients;
-    private final String unlocalizedLabel;
+    private String unlocalizedLabel;
     private final long tickDuration;
     private final int channel;
     @Nullable
@@ -107,6 +107,12 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     @Nullable
     public String getInitiatorName() {
         return initiatorName;
+    }
+
+    @Override
+    public void setError(String unlocalizedError) {
+        this.status = TerminalCraftingJobStatus.ERROR;
+        this.unlocalizedLabel = unlocalizedError;
     }
 
     public static <I> NBTTagCompound serialize(TerminalCraftingPlanStatic<I> plan,

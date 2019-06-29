@@ -111,9 +111,10 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param channel The channel to get the options for.
      * @param craftingPlan A crafting plan.
      * @param player The player that started the crafting job.
+     * @throws CraftingJobStartException If the crafting job failed to start.
      */
     public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan,
-                                 EntityPlayerMP player);
+                                 EntityPlayerMP player) throws CraftingJobStartException;
 
     /**
      * @param network The network in which the plan should be started.

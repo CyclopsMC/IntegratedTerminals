@@ -90,7 +90,7 @@ public class GuiTerminalStorageCraftingPlan extends GuiContainerExtended {
             if (keyCode == Keyboard.KEY_ESCAPE) {
                 returnToTerminalStorage();
             } else if (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()
-                    && keyCode == Keyboard.KEY_NUMPADENTER || keyCode == Keyboard.KEY_RETURN) {
+                    && (keyCode == Keyboard.KEY_NUMPADENTER || keyCode == Keyboard.KEY_RETURN)) {
                 actionPerformed(this.buttonList.get(0));
             } else {
                 super.keyTyped(typedChar, keyCode);

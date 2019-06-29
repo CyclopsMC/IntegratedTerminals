@@ -75,4 +75,10 @@ public interface ITerminalCraftingPlan<I> {
     @Nullable
     public String getInitiatorName();
 
+    /**
+     * Mark this plan as errored.
+     * @param unlocalizedError An unlocalized error message.
+     */
+    public void setError(String unlocalizedError);
+
 }
