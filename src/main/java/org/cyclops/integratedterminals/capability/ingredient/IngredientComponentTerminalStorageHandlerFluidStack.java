@@ -22,6 +22,7 @@ import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.FluidHelpers;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -148,8 +149,13 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         IFluidHandlerItem fluidHandler = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            FluidStack moved = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance,
-                    ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), false);
+            FluidStack moved = null;
+            try {
+                moved = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance,
+                        ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), false);
+            } catch (InconsistentIngredientInsertionException e) {
+                // Ignore
+            }
 
             container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
             container.detectAndSendChanges();
@@ -172,7 +178,11 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         IFluidHandlerItem fluidHandler = playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
+            try {
+                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
+            } catch (InconsistentIngredientInsertionException e) {
+                // Ignore
+            }
 
             playerInventory.setItemStack(fluidHandler.getContainer());
         }
@@ -184,7 +194,11 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
         if (fluidHandler != null) {
             IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+            try {
+                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+            } catch (InconsistentIngredientInsertionException e) {
+                // Ignore
+            }
 
             container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
             container.detectAndSendChanges();

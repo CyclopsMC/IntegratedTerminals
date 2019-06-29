@@ -19,6 +19,7 @@ import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integrateddynamics.block.BlockEnergyBattery;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -153,7 +154,12 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         IEnergyStorage energyStorage = stack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            Integer ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
+            Integer ret = 0;
+            try {
+                ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
+            } catch (InconsistentIngredientInsertionException e) {
+                // Ignore
+            }
             container.detectAndSendChanges();
             return ret;
         }
@@ -167,7 +173,11 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         IEnergyStorage energyStorage = playerStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
+            try {
+                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
+            } catch (InconsistentIngredientInsertionException e) {
+                // Ignore
+            }
         }
     }
 
@@ -178,7 +188,11 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {
             IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+            try {
+                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+            } catch (InconsistentIngredientInsertionException e) {
+                // Ignore
+            }
         }
     }
 
