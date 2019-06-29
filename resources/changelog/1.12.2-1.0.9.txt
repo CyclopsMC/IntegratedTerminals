@@ -1,0 +1,7 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.4.0 or higher.
+
+Fixes:
+* Remember crafting job terminal scroll position on updates, Closes #38
+* Fix crafting options not being shown in wildcard channels on 1+ channels, Closes #37
+
