@@ -246,7 +246,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             case DICT:
                 return i -> false; // There is no fluid dictionary
             case DEFAULT:
-                return i -> i.getLocalizedName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+                return i -> i != null && i.getLocalizedName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }
         return null;
     }
