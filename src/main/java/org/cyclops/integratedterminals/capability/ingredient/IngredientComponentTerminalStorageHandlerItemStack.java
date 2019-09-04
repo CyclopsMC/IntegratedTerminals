@@ -174,7 +174,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 }
                 movedTotal += moved.getCount();
 
-                containerSlot.putStack(matcher.withQuantity(maxInstance, newCount).copy());
+                containerSlot.putStack(matcher.withQuantity(maxInstance, playerStack.getCount() + movedTotal).copy());
                 container.detectAndSendChanges();
             } else {
                 break;
