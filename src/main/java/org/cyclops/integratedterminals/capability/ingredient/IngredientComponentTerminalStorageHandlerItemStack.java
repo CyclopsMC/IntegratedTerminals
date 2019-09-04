@@ -163,7 +163,8 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 break;
             }
             ItemStack playerStack = containerSlot.getStack();
-            if (playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack)) {
+            if ((playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack))
+                    && containerSlot.isItemValid(extracted)) {
                 int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
                 int inserted = newCount - playerStack.getCount();
                 ItemStack moved = storage.extract(matcher.withQuantity(maxInstance, inserted),
