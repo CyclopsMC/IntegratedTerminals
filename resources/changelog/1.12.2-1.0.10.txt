@@ -1,0 +1,7 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.4.0 or higher.
+
+Fixes:
+* Fix duplication when extracting via multiple interfaces on a store, Closes #40
+* Fix storage items being destroyed when placing on crafting grid output, Closes #41
+* Fix NPE when searching through null fluids, Related to CyclopsMC/IntegratedDynamics#772
