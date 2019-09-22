@@ -77,7 +77,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         GlStateManager.enableDepth();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
         if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
-            renderItem.renderItemAndEffectIntoGUI(instance, x, y);
+            Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(instance, x, y);
             renderItem.renderItemOverlayIntoGUI(Minecraft.getMinecraft().fontRenderer, instance, x, y, label);
         } else {
             GuiUtils.preItemToolTip(instance);
