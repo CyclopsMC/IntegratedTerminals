@@ -369,6 +369,10 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     @Override
     public List<ITerminalCraftingPlan<Integer>> getCraftingJobs(INetwork network, int channel) {
         ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        if (craftingNetwork == null) {
+            return Collections.emptyList();
+        }
+
         Iterable<CraftingJob> iterable = () -> craftingNetwork.getCraftingJobs(channel);
         CraftingJobDependencyGraph dependencyGraph = craftingNetwork.getCraftingJobDependencyGraph();
         return StreamSupport.stream(iterable.spliterator(), false)
