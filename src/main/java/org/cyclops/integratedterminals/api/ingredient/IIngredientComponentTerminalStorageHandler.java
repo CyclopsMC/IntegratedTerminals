@@ -165,8 +165,9 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param storage The storage to insert to.
      * @param container The container to insert to.
      * @param containerSlot The container slot to insert to.
+     * @param playerInventory The active player inventory.
      */
-    public void extractMaxFromContainerSlot(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot);
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, InventoryPlayer playerInventory);
 
     /**
      * Get the quantity in the active player stack.

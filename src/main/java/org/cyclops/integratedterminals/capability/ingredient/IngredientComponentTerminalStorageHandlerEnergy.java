@@ -183,7 +183,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<Integer, Boolean> storage,
-                                            Container container, int containerSlot) {
+                                            Container container, int containerSlot, InventoryPlayer playerInventory) {
         ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
         IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
         if (energyStorage != null) {

@@ -403,7 +403,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 updateActivePlayerStack = true;
                 break;
             case PLAYER_QUICK_MOVE:
-                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot);
+                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.inventory);
                 break;
         }
 

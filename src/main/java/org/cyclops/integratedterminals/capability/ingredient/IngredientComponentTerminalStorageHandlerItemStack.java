@@ -195,10 +195,23 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                                  Container container, int containerSlot) {
-        ItemStack toMove = container.getSlot(containerSlot).getStack();
+                                            Container container, int containerSlot, InventoryPlayer playerInventory) {
+        Slot slot = container.getSlot(containerSlot);
+        ItemStack toMove = slot.getStack();
         if (!toMove.isEmpty()) {
-            container.getSlot(containerSlot).putStack(storage.insert(toMove, false));
+            // The following code is a bit convoluted to handle cases where the container and the storage point to the same inventory.
+            // See https://github.com/CyclopsMC/IntegratedTerminals/issues/47
+            slot.putStack(ItemStack.EMPTY);
+            ItemStack remainingStack = storage.insert(toMove, false);
+            if (!remainingStack.isEmpty()) {
+                // Check if the slot is still empty, because the storage may be linked to the container in some exotic cases (e.g. player interfaces).
+                if (!slot.getHasStack()) {
+                    slot.putStack(remainingStack);
+                } else {
+                    // Simply add the remainder to the player's container
+                    playerInventory.addItemStackToInventory(remainingStack);
+                }
+            }
             container.detectAndSendChanges();
         }
     }
