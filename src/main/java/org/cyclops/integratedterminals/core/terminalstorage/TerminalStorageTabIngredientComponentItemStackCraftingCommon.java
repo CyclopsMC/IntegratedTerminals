@@ -9,12 +9,12 @@ import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.inventory.Slot;
 import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.cyclopscore.helper.CraftingHelpers;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
@@ -124,7 +124,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.world.isRemote) {
             EntityPlayerMP entityplayermp = (EntityPlayerMP)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            IRecipe recipe = CraftingManager.findMatchingRecipe(inventoryCrafting, player.world);
+            IRecipe recipe = CraftingHelpers.findMatchingRecipeCached(inventoryCrafting, player.world, false);
 
             if (recipe != null && (recipe.isDynamic()
                     || !player.world.getGameRules().getBoolean("doLimitedCrafting")
