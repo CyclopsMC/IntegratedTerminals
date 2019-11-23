@@ -1,0 +1,7 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.6.0 or higher.
+
+Fixes:
+* Use cached recipe lookup to fix performance issues when shift-crafting, Closes #48
+* Fix shift-clicking to storage voiding items with interfaced player inv, Related to #47
+* Fix item dupe when extracting from interface-attached player inventory, Closes #47
