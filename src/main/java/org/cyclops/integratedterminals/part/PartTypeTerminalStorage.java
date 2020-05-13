@@ -15,6 +15,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
@@ -36,7 +37,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
     @Override
     public int getConsumptionRate(State state) {
-        return 2;
+        return GeneralConfig.terminalStorageBaseConsumption;
     }
 
     @Override
