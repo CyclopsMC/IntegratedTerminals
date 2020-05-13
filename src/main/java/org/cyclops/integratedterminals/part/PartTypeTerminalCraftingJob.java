@@ -8,6 +8,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.client.gui.container.GuiTerminalCraftingJobs;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
@@ -27,7 +28,7 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
 
     @Override
     public int getConsumptionRate(PartStateEmpty<PartTypeTerminalCraftingJob> state) {
-        return 1;
+        return GeneralConfig.terminalCraftingBaseConsumption;
     }
 
     @Override

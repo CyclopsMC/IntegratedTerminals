@@ -111,6 +111,18 @@ public class GeneralConfig extends DummyConfig {
      */
     @ConfigurableProperty(category = ConfigurableTypeCategory.CORE, comment = "If the crafting planners can work on separate thread.", isCommandable = true)
     public static boolean craftingPlannerEnableMultithreading = true;
+    
+    /**
+     * The base energy usage for the crafting terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.GENERAL, comment = "The base energy usage for the crafting terminal.", minimalValue = 0)
+    public static int terminalCraftingBaseConsumption = 1;
+    
+    /**
+     * The base energy usage for the storage terminal.
+     */
+    @ConfigurableProperty(category = ConfigurableTypeCategory.GENERAL, comment = "The base energy usage for the storage terminal.", minimalValue = 0)
+    public static int terminalStorageBaseConsumption = 2;
 
     /**
      * The type of this config.
