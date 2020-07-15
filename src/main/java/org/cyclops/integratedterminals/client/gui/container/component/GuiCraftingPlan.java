@@ -115,7 +115,7 @@ public class GuiCraftingPlan extends Gui {
     }
 
     public void setFirstRow(int firstRow) {
-        this.firstRow = firstRow;
+        this.firstRow = Math.max(0, firstRow);
     }
 
     public void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
