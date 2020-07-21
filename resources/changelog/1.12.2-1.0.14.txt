@@ -1,0 +1,8 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.6.0 or higher.
+
+Additions:
+* Added base energy consumption config options to terminals
+
+Fixes:
+* Fix rare crash when scrolling in crafting plan, Closes #53
