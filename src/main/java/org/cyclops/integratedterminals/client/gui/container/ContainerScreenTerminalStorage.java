@@ -525,7 +525,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         return super.mouseReleased(mouseX, mouseY, mouseButton);
     }
 
-    protected boolean handleKeyCode(int keyCode, int scanCode) {
+    protected boolean handleKeyCodeFirst(int keyCode, int scanCode) {
         InputMappings.Input inputCode = InputMappings.getInputByCode(keyCode, scanCode);
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(inputCode)) {
             fieldSearch.changeFocus(true);
@@ -544,7 +544,13 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                 playButtonClickSound();
                 return true;
             }
-        } else if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARPLAYER.isActiveAndMatches(inputCode)) {
+        }
+        return false;
+    }
+
+    protected boolean handleKeyCodeLast(int keyCode, int scanCode) {
+        InputMappings.Input inputCode = InputMappings.getInputByCode(keyCode, scanCode);
+        if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARPLAYER.isActiveAndMatches(inputCode)) {
             clearCraftingGrid(false);
             playButtonClickSound();
             return true;
@@ -562,13 +568,33 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
 
     @Override
     public boolean charTyped(char keyCode, int scanCode) {
-        return fieldSearch.charTyped(keyCode, scanCode) || handleKeyCode(keyCode, scanCode) || super.charTyped(keyCode, scanCode);
+        if (handleKeyCodeFirst(keyCode, scanCode)) {
+            return true;
+        }
+        if (fieldSearch.isFocused()) {
+            if (fieldSearch.charTyped(keyCode, scanCode)) {
+                getSelectedClientTab()
+                        .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
+            }
+            return true;
+        }
+        return handleKeyCodeLast(keyCode, scanCode) || super.charTyped(keyCode, scanCode);
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode != GLFW.GLFW_KEY_ESCAPE) {
-            if (this.fieldSearch.keyPressed(keyCode, scanCode, modifiers) || handleKeyCode(keyCode, scanCode)) {
+            if (handleKeyCodeFirst(keyCode, scanCode)) {
+                return true;
+            }
+            if (fieldSearch.isFocused()) {
+                if (this.fieldSearch.keyPressed(keyCode, scanCode, modifiers)) {
+                    getSelectedClientTab()
+                            .ifPresent(tab -> tab.setInstanceFilter(getContainer().getSelectedChannel(), fieldSearch.getText()));
+                }
+                return true;
+            }
+            if (handleKeyCodeLast(keyCode, scanCode)) {
                 return true;
             }
         }
