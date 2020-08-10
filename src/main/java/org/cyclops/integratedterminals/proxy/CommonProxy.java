@@ -6,7 +6,6 @@ import org.cyclops.cyclopscore.proxy.CommonProxyComponent;
 import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.network.packet.*;
-import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
 
 /**
  * Proxy for server and client side.
@@ -46,10 +45,4 @@ public class CommonProxy extends CommonProxyComponent {
         IntegratedDynamics.clog("Registered packet handler.");
     }
 
-    @Override
-    public void registerRenderers() {
-        super.registerRenderers();
-
-        GuiProviders.register();
-    }
 }

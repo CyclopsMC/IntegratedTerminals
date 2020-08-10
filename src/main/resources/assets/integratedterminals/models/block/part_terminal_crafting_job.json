@@ -1,0 +1,7 @@
+{
+	"parent": "integratedterminals:block/terminal",
+	"textures": {
+		"back" : "integratedterminals:part/terminal_back",
+		"front": "integratedterminals:part/terminal_crafting_job"
+	}
+}

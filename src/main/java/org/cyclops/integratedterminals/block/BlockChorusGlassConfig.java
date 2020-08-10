@@ -1,17 +1,18 @@
 package org.cyclops.integratedterminals.block;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.GlassBlock;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
-import org.cyclops.cyclopscore.config.configurable.ConfigurableBlockGlass;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.world.IBlockReader;
 import org.cyclops.cyclopscore.config.extendedconfig.BlockConfig;
+import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.Reference;
-
-import javax.annotation.Nullable;
 
 /**
  * Config for the Crystalized Menril block.
@@ -20,44 +21,21 @@ import javax.annotation.Nullable;
  */
 public class BlockChorusGlassConfig extends BlockConfig {
 
-    /**
-     * The unique instance.
-     */
-    public static BlockChorusGlassConfig _instance;
-
-    /**
-     * Make a new instance.
-     */
     public BlockChorusGlassConfig() {
         super(
                 IntegratedTerminals._instance,
-                true,
                 "chorus_glass",
-                null,
-                null
+                eConfig -> new GlassBlock(Block.Properties.create(Material.GLASS)
+                        .hardnessAndResistance(0.3F)
+                        .sound(SoundType.GLASS)
+                        .notSolid()) {
+                    @Override
+                    public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
+                        return VoxelShapes.empty();
+                    }
+                },
+                getDefaultItemConstructor(IntegratedDynamics._instance)
         );
     }
 
-    @Override
-    protected ConfigurableBlockGlass initSubInstance() {
-        ConfigurableBlockGlass block = new ConfigurableBlockGlass(this, Material.GLASS, true) {
-            @Override
-            public BlockRenderLayer getRenderLayer() {
-                return BlockRenderLayer.TRANSLUCENT;
-            }
-
-            @Nullable
-            @Override
-            public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
-                // Allow any entity to walk through this block
-                return null;
-            }
-        };
-        return block;
-    }
-
-    @Override
-    public String getOreDictionaryId() {
-        return Reference.DICT_BLOCKGLASS;
-    }
 }

@@ -14,32 +14,17 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTermin
  */
 public class IngredientComponentTerminalStorageHandlerConfig extends CapabilityConfig<IIngredientComponentTerminalStorageHandler> {
 
-    /**
-     * The unique instance.
-     */
-    public static IngredientComponentTerminalStorageHandlerConfig _instance;
-
     @CapabilityInject(IIngredientComponentTerminalStorageHandler.class)
     public static Capability<IIngredientComponentTerminalStorageHandler> CAPABILITY = null;
 
-    /**
-     * Make a new instance.
-     */
     public IngredientComponentTerminalStorageHandlerConfig() {
         super(
                 CommonCapabilities._instance,
-                true,
                 "ingredientComponentTerminalStorageHandler",
-                "Capability for displaying ingredient components of a certain type",
                 IIngredientComponentTerminalStorageHandler.class,
                 new DefaultCapabilityStorage<IIngredientComponentTerminalStorageHandler>(),
-                IngredientComponentTerminalStorageHandlerItemStack.class
+                () -> new IngredientComponentTerminalStorageHandlerItemStack(null)
         );
-    }
-
-    @Override
-    public boolean isDisableable() {
-        return false;
     }
 
 }

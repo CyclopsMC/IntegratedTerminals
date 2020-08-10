@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -28,7 +28,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
     @CodecField
     private int channel;
     @CodecField
-    private NBTTagCompound activeStorageInstanceData;
+    private CompoundNBT activeStorageInstanceData;
 
     public TerminalStorageIngredientUpdateActiveStorageIngredientPacket() {
 
@@ -41,8 +41,8 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
         this.ingredientName = component.getName().toString();
         this.channel = channel;
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-        this.activeStorageInstanceData = new NBTTagCompound();
-        this.activeStorageInstanceData.setTag("i", serializer.serializeInstance(activeStorageInstance));
+        this.activeStorageInstanceData = new CompoundNBT();
+        this.activeStorageInstanceData.put("i", serializer.serializeInstance(activeStorageInstance));
     }
 
     @Override
@@ -51,20 +51,20 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void actionClient(World world, EntityPlayer player) {
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(World world, PlayerEntity player) {
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             TerminalStorageTabIngredientComponentClient<T, ?> tab = (TerminalStorageTabIngredientComponentClient<T, ?>)
                     container.getTabClient(tabId);
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-            T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.getTag("i"));
+            T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.get("i"));
             tab.handleActiveIngredientUpdate(getChannel(), activeInstance);
         }
     }
 
     @Override
-    public void actionServer(World world, EntityPlayerMP player) {
+    public void actionServer(World world, ServerPlayerEntity player) {
 
     }
 

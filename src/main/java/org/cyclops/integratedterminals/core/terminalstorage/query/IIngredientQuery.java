@@ -24,7 +24,8 @@ public interface IIngredientQuery<T> extends Predicate<T> {
                     .collect(Collectors.toList()));
         } else {
             IIngredientComponentTerminalStorageHandler<T, M> handler = ingredientComponent
-                    .getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
+                    .getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+                    .orElseThrow(() -> new IllegalStateException("Could not find a terminal storage handler capability on an ingredient component"));
             return new IngredientQueryLeaf<>(query, handler);
         }
     }

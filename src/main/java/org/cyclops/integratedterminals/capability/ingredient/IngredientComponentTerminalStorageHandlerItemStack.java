@@ -1,22 +1,23 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.Slot;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.client.config.GuiUtils;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.client.gui.GuiUtils;
 import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.oredict.OreDictionary;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -29,12 +30,11 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackIdSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackNameSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackQuantitySorter;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -64,26 +64,26 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void drawInstance(ItemStack instance, long maxQuantity, @Nullable String label, GuiContainer gui,
-                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<String> additionalTooltipLines) {
+    @OnlyIn(Dist.CLIENT)
+    public void drawInstance(ItemStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+                             ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+                             int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        RenderHelper.enableGUIStandardItemLighting();
+        RenderHelper.enableStandardItemLighting();
         GlStateManager.enableRescaleNormal();
-        GlStateManager.enableDepth();
+        GlStateManager.enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
-        if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
-            Minecraft.getMinecraft().getRenderItem().renderItemAndEffectIntoGUI(instance, x, y);
-            renderItem.renderItemOverlayIntoGUI(Minecraft.getMinecraft().fontRenderer, instance, x, y, label);
+        if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
+            Minecraft.getInstance().getItemRenderer().renderItemAndEffectIntoGUI(instance, x, y);
+            renderItem.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, instance, x, y, label);
         } else {
             GuiUtils.preItemToolTip(instance);
             GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
-                List<String> lines = instance.getTooltip(
-                        Minecraft.getMinecraft().player, Minecraft.getMinecraft().gameSettings.advancedItemTooltips
+                List<ITextComponent> lines = instance.getTooltip(
+                        Minecraft.getInstance().player, Minecraft.getInstance().gameSettings.advancedItemTooltips
                                 ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
                 if (additionalTooltipLines != null) {
                     lines.addAll(additionalTooltipLines);
@@ -129,7 +129,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public int throwIntoWorld(IIngredientComponentStorage<ItemStack, Integer> storage, ItemStack maxInstance,
-                              EntityPlayer player) {
+                              PlayerEntity player) {
         ItemStack extracted = storage.extract(maxInstance, ItemMatch.EXACT, false);
         if (!extracted.isEmpty()) {
             player.dropItem(extracted, true);
@@ -140,7 +140,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     public ItemStack insertIntoContainer(IIngredientComponentStorage<ItemStack, Integer> storage,
                                          Container container, int containerSlotIndex, ItemStack maxInstance,
-                                         @Nullable EntityPlayer player, boolean transferFullSelection) {
+                                         @Nullable PlayerEntity player, boolean transferFullSelection) {
         IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
 
         Slot containerSlot = container.getSlot(containerSlotIndex);
@@ -185,7 +185,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                                      InventoryPlayer playerInventory, long moveQuantityPlayerSlot) {
+                                                      PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = IngredientComponent.ITEMSTACK.getMatcher().withQuantity(playerInventory.getItemStack(),
                 moveQuantityPlayerSlot);
         int remaining = storage.insert(playerStack.copy(), false).getCount();
@@ -195,7 +195,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                            Container container, int containerSlot, InventoryPlayer playerInventory) {
+                                            Container container, int containerSlot, PlayerInventory playerInventory) {
         Slot slot = container.getSlot(containerSlot);
         ItemStack toMove = slot.getStack();
         if (!toMove.isEmpty()) {
@@ -217,17 +217,17 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
-    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory) {
+    public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
         return playerInventory.getItemStack().getCount();
     }
 
     @Override
-    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity) {
+    public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantity) {
         playerInventory.getItemStack().shrink((int) quantity);
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         switch (searchMode) {
             case MOD:
@@ -235,13 +235,14 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                         .orElse("minecraft").toLowerCase(Locale.ENGLISH)
                         .matches(".*" + query + ".*");
             case TOOLTIP:
-                return i -> i.getTooltip(Minecraft.getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL).stream()
-                        .anyMatch(s -> s.toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
-            case DICT:
-                return i -> Arrays.stream(OreDictionary.getOreIDs(i)).mapToObj(OreDictionary::getOreName)
-                        .anyMatch(name -> name.toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
+                return i -> i.getTooltip(Minecraft.getInstance().player, ITooltipFlag.TooltipFlags.NORMAL).stream()
+                        .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
+            case TAG:
+                return i -> ItemTags.getCollection().getOwningTags(i.getItem()).stream()
+                        .map(r -> ItemTags.getCollection().getOrCreate(r))
+                        .anyMatch(tag -> tag.getId().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
             case DEFAULT:
-                return i -> i.getDisplayName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+                return i -> i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }
         return null;
     }

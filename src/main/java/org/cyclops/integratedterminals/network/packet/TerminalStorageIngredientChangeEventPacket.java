@@ -1,11 +1,11 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
@@ -27,7 +27,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 	@CodecField
 	private String tabId;
     @CodecField
-    private NBTTagCompound changeData;
+    private CompoundNBT changeData;
 	@CodecField
 	private int channel;
 	@CodecField
@@ -43,8 +43,8 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
     	this.tabId = tabId;
 		IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
 		IIngredientCollection<?, ?> instances = event.getInstances();
-		NBTTagCompound serialized = IngredientCollections.serialize(instances);
-		serialized.setInteger("changeType", changeType.ordinal());
+		CompoundNBT serialized = IngredientCollections.serialize(instances);
+		serialized.putInt("changeType", changeType.ordinal());
 		this.changeData = serialized;
 		this.channel = event.getChannel();
 		this.enabled = enabled;
@@ -56,11 +56,11 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void actionClient(World world, EntityPlayer player) {
+	@OnlyIn(Dist.CLIENT)
+	public void actionClient(World world, PlayerEntity player) {
 		if(player.openContainer instanceof ContainerTerminalStorage) {
 			ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
-			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInteger("changeType")];
+			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
 			IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
 
 			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
@@ -79,7 +79,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 	}
 
 	@Override
-	public void actionServer(World world, EntityPlayerMP player) {
+	public void actionServer(World world, ServerPlayerEntity player) {
 
 	}
 	

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "integratedterminals:block/part_terminal_storage", "y": 180 },
+    "facing=east":  { "model": "integratedterminals:block/part_terminal_storage", "y": 270 },
+    "facing=south": { "model": "integratedterminals:block/part_terminal_storage"           },
+    "facing=west":  { "model": "integratedterminals:block/part_terminal_storage", "y": 90  },
+    "facing=up":    { "model": "integratedterminals:block/part_terminal_storage", "x": 90  },
+    "facing=down":  { "model": "integratedterminals:block/part_terminal_storage", "x": 270 }
+  }
+}

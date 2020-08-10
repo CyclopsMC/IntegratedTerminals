@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.proxy;
 
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.client.util.InputMappings;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -9,8 +10,7 @@ import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.cyclopscore.proxy.ClientProxyComponent;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
-import org.lwjgl.input.Keyboard;
+import org.lwjgl.glfw.GLFW;
 
 /**
  * Proxy for the client side.
@@ -24,23 +24,23 @@ public class ClientProxy extends ClientProxyComponent {
 
 	public static final KeyBinding TERMINAL_TAB_NEXT = new KeyBinding(
 			"key." + Reference.MOD_ID + ".terminal.tab.next",
-			KeyConflictContext.GUI, Keyboard.KEY_TAB,
+			KeyConflictContext.GUI, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
 			KEYBINDING_CATEGORY_NAME);
 	public static final KeyBinding TERMINAL_TAB_PREVIOUS = new KeyBinding(
 			"key." + Reference.MOD_ID + ".terminal.tab.previous",
-			KeyConflictContext.GUI, KeyModifier.SHIFT, Keyboard.KEY_TAB,
+			KeyConflictContext.GUI, KeyModifier.SHIFT, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
 			KEYBINDING_CATEGORY_NAME);
 	public static final KeyBinding TERMINAL_CRAFTINGGRID_CLEARPLAYER = new KeyBinding(
 			"key." + Reference.MOD_ID + ".terminal.craftinggrid.clearplayer",
-			KeyConflictContext.GUI, Keyboard.KEY_C,
+			KeyConflictContext.GUI, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_C,
 			KEYBINDING_CATEGORY_NAME);
 	public static final KeyBinding TERMINAL_CRAFTINGGRID_CLEARSTORAGE = new KeyBinding(
 			"key." + Reference.MOD_ID + ".terminal.craftinggrid.clearstorage",
-			KeyConflictContext.GUI, KeyModifier.SHIFT, Keyboard.KEY_C,
+			KeyConflictContext.GUI, KeyModifier.SHIFT, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_C,
 			KEYBINDING_CATEGORY_NAME);
 	public static final KeyBinding TERMINAL_CRAFTINGGRID_BALANCE = new KeyBinding(
 			"key." + Reference.MOD_ID + ".terminal.craftinggrid.balance",
-			KeyConflictContext.GUI, Keyboard.KEY_B,
+			KeyConflictContext.GUI, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_B,
 			KEYBINDING_CATEGORY_NAME);
 
 	public ClientProxy() {
@@ -50,13 +50,6 @@ public class ClientProxy extends ClientProxyComponent {
 	@Override
 	public ModBase getMod() {
 		return IntegratedTerminals._instance;
-	}
-
-	@Override
-	public void registerRenderers() {
-		super.registerRenderers();
-
-		GuiProviders.register();
 	}
 
 	@Override

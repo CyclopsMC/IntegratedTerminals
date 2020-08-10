@@ -1,10 +1,11 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
  * @author rubensworks
  */
 public interface ITerminalButton<C extends ITerminalStorageTabClient,
-        O extends ITerminalStorageTabCommon, B extends GuiButton> {
+        O extends ITerminalStorageTabCommon, B extends Button> {
 
     /**
      * Calculate the final X position for this button.
@@ -48,7 +49,7 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param y The button Y position.
      * @return The gui button.
      */
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public B createButton(int x, int y);
 
     /**
@@ -59,7 +60,7 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param channel The active channel.
      * @param mouseButton The mouse button that was used to click with.
      */
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void onClick(C clientTab, @Nullable O commonTab, B guiButton, int channel, int mouseButton);
 
     /**
@@ -73,7 +74,7 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param tooltipFlag The tooltip flag.
      * @param lines The tooltip lines.
      */
-    @SideOnly(Side.CLIENT)
-    public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines);
+    @OnlyIn(Dist.CLIENT)
+    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines);
 
 }

@@ -1,46 +1,46 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.world.World;
-import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.network.PacketBuffer;
+import org.cyclops.cyclopscore.inventory.SimpleInventory;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
-import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.core.helper.PartHelpers;
+import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
+import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
+import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
+
+import java.util.Optional;
 
 /**
  * A container for setting the amount for a given crafting option.
  * @author rubensworks
  */
-public class ContainerTerminalStorageCraftingOptionAmount extends ExtendedInventoryContainer {
+public class ContainerTerminalStorageCraftingOptionAmount extends ContainerMultipart<PartTypeTerminalStorage, PartTypeTerminalStorage.State> {
 
-    private final World world;
-    private final PartTarget target;
-    private final IPartContainer partContainer;
-    private final IPartType partType;
     private final CraftingOptionGuiData craftingOptionGuiData;
 
-    /**
-     * Make a new instance.
-     * @param target The target.
-     * @param player The player.
-     * @param partContainer The part container.
-     * @param partType The part type.
-     * @param craftingOptionGuiData The job data.
-     */
-    public ContainerTerminalStorageCraftingOptionAmount(final EntityPlayer player, PartTarget target,
-                                                        IPartContainer partContainer, IPartType partType,
-                                                        CraftingOptionGuiData craftingOptionGuiData) {
-        super(player.inventory, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT);
+    public ContainerTerminalStorageCraftingOptionAmount(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+        this(id, playerInventory, Optional.empty(), Optional.empty(), PartHelpers.readPart(packetBuffer),
+                CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
+    }
+
+    public ContainerTerminalStorageCraftingOptionAmount(int id, PlayerInventory playerInventory,
+                                                        Optional<PartTarget> target, Optional<IPartContainer> partContainer,
+                                                        PartTypeTerminalStorage partType, CraftingOptionGuiData craftingOptionGuiData) {
+        super(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_OPTION_AMOUNT, id, playerInventory, new Inventory(), target, partContainer, partType);
 
         addPlayerInventory(player.inventory, 9, 80);
 
-        this.world = target.getCenter().getPos().getWorld();
-        this.target = target;
-        this.partContainer = partContainer;
-        this.partType = partType;
         this.craftingOptionGuiData = craftingOptionGuiData;
+    }
+
+    public CraftingOptionGuiData getCraftingOptionGuiData() {
+        return craftingOptionGuiData;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ContainerTerminalStorageCraftingOptionAmount extends ExtendedInvent
     }
 
     @Override
-    public boolean canInteractWith(EntityPlayer playerIn) {
+    public boolean canInteractWith(PlayerEntity playerIn) {
         return true;
     }
 

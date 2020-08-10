@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
 import com.google.common.collect.Lists;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.INBT;
 import net.minecraftforge.common.util.Constants;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
@@ -115,121 +115,121 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         this.unlocalizedLabel = unlocalizedError;
     }
 
-    public static <I> NBTTagCompound serialize(TerminalCraftingPlanStatic<I> plan,
-                                               ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
-        NBTTagCompound tag = new NBTTagCompound();
+    public static <I> CompoundNBT serialize(TerminalCraftingPlanStatic<I> plan,
+                                            ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
+        CompoundNBT tag = new CompoundNBT();
 
-        tag.setTag("id", handler.serializeCraftingJobId(plan.getId()));
+        tag.put("id", handler.serializeCraftingJobId(plan.getId()));
 
-        NBTTagList dependencies = new NBTTagList();
+        ListNBT dependencies = new ListNBT();
         for (ITerminalCraftingPlan<I> dependency : plan.getDependencies()) {
-            dependencies.appendTag(TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) dependency, handler));
+            dependencies.add(TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) dependency, handler));
         }
-        tag.setTag("dependencies", dependencies);
+        tag.put("dependencies", dependencies);
 
-        NBTTagList outputs = new NBTTagList();
+        ListNBT outputs = new ListNBT();
         for (IPrototypedIngredient<?, ?> output : plan.getOutputs()) {
-            outputs.appendTag(IPrototypedIngredient.serialize((PrototypedIngredient) output));
+            outputs.add(IPrototypedIngredient.serialize((PrototypedIngredient) output));
         }
-        tag.setTag("outputs", outputs);
+        tag.put("outputs", outputs);
 
-        tag.setInteger("status", plan.getStatus().ordinal());
+        tag.putInt("status", plan.getStatus().ordinal());
 
-        tag.setLong("craftingQuantity", plan.getCraftingQuantity());
+        tag.putLong("craftingQuantity", plan.getCraftingQuantity());
 
-        NBTTagList storageIngredients = new NBTTagList();
+        ListNBT storageIngredients = new ListNBT();
         for (IPrototypedIngredient<?, ?> storageIngredient : plan.getStorageIngredients()) {
-            storageIngredients.appendTag(IPrototypedIngredient.serialize((PrototypedIngredient) storageIngredient));
+            storageIngredients.add(IPrototypedIngredient.serialize((PrototypedIngredient) storageIngredient));
         }
-        tag.setTag("storageIngredients", storageIngredients);
+        tag.put("storageIngredients", storageIngredients);
 
-        NBTTagList lastMissingIngredients = new NBTTagList();
+        ListNBT lastMissingIngredients = new ListNBT();
         for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : plan.getLastMissingIngredients()) {
-            NBTTagList lastMissingIngredientTag = new NBTTagList();
+            ListNBT lastMissingIngredientTag = new ListNBT();
             for (IPrototypedIngredient<?, ?> prototypedIngredient : lastMissingIngredient) {
-                lastMissingIngredientTag.appendTag(IPrototypedIngredient.serialize((PrototypedIngredient) prototypedIngredient));
+                lastMissingIngredientTag.add(IPrototypedIngredient.serialize((PrototypedIngredient) prototypedIngredient));
             }
-            lastMissingIngredients.appendTag(lastMissingIngredientTag);
+            lastMissingIngredients.add(lastMissingIngredientTag);
         }
-        tag.setTag("lastMissingIngredients", lastMissingIngredients);
+        tag.put("lastMissingIngredients", lastMissingIngredients);
 
-        tag.setString("unlocalizedLabel", plan.getUnlocalizedLabel());
+        tag.putString("unlocalizedLabel", plan.getUnlocalizedLabel());
 
-        tag.setLong("tickDuration", plan.getTickDuration());
+        tag.putLong("tickDuration", plan.getTickDuration());
 
-        tag.setInteger("channel", plan.getChannel());
+        tag.putInt("channel", plan.getChannel());
 
         if (plan.getInitiatorName() != null) {
-            tag.setString("initiatorName", plan.getInitiatorName());
+            tag.putString("initiatorName", plan.getInitiatorName());
         }
 
         return tag;
     }
 
-    public static <I> TerminalCraftingPlanStatic<I> deserialize(NBTTagCompound tag,
+    public static <I> TerminalCraftingPlanStatic<I> deserialize(CompoundNBT tag,
                                                                 ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
-        if (!tag.hasKey("id")) {
+        if (!tag.contains("id")) {
             throw new IllegalArgumentException("Could not find an id entry in the given tag");
         }
-        if (!tag.hasKey("dependencies", Constants.NBT.TAG_LIST)) {
+        if (!tag.contains("dependencies", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a dependencies entry in the given tag");
         }
-        if (!tag.hasKey("outputs", Constants.NBT.TAG_LIST)) {
+        if (!tag.contains("outputs", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a outputs entry in the given tag");
         }
-        if (!tag.hasKey("status", Constants.NBT.TAG_INT)) {
+        if (!tag.contains("status", Constants.NBT.TAG_INT)) {
             throw new IllegalArgumentException("Could not find a status entry in the given tag");
         }
-        if (!tag.hasKey("craftingQuantity", Constants.NBT.TAG_LONG)) {
+        if (!tag.contains("craftingQuantity", Constants.NBT.TAG_LONG)) {
             throw new IllegalArgumentException("Could not find a craftingQuantity entry in the given tag");
         }
-        if (!tag.hasKey("storageIngredients", Constants.NBT.TAG_LIST)) {
+        if (!tag.contains("storageIngredients", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a storageIngredients entry in the given tag");
         }
-        if (!tag.hasKey("lastMissingIngredients", Constants.NBT.TAG_LIST)) {
+        if (!tag.contains("lastMissingIngredients", Constants.NBT.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a lastMissingIngredients entry in the given tag");
         }
-        if (!tag.hasKey("unlocalizedLabel", Constants.NBT.TAG_STRING)) {
+        if (!tag.contains("unlocalizedLabel", Constants.NBT.TAG_STRING)) {
             throw new IllegalArgumentException("Could not find a unlocalizedLabel entry in the given tag");
         }
-        if (!tag.hasKey("tickDuration", Constants.NBT.TAG_LONG)) {
+        if (!tag.contains("tickDuration", Constants.NBT.TAG_LONG)) {
             throw new IllegalArgumentException("Could not find a tickDuration entry in the given tag");
         }
-        if (!tag.hasKey("channel", Constants.NBT.TAG_INT)) {
+        if (!tag.contains("channel", Constants.NBT.TAG_INT)) {
             throw new IllegalArgumentException("Could not find a channel entry in the given tag");
         }
 
-        I id = handler.deserializeCraftingJobId(tag.getTag("id"));
+        I id = handler.deserializeCraftingJobId(tag.get("id"));
 
-        NBTTagList dependenciesTag = tag.getTagList("dependencies", Constants.NBT.TAG_COMPOUND);
-        List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayListWithExpectedSize(dependenciesTag.tagCount());
-        for (NBTBase nbtBase : dependenciesTag) {
-            dependencies.add(TerminalCraftingPlanStatic.deserialize((NBTTagCompound) nbtBase, handler));
+        ListNBT dependenciesTag = tag.getList("dependencies", Constants.NBT.TAG_COMPOUND);
+        List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayListWithExpectedSize(dependenciesTag.size());
+        for (INBT nbtBase : dependenciesTag) {
+            dependencies.add(TerminalCraftingPlanStatic.deserialize((CompoundNBT) nbtBase, handler));
         }
 
-        NBTTagList outputsTag = tag.getTagList("outputs", Constants.NBT.TAG_COMPOUND);
-        List<IPrototypedIngredient<?, ?>> outputs = Lists.newArrayListWithExpectedSize(outputsTag.tagCount());
-        for (NBTBase nbtBase : outputsTag) {
-            outputs.add(IPrototypedIngredient.deserialize((NBTTagCompound) nbtBase));
+        ListNBT outputsTag = tag.getList("outputs", Constants.NBT.TAG_COMPOUND);
+        List<IPrototypedIngredient<?, ?>> outputs = Lists.newArrayListWithExpectedSize(outputsTag.size());
+        for (INBT nbtBase : outputsTag) {
+            outputs.add(IPrototypedIngredient.deserialize((CompoundNBT) nbtBase));
         }
 
-        TerminalCraftingJobStatus status = TerminalCraftingJobStatus.values()[tag.getInteger("status")];
+        TerminalCraftingJobStatus status = TerminalCraftingJobStatus.values()[tag.getInt("status")];
 
         long craftingQuantity = tag.getLong("craftingQuantity");
 
-        NBTTagList storageIngredientsTag = tag.getTagList("storageIngredients", Constants.NBT.TAG_COMPOUND);
-        List<IPrototypedIngredient<?, ?>> storageIngredients = Lists.newArrayListWithExpectedSize(storageIngredientsTag.tagCount());
-        for (NBTBase nbtBase : storageIngredientsTag) {
-            storageIngredients.add(IPrototypedIngredient.deserialize((NBTTagCompound) nbtBase));
+        ListNBT storageIngredientsTag = tag.getList("storageIngredients", Constants.NBT.TAG_COMPOUND);
+        List<IPrototypedIngredient<?, ?>> storageIngredients = Lists.newArrayListWithExpectedSize(storageIngredientsTag.size());
+        for (INBT nbtBase : storageIngredientsTag) {
+            storageIngredients.add(IPrototypedIngredient.deserialize((CompoundNBT) nbtBase));
         }
 
-        NBTTagList lastMissingIngredientsTag = tag.getTagList("lastMissingIngredients", Constants.NBT.TAG_LIST);
-        List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients = Lists.newArrayListWithExpectedSize(lastMissingIngredientsTag.tagCount());
-        for (NBTBase nbtBase : lastMissingIngredientsTag) {
-            NBTTagList list = ((NBTTagList) nbtBase);
-            List<IPrototypedIngredient<?, ?>> lastMissingIngredient = Lists.newArrayListWithExpectedSize(list.tagCount());
-            for (NBTBase base : list) {
-                lastMissingIngredient.add(IPrototypedIngredient.deserialize((NBTTagCompound) base));
+        ListNBT lastMissingIngredientsTag = tag.getList("lastMissingIngredients", Constants.NBT.TAG_LIST);
+        List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients = Lists.newArrayListWithExpectedSize(lastMissingIngredientsTag.size());
+        for (INBT nbtBase : lastMissingIngredientsTag) {
+            ListNBT list = ((ListNBT) nbtBase);
+            List<IPrototypedIngredient<?, ?>> lastMissingIngredient = Lists.newArrayListWithExpectedSize(list.size());
+            for (INBT base : list) {
+                lastMissingIngredient.add(IPrototypedIngredient.deserialize((CompoundNBT) base));
             }
             lastMissingIngredients.add(lastMissingIngredient);
         }
@@ -238,10 +238,10 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         long tickDuration = tag.getLong("tickDuration");
 
-        int channel = tag.getInteger("channel");
+        int channel = tag.getInt("channel");
 
         String initiatorName = null;
-        if (tag.hasKey("initiatorName", Constants.NBT.TAG_STRING)) {
+        if (tag.contains("initiatorName", Constants.NBT.TAG_STRING)) {
             initiatorName = tag.getString("initiatorName");
         }
 

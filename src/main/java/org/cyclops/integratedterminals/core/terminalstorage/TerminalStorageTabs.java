@@ -2,10 +2,10 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.eventhandler.EventPriority;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.capability.network.PositionedAddonsNetworkIngredientsHandlerConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -20,15 +20,15 @@ public class TerminalStorageTabs {
             .getRegistry(ITerminalStorageTabRegistry.class);
 
     public static void load() {
-        MinecraftForge.EVENT_BUS.register(TerminalStorageTabs.class);
+        FMLJavaModLoadingContext.get().getModEventBus().register(TerminalStorageTabs.class);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void afterIngredientComponentsRegistration(RegistryEvent.Register event) {
         if (event.getRegistry() == IngredientComponent.REGISTRY) {
             // Create tabs for all ingredient component types
-            for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValuesCollection()) {
-                if (ingredientComponent.hasCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY)) {
+            for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValues()) {
+                if (ingredientComponent.getCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY).isPresent()) {
                     TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponent<>(ingredientComponent));
                 }
             }
@@ -37,7 +37,7 @@ public class TerminalStorageTabs {
             IngredientComponent<ItemStack, Integer> ingredientComponentItemStack = (IngredientComponent<ItemStack, Integer>)
                     IngredientComponent.REGISTRY.getValue(new ResourceLocation("minecraft:itemstack"));
             if (ingredientComponentItemStack != null
-                    && ingredientComponentItemStack.hasCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY)) {
+                    && ingredientComponentItemStack.getCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY).isPresent()) {
                 TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponentItemStackCrafting(ingredientComponentItemStack));
             }
         }

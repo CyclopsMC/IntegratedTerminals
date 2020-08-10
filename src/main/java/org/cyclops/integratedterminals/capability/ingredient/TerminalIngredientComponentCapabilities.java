@@ -20,7 +20,7 @@ public class TerminalIngredientComponentCapabilities {
         IngredientComponentCapabilityAttacherManager attacherManager = new IngredientComponentCapabilityAttacherManager();
 
         // Views
-        ResourceLocation capabilityIngredientComponentViewHandler = new ResourceLocation(Reference.MOD_ID, "viewHandler");
+        ResourceLocation capabilityIngredientComponentViewHandler = new ResourceLocation(Reference.MOD_ID, "view_handler");
         attacherManager.addAttacher(new IngredientComponentCapabilityAttacherAdapter<ItemStack, Integer>(IngredientComponentCapabilities.INGREDIENT_ITEMSTACK_NAME, capabilityIngredientComponentViewHandler) {
             @Override
             public ICapabilityProvider createCapabilityProvider(IngredientComponent<ItemStack, Integer> ingredientComponent) {

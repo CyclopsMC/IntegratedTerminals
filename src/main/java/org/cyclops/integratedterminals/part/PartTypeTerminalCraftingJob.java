@@ -1,20 +1,30 @@
 package org.cyclops.integratedterminals.part;
 
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.inventory.Container;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
+import net.minecraft.util.text.TranslationTextComponent;
+import org.apache.commons.lang3.tuple.Triple;
+import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.part.IPartContainer;
+import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
+import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.GeneralConfig;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalCraftingJobs;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobs;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A part that exposes a gui using which players can view and manage the active crafting jobs in the network.
@@ -37,22 +47,36 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Class<? extends GuiScreen> getGui() {
-        return GuiTerminalCraftingJobs.class;
+    public Optional<INamedContainerProvider> getContainerProvider(PartPos pos) {
+        return Optional.of(new INamedContainerProvider() {
+
+            @Override
+            public ITextComponent getDisplayName() {
+                return new TranslationTextComponent(getTranslationKey());
+            }
+
+            @Override
+            public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+                Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(pos);
+                return new ContainerTerminalCraftingJobs(id, playerInventory,
+                        data.getRight(), Optional.of(data.getLeft()), (PartTypeTerminalCraftingJob) data.getMiddle());
+            }
+        });
     }
 
     @Override
-    public Class<? extends Container> getContainer() {
-        return ContainerTerminalCraftingJobs.class;
+    public void writeExtraGuiData(PacketBuffer packetBuffer, PartPos pos, ServerPlayerEntity player) {
+        PacketCodec.write(packetBuffer, pos);
+        super.writeExtraGuiData(packetBuffer, pos, player);
     }
 
     @Override
-    public void loadTooltip(ItemStack itemStack, List<String> lines) {
+    public void loadTooltip(ItemStack itemStack, List<ITextComponent> lines) {
         super.loadTooltip(itemStack, lines);
         if (TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
-            lines.add(TextFormatting.GOLD + L10NHelpers.localize(
-                    "parttype.parttypes.integratedterminals.terminal_crafting_job.tooltip.nohandlers"));
+            lines.add(new TranslationTextComponent(
+                    "parttype.parttypes.integratedterminals.terminal_crafting_job.tooltip.nohandlers")
+                    .applyTextStyle(TextFormatting.GOLD));
         }
     }
 }

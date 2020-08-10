@@ -1,13 +1,26 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
-import org.apache.commons.lang3.tuple.Pair;
-import org.cyclops.integratedterminals.IntegratedTerminals;
+import net.minecraftforge.fml.network.NetworkHooks;
+import org.apache.commons.lang3.tuple.Triple;
+import org.cyclops.integrateddynamics.api.part.IPartContainer;
+import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.core.helper.PartHelpers;
+import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
-import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmount;
+import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
+import org.cyclops.integratedterminals.part.PartTypes;
+
+import java.util.Optional;
 
 /**
  * Packet for opening the crafting job amount gui.
@@ -25,13 +38,31 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M> exten
     }
 
     @Override
-    public void actionServer(World world, EntityPlayerMP player) {
-        CraftingOptionGuiData<T, M> data = getCraftingOptionData();
-        IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
-                Pair.of(data.getSide(), data)); // Pass the side as extra data to the gui
-        BlockPos cPos = data.getPos();
-        player.openGui(IntegratedTerminals._instance, GuiProviders.ID_GUI_TERMINAL_STORAGE_CRAFTNG_OPTION_AMOUNT,
-                world, cPos.getX(), cPos.getY(), cPos.getZ());
+    public void actionServer(World world, ServerPlayerEntity player) {
+        // Create common data
+        CraftingOptionGuiData<T, M> craftingJobGuiData = getCraftingOptionData();
+
+        // Create temporary container provider
+        INamedContainerProvider containerProvider = new INamedContainerProvider() {
+            @Override
+            public ITextComponent getDisplayName() {
+                return new StringTextComponent("");
+            }
+
+            @Override
+            public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+                Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(PartPos.of(world, craftingJobGuiData.getPos(), craftingJobGuiData.getSide()));
+                return new ContainerTerminalStorageCraftingOptionAmount(id, playerInventory,
+                        Optional.of(data.getRight()), Optional.of(data.getLeft()), (PartTypeTerminalStorage) data.getMiddle(),
+                        craftingJobGuiData);
+            }
+        };
+
+        // Trigger gui opening
+        NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
+            packetBuffer.writeString(PartTypes.TERMINAL_STORAGE.toString());
+            craftingJobGuiData.writeToPacketBuffer(packetBuffer);
+        });
     }
 
 }

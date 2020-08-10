@@ -1,10 +1,5 @@
 {
-  "forge_marker": 1,
-  "defaults": {
-    "transform": "forge:default-block"
-  },
   "variants": {
-    "normal"   : { "model": "integratedterminals:chorus_glass" },
-    "inventory": { "model": "integratedterminals:chorus_glass" }
+    "" : { "model": "integratedterminals:block/chorus_glass" }
   }
 }

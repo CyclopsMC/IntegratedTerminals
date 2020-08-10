@@ -1,6 +1,8 @@
 package org.cyclops.integratedterminals.core.client.gui;
 
-import net.minecraft.util.EnumFacing;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.Direction;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
@@ -14,7 +16,7 @@ import javax.annotation.Nullable;
 public class CraftingOptionGuiData<T, M> {
 
     private final BlockPos pos;
-    private final EnumFacing side;
+    private final Direction side;
     private final IngredientComponent<T, M> component;
     private final String tabName;
     private final int channel;
@@ -24,7 +26,7 @@ public class CraftingOptionGuiData<T, M> {
     @Nullable
     private final HandlerWrappedTerminalCraftingPlan craftingPlan;
 
-    public CraftingOptionGuiData(BlockPos pos, EnumFacing side, IngredientComponent<T, M> component, String tabName,
+    public CraftingOptionGuiData(BlockPos pos, Direction side, IngredientComponent<T, M> component, String tabName,
                                  int channel, @Nullable HandlerWrappedTerminalCraftingOption<T> craftingOption,
                                  int amount, HandlerWrappedTerminalCraftingPlan craftingPlan) {
         this.pos = pos;
@@ -41,7 +43,7 @@ public class CraftingOptionGuiData<T, M> {
         return pos;
     }
 
-    public EnumFacing getSide() {
+    public Direction getSide() {
         return side;
     }
 
@@ -69,6 +71,29 @@ public class CraftingOptionGuiData<T, M> {
     @Nullable
     public HandlerWrappedTerminalCraftingPlan getCraftingPlan() {
         return craftingPlan;
+    }
+
+    public void writeToPacketBuffer(PacketBuffer packetBuffer) {
+        packetBuffer.writeBlockPos(pos);
+        packetBuffer.writeInt(side.ordinal());
+        packetBuffer.writeString(component.getName().toString());
+        packetBuffer.writeString(tabName);
+        packetBuffer.writeInt(channel);
+        packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingOption.serialize(craftingOption));
+        packetBuffer.writeInt(amount);
+        packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingPlan.serialize(craftingPlan));
+    }
+
+    public static CraftingOptionGuiData readFromPacketBuffer(PacketBuffer packetBuffer) {
+        BlockPos blockPos = packetBuffer.readBlockPos();
+        Direction side = Direction.values()[packetBuffer.readInt()];
+        IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readString()));
+        String tabName = packetBuffer.readString();
+        int channel = packetBuffer.readInt();
+        HandlerWrappedTerminalCraftingOption craftingOption = HandlerWrappedTerminalCraftingOption.deserialize(component, packetBuffer.readCompoundTag());
+        int amount = packetBuffer.readInt();
+        HandlerWrappedTerminalCraftingPlan craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.readCompoundTag());
+        return new CraftingOptionGuiData(blockPos, side, component, tabName, channel, craftingOption, amount, craftingPlan);
     }
 
     public static <T, M> CraftingOptionGuiData<T, M> copyWithAmount(CraftingOptionGuiData<T, M> craftingOptionGuiData, int amount) {

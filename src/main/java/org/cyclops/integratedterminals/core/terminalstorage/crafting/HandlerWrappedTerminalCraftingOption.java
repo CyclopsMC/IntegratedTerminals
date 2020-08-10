@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -31,15 +31,15 @@ public class HandlerWrappedTerminalCraftingOption<T> {
         return craftingOption;
     }
 
-    public static <T> NBTTagCompound serialize(HandlerWrappedTerminalCraftingOption<T> craftingOption) {
+    public static <T> CompoundNBT serialize(HandlerWrappedTerminalCraftingOption<T> craftingOption) {
         ITerminalStorageTabIngredientCraftingHandler handler = craftingOption.getHandler();
-        NBTTagCompound tag = handler.serializeCraftingOption(craftingOption.getCraftingOption());
-        tag.setString("craftingOptionHandler", handler.getId().toString());
+        CompoundNBT tag = handler.serializeCraftingOption(craftingOption.getCraftingOption());
+        tag.putString("craftingOptionHandler", handler.getId().toString());
         return tag;
     }
 
-    public static <T, M> HandlerWrappedTerminalCraftingOption<T> deserialize(IngredientComponent<T, M> ingredientComponent, NBTTagCompound tag) {
-        if (!tag.hasKey("craftingOptionHandler", Constants.NBT.TAG_STRING)) {
+    public static <T, M> HandlerWrappedTerminalCraftingOption<T> deserialize(IngredientComponent<T, M> ingredientComponent, CompoundNBT tag) {
+        if (!tag.contains("craftingOptionHandler", Constants.NBT.TAG_STRING)) {
             throw new IllegalArgumentException("Could not find a craftingOptionHandler entry in the given tag");
         }
         String handlerId = tag.getString("craftingOptionHandler");

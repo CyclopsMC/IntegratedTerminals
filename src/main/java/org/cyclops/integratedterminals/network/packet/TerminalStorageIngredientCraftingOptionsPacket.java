@@ -1,14 +1,14 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.ListNBT;
 import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -32,7 +32,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	@CodecField
 	private int channel;
     @CodecField
-    private NBTTagCompound data;
+    private CompoundNBT data;
     @CodecField
 	private boolean reset;
 	@CodecField
@@ -49,12 +49,12 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 															  boolean firstChannel) {
 		this.tabId = tabId;
 		this.channel = channel;
-		this.data = new NBTTagCompound();
-		NBTTagList list = new NBTTagList();
+		this.data = new CompoundNBT();
+		ListNBT list = new ListNBT();
 		for (HandlerWrappedTerminalCraftingOption<?> option : craftingOptions) {
-			list.appendTag(HandlerWrappedTerminalCraftingOption.serialize(option));
+			list.add(HandlerWrappedTerminalCraftingOption.serialize(option));
 		}
-		this.data.setTag("craftingOptions", list);
+		this.data.put("craftingOptions", list);
 		this.reset = reset;
 		this.firstChannel = firstChannel;
 	}
@@ -65,8 +65,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void actionClient(World world, EntityPlayer player) {
+	@OnlyIn(Dist.CLIENT)
+	public void actionClient(World world, PlayerEntity player) {
 		if(player.openContainer instanceof ContainerTerminalStorage) {
 			ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
 
@@ -74,11 +74,11 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
 			IngredientComponent<?, ?> ingredientComponent = tab.getIngredientComponent();
 
-			NBTTagList list = this.data.getTagList("craftingOptions", Constants.NBT.TAG_COMPOUND);
-			List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.tagCount());
-			for (int i = 0; i < list.tagCount(); i++) {
+			ListNBT list = this.data.getList("craftingOptions", Constants.NBT.TAG_COMPOUND);
+			List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
+			for (int i = 0; i < list.size(); i++) {
 				HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
-						.deserialize(ingredientComponent, list.getCompoundTagAt(i));
+						.deserialize(ingredientComponent, list.getCompound(i));
 				craftingOptions.add(option);
 			}
 
@@ -97,7 +97,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	}
 
 	@Override
-	public void actionServer(World world, EntityPlayerMP player) {
+	public void actionServer(World world, ServerPlayerEntity player) {
 
 	}
 	

@@ -1,9 +1,11 @@
 package org.cyclops.integratedterminals.capability.ingredient.sorter;
 
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.Reference;
@@ -36,8 +38,8 @@ public abstract class IngredientInstanceSorterAdapter<T> implements IIngredientI
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines) {
-        lines.add(L10NHelpers.localize(this.unlocalizedName + ".info"));
+    @OnlyIn(Dist.CLIENT)
+    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines) {
+        lines.add(new TranslationTextComponent(this.unlocalizedName + ".info"));
     }
 }

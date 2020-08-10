@@ -1,12 +1,15 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.cyclops.cyclopscore.client.gui.component.button.GuiButtonImage;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -14,7 +17,6 @@ import org.cyclops.integratedterminals.client.gui.image.Images;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridClear;
-import org.lwjgl.input.Keyboard;
 
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
  */
 public class TerminalButtonItemStackCraftingGridClear<T>
         implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
-        TerminalStorageTabIngredientComponentItemStackCraftingCommon, GuiButtonImage> {
+        TerminalStorageTabIngredientComponentItemStackCraftingCommon, ButtonImage> {
 
     @Override
     public int getX(int guiLeft, int offset) {
@@ -42,17 +44,21 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public GuiButtonImage createButton(int x, int y) {
-        return new GuiButtonImage(0, x, y, Images.BUTTON_SMALL_BACKGROUND_INACTIVE, Images.BUTTON_SMALL_OVERLAY_CROSS);
+    @OnlyIn(Dist.CLIENT)
+    public ButtonImage createButton(int x, int y) {
+        return new ButtonImage(x, y,
+                L10NHelpers.localize("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
+                (b) -> {},
+                Images.BUTTON_SMALL_BACKGROUND_INACTIVE,
+                Images.BUTTON_SMALL_OVERLAY_CROSS);
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
-                        TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, GuiButtonImage guiButton,
+                        TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, ButtonImage guiButton,
                         int channel, int mouseButton) {
-        boolean toStorage = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
+        boolean toStorage = MinecraftHelpers.isShifted();
         TerminalButtonItemStackCraftingGridClear.clearGrid(commomTab, channel, toStorage);
     }
 
@@ -62,9 +68,9 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines) {
-        lines.add(L10NHelpers.localize("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.clear.info"));
+    @OnlyIn(Dist.CLIENT)
+    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines) {
+        lines.add(new TranslationTextComponent("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.clear.info"));
     }
 
     public static void clearGrid(TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab,

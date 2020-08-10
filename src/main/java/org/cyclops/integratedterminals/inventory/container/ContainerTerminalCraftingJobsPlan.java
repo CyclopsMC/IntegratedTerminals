@@ -1,56 +1,52 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
-import org.cyclops.cyclopscore.inventory.container.ExtendedInventoryContainer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
+import org.cyclops.cyclopscore.inventory.SimpleInventory;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
-import org.cyclops.integrateddynamics.api.part.IPartType;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
+import org.cyclops.integrateddynamics.core.helper.PartHelpers;
+import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
+import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
 import org.cyclops.integratedterminals.GeneralConfig;
+import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
-import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
+import org.cyclops.integratedterminals.part.PartTypeTerminalCraftingJob;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * A container for visualizing a live crafting plan.
  * @author rubensworks
  */
-public class ContainerTerminalCraftingJobsPlan extends ExtendedInventoryContainer {
+public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTypeTerminalCraftingJob, PartStateEmpty<PartTypeTerminalCraftingJob>> {
 
-    private final World world;
-    private final PartTarget target;
-    private final IPartContainer partContainer;
-    private final IPartType partType;
     private final CraftingJobGuiData craftingJobGuiData;
     private final int craftingPlanNotifierId;
 
     private long lastUpdate;
-    @Nullable
-    private ITerminalCraftingPlan craftingPlan;
+    private Optional<ITerminalCraftingPlan> craftingPlan;
 
-    /**
-     * Make a new instance.
-     * @param target The target.
-     * @param player The player.
-     * @param partContainer The part container.
-     * @param partType The part type.
-     * @param craftingJobGuiData The job data.
-     */
-    public ContainerTerminalCraftingJobsPlan(final EntityPlayer player, PartTarget target,
-                                             IPartContainer partContainer, IPartType partType,
+    public ContainerTerminalCraftingJobsPlan(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+        this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer),
+                CraftingJobGuiData.readFromPacketBuffer(packetBuffer));
+    }
+
+    public ContainerTerminalCraftingJobsPlan(int id, PlayerInventory playerInventory,
+                                             PartTarget target, Optional<IPartContainer> partContainer,
+                                             PartTypeTerminalCraftingJob partType,
                                              CraftingJobGuiData craftingJobGuiData) {
-        super(player.inventory, GuiProviders.GUI_TERMINAL_STORAGE_CRAFTNG_PLAN);
+        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS_PLAN, id, playerInventory, new Inventory(), Optional.of(target), partContainer, partType);
 
-        this.world = target.getCenter().getPos().getWorld();
-        this.target = target;
-        this.partContainer = partContainer;
-        this.partType = partType;
         this.craftingJobGuiData = craftingJobGuiData;
+        this.craftingPlan = Optional.empty();
 
         this.craftingPlanNotifierId = getNextValueId();
     }
@@ -59,12 +55,7 @@ public class ContainerTerminalCraftingJobsPlan extends ExtendedInventoryContaine
         return craftingJobGuiData;
     }
 
-    public PartTarget getTarget() {
-        return target;
-    }
-
-    @Nullable
-    public ITerminalCraftingPlan getCraftingPlan() {
+    public Optional<ITerminalCraftingPlan> getCraftingPlan() {
         return craftingPlan;
     }
 
@@ -73,7 +64,7 @@ public class ContainerTerminalCraftingJobsPlan extends ExtendedInventoryContaine
         super.detectAndSendChanges();
 
         // Calculate crafting plan on server
-        if (!this.world.isRemote
+        if (!this.getWorld().isRemote()
                 && this.lastUpdate < System.currentTimeMillis()) {
             this.lastUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
             updateCraftingPlan();
@@ -85,14 +76,14 @@ public class ContainerTerminalCraftingJobsPlan extends ExtendedInventoryContaine
     }
 
     protected void updateCraftingPlan() {
-        INetwork network = NetworkHelpers.getNetwork(target.getCenter());
-        this.craftingPlan = craftingJobGuiData.getHandler().getCraftingJob(network,
-                this.craftingJobGuiData.getChannel(), craftingJobGuiData.getCraftingJob());
-        if (this.craftingPlan != null) {
-            setValue(this.craftingPlanNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlan(this.craftingPlan));
-        } else {
-            setValue(this.craftingPlanNotifierId, new NBTTagCompound());
-        }
+        getTarget().ifPresent(target -> {
+            INetwork network = NetworkHelpers.getNetworkChecked(target.getCenter());
+            this.craftingPlan = Optional.ofNullable(craftingJobGuiData.getHandler().getCraftingJob(network,
+                    this.craftingJobGuiData.getChannel(), craftingJobGuiData.getCraftingJob()));
+            setValue(this.craftingPlanNotifierId, this.craftingPlan
+                    .map(p -> this.craftingJobGuiData.getHandler().serializeCraftingPlan(p))
+                    .orElse(new CompoundNBT()));
+        });
     }
 
     @Override
@@ -101,20 +92,21 @@ public class ContainerTerminalCraftingJobsPlan extends ExtendedInventoryContaine
     }
 
     @Override
-    public boolean canInteractWith(EntityPlayer playerIn) {
+    public boolean canInteractWith(PlayerEntity playerIn) {
         return true;
     }
 
     @Override
-    public void onUpdate(int valueId, NBTTagCompound value) {
+    public void onUpdate(int valueId, CompoundNBT value) {
         if (valueId == this.craftingPlanNotifierId) {
             try {
-                this.craftingPlan = craftingJobGuiData.getHandler().deserializeCraftingPlan(value);
+                this.craftingPlan = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlan(value));
             } catch (IllegalArgumentException e) {
-                this.craftingPlan = null;
+                this.craftingPlan = Optional.empty();
             }
         }
 
         super.onUpdate(valueId, value);
     }
+
 }

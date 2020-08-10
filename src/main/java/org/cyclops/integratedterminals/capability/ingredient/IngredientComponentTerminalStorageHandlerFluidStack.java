@@ -1,21 +1,22 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.init.Items;
-import net.minecraft.inventory.Container;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraft.item.Items;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
@@ -30,14 +31,13 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackIdSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackNameSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackQuantitySorter;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -63,23 +63,24 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void drawInstance(FluidStack instance, long maxQuantity, @Nullable String label, GuiContainer gui,
-                             GuiTerminalStorage.DrawLayer layer, float partialTick,
+    @OnlyIn(Dist.CLIENT)
+    public void drawInstance(FluidStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+                             ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
-                             @Nullable List<String> additionalTooltipLines) {
+                             @Nullable List<ITextComponent> additionalTooltipLines) {
         if (instance != null) {
-            if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+            if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
                 GuiHelpers.renderFluidSlot(gui, instance, x, y);
 
                 // Draw amount
-                RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, label != null ? label : GuiHelpers.quantityToScaledString(instance.amount), x, y);
+                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().fontRenderer, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
                 GlStateManager.disableLighting();
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
-                    List<String> lines = Lists.newArrayList();
-                    lines.add(instance.getFluid().getRarity().color + instance.getLocalizedName());
+                    List<ITextComponent> lines = Lists.newArrayList();
+                    lines.add(instance.getDisplayName()
+                            .applyTextStyle(instance.getFluid().getAttributes().getRarity().color));
                     addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
                         lines.addAll(additionalTooltipLines);
@@ -98,31 +99,21 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public boolean isInstance(ItemStack itemStack) {
-        return itemStack.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+        return itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent();
     }
 
     @Override
     public FluidStack getInstance(ItemStack itemStack) {
-        IFluidHandlerItem fluidHandler = itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
-        if (fluidHandler != null) {
-            IFluidTankProperties[] props = fluidHandler.getTankProperties();
-            if (props.length > 0) {
-                return props[0].getContents();
-            }
-        }
-        return null;
+        return itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0) : FluidStack.EMPTY)
+                .orElse(FluidStack.EMPTY);
     }
 
     @Override
     public long getMaxQuantity(ItemStack itemStack) {
-        IFluidHandlerItem fluidHandler = itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
-        if (fluidHandler != null) {
-            IFluidTankProperties[] props = fluidHandler.getTankProperties();
-            if (props.length > 0) {
-                return props[0].getCapacity();
-            }
-        }
-        return 0;
+        return itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getTankCapacity(0) : 0)
+                .orElse(0);
     }
 
     @Override
@@ -137,31 +128,31 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public int throwIntoWorld(IIngredientComponentStorage<FluidStack, Integer> storage, FluidStack maxInstance,
-                              EntityPlayer player) {
+                              PlayerEntity player) {
         return 0; // Dropping fluids in the world is not supported
     }
 
     @Override
     public FluidStack insertIntoContainer(IIngredientComponentStorage<FluidStack, Integer> storage,
                                           Container container, int containerSlot, FluidStack maxInstance,
-                                          @Nullable EntityPlayer player, boolean transferFullSelection) {
+                                          @Nullable PlayerEntity player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getStack();
-        IFluidHandlerItem fluidHandler = stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
-        if (fluidHandler != null) {
-            IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            FluidStack moved = null;
-            try {
-                moved = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance,
-                        ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), false);
-            } catch (InconsistentIngredientInsertionException e) {
-                // Ignore
-            }
+        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .map(fluidHandler -> {
+                    IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
+                    FluidStack moved = FluidStack.EMPTY;
+                    try {
+                        moved = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance,
+                                ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), false);
+                    } catch (InconsistentIngredientInsertionException e) {
+                        // Ignore
+                    }
 
-            container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
-            container.detectAndSendChanges();
-            return moved;
-        }
-        return null;
+                    container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
+                    container.detectAndSendChanges();
+                    return moved;
+                })
+                .orElse(FluidStack.EMPTY);
     }
 
     protected IIngredientComponentStorage<FluidStack, Integer> getFluidStorage(IngredientComponent<FluidStack, Integer> component,
@@ -173,80 +164,76 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
-                                                      InventoryPlayer playerInventory, long moveQuantityPlayerSlot) {
+                                                      PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = playerInventory.getItemStack();
-        IFluidHandlerItem fluidHandler = playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
-        if (fluidHandler != null) {
-            IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            try {
-                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
-            } catch (InconsistentIngredientInsertionException e) {
-                // Ignore
-            }
+        playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .ifPresent(fluidHandler -> {
+                    IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
+                    try {
+                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
+                    } catch (InconsistentIngredientInsertionException e) {
+                        // Ignore
+                    }
 
-            playerInventory.setItemStack(fluidHandler.getContainer());
-        }
+                    playerInventory.setItemStack(fluidHandler.getContainer());
+                });
     }
 
     @Override
-    public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, Container container, int containerSlot, InventoryPlayer playerInventory) {
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, Container container, int containerSlot, PlayerInventory playerInventory) {
         ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
-        IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
-        if (fluidHandler != null) {
-            IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-            try {
-                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
-            } catch (InconsistentIngredientInsertionException e) {
-                // Ignore
-            }
+        toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .ifPresent(fluidHandler -> {
+                    IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
+                    try {
+                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+                    } catch (InconsistentIngredientInsertionException e) {
+                        // Ignore
+                    }
 
-            container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
-            container.detectAndSendChanges();
-        }
+                    container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
+                    container.detectAndSendChanges();
+                });
     }
 
     @Override
-    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory) {
+    public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
         ItemStack toMoveStack = playerInventory.getItemStack();
-        IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
-        if (fluidHandler != null) {
-            IFluidTankProperties[] props = fluidHandler.getTankProperties();
-            if (props.length > 0) {
-                return FluidHelpers.getAmount(props[0].getContents());
-            }
-        }
-        return 0;
+        return toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0).getAmount() : 0)
+                .orElse(0);
     }
 
     @Override
-    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity) {
+    public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantityIn) {
         ItemStack toMoveStack = playerInventory.getItemStack();
-        IFluidHandlerItem fluidHandler = toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
-        if (fluidHandler != null) {
-            while (quantity > 0) {
-                int drained = FluidHelpers.getAmount(fluidHandler.drain((int) quantity, true));
-                if (drained <= 0) {
-                    break;
-                }
-                quantity -= drained;
-            }
-            playerInventory.setItemStack(fluidHandler.getContainer());
-        }
+        toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .ifPresent(fluidHandler -> {
+                    long quantity = quantityIn;
+                    while (quantity > 0) {
+                        int drained = fluidHandler.drain((int) quantity, IFluidHandler.FluidAction.EXECUTE).getAmount();
+                        if (drained <= 0) {
+                            break;
+                        }
+                        quantity -= drained;
+                    }
+                    playerInventory.setItemStack(fluidHandler.getContainer());
+                });
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         switch (searchMode) {
             case MOD:
-                return i -> Optional.ofNullable(FluidRegistry.getModId(i)).orElse("minecraft")
+                return i -> i.getFluid().getRegistryName().getNamespace()
                         .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
             case TOOLTIP:
                 return i -> false; // Fluids have no tooltip
-            case DICT:
+            case TAG:
                 return i -> false; // There is no fluid dictionary
             case DEFAULT:
-                return i -> i != null && i.getLocalizedName().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+                return i -> i != null && i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }
         return null;
     }

@@ -1,26 +1,28 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.init.Blocks;
-import net.minecraft.inventory.Container;
+import net.minecraft.block.Blocks;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridClear;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridShiftClickOutput;
-import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -56,9 +58,9 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public List<String> getTooltip() {
-        return Lists.newArrayList(L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting_name",
-                L10NHelpers.localize(this.ingredientComponent.getTranslationKey())));
+    public List<ITextComponent> getTooltip() {
+        return Lists.newArrayList(new TranslationTextComponent("gui.integratedterminals.terminal_storage.crafting_name",
+                new TranslationTextComponent(this.ingredientComponent.getTranslationKey())));
     }
 
     @Override
@@ -83,7 +85,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
         int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 .getCraftingResultSlotIndex(container, getName());
-        boolean shift = (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
+        boolean shift = MinecraftHelpers.isShifted();
         if (hoveredContainerSlot == craftingResultSlotIndex && shift) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
                     new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getName().toString(), channel));
@@ -98,7 +100,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public void onCommonSlotRender(GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
+    public void onCommonSlotRender(ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         // Delegate to regular itemstack tab
         String name = ingredientComponent.getName().toString();
         ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);

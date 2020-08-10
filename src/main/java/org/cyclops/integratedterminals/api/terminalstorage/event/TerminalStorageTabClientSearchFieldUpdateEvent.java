@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage.event;
 
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraftforge.eventbus.api.Event;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 
 /**

@@ -1,15 +1,14 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
-import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
@@ -25,13 +24,13 @@ public class CancelCraftingJobPacket extends PacketCodec {
     @CodecField
     private BlockPos pos;
     @CodecField
-    private EnumFacing side;
+    private Direction side;
     @CodecField
     private int channel;
     @CodecField
     private String craftingPlanHandler;
     @CodecField
-    private NBTTagCompound craftingJobId;
+    private CompoundNBT craftingJobId;
 
     public CancelCraftingJobPacket() {
 
@@ -42,8 +41,8 @@ public class CancelCraftingJobPacket extends PacketCodec {
         this.side = craftingPlanGuiData.getSide();
         this.channel = craftingPlanGuiData.getChannel();
         this.craftingPlanHandler = craftingPlanGuiData.getHandler().getId().toString();
-        this.craftingJobId = new NBTTagCompound();
-        this.craftingJobId.setTag("id", craftingPlanGuiData.getHandler().serializeCraftingJobId(craftingPlanGuiData.getCraftingJob()));
+        this.craftingJobId = new CompoundNBT();
+        this.craftingJobId.put("id", craftingPlanGuiData.getHandler().serializeCraftingJobId(craftingPlanGuiData.getCraftingJob()));
     }
 
     @Override
@@ -52,16 +51,18 @@ public class CancelCraftingJobPacket extends PacketCodec {
     }
 
     @Override
-    public void actionClient(World world, EntityPlayer player) {
+    public void actionClient(World world, PlayerEntity player) {
 
     }
 
     @Override
-    public void actionServer(World world, EntityPlayerMP player) {
-        INetwork network = NetworkHelpers.getNetwork(world, pos, side);
-        ITerminalStorageTabIngredientCraftingHandler handler = getHandler();
-        Object craftingJobId = handler.deserializeCraftingJobId(this.craftingJobId.getTag("id"));
-        handler.cancelCraftingJob(network, channel, craftingJobId);
+    public void actionServer(World world, ServerPlayerEntity player) {
+        NetworkHelpers.getNetwork(world, pos, side)
+                .ifPresent(network -> {
+                    ITerminalStorageTabIngredientCraftingHandler handler = getHandler();
+                    Object craftingJobId = handler.deserializeCraftingJobId(this.craftingJobId.get("id"));
+                    handler.cancelCraftingJob(network, channel, craftingJobId);
+                });
     }
 
     protected ITerminalStorageTabIngredientCraftingHandler getHandler() {

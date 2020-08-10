@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.core.terminalstorage.slot;
 
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 
 import javax.annotation.Nullable;
@@ -28,8 +28,8 @@ public class TerminalStorageSlotIngredient<T, M> implements ITerminalStorageSlot
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void drawGuiContainerLayer(GuiContainer gui, GuiTerminalStorage.DrawLayer layer,
+    @OnlyIn(Dist.CLIENT)
+    public void drawGuiContainerLayer(ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer,
                                       float partialTick, int x, int y, int mouseX, int mouseY,
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);

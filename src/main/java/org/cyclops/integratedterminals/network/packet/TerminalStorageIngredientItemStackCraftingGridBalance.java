@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,13 +43,13 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void actionClient(World world, EntityPlayer player) {
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(World world, PlayerEntity player) {
 
     }
 
     @Override
-    public void actionServer(World world, EntityPlayerMP player) {
+    public void actionServer(World world, ServerPlayerEntity player) {
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
@@ -61,7 +61,7 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
         }
     }
 
-    public static void balanceGrid(InventoryCrafting craftingGrid) {
+    public static void balanceGrid(CraftingInventory craftingGrid) {
         // Init bins
         List<Pair<ItemStack, List<Pair<Integer, Integer>>>> bins = Lists.newArrayListWithExpectedSize(craftingGrid.getSizeInventory());
         for(int slot = 0; slot < craftingGrid.getSizeInventory(); slot++) {

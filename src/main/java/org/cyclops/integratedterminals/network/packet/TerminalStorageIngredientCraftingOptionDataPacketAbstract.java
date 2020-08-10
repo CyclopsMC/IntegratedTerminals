@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -29,17 +29,17 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     @CodecField
     private BlockPos pos;
     @CodecField
-    private EnumFacing side;
+    private Direction side;
     @CodecField
     private String tabName;
     @CodecField
     private int channel;
     @CodecField
-    private NBTTagCompound craftingOption;
+    private CompoundNBT craftingOption;
     @CodecField
     private int amount;
     @CodecField
-    private NBTTagCompound craftingPlan;
+    private CompoundNBT craftingPlan;
 
     public TerminalStorageIngredientCraftingOptionDataPacketAbstract() {
 
@@ -53,11 +53,11 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         this.channel = craftingOptionData.getChannel();
         this.craftingOption = craftingOptionData.getCraftingOption() != null
                 ? HandlerWrappedTerminalCraftingOption.serialize(craftingOptionData.getCraftingOption())
-                : new NBTTagCompound();
+                : new CompoundNBT();
         this.amount = craftingOptionData.getAmount();
         this.craftingPlan = craftingOptionData.getCraftingPlan() != null
                 ? HandlerWrappedTerminalCraftingPlan.serialize(craftingOptionData.getCraftingPlan())
-                : new NBTTagCompound();
+                : new CompoundNBT();
     }
 
     @Override
@@ -66,8 +66,8 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void actionClient(World world, EntityPlayer player) {
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(World world, PlayerEntity player) {
 
     }
 

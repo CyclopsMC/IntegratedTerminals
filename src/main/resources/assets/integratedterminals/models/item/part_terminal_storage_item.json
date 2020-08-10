@@ -1,8 +1,0 @@
-{
-  "forge_marker": 1,
-  "parent": "integratedterminals:block/terminal",
-  "textures": {
-    "back" : "integratedterminals:parts/terminal_back",
-    "front": "integratedterminals:parts/terminal_storage"
-  }
-}

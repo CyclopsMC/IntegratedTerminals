@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
@@ -43,13 +43,13 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void actionClient(World world, EntityPlayer player) {
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(World world, PlayerEntity player) {
 
     }
 
     @Override
-    public void actionServer(World world, EntityPlayerMP player) {
+    public void actionServer(World world, ServerPlayerEntity player) {
         if(player.openContainer instanceof ContainerTerminalStorage) {
             ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
@@ -64,9 +64,9 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
 
     public static void clearGrid(TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon,
                                  TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer,
-                                 int channel, boolean toStorage, EntityPlayer player) {
+                                 int channel, boolean toStorage, PlayerEntity player) {
         tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
-        InventoryCrafting inventoryCrafting = tabCommon.getInventoryCrafting();
+        CraftingInventory inventoryCrafting = tabCommon.getInventoryCrafting();
         for (int i = 0; i < inventoryCrafting.getSizeInventory(); i++) {
             ItemStack itemStack = inventoryCrafting.removeStackFromSlot(i);
             if (!itemStack.isEmpty()) {

@@ -1,9 +1,10 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
 
 import java.util.Comparator;
@@ -36,7 +37,7 @@ public interface IIngredientInstanceSorter<T> extends Comparator<T> {
      * @param tooltipFlag The tooltip flag.
      * @param lines The tooltip lines.
      */
-    @SideOnly(Side.CLIENT)
-    public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines);
+    @OnlyIn(Dist.CLIENT)
+    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines);
 
 }

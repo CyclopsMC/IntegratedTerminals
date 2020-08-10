@@ -14,7 +14,7 @@ public class FluidStackIdSorter extends IngredientInstanceSorterAdapter<FluidSta
     }
 
     protected String getFluidStackId(FluidStack fluidStack) {
-        return fluidStack.getFluid().getName();
+        return fluidStack.getFluid().getRegistryName().toString();
     }
 
     @Override

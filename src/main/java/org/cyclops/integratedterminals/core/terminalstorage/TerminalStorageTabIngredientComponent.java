@@ -1,8 +1,9 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.util.LazyOptional;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
@@ -15,7 +16,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabSe
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 
 /**
  * Terminal storage tab for ingredient components.
@@ -35,21 +35,22 @@ public class TerminalStorageTabIngredientComponent<T, M> implements ITerminalSto
     }
 
     @Override
-    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
+    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target) {
         return new TerminalStorageTabIngredientComponentClient<>(container, getName(), ingredientComponent);
     }
 
     @Override
-    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
-        INetwork network = Objects.requireNonNull(NetworkHelpers.getNetwork(target.getCenter()));
-        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork = Objects.requireNonNull(NetworkHelpers.getIngredientNetwork(network, ingredientComponent));
+    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target) {
+        INetwork network = NetworkHelpers.getNetworkChecked(target.getCenter());
+        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork = NetworkHelpers.getIngredientNetwork(LazyOptional.of(() -> network), ingredientComponent)
+                .orElseThrow(() -> new IllegalStateException("Could not find an ingredient network"));
         return new TerminalStorageTabIngredientComponentServer<>(getName(), network, ingredientComponent,
-                ingredientNetwork, target.getCenter(), (EntityPlayerMP) player);
+                ingredientNetwork, target.getCenter(), (ServerPlayerEntity) player);
     }
 
     @Nullable
     @Override
-    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target) {
+    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target) {
         return new TerminalStorageTabIngredientComponentCommon<>(container, getName(), ingredientComponent);
     }
 }

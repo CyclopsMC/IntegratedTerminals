@@ -1,19 +1,32 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.EnumFacing;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.apache.commons.lang3.tuple.Pair;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.fml.network.NetworkHooks;
+import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.part.IPartContainer;
+import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.core.helper.PartHelpers;
+import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.proxy.guiprovider.GuiProviders;
+import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
+import org.cyclops.integratedterminals.part.PartTypes;
+
+import java.util.Optional;
 
 /**
  * Packet for telling the server that the storage terminal gui should be opened on a specific tab.
@@ -25,7 +38,7 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 	@CodecField
 	private BlockPos pos;
 	@CodecField
-	private EnumFacing side;
+	private Direction side;
 	@CodecField
 	private String tabName;
 	@CodecField
@@ -35,7 +48,7 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 
     }
 
-	public TerminalStorageIngredientOpenPacket(BlockPos pos, EnumFacing side, String tabName, int channel) {
+	public TerminalStorageIngredientOpenPacket(BlockPos pos, Direction side, String tabName, int channel) {
     	this.pos = pos;
     	this.side = side;
 		this.tabName = tabName;
@@ -48,22 +61,48 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void actionClient(World world, EntityPlayer player) {
+	@OnlyIn(Dist.CLIENT)
+	public void actionClient(World world, PlayerEntity player) {
 
 	}
 
 	@Override
-	public void actionServer(World world, EntityPlayerMP player) {
-		IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
-				Pair.of(side, new ContainerTerminalStorage.InitTabData(tabName, channel)));
-		player.openGui(IntegratedTerminals._instance, GuiProviders.ID_GUI_TERMINAL_STORAGE_INIT,
-				world, pos.getX(), pos.getY(), pos.getZ());
+	public void actionServer(World world, ServerPlayerEntity player) {
+		openServer(world, pos, side, player, tabName, channel);
 	}
 
-	public static void send(BlockPos pos, EnumFacing side, String tabName, int channel) {
-		IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.TERMINAL_STORAGE,
-				Pair.of(side, new ContainerTerminalStorage.InitTabData(tabName, channel)));
+	public static void openServer(World world, BlockPos pos, Direction side, ServerPlayerEntity player, String tabName, int channel) {
+		// Create common data
+		ContainerTerminalStorage.InitTabData initData = new ContainerTerminalStorage.InitTabData(tabName, channel);
+		PartPos partPos = PartPos.of(world, pos, side);
+
+		// Create temporary container provider
+		INamedContainerProvider containerProvider = new INamedContainerProvider() {
+			@Override
+			public ITextComponent getDisplayName() {
+				return new StringTextComponent("");
+			}
+
+			@Override
+			public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+				Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
+				return new ContainerTerminalStorage(id, playerInventory,
+						data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
+						Optional.of(initData));
+			}
+		};
+
+		// Trigger gui opening
+		NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
+			PacketCodec.write(packetBuffer, partPos);
+			packetBuffer.writeString(PartTypes.TERMINAL_CRAFTING_JOB.toString());
+
+			packetBuffer.writeBoolean(true);
+			initData.writeToPacketBuffer(packetBuffer);
+		});
+	}
+
+	public static void send(BlockPos pos, Direction side, String tabName, int channel) {
 		IntegratedTerminals._instance.getPacketHandler().sendToServer(
 				new TerminalStorageIngredientOpenPacket(pos, side, tabName, channel));
 	}

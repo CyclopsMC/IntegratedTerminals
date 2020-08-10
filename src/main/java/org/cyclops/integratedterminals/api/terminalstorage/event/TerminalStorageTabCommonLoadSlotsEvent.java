@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.api.terminalstorage.event;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.Slot;
-import net.minecraftforge.fml.common.eventhandler.Event;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
+import net.minecraftforge.eventbus.api.Event;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * An event that is emitted on the Forge event bus after
- * {@link ITerminalStorageTabCommon#loadSlots(Container, int, EntityPlayer, PartTypeTerminalStorage.State)}
+ * {@link ITerminalStorageTabCommon#loadSlots(Container, int, PlayerEntity, PartTypeTerminalStorage.State)}
  * is called.
  * @author rubensworks
  */

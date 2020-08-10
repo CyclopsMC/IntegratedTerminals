@@ -1,23 +1,24 @@
 package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
-import org.cyclops.cyclopscore.client.gui.component.GuiScrollBar;
+import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.client.gui.image.Image;
 import org.cyclops.cyclopscore.client.gui.image.Images;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
@@ -27,7 +28,7 @@ import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.lwjgl.opengl.GL11;
 
@@ -44,15 +45,13 @@ import java.util.stream.Collectors;
  * A gui component for visualizing {@link CraftingOptionGuiData}.
  *
  * The using gui must call the following methods from its respective method:
- * * {@link #handleMouseInput()}
- * * {@link #drawCurrentScreen(int, int, float)}
+ * * {@link #render(int, int, float)}
  * * {@link #drawGuiContainerBackgroundLayer(float, int, int)}
  * * {@link #drawGuiContainerForegroundLayer(int, int)}
- * * {@link #mouseClicked(int, int, int)}
  *
  * @author rubensworks
  */
-public class GuiCraftingPlan extends Gui {
+public class GuiCraftingPlan extends Widget {
 
     private static final int ELEMENT_WIDTH = 221;
     private static final int ELEMENT_HEIGHT = 16;
@@ -60,15 +59,13 @@ public class GuiCraftingPlan extends Gui {
 
     protected static final int TICK_DELAY = 30;
 
-    private final GuiContainer parentGui;
+    private final ContainerScreen parentGui;
     private final int guiLeft;
     private final int guiTop;
-    private final int x;
-    private final int y;
     private final List<GuiCraftingPlan.Element> elements;
     private final List<GuiCraftingPlan.Element> visibleElements;
     private final boolean valid;
-    private final GuiScrollBar scrollBar;
+    private final WidgetScrollBar scrollBar;
     private final String label;
     private final long tickDuration;
     private final int channel;
@@ -77,16 +74,15 @@ public class GuiCraftingPlan extends Gui {
 
     private int firstRow;
 
-    public GuiCraftingPlan(GuiContainer parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
+    public GuiCraftingPlan(ContainerScreen parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
+        super(x, y, "");
         this.parentGui = parentGui;
         this.guiLeft = guiLeft;
         this.guiTop = guiTop;
-        this.x = x;
-        this.y = y;
         this.elements = getElements(craftingPlan);
         this.visibleElements = Lists.newArrayList(this.elements);
         this.valid = craftingPlan.getStatus().isValid();
-        this.scrollBar = new GuiScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, this::setFirstRow, visibleRows);
+        this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, L10NHelpers.localize("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size() - 1);
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
@@ -118,8 +114,9 @@ public class GuiCraftingPlan extends Gui {
         this.firstRow = Math.max(0, firstRow);
     }
 
-    public void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
-        scrollBar.drawCurrentScreen(mouseX, mouseY, partialTicks);
+    @Override
+    public void render(int mouseX, int mouseY, float partialTicks) {
+        scrollBar.render(mouseX, mouseY, partialTicks);
     }
 
     protected List<Element> getVisibleElements() {
@@ -130,7 +127,7 @@ public class GuiCraftingPlan extends Gui {
         return element.getIndent() * 8;
     }
 
-    public void drawGuiContainerLayer(int guiLeft, int guiTop, GuiTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    public void drawGuiContainerLayer(int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
             drawElement(element,  getAbsoluteElementIndent(element), guiLeft + x, guiTop + y + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
@@ -139,21 +136,21 @@ public class GuiCraftingPlan extends Gui {
     }
 
     protected int getTick() {
-        return (int) Minecraft.getMinecraft().world.getWorldTime() / TICK_DELAY;
+        return (int) Minecraft.getInstance().world.getGameTime() / TICK_DELAY;
     }
 
-    private void drawElement(Element element, int indent, int x, int y, int width, int height, GuiTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
-        if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+    private void drawElement(Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+        if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw background
-            drawRect(x, y, x + width, y + height + 1, element.getColor());
+            fill(x, y, x + width, y + height + 1, element.getColor());
         }
 
         int xOriginal = x;
         x += indent;
 
         // Draw dropdown arrow
-        if (!element.getChildren().isEmpty() && layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
-            GlStateManager.color(1, 1, 1, 1);
+        if (!element.getChildren().isEmpty() && layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
+            GlStateManager.color4f(1, 1, 1, 1);
             Image image = element.getChildren().get(0).isEnabled() ? Images.ARROW_DOWN : Images.ARROW_RIGHT;
             image.draw(this, x, y);
         }
@@ -165,37 +162,39 @@ public class GuiCraftingPlan extends Gui {
             IPrototypedIngredient<?, ?> output = alternatives.get(tick % alternatives.size());
             IngredientComponent<?, ?> ingredientComponent = output.getComponent();
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
+            int finalX = x;
+            int finalY = y;
             ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
-                    .drawInstance(output.getPrototype(), quantity, GuiHelpers.quantityToScaledString(quantity),
-                            this.parentGui, layer, partialTick, x, y, mouseX, mouseY, null);
+                    .ifPresent(h -> h.drawInstance(output.getPrototype(), quantity, GuiHelpers.quantityToScaledString(quantity),
+                            this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
 
         x = xOriginal + width - 50;
-        if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+        if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw counters
             if (element.getStorageQuantity() > 0) {
                 renderItem(new ItemStack(Blocks.CHEST), x, y, 0.45F);
-                RenderHelpers.drawScaledString(Minecraft.getMinecraft().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215, true);
+                RenderHelpers.drawScaledStringWithShadow(Minecraft.getInstance().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getCraftQuantity() > 0) {
                 renderItem(new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                RenderHelpers.drawScaledString(Minecraft.getMinecraft().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215, true);
+                RenderHelpers.drawScaledStringWithShadow(Minecraft.getInstance().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getMissingQuantity() > 0) {
                 renderItem(new ItemStack(Blocks.BARRIER), x, y, 0.45F);
-                RenderHelpers.drawScaledString(Minecraft.getMinecraft().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215, true);
+                RenderHelpers.drawScaledStringWithShadow(Minecraft.getInstance().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215);
             }
-            GlStateManager.color(1, 1, 1);
+            GlStateManager.color4f(1, 1, 1, 1);
         } else {
             // Draw tooltip over crafting status
             GuiHelpers.renderTooltipOptional(this.parentGui, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
                 String unlocalizedName = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH) + ".";
                 return Optional.of(Lists.newArrayList(
-                        L10NHelpers.localize(unlocalizedName + "name"),
-                        L10NHelpers.localize(unlocalizedName + "desc")
+                        new TranslationTextComponent(unlocalizedName + "name"),
+                        new TranslationTextComponent(unlocalizedName + "desc")
                 ));
             });
         }
@@ -203,19 +202,19 @@ public class GuiCraftingPlan extends Gui {
 
     protected static void renderItem(ItemStack itemStack, int x, int y, float scale) {
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x, y, 0);
-        GlStateManager.scale(scale, scale, scale);
+        GlStateManager.translatef(x, y, 0);
+        GlStateManager.scalef(scale, scale, scale);
 
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
         GlStateManager.pushMatrix();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        RenderHelper.enableGUIStandardItemLighting();
+        RenderHelper.enableStandardItemLighting();
         GlStateManager.enableRescaleNormal();
-        GlStateManager.enableDepth();
+        GlStateManager.enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         renderItem.renderItemAndEffectIntoGUI(itemStack, 0, 0);
-        renderItem.renderItemOverlayIntoGUI(Minecraft.getMinecraft().fontRenderer, itemStack, 0, 0, "");
+        renderItem.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, itemStack, 0, 0, "");
         RenderHelper.disableStandardItemLighting();
         GlStateManager.popMatrix();
 
@@ -229,57 +228,65 @@ public class GuiCraftingPlan extends Gui {
     }
 
     public void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
+        FontRenderer fontRenderer = Minecraft.getInstance().fontRenderer;
 
         // Draw plan label
-        drawCenteredString(Minecraft.getMinecraft().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2 + 8, guiTop + y - 13, 16777215);
+        drawCenteredString(Minecraft.getInstance().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2 + 8, guiTop + y - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {
             String durationString = getDurationString(tickDuration);
-            RenderHelpers.drawScaledString(fontRenderer, durationString, guiLeft + x + 200, guiTop + y - 14, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledStringWithShadow(fontRenderer, durationString, guiLeft + x + 200, guiTop + y - 14, 0.5f, 16777215);
         }
 
         // Draw channel
         if (channel != -1) {
             String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            RenderHelpers.drawScaledString(fontRenderer, channelString, guiLeft + x + 200, guiTop + y - 8, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledStringWithShadow(fontRenderer, channelString, guiLeft + x + 200, guiTop + y - 8, 0.5f, 16777215);
         }
 
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledString(fontRenderer, initiatorString, guiLeft + x - 4, guiTop + y - 14, 0.5f, 16777215, true);
+            RenderHelpers.drawScaledStringWithShadow(fontRenderer, initiatorString, guiLeft + x - 4, guiTop + y - 14, 0.5f, 16777215);
         }
 
-        drawGuiContainerLayer(guiLeft, guiTop, GuiTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
+        drawGuiContainerLayer(guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
     }
 
     public void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        drawGuiContainerLayer(0, 0, GuiTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
+        drawGuiContainerLayer(0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
     }
 
-    public void handleMouseInput() throws IOException {
-        scrollBar.handleMouseInput();
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scroll) {
+        return scrollBar.mouseScrolled(mouseX, mouseY, scroll);
     }
 
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double offsetX, double offsetY) {
+        return scrollBar.mouseDragged(mouseX, mouseY, mouseButton, offsetX, offsetY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
             int x = this.guiLeft + this.x + getAbsoluteElementIndent(element);
             int y = this.guiTop + this.y + offsetY;
             offsetY += ELEMENT_HEIGHT_TOTAL;
-            if (RenderHelpers.isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point(mouseX, mouseY))) {
-                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.getMasterRecord(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            if (RenderHelpers.isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point((int) mouseX, (int) mouseY))) {
+                Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 // Toggle children
                 for (Element child : element.getChildren()) {
                     child.setEnabled(!child.isEnabled());
                 }
                 refreshList();
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     public static List<GuiCraftingPlan.Element> getElements(ITerminalCraftingPlan<?> craftingPlan) {

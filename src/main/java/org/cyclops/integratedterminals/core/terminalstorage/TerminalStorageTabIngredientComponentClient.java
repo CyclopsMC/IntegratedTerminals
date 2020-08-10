@@ -10,24 +10,27 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.Slot;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import org.apache.commons.lang3.tuple.Pair;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.image.Images;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.helper.StringHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientListMutable;
@@ -48,9 +51,8 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientLoadButtonsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientSearchFieldUpdateEvent;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.core.client.gui.ExtendedGuiHandler;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonFilterCrafting;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
@@ -62,10 +64,17 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
-import org.lwjgl.input.Keyboard;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -105,8 +114,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @SubscribeEvent
     public static void onToolTip(ItemTooltipEvent event) {
         // If this tab is active, render the quantity in all player inventory item tooltips.
-        if (event.getEntityPlayer() != null && event.getEntityPlayer().openContainer instanceof ContainerTerminalStorage) {
-            ContainerTerminalStorage container = (ContainerTerminalStorage) event.getEntityPlayer().openContainer;
+        if (event.getPlayer() != null && event.getPlayer().openContainer instanceof ContainerTerminalStorage) {
+            ContainerTerminalStorage container = (ContainerTerminalStorage) event.getPlayer().openContainer;
             ITerminalStorageTabClient<?> tab = container.getTabsClient().get(container.getSelectedTab());
             if (tab instanceof TerminalStorageTabIngredientComponentClient) {
                 IIngredientComponentTerminalStorageHandler handler = ((TerminalStorageTabIngredientComponentClient) tab).ingredientComponentViewHandler;
@@ -122,7 +131,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                                                        IngredientComponent<?, ?> ingredientComponent) {
         this.name = name;
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
-        this.ingredientComponentViewHandler = Objects.requireNonNull(this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY));
+        this.ingredientComponentViewHandler = this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+        .orElseThrow(() -> new IllegalStateException("Could not find an ingredient terminal storage handler"));
         this.icon = ingredientComponentViewHandler.getIcon();
         this.container = container;
 
@@ -171,9 +181,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public List<String> getTooltip() {
-        return Lists.newArrayList(L10NHelpers.localize("gui.integratedterminals.terminal_storage.storage_name",
-                L10NHelpers.localize(this.ingredientComponent.getTranslationKey())));
+    public List<ITextComponent> getTooltip() {
+        return Lists.newArrayList(new TranslationTextComponent("gui.integratedterminals.terminal_storage.storage_name",
+                new TranslationTextComponent(this.ingredientComponent.getTranslationKey())));
     }
 
     @Override
@@ -510,11 +520,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         Optional<T> hoveringStorageInstance = hoveringStorageSlotObject.map(TerminalStorageSlotIngredient::getInstance);
         boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
         boolean isCraftingOption = hoveringStorageSlotObject.isPresent() && hoveringStorageSlotObject.get() instanceof TerminalStorageSlotIngredientCraftingOption;
-        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
-        boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = this.getViewHandler();
+        boolean shift = MinecraftHelpers.isShifted();
         boolean transferFullSelection = true;
 
-        EntityPlayer player = Minecraft.getMinecraft().player;
+        PlayerEntity player = Minecraft.getInstance().player;
         boolean initiateCraftingOption = false;
         if (mouseButton == 0 || mouseButton == 1 || mouseButton == 2) {
             TerminalClickType clickType = null;
@@ -605,12 +615,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             }
             if (initiateCraftingOption) {
                 ContainerTerminalStorage containerTerminalStorage = ((ContainerTerminalStorage) container);
-                PartPos pos = containerTerminalStorage.getTarget().getCenter();
+                PartPos pos = containerTerminalStorage.getPartTarget().getCenter();
                 CraftingOptionGuiData<T, M> craftingOptionData = new CraftingOptionGuiData<>(pos.getPos().getBlockPos(), pos.getSide(),
                         ingredientComponent, this.getName().toString(), channel,
                         ((TerminalStorageSlotIngredientCraftingOption<T, M>) hoveringStorageSlotObject.get()).getCraftingOption(), 1, null);
-                IntegratedTerminals._instance.getGuiHandler().setTemporaryData(ExtendedGuiHandler.CRAFTING_OPTION,
-                        Pair.of(((ContainerTerminalStorage) container).getTarget().getCenter().getSide(), craftingOptionData)); // Pass the side as extra data to the gui
                 if (shift) {
                     IntegratedTerminals._instance.getPacketHandler().sendToServer(
                             new TerminalStorageIngredientOpenCraftingPlanGuiPacket<>(craftingOptionData));
@@ -687,25 +695,26 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public void onCommonSlotRender(GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick,
+    public void onCommonSlotRender(ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                                    int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         TerminalStorageTabIngredientComponentCommon tab = (TerminalStorageTabIngredientComponentCommon) tabCommon;
 
         if (slot >= tab.getVariableSlotNumberStart() && slot < tab.getVariableSlotNumberEnd()) {
-            List<L10NHelpers.UnlocalizedString> errors = Lists.newArrayList();
+            List<ITextComponent> errors = Lists.newArrayList();
             errors.addAll(tab.getGlobalErrors());
             errors.addAll(tab.getLocalErrors(slot));
 
             if (!errors.isEmpty()) {
-                if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND) {
+                if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                     Images.ERROR.draw(gui, x + 2, y + 2);
                 } else {
                     if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
                         GuiHelpers.drawTooltip(gui, errors.stream()
-                                .map(L10NHelpers.UnlocalizedString::localize)
+                                .map(ITextComponent::getString)
                                 .map(s -> StringHelpers.splitLines(s, L10NHelpers.MAX_TOOLTIP_LINE_LENGTH,
                                         TextFormatting.RED.toString()))
                                 .flatMap(List::stream)
+                                .map(StringTextComponent::new)
                                 .collect(Collectors.toList()), x - gui.getGuiLeft() + 10, y - gui.getGuiTop());
                     }
                 }
@@ -714,7 +723,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     protected IIngredientComponentTerminalStorageHandler<T, M> getViewHandler() {
-        return ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
+        return this.ingredientComponentViewHandler;
     }
 
     @Override

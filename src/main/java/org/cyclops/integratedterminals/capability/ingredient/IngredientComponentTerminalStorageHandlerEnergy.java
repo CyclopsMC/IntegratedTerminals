@@ -1,18 +1,21 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.energy.CapabilityEnergy;
 import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
@@ -21,11 +24,11 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
-import org.cyclops.integrateddynamics.block.BlockEnergyBattery;
 import org.cyclops.integratedterminals.GeneralConfig;
+import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
@@ -54,36 +57,36 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public ItemStack getIcon() {
-        return new ItemStack(BlockEnergyBattery.getInstance());
+        return new ItemStack(RegistryEntries.ITEM_ENERGY_BATTERY);
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void drawInstance(Integer instance, long maxQuantity, @Nullable String label, GuiContainer gui,
-                             GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<String> additionalTooltipLines) {
+    @OnlyIn(Dist.CLIENT)
+    public void drawInstance(Integer instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+                             ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+                             int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
         if (instance > 0) {
-            if (layer == GuiTerminalStorage.DrawLayer.BACKGROUND){
+            if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
 
                 // Draw background
-                GlStateManager.color(1, 1, 1, 1);
-                RenderHelper.enableGUIStandardItemLighting();
+                GlStateManager.color4f(1, 1, 1, 1);
+                RenderHelper.enableStandardItemLighting();
                 RenderHelpers.bindTexture(Images.ICONS);
-                gui.drawTexturedModalRect(x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
+                gui.blit(x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
 
                 // Draw progress
                 GuiHelpers.renderProgressBar(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         16, 240, GuiHelpers.ProgressDirection.UP, instance, (int) maxQuantity);
 
                 // Draw amount
-                RenderItemExtendedSlotCount.drawSlotText(Minecraft.getMinecraft().fontRenderer, label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
+                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().fontRenderer, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
 
                 RenderHelper.disableStandardItemLighting();
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> {
-                            List<String> lines = Lists.newArrayList();
-                            lines.add(L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.energy"));
+                            List<ITextComponent> lines = Lists.newArrayList();
+                            lines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.tooltip.energy"));
                             addQuantityTooltip(lines, instance);
                             if (additionalTooltipLines != null) {
                                 lines.addAll(additionalTooltipLines);
@@ -102,25 +105,21 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public boolean isInstance(ItemStack itemStack) {
-        return itemStack.hasCapability(CapabilityEnergy.ENERGY, null);
+        return itemStack.getCapability(CapabilityEnergy.ENERGY).isPresent();
     }
 
     @Override
     public Integer getInstance(ItemStack itemStack) {
-        IEnergyStorage energyStorage = itemStack.getCapability(CapabilityEnergy.ENERGY, null);
-        if (energyStorage != null) {
-            return energyStorage.getEnergyStored();
-        }
-        return 0;
+        return itemStack.getCapability(CapabilityEnergy.ENERGY)
+                .map(IEnergyStorage::getEnergyStored)
+                .orElse(0);
     }
 
     @Override
     public long getMaxQuantity(ItemStack itemStack) {
-        IEnergyStorage energyStorage = itemStack.getCapability(CapabilityEnergy.ENERGY, null);
-        if (energyStorage != null) {
-            return energyStorage.getMaxEnergyStored();
-        }
-        return 0;
+        return itemStack.getCapability(CapabilityEnergy.ENERGY)
+                .map(IEnergyStorage::getMaxEnergyStored)
+                .orElse(0);
     }
 
     @Override
@@ -135,7 +134,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public int throwIntoWorld(IIngredientComponentStorage<Integer, Boolean> storage, Integer maxInstance,
-                              EntityPlayer player) {
+                              PlayerEntity player) {
         return 0; // Dropping energy in the world is not possible
     }
 
@@ -149,81 +148,81 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public Integer insertIntoContainer(IIngredientComponentStorage<Integer, Boolean> storage,
                                        Container container, int containerSlot, Integer maxInstance,
-                                       @Nullable EntityPlayer player, boolean transferFullSelection) {
+                                       @Nullable PlayerEntity player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getStack();
-        IEnergyStorage energyStorage = stack.getCapability(CapabilityEnergy.ENERGY, null);
-        if (energyStorage != null) {
-            IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            Integer ret = 0;
-            try {
-                ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
-            } catch (InconsistentIngredientInsertionException e) {
-                // Ignore
-            }
-            container.detectAndSendChanges();
-            return ret;
-        }
-        return 0;
+
+        return stack.getCapability(CapabilityEnergy.ENERGY)
+                .map(energyStorage -> {
+                    IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
+                    Integer ret = 0;
+                    try {
+                        ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
+                    } catch (InconsistentIngredientInsertionException e) {
+                        // Ignore
+                    }
+                    container.detectAndSendChanges();
+                    return ret;
+                })
+                .orElse(0);
     }
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<Integer, Boolean> storage,
-                                                      InventoryPlayer playerInventory, long moveQuantityPlayerSlot) {
+                                                      PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = playerInventory.getItemStack();
-        IEnergyStorage energyStorage = playerStack.getCapability(CapabilityEnergy.ENERGY, null);
-        if (energyStorage != null) {
-            IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            try {
-                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
-            } catch (InconsistentIngredientInsertionException e) {
-                // Ignore
-            }
-        }
+        playerStack.getCapability(CapabilityEnergy.ENERGY)
+                .ifPresent(energyStorage -> {
+                    IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
+                    try {
+                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
+                    } catch (InconsistentIngredientInsertionException e) {
+                        // Ignore
+                    }
+                });
     }
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<Integer, Boolean> storage,
-                                            Container container, int containerSlot, InventoryPlayer playerInventory) {
+                                            Container container, int containerSlot, PlayerInventory playerInventory) {
         ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
-        IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
-        if (energyStorage != null) {
-            IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-            try {
-                IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
-            } catch (InconsistentIngredientInsertionException e) {
-                // Ignore
-            }
-        }
+        toMoveStack.getCapability(CapabilityEnergy.ENERGY)
+                .ifPresent(energyStorage -> {
+                    IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
+                    try {
+                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, Long.MAX_VALUE, false);
+                    } catch (InconsistentIngredientInsertionException e) {
+                        // Ignore
+                    }
+                });
     }
 
     @Override
-    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory) {
+    public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
         ItemStack toMoveStack = playerInventory.getItemStack();
-        IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
-        if (energyStorage != null) {
-            return energyStorage.getEnergyStored();
-        }
-        return 0;
+        return toMoveStack.getCapability(CapabilityEnergy.ENERGY)
+                .map(IEnergyStorage::getEnergyStored)
+                .orElse(0);
     }
 
     @Override
-    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity) {
+    public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantityIn) {
         ItemStack toMoveStack = playerInventory.getItemStack();
-        IEnergyStorage energyStorage = toMoveStack.getCapability(CapabilityEnergy.ENERGY, null);
-        if (energyStorage != null) {
-            // Drain
-            while (quantity > 0) {
-                int drained = energyStorage.extractEnergy((int) quantity, false);
-                if (drained <= 0) {
-                    break;
-                }
-                quantity -= drained;
-            }
-        }
+        toMoveStack.getCapability(CapabilityEnergy.ENERGY)
+                .ifPresent(energyStorage -> {
+                    // Drain
+                    long quantity = quantityIn;
+                    while (quantity > 0) {
+                        int drained = energyStorage.extractEnergy((int) quantity, false);
+                        if (drained <= 0) {
+                            break;
+                        }
+                        quantity -= drained;
+                    }
+                });
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public Predicate<Integer> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         return integer -> true; // Searching does not make sense here, as at most one instance exists.
     }

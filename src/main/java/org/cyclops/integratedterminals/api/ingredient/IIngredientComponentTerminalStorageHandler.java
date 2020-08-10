@@ -1,18 +1,19 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
+import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -52,19 +53,20 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param mouseY The mouse Y position.
      * @param additionalTooltipLines The additional tooltip lines to add.
      */
-    @SideOnly(Side.CLIENT)
-    public void drawInstance(T instance, long maxQuantity, @Nullable String label, GuiContainer gui, GuiTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<String> additionalTooltipLines);
+    @OnlyIn(Dist.CLIENT)
+    public void drawInstance(T instance, long maxQuantity, @Nullable String label, ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+                             int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines);
 
     /**
      * Show the quantity of the given instance on the second tooltip line.
      * @param lines Tooltip lines
      * @param instance An instance.
      */
-    public default void addQuantityTooltip(List<String> lines, T instance) {
-        String line = TextFormatting.DARK_GRAY + L10NHelpers.localize(
+    public default void addQuantityTooltip(List<ITextComponent> lines, T instance) {
+        ITextComponent line = new TranslationTextComponent(
                 "gui.integratedterminals.terminal_storage.tooltip.quantity",
-                formatQuantity(instance));
+                formatQuantity(instance))
+                .applyTextStyle(TextFormatting.DARK_GRAY);
         if (lines.size() <= 1) {
             lines.add(line);
         } else {
@@ -117,7 +119,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param player The throwing player.
      * @return The instance quantity that was thrown.
      */
-    public int throwIntoWorld(IIngredientComponentStorage<T, M> storage, T maxInstance, EntityPlayer player);
+    public int throwIntoWorld(IIngredientComponentStorage<T, M> storage, T maxInstance, PlayerEntity player);
 
     /**
      * Insert as much as possible from the given instance prototype into the container.
@@ -150,7 +152,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param transferFullSelection
      * @return The instance quantity that was moved.
      */
-    public T insertIntoContainer(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, T maxInstance, @Nullable EntityPlayer player, boolean transferFullSelection);
+    public T insertIntoContainer(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, T maxInstance, @Nullable PlayerEntity player, boolean transferFullSelection);
 
     /**
      * Move the ingredient in the active player stack to the storage.
@@ -158,7 +160,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param playerInventory The player inventory to extract from.
      * @param moveQuantityPlayerSlot The player stack quantity that should be extracted.
      */
-    public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<T, M> storage, InventoryPlayer playerInventory, long moveQuantityPlayerSlot);
+    public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<T, M> storage, PlayerInventory playerInventory, long moveQuantityPlayerSlot);
 
     /**
      * Move as much as possible from the given container slot into the storage.
@@ -167,14 +169,14 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param containerSlot The container slot to insert to.
      * @param playerInventory The active player inventory.
      */
-    public void extractMaxFromContainerSlot(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, InventoryPlayer playerInventory);
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<T, M> storage, Container container, int containerSlot, PlayerInventory playerInventory);
 
     /**
      * Get the quantity in the active player stack.
      * @param playerInventory The player inventory.
      * @return The quantity.
      */
-    public long getActivePlayerStackQuantity(InventoryPlayer playerInventory);
+    public long getActivePlayerStackQuantity(PlayerInventory playerInventory);
 
     /**
      * Drain the given quantity from the active player stack.
@@ -182,7 +184,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param playerInventory The player inventory.
      * @param quantity The quantity to drain.
      */
-    public void drainActivePlayerStackQuantity(InventoryPlayer playerInventory, long quantity);
+    public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantity);
 
     /**
      * Get a predicate for matching instances that apply to the given query string.
@@ -190,7 +192,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param query A query string.
      * @return An instance matcher.
      */
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public Predicate<T> getInstanceFilterPredicate(SearchMode searchMode, String query);
 
     /**

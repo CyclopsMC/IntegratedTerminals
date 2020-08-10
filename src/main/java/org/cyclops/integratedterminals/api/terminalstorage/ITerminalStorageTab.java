@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
@@ -24,7 +24,7 @@ public interface ITerminalStorageTab {
      * @param target The terminal storage part target.
      * @return A new client-side tab.
      */
-    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target);
+    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target);
 
     /**
      * @param container The container in which the tab is about to be created.
@@ -32,7 +32,7 @@ public interface ITerminalStorageTab {
      * @param target The terminal storage part target.
      * @return A new server-side tab.
      */
-    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target);
+    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target);
 
     /**
      * @param container The container in which the tab is about to be created.
@@ -41,6 +41,6 @@ public interface ITerminalStorageTab {
      * @return A new common tab.
      */
     @Nullable
-    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorage container, EntityPlayer player, PartTarget target);
+    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target);
 
 }

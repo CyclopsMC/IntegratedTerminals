@@ -2,12 +2,12 @@ package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.IntNBT;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.Level;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -53,10 +53,10 @@ import java.util.stream.StreamSupport;
 public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         implements ITerminalStorageTabIngredientCraftingHandler<TerminalCraftingOptionRecipeDefinition<?, ?>, Integer> {
 
-    private static final ResourceLocation ID = new ResourceLocation(Reference.MOD_INTEGRATECRAFTING, "craftingNetwork");
+    private static final ResourceLocation ID = new ResourceLocation(Reference.MOD_INTEGRATECRAFTING, "crafting_network");
 
     protected IRecipeIndex getRecipeIndex(INetwork network, int channel) {
-        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetworkChecked(network);
         return craftingNetwork.getRecipeIndex(channel);
     }
 
@@ -68,7 +68,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     @Override
     public <T, M> int[] getChannels(TerminalStorageTabIngredientComponentServer<T, M> tab) {
         INetwork network = tab.getNetwork();
-        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetworkChecked(network);
         return craftingNetwork.getChannels();
     }
 
@@ -84,12 +84,12 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public NBTTagCompound serializeCraftingOption(TerminalCraftingOptionRecipeDefinition craftingOption) {
+    public CompoundNBT serializeCraftingOption(TerminalCraftingOptionRecipeDefinition craftingOption) {
         return IRecipeDefinition.serialize(craftingOption.getRecipe());
     }
 
     @Override
-    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, NBTTagCompound tag) throws IllegalArgumentException {
+    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, CompoundNBT tag) throws IllegalArgumentException {
         return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, IRecipeDefinition.deserialize(tag));
     }
 
@@ -225,12 +225,12 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
     @Override
     public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<Integer> craftingPlan,
-                                 EntityPlayerMP player) throws CraftingJobStartException {
+                                 ServerPlayerEntity player) throws CraftingJobStartException {
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph
                 && craftingPlan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph();
             try {
-                CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetwork(network), craftingJobDependencyGraph, true, player.getUniqueID());
+                CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetworkChecked(network), craftingJobDependencyGraph, true, player.getUniqueID());
             } catch (UnavailableCraftingInterfacesException e) {
                 throw new CraftingJobStartException("gui.integratedterminals.terminal_storage.craftingplan.label.failed.insufficient_crafting_interfaces");
             }
@@ -356,7 +356,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         if (uuid != null) {
             try {
                 UUID uuidObject = UUID.fromString(uuid);
-                GameProfile profile = FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerProfileCache()
+                GameProfile profile = ServerLifecycleHooks.getCurrentServer().getPlayerProfileCache()
                         .getProfileByUUID(uuidObject);
                 if (profile != null) {
                     return profile.getName();
@@ -368,7 +368,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
     @Override
     public List<ITerminalCraftingPlan<Integer>> getCraftingJobs(INetwork network, int channel) {
-        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network).orElse(null);
         if (craftingNetwork == null) {
             return Collections.emptyList();
         }
@@ -385,7 +385,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     @Nullable
     @Override
     public ITerminalCraftingPlan<Integer> getCraftingJob(INetwork network, int channel, Integer craftingJobId) {
-        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetworkChecked(network);
         CraftingJob craftingJob = craftingNetwork.getCraftingJob(channel, craftingJobId);
         if (craftingJob != null) {
             CraftingJobDependencyGraph dependencyGraph = craftingNetwork.getCraftingJobDependencyGraph();
@@ -396,27 +396,27 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
     @Override
     public boolean cancelCraftingJob(INetwork network, int channel, Integer craftingJobId) {
-        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network);
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetworkChecked(network);
         return craftingNetwork.cancelCraftingJob(channel, craftingJobId);
     }
 
     @Override
-    public NBTTagCompound serializeCraftingPlan(ITerminalCraftingPlan<Integer> craftingPlan) {
-        NBTTagCompound tag = TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
+    public CompoundNBT serializeCraftingPlan(ITerminalCraftingPlan<Integer> craftingPlan) {
+        CompoundNBT tag = TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph) {
-            NBTTagCompound serializedGraph = CraftingJobDependencyGraph.serialize(
+            CompoundNBT serializedGraph = CraftingJobDependencyGraph.serialize(
                     ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph());
-            tag.setTag("craftingJobDependencyGraph", serializedGraph);
+            tag.put("craftingJobDependencyGraph", serializedGraph);
         }
         return tag;
     }
 
     @Override
-    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(NBTTagCompound tag) throws IllegalArgumentException {
+    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(CompoundNBT tag) throws IllegalArgumentException {
         TerminalCraftingPlanStatic<Integer> planStatic = TerminalCraftingPlanStatic.deserialize(tag, this);
-        if (tag.hasKey("craftingJobDependencyGraph")) {
+        if (tag.contains("craftingJobDependencyGraph")) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = CraftingJobDependencyGraph.deserialize(
-                    tag.getCompoundTag("craftingJobDependencyGraph"));
+                    tag.getCompound("craftingJobDependencyGraph"));
             return new TerminalCraftingPlanCraftingJobDependencyGraph(
                     planStatic.getId(),
                     planStatic.getDependencies(),
@@ -437,12 +437,12 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public NBTBase serializeCraftingJobId(Integer id) {
-        return new NBTTagInt(id);
+    public INBT serializeCraftingJobId(Integer id) {
+        return IntNBT.valueOf(id);
     }
 
     @Override
-    public Integer deserializeCraftingJobId(NBTBase tag) {
-        return ((NBTTagInt) tag).getInt();
+    public Integer deserializeCraftingJobId(INBT tag) {
+        return ((IntNBT) tag).getInt();
     }
 }

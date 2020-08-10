@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GMG",
+    "VDW",
+    "G G"
+  ],
+  "key": {
+    "G": {
+      "tag": "forge:dusts/glowstone"
+    },
+    "M": {
+      "item": "integratedterminals:menril_glass"
+    },
+    "V": {
+      "item": "integrateddynamics:variable_transformer_output"
+    },
+    "D": {
+      "item": "integrateddynamics:part_display_panel"
+    },
+    "W": {
+      "item": "integrateddynamics:variable_transformer_input"
+    }
+  },
+  "result": {
+    "item": "integratedterminals:part_terminal_storage"
+  }
+}

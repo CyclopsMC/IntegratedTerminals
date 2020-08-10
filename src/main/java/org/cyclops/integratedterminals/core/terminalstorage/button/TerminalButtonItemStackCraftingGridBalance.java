@@ -1,10 +1,12 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.cyclops.cyclopscore.client.gui.component.button.GuiButtonImage;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
@@ -22,7 +24,7 @@ import java.util.List;
  */
 public class TerminalButtonItemStackCraftingGridBalance<T>
         implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
-        TerminalStorageTabIngredientComponentItemStackCraftingCommon, GuiButtonImage> {
+        TerminalStorageTabIngredientComponentItemStackCraftingCommon, ButtonImage> {
 
     @Override
     public int getX(int guiLeft, int offset) {
@@ -40,15 +42,19 @@ public class TerminalButtonItemStackCraftingGridBalance<T>
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public GuiButtonImage createButton(int x, int y) {
-        return new GuiButtonImage(0, x, y, Images.BUTTON_SMALL_BACKGROUND_INACTIVE, Images.BUTTON_SMALL_OVERLAY_SQUARE);
+    @OnlyIn(Dist.CLIENT)
+    public ButtonImage createButton(int x, int y) {
+        return new ButtonImage(x, y,
+                L10NHelpers.localize("gui.integratedterminals.terminal_storage.craftinggrid.balance"),
+                (b) -> {},
+                Images.BUTTON_SMALL_BACKGROUND_INACTIVE,
+                Images.BUTTON_SMALL_OVERLAY_SQUARE);
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
-                        TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, GuiButtonImage guiButton,
+                        TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, ButtonImage guiButton,
                         int channel, int mouseButton) {
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
                 new TerminalStorageIngredientItemStackCraftingGridBalance(commomTab.getName().toString()));
@@ -60,8 +66,8 @@ public class TerminalButtonItemStackCraftingGridBalance<T>
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public void getTooltip(EntityPlayer player, ITooltipFlag tooltipFlag, List<String> lines) {
-        lines.add(L10NHelpers.localize("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.balance.info"));
+    @OnlyIn(Dist.CLIENT)
+    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines) {
+        lines.add(new TranslationTextComponent("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.balance.info"));
     }
 }

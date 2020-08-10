@@ -1,15 +1,15 @@
 package org.cyclops.integratedterminals.inventory;
 
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 
 /**
- * An extended {@link InventoryCrafting} that has a {@link IDirtyMarkListener}.
+ * An extended {@link CraftingInventory} that has a {@link IDirtyMarkListener}.
  * @author rubensworks
  */
-public class InventoryCraftingDirtyable extends InventoryCrafting {
+public class InventoryCraftingDirtyable extends CraftingInventory {
 
     private final IDirtyMarkListener dirtyMarkListener;
 

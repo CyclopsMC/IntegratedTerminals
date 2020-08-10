@@ -1,17 +1,19 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.InventoryCraftResult;
-import net.minecraft.inventory.InventoryCrafting;
-import net.minecraft.inventory.Slot;
-import net.minecraft.inventory.SlotCrafting;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.CraftResultInventory;
+import net.minecraft.inventory.CraftingInventory;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.CraftingResultSlot;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.ICraftingRecipe;
+import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.GameRules;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.CraftingHelpers;
@@ -34,9 +36,9 @@ import java.util.List;
 public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         extends TerminalStorageTabIngredientComponentCommon<ItemStack, Integer> {
 
-    private InventoryCrafting inventoryCrafting;
-    private InventoryCraftResult inventoryCraftResult;
-    private SlotCrafting slotCrafting;
+    private CraftingInventory inventoryCrafting;
+    private CraftResultInventory inventoryCraftResult;
+    private CraftingResultSlot slotCrafting;
     private List<Slot> slots;
     private TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.STORAGE;
 
@@ -54,14 +56,14 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
     }
 
     @Override
-    public List<Slot> loadSlots(Container container, int startIndex, EntityPlayer player,
+    public List<Slot> loadSlots(Container container, int startIndex, PlayerEntity player,
                                 PartTypeTerminalStorage.State partState) {
         slots = Lists.newArrayListWithCapacity(10);
 
         // Reload the recipe when the input slots are updated
         IDirtyMarkListener dirtyListener = () -> updateCraftingResult(player, container, partState);
 
-        this.inventoryCraftResult = new InventoryCraftResult() {
+        this.inventoryCraftResult = new CraftResultInventory() {
             @Override
             public void markDirty() {
                 dirtyListener.onDirty();
@@ -100,15 +102,15 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         return returnSlots;
     }
 
-    public InventoryCrafting getInventoryCrafting() {
+    public CraftingInventory getInventoryCrafting() {
         return inventoryCrafting;
     }
 
-    public InventoryCraftResult getInventoryCraftResult() {
+    public CraftResultInventory getInventoryCraftResult() {
         return inventoryCraftResult;
     }
 
-    public SlotCrafting getSlotCrafting() {
+    public CraftingResultSlot getSlotCrafting() {
         return slotCrafting;
     }
 
@@ -120,14 +122,14 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         this.autoRefill = autoRefill;
     }
 
-    public void updateCraftingResult(EntityPlayer player, Container container, PartTypeTerminalStorage.State partState) {
+    public void updateCraftingResult(PlayerEntity player, Container container, PartTypeTerminalStorage.State partState) {
         if (!player.world.isRemote) {
-            EntityPlayerMP entityplayermp = (EntityPlayerMP)player;
+            ServerPlayerEntity entityplayermp = (ServerPlayerEntity)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            IRecipe recipe = CraftingHelpers.findMatchingRecipeCached(inventoryCrafting, player.world, false);
+            ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.world).orElse(null);
 
             if (recipe != null && (recipe.isDynamic()
-                    || !player.world.getGameRules().getBoolean("doLimitedCrafting")
+                    || !player.world.getGameRules().getBoolean(GameRules.DO_LIMITED_CRAFTING)
                     || entityplayermp.getRecipeBook().isUnlocked(recipe))) {
                 inventoryCraftResult.setRecipeUsed(recipe);
                 itemstack = recipe.getCraftingResult(inventoryCrafting);
@@ -136,7 +138,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
             inventoryCraftResult.setInventorySlotContents(0, itemstack);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientItemStackCraftingGridSetResult(getName().toString(), itemstack),
-                    (EntityPlayerMP) player);
+                    (ServerPlayerEntity) player);
         }
 
         // Save changes into the part state

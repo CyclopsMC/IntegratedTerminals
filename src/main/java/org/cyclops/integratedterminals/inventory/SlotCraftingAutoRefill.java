@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.inventory;
 
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryCrafting;
-import net.minecraft.inventory.SlotCrafting;
+import net.minecraft.inventory.container.CraftingResultSlot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.server.SPacketSetSlot;
+import net.minecraft.network.play.server.SSetSlotPacket;
 import net.minecraft.util.NonNullList;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
@@ -22,14 +22,14 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  * A crafting slot that will automatically auto-refill from the storage (if enabled).
  * @author rubensworks
  */
-public class SlotCraftingAutoRefill extends SlotCrafting {
+public class SlotCraftingAutoRefill extends CraftingResultSlot {
 
-    private final InventoryCrafting inventoryCrafting;
+    private final CraftingInventory inventoryCrafting;
     private final TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon;
     private final TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer;
     private final ContainerTerminalStorage container;
 
-    public SlotCraftingAutoRefill(EntityPlayer player, InventoryCrafting inventoryCrafting,
+    public SlotCraftingAutoRefill(PlayerEntity player, CraftingInventory inventoryCrafting,
                                   IInventory inventoryIn, int slotIndex, int xPosition, int yPosition,
                                   TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon,
                                   TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer,
@@ -42,7 +42,7 @@ public class SlotCraftingAutoRefill extends SlotCrafting {
     }
 
     @Override
-    public ItemStack onTake(EntityPlayer thePlayer, ItemStack stack) {
+    public ItemStack onTake(PlayerEntity thePlayer, ItemStack stack) {
         TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = tabCommon.getAutoRefill();
         if (!thePlayer.world.isRemote && autoRefill != TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.DISABLED) {
             NonNullList<ItemStack> beforeCraft = inventoryToList(inventoryCrafting, true);
@@ -88,8 +88,8 @@ public class SlotCraftingAutoRefill extends SlotCrafting {
                     ItemStack existingStack = inventoryCrafting.getStackInSlot(i);
                     existingStack.grow(extracted.getCount());
                     inventoryCrafting.setInventorySlotContents(i, existingStack);
-                    ((EntityPlayerMP) thePlayer).connection.sendPacket(
-                            new SPacketSetSlot(thePlayer.openContainer.windowId, i + this.slotNumber + 1,
+                    ((ServerPlayerEntity) thePlayer).connection.sendPacket(
+                            new SSetSlotPacket(thePlayer.openContainer.windowId, i + this.slotNumber + 1,
                                     inventoryCrafting.getStackInSlot(i)));
                 }
             }

@@ -1,22 +1,31 @@
 package org.cyclops.integratedterminals.part;
 
 import com.google.common.collect.Maps;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.inventory.Container;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ItemStackHelper;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import org.apache.commons.lang3.tuple.Triple;
+import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.part.IPartContainer;
+import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
+import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.GeneralConfig;
-import org.cyclops.integratedterminals.client.gui.container.GuiTerminalStorage;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
@@ -24,6 +33,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * A part that exposes a gui using which players can access storage indexes in the network.
@@ -46,14 +56,32 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public Class<? extends GuiScreen> getGui() {
-        return GuiTerminalStorage.class;
+    public Optional<INamedContainerProvider> getContainerProvider(PartPos pos) {
+        return Optional.of(new INamedContainerProvider() {
+
+            @Override
+            public ITextComponent getDisplayName() {
+                return new TranslationTextComponent(getTranslationKey());
+            }
+
+            @Override
+            public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+                Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(pos);
+                return new ContainerTerminalStorage(id, playerInventory,
+                        data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
+                        Optional.empty());
+            }
+        });
     }
 
     @Override
-    public Class<? extends Container> getContainer() {
-        return ContainerTerminalStorage.class;
+    public void writeExtraGuiData(PacketBuffer packetBuffer, PartPos pos, ServerPlayerEntity player) {
+        PacketCodec.write(packetBuffer, pos);
+
+        super.writeExtraGuiData(packetBuffer, pos, player);
+
+        // A false to indicate that there will follow no init data object
+        packetBuffer.writeBoolean(false);
     }
 
     @Override
@@ -118,26 +146,26 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         }
 
         @Override
-        public void writeToNBT(NBTTagCompound tag) {
+        public void writeToNBT(CompoundNBT tag) {
             super.writeToNBT(tag);
-            NBTTagList list = new NBTTagList();
+            ListNBT list = new ListNBT();
             for (Map.Entry<String, NonNullList<ItemStack>> entry : this.namedInventories.entrySet()) {
-                NBTTagCompound listEntry = new NBTTagCompound();
-                listEntry.setString("tabName", entry.getKey());
-                listEntry.setInteger("itemCount", entry.getValue().size());
+                CompoundNBT listEntry = new CompoundNBT();
+                listEntry.putString("tabName", entry.getKey());
+                listEntry.putInt("itemCount", entry.getValue().size());
                 ItemStackHelper.saveAllItems(listEntry, entry.getValue());
-                list.appendTag(listEntry);
+                list.add(listEntry);
             }
-            tag.setTag("namedInventories", list);
+            tag.put("namedInventories", list);
         }
 
         @Override
-        public void readFromNBT(NBTTagCompound tag) {
+        public void readFromNBT(CompoundNBT tag) {
             super.readFromNBT(tag);
-            for (NBTBase listEntry : tag.getTagList("namedInventories", Constants.NBT.TAG_COMPOUND)) {
-                NonNullList<ItemStack> list = NonNullList.withSize(((NBTTagCompound) listEntry).getInteger("itemCount"), ItemStack.EMPTY);
-                String tabName = ((NBTTagCompound) listEntry).getString("tabName");
-                ItemStackHelper.loadAllItems((NBTTagCompound) listEntry, list);
+            for (INBT listEntry : tag.getList("namedInventories", Constants.NBT.TAG_COMPOUND)) {
+                NonNullList<ItemStack> list = NonNullList.withSize(((CompoundNBT) listEntry).getInt("itemCount"), ItemStack.EMPTY);
+                String tabName = ((CompoundNBT) listEntry).getString("tabName");
+                ItemStackHelper.loadAllItems((CompoundNBT) listEntry, list);
                 this.namedInventories.put(tabName, list);
             }
         }

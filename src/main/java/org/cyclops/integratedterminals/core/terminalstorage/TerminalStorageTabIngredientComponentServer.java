@@ -4,14 +4,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.Container;
-import net.minecraft.network.play.server.SPacketSetSlot;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.container.Container;
+import net.minecraft.network.play.server.SSetSlotPacket;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
@@ -55,7 +56,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -74,7 +74,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final IngredientComponent<T, M> ingredientComponent;
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
     private final PartPos pos;
-    private final EntityPlayerMP player;
+    private final ServerPlayerEntity player;
     private final IIngredientComponentValueHandler<?, ?, T, M> valueHandler;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
@@ -90,15 +90,15 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                                                        IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
                                                        PartPos pos,
-                                                       EntityPlayerMP player) {
+                                                       ServerPlayerEntity player) {
         this.name = name;
         this.network = network;
         this.ingredientComponent = ingredientComponent;
         this.ingredientNetwork = ingredientNetwork;
         this.pos = pos;
         this.player = player;
-        this.valueHandler = Objects.requireNonNull(ingredientComponent.getCapability(Capabilities.INGREDIENTCOMPONENT_VALUEHANDLER),
-                "No value handler was found for " + ingredientComponent.getName());
+        this.valueHandler = ingredientComponent.getCapability(Capabilities.INGREDIENTCOMPONENT_VALUEHANDLER)
+                .orElseThrow(() -> new IllegalStateException("No value handler was found for " + ingredientComponent.getName()));
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
         this.ingredientsFilter = (instance) -> true;
@@ -213,14 +213,14 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                                     ValueHelpers.validatePredicateOutput(predicate, result);
                                     return ((ValueTypeBoolean.ValueBoolean) result).getRawValue();
                                 } else {
-                                    String current = ValueTypeOperator.getSignature(predicate);
-                                    String expected = ValueTypeOperator.getSignature(new IValueType[]{inputValueType}, ValueTypes.BOOLEAN);
-                                    throw new EvaluationException(new L10NHelpers.UnlocalizedString(
-                                            L10NValues.ASPECT_ERROR_INVALIDTYPE, expected, current).localize());
+                                    ITextComponent current = ValueTypeOperator.getSignature(predicate);
+                                    ITextComponent expected = ValueTypeOperator.getSignature(new IValueType[]{inputValueType}, ValueTypes.BOOLEAN);
+                                    throw new EvaluationException(new TranslationTextComponent(
+                                            L10NValues.ASPECT_ERROR_INVALIDTYPE, expected, current));
                                 }
                             } catch (EvaluationException e) {
                                 if (!errorListener.hasErrors()) {
-                                    errorListener.addError(new L10NHelpers.UnlocalizedString(e.getMessage()));
+                                    errorListener.addError(e.getErrorMessage());
                                     this.ingredientsFilter = (t) -> false; // Reset our filter
                                 }
                                 return false;
@@ -229,12 +229,12 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                         return false;
                     });
                 } else {
-                    throw new EvaluationException(new L10NHelpers.UnlocalizedString(
-                            L10NValues.ASPECT_ERROR_INVALIDTYPE, ValueTypes.OPERATOR, variable.getType()).localize());
+                    throw new EvaluationException(new TranslationTextComponent(
+                            L10NValues.ASPECT_ERROR_INVALIDTYPE, ValueTypes.OPERATOR, variable.getType()));
                 }
             }
         } catch (EvaluationException e) {
-            errorListener.addError(new L10NHelpers.UnlocalizedString(e.getMessage()));
+            errorListener.addError(e.getErrorMessage());
             return; // Don't update our filter, deny-all
         }
         this.ingredientsFilter = newFilter;
@@ -373,10 +373,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     @Nullable
-    public void handleStorageSlotClick(Container container, EntityPlayerMP player, TerminalClickType clickType,
+    public void handleStorageSlotClick(Container container, ServerPlayerEntity player, TerminalClickType clickType,
                                        int channel, T hoveringStorageInstance, int hoveredContainerSlot,
                                        long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection) {
-        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY);
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+                .orElseThrow(() -> new IllegalStateException("Could not find an ingredient terminal storage handler"));
         IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
 
         boolean updateActivePlayerStack = false;
@@ -409,7 +410,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
         // Notify the client that the currently hovering player stack has changed.
         if (updateActivePlayerStack) {
-            player.connection.sendPacket(new SPacketSetSlot(-1, 0, player.inventory.getItemStack()));
+            player.connection.sendPacket(new SSetSlotPacket(-1, 0, player.inventory.getItemStack()));
         }
     }
 }

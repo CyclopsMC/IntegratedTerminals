@@ -1,6 +1,6 @@
 {
   "parent": "block/cube_all",
   "textures": {
-    "all": "integratedterminals:blocks/menril_glass"
+    "all": "integratedterminals:block/menril_glass"
   }
 }
