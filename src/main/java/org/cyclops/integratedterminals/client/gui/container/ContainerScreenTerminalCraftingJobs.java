@@ -142,7 +142,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         // Draw dependency count
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             String statusString = L10NHelpers.localize("gui.integratedterminals.craftingplan.status",
-                    L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH) + ".name"));
+                    L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
             RenderHelpers.drawScaledStringWithShadow(font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215);
 
             int dependencies = getDependencies(plan);

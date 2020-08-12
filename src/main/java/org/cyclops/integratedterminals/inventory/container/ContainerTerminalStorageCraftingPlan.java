@@ -76,16 +76,16 @@ public class ContainerTerminalStorageCraftingPlan extends ContainerMultipart<Par
     }
 
     protected void updateCraftingPlan() {
+        HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
+        INetwork network = NetworkHelpers.getNetworkChecked(getTarget().get().getCenter());
         if (GeneralConfig.craftingPlannerEnableMultithreading) {
-            WORKER_POOL.execute(this::updateCraftingPlanJob);
+            WORKER_POOL.execute(() -> this.updateCraftingPlanJob(craftingOptionWrapper, network));
         } else {
-            this.updateCraftingPlanJob();
+            this.updateCraftingPlanJob(craftingOptionWrapper, network);
         }
     }
 
-    protected void updateCraftingPlanJob() {
-        HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
-        INetwork network = NetworkHelpers.getNetworkChecked(getTarget().get().getCenter());
+    protected void updateCraftingPlanJob(HandlerWrappedTerminalCraftingOption craftingOptionWrapper, INetwork network) {
         this.setCraftingPlan(craftingOptionWrapper.getHandler().calculateCraftingPlan(network,
                 this.craftingOptionGuiData.getChannel(), craftingOptionWrapper.getCraftingOption(), this.craftingOptionGuiData.getAmount()));
     }

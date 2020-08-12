@@ -60,7 +60,7 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M> exten
 
         // Trigger gui opening
         NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
-            packetBuffer.writeString(PartTypes.TERMINAL_STORAGE.toString());
+            packetBuffer.writeString(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
             craftingJobGuiData.writeToPacketBuffer(packetBuffer);
         });
     }

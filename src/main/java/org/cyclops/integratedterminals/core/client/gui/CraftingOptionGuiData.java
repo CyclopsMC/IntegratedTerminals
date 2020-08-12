@@ -79,9 +79,15 @@ public class CraftingOptionGuiData<T, M> {
         packetBuffer.writeString(component.getName().toString());
         packetBuffer.writeString(tabName);
         packetBuffer.writeInt(channel);
-        packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingOption.serialize(craftingOption));
         packetBuffer.writeInt(amount);
-        packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingPlan.serialize(craftingPlan));
+        packetBuffer.writeBoolean(craftingOption != null);
+        if (craftingOption != null) {
+            packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingOption.serialize(craftingOption));
+        }
+        packetBuffer.writeBoolean(craftingPlan != null);
+        if (craftingPlan != null) {
+            packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingPlan.serialize(craftingPlan));
+        }
     }
 
     public static CraftingOptionGuiData readFromPacketBuffer(PacketBuffer packetBuffer) {
@@ -90,9 +96,15 @@ public class CraftingOptionGuiData<T, M> {
         IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readString()));
         String tabName = packetBuffer.readString();
         int channel = packetBuffer.readInt();
-        HandlerWrappedTerminalCraftingOption craftingOption = HandlerWrappedTerminalCraftingOption.deserialize(component, packetBuffer.readCompoundTag());
         int amount = packetBuffer.readInt();
-        HandlerWrappedTerminalCraftingPlan craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.readCompoundTag());
+        HandlerWrappedTerminalCraftingOption craftingOption = null;
+        if (packetBuffer.readBoolean()) {
+            craftingOption = HandlerWrappedTerminalCraftingOption.deserialize(component, packetBuffer.readCompoundTag());
+        }
+        HandlerWrappedTerminalCraftingPlan craftingPlan = null;
+        if (packetBuffer.readBoolean()) {
+            craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.readCompoundTag());
+        }
         return new CraftingOptionGuiData(blockPos, side, component, tabName, channel, craftingOption, amount, craftingPlan);
     }
 

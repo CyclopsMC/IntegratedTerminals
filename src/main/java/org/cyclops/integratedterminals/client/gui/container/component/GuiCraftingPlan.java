@@ -116,7 +116,7 @@ public class GuiCraftingPlan extends Widget {
 
     @Override
     public void render(int mouseX, int mouseY, float partialTicks) {
-        scrollBar.render(mouseX, mouseY, partialTicks);
+
     }
 
     protected List<Element> getVisibleElements() {
@@ -191,10 +191,10 @@ public class GuiCraftingPlan extends Widget {
         } else {
             // Draw tooltip over crafting status
             GuiHelpers.renderTooltipOptional(this.parentGui, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
-                String unlocalizedName = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH) + ".";
+                String unlocalizedName = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH);
                 return Optional.of(Lists.newArrayList(
-                        new TranslationTextComponent(unlocalizedName + "name"),
-                        new TranslationTextComponent(unlocalizedName + "desc")
+                        new TranslationTextComponent(unlocalizedName),
+                        new TranslationTextComponent(unlocalizedName + ".desc")
                 ));
             });
         }

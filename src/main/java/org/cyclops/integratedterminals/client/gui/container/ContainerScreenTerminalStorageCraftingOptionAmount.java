@@ -89,6 +89,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount extends Containe
         numberField.setTextColor(16777215);
         numberField.setCanLoseFocus(true);
         numberField.setText("1");
+        children.add(numberField);
 
         scrollBar = new WidgetScrollBar(guiLeft + 153, guiTop + 15, 54,
                 L10NHelpers.localize("gui.cyclopscore.scrollbar"), this::setFirstRow, 3);
@@ -189,12 +190,6 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount extends Containe
         super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 
         drawOutputSlots(0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
-    }
-
-    @Override
-    protected void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawCurrentScreen(mouseX, mouseY, partialTicks);
-        scrollBar.render(mouseX, mouseY, partialTicks);
     }
 
     public void setFirstRow(int firstRow) {
