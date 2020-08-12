@@ -155,6 +155,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
 
             fieldSearch.setText(getSelectedClientTab().get().getInstanceFilter(getContainer().getSelectedChannel()));
         }
+        fieldSearch.tick();
     }
 
     @Override

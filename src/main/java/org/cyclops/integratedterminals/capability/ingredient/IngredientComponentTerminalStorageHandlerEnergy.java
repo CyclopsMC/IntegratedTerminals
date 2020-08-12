@@ -79,6 +79,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                         16, 240, GuiHelpers.ProgressDirection.UP, instance, (int) maxQuantity);
 
                 // Draw amount
+                GlStateManager.disableLighting();
                 RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().fontRenderer, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
 
                 RenderHelper.disableStandardItemLighting();
