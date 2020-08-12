@@ -93,7 +93,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
         // Draw plan label
         drawString(Minecraft.getInstance().fontRenderer,
-                L10NHelpers.localize("parttype.parttypes.integratedterminals.terminal_crafting_job.name"),
+                L10NHelpers.localize("parttype.integratedterminals.terminal_crafting_job"),
                 guiLeft + 8, guiTop + 5, 16777215);
     }
 
@@ -168,12 +168,6 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             count += getDependencies(dependency);
         }
         return count;
-    }
-
-    @Override
-    protected void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawCurrentScreen(mouseX, mouseY, partialTicks);
-        scrollBar.render(mouseX, mouseY, partialTicks);
     }
 
     private void cancelCraftingJobs() {
