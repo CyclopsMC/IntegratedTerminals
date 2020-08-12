@@ -632,8 +632,8 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                     && (mouseY - getGuiTopTotal() - getSlotsOffsetY()) % GuiHelpers.SLOT_SIZE < GuiHelpers.SLOT_SIZE_INNER) {
                 int rowLength = getSlotRowLength();
                 int offset = getSelectedFirstRow() * rowLength;
-                return (int) (offset + ((mouseX - getGuiLeftTotal() - getSlotsOffsetX()) / GuiHelpers.SLOT_SIZE)
-                                        + ((mouseY - getGuiTopTotal() - getSlotsOffsetY()) / GuiHelpers.SLOT_SIZE) * getSlotRowLength());
+                return offset + ((((int) mouseX) - getGuiLeftTotal() - getSlotsOffsetX()) / GuiHelpers.SLOT_SIZE)
+                        + ((((int) mouseY) - getGuiTopTotal() - getSlotsOffsetY()) / GuiHelpers.SLOT_SIZE) * getSlotRowLength();
             }
         }
 
