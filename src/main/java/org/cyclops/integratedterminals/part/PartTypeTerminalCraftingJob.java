@@ -75,7 +75,7 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
         super.loadTooltip(itemStack, lines);
         if (TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
             lines.add(new TranslationTextComponent(
-                    "parttype.parttypes.integratedterminals.terminal_crafting_job.tooltip.nohandlers")
+                    "parttype.integratedterminals.terminal_crafting_job.tooltip.nohandlers")
                     .applyTextStyle(TextFormatting.GOLD));
         }
     }
