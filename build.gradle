@@ -110,11 +110,11 @@ dependencies {
 
     // Add something like 'integratedterminalscompat_version_local=0.1.0-DEV' to your gradle.properties if you want to use a custom local Integrated Tunnels Compat version.
     if(project.hasProperty("integratedterminalscompat_version_local")) {
-        shadow("org.cyclops.integratedterminalscompat:IntegratedTerminalsCompat:${project.integratedterminalscompat_version_local}") {
+        shadow("org.cyclops.integratedterminalscompat:IntegratedTerminals-Compat:${project.integratedterminalscompat_version_local}") {
             transitive = false
         }
     } else {
-        shadow("org.cyclops.integratedterminalscompat:IntegratedTerminalsCompat:${config.integratedterminalscompat_version}") {
+        shadow("org.cyclops.integratedterminalscompat:IntegratedTerminals-Compat:${config.integratedterminalscompat_version}") {
             transitive = false
         }
     }
