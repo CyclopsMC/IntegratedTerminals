@@ -190,7 +190,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         mouseY -= guiTop;
         if (mouseX > OUTPUT_SLOT_X && mouseX < OUTPUT_SLOT_X + LINE_WIDTH
                 && mouseY > OUTPUT_SLOT_Y && mouseY < OUTPUT_SLOT_Y + GuiHelpers.SLOT_SIZE * scrollBar.getVisibleRows()) {
-            int index = (int) ((mouseY - OUTPUT_SLOT_Y) / GuiHelpers.SLOT_SIZE);
+            int index = (((int) mouseY) - OUTPUT_SLOT_Y) / GuiHelpers.SLOT_SIZE;
             List<HandlerWrappedTerminalCraftingPlan> plans = getVisiblePlans();
             if (index >= 0 && index < plans.size()) {
                 return plans.get(index);
@@ -201,10 +201,6 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-        if (super.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return true;
-        }
-
         HandlerWrappedTerminalCraftingPlan plan = getHoveredPlan(mouseX, mouseY);
         if (plan != null) {
             PartPos pos = getContainer().getTarget().get().getCenter();
@@ -212,7 +208,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             return true;
         }
 
-        return false;
+        return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     public void setFirstRow(int firstRow) {
