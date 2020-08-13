@@ -14,19 +14,19 @@ Terminals for managing and overviewing Integrated Dynamics networks.
 [[dependencies.integratedterminals]]
     modId="cyclopscore"
     mandatory=true
-    versionRange="[1.8.1,)"
+    versionRange="[1.8.2,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
     modId="integrateddynamics"
     mandatory=true
-    versionRange="[1.1.14,)"
+    versionRange="[1.1.15,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
     modId="commoncapabilities"
     mandatory=true
-    versionRange="[2.5.0,)"
+    versionRange="[2.5.3,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
