@@ -74,7 +74,7 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
 
         addPlayerInventory(player.inventory, 31, 143);
 
-        this.channelAllLabel = L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel_all");
+        this.channelAllLabel = "All";
         this.channelStrings = Lists.newArrayList(this.channelAllLabel);
 
         // Add all tabs from the registry

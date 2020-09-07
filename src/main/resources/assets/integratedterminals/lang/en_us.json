@@ -12,7 +12,6 @@
     "gui.integratedterminals.terminal_storage.storage_name": "%s Storage",
     "gui.integratedterminals.terminal_storage.crafting_name": "%s Crafting",
     "gui.integratedterminals.terminal_storage.channel": "Chan:",
-    "gui.integratedterminals.terminal_storage.channel_all": "All",
     "gui.integratedterminals.terminal_storage.craft": "craft",
     "gui.integratedterminals.terminal_storage.tooltip.requirements": "Crafting Requirements:",
     "gui.integratedterminals.terminal_storage.start_crafting_job": "Start crafting job",
