@@ -1,9 +1,16 @@
 package org.cyclops.integratedterminals.block;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.GlassBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockReader;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.cyclops.cyclopscore.config.extendedconfig.BlockConfig;
 import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -22,9 +29,15 @@ public class BlockMenrilGlassConfig extends BlockConfig {
                 eConfig -> new GlassBlock(Block.Properties.create(Material.GLASS)
                         .hardnessAndResistance(0.3F)
                         .sound(SoundType.GLASS)
+                        .lightValue(3)
                         .notSolid()),
                 getDefaultItemConstructor(IntegratedTerminals._instance)
         );
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
+    }
+
+    public void onClientSetup(FMLClientSetupEvent event) {
+        RenderTypeLookup.setRenderLayer(getInstance(), RenderType.getTranslucent());
     }
 
 }

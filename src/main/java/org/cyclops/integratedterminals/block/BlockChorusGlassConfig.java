@@ -5,13 +5,16 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.GlassBlock;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderTypeLookup;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.cyclops.cyclopscore.config.extendedconfig.BlockConfig;
-import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 
 /**
@@ -36,6 +39,11 @@ public class BlockChorusGlassConfig extends BlockConfig {
                 },
                 getDefaultItemConstructor(IntegratedTerminals._instance)
         );
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
+    }
+
+    public void onClientSetup(FMLClientSetupEvent event) {
+        RenderTypeLookup.setRenderLayer(getInstance(), RenderType.getTranslucent());
     }
 
 }

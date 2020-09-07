@@ -106,10 +106,10 @@
     "advancement.integratedterminals.filter_enchantable.desc": "Dynamically filter enchantable items in the Storage Terminal using a Variable",
 
     "_comment": "Blocks",
-    "block.blocks.integratedterminals.menril_glass": "Menril Glass",
-    "block.blocks.integratedterminals.menril_glass.info": "Illuminating glass",
-    "block.blocks.integratedterminals.chorus_glass": "Chorus Glass",
-    "block.blocks.integratedterminals.chorus_glass.info": "Passable glass",
+    "block.integratedterminals.menril_glass": "Menril Glass",
+    "block.integratedterminals.menril_glass.info": "Illuminating glass",
+    "block.integratedterminals.chorus_glass": "Chorus Glass",
+    "block.integratedterminals.chorus_glass.info": "Passable glass",
 
     "_comment": "Part types",
     "parttype.integratedterminals.terminal_storage": "Storage Terminal",
