@@ -23,7 +23,7 @@ public class BlockMenrilGlassConfig extends BlockConfig {
                         .hardnessAndResistance(0.3F)
                         .sound(SoundType.GLASS)
                         .notSolid()),
-                getDefaultItemConstructor(IntegratedDynamics._instance)
+                getDefaultItemConstructor(IntegratedTerminals._instance)
         );
     }
 

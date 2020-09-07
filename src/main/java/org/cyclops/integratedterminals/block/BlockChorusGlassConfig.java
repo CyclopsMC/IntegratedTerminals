@@ -34,7 +34,7 @@ public class BlockChorusGlassConfig extends BlockConfig {
                         return VoxelShapes.empty();
                     }
                 },
-                getDefaultItemConstructor(IntegratedDynamics._instance)
+                getDefaultItemConstructor(IntegratedTerminals._instance)
         );
     }
 
