@@ -1,0 +1,10 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.8.2 or higher.
+
+Fixes:
+* Fix chorus and menril glass rendering incorrectly
+  They also had a wrong L10N key.
+* Fix rare startup crash due to incorrect mod being attached to blocks
+  Closes #56
+  Closes CyclopsMC/IntegratedTerminals-Compat#3
+* Fix server crash when opening storage terminal, Closes #57
