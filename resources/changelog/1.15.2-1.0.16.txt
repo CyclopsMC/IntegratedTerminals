@@ -1,0 +1,12 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.8.5 or higher.
+
+Additions:
+
+Changes:
+
+Fixes:
+* Fix scroll bars not working
+  Closes CyclopsMC/IntegratedDynamics#915
+  Closes #60
+* Fix missing Crafting Job Terminal recipe, Closes #58
