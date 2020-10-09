@@ -136,6 +136,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                 return getSlotVisibleRows();
             }
         };
+        this.children.add(this.scrollBar);
 
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().fontRenderer, guiLeft + SEARCH_X,
                 guiTop + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, L10NHelpers.localize("gui.cyclopscore.search"));
@@ -449,7 +450,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         }).orElse(false)) {
             return true;
         }
-        return super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
     }
 
     private void updateTerminalDragSplitting(ITerminalStorageTabClient<?> tab) {

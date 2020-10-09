@@ -192,6 +192,11 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount extends Containe
         drawOutputSlots(0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
     }
 
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
+        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+    }
+
     public void setFirstRow(int firstRow) {
         this.firstRow = firstRow;
     }

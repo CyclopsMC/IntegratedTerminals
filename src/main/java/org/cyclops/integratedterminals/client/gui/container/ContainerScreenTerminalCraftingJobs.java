@@ -59,6 +59,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
         scrollBar = new WidgetScrollBar(guiLeft + 236, guiTop + 18, 178,
                 L10NHelpers.localize("gui.cyclopscore.scrollbar"), this::setFirstRow, 10);
+        this.children.add(this.scrollBar);
         scrollBar.setTotalRows(getContainer().getCraftingJobs().size() - 1);
 
         addButton(new ButtonText(guiLeft + 70, guiTop + 198, 120, 20,
@@ -209,6 +210,11 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         }
 
         return super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
+        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {
