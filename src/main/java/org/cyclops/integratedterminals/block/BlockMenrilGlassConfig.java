@@ -29,7 +29,7 @@ public class BlockMenrilGlassConfig extends BlockConfig {
                 eConfig -> new GlassBlock(Block.Properties.create(Material.GLASS)
                         .hardnessAndResistance(0.3F)
                         .sound(SoundType.GLASS)
-                        .lightValue(3)
+                        .setLightLevel((state) -> 3)
                         .notSolid()),
                 getDefaultItemConstructor(IntegratedTerminals._instance)
         );

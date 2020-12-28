@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
@@ -152,7 +153,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
         return null;
     }
 
-    public default void onCommonSlotRender(ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer,
+    public default void onCommonSlotRender(ContainerScreen gui, MatrixStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,
                                            float partialTick, int x, int y, int mouseX, int mouseY,
                                            int slot, ITerminalStorageTabCommon tabCommon) {
 

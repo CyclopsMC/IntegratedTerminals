@@ -57,7 +57,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     @Override
     @OnlyIn(Dist.CLIENT)
     public ButtonSort createButton(int x, int y) {
-        return new ButtonSort(x, y, L10NHelpers.localize("gui.integratedterminals.terminal_storage.sort"), (b) -> {}, instanceSorter.getIcon(), active, descending);
+        return new ButtonSort(x, y, new TranslationTextComponent("gui.integratedterminals.terminal_storage.sort"), (b) -> {}, instanceSorter.getIcon(), active, descending);
     }
 
     @Override
@@ -115,10 +115,10 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
                     new TranslationTextComponent(descending
                             ? "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.descending"
                             : "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.ascending"))
-                    .applyTextStyle(TextFormatting.ITALIC));
+                    .mergeStyle(TextFormatting.ITALIC));
         } else {
             lines.add(new TranslationTextComponent("general.cyclopscore.info.disabled")
-                    .applyTextStyle(TextFormatting.ITALIC));
+                    .mergeStyle(TextFormatting.ITALIC));
         }
     }
 

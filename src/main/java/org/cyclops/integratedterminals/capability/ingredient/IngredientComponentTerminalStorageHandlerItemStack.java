@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.Minecraft;
@@ -38,6 +39,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -65,7 +67,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(ItemStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+    public void drawInstance(MatrixStack matrixStack, ItemStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
@@ -239,8 +241,9 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                         .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
             case TAG:
                 return i -> ItemTags.getCollection().getOwningTags(i.getItem()).stream()
-                        .map(r -> ItemTags.getCollection().getOrCreate(r))
-                        .anyMatch(tag -> tag.getId().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
+                        .filter(id -> id.toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                        .map(r -> ItemTags.getCollection().get(r))
+                        .anyMatch(Objects::nonNull);
             case DEFAULT:
                 return i -> i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }

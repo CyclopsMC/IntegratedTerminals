@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -64,14 +65,14 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(FluidStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+    public void drawInstance(MatrixStack matrixStack, FluidStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
                              @Nullable List<ITextComponent> additionalTooltipLines) {
         if (instance != null) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
-                GuiHelpers.renderFluidSlot(gui, instance, x, y);
+                GuiHelpers.renderFluidSlot(gui, matrixStack, instance, x, y);
 
                 // Draw amount
                 RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().fontRenderer, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
@@ -79,8 +80,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<ITextComponent> lines = Lists.newArrayList();
-                    lines.add(instance.getDisplayName()
-                            .applyTextStyle(instance.getFluid().getAttributes().getRarity().color));
+                    lines.add(((IFormattableTextComponent) instance.getDisplayName())
+                            .mergeStyle(instance.getFluid().getAttributes().getRarity().color));
                     addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
                         lines.addAll(additionalTooltipLines);

@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.inventory.container.Container;
@@ -9,7 +10,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -100,11 +100,11 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public void onCommonSlotRender(ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
+    public void onCommonSlotRender(ContainerScreen gui, MatrixStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         // Delegate to regular itemstack tab
         String name = ingredientComponent.getName().toString();
         ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);
         tabCommon = container.getTabCommon(name);
-        tabClient.onCommonSlotRender(gui, layer, partialTick, x, y, mouseX, mouseY, slot, tabCommon);
+        tabClient.onCommonSlotRender(gui, matrixStack, layer, partialTick, x, y, mouseX, mouseY, slot, tabCommon);
     }
 }

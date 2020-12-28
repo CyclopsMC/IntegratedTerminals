@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -58,15 +59,14 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         super.init();
 
         scrollBar = new WidgetScrollBar(guiLeft + 236, guiTop + 18, 178,
-                L10NHelpers.localize("gui.cyclopscore.scrollbar"), this::setFirstRow, 10);
+                new TranslationTextComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 10);
         this.children.add(this.scrollBar);
         scrollBar.setTotalRows(getContainer().getCraftingJobs().size() - 1);
 
         addButton(new ButtonText(guiLeft + 70, guiTop + 198, 120, 20,
-                L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
+                new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
                 new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all")
-                        .applyTextStyle(TextFormatting.BOLD)
-                        .getFormattedText(),
+                        .mergeStyle(TextFormatting.BOLD),
                 (b) -> cancelCraftingJobs(), true));
     }
 
@@ -86,37 +86,37 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
-        scrollBar.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
+    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        super.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
+        scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
         RenderHelpers.bindTexture(this.texture);
-        drawCraftingPlans(guiLeft, guiTop, partialTicks, mouseX - guiLeft, mouseY - guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
+        drawCraftingPlans(matrixStack, guiLeft, guiTop, partialTicks, mouseX - guiLeft, mouseY - guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
 
         // Draw plan label
-        drawString(Minecraft.getInstance().fontRenderer,
+        drawString(matrixStack, Minecraft.getInstance().fontRenderer,
                 L10NHelpers.localize("parttype.integratedterminals.terminal_crafting_job"),
                 guiLeft + 8, guiTop + 5, 16777215);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        super.drawGuiContainerForegroundLayer(mouseX, mouseY);
-        drawCraftingPlans(0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
+    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+        // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
+        drawCraftingPlans(matrixStack, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
     }
 
     protected List<HandlerWrappedTerminalCraftingPlan> getVisiblePlans() {
         return this.getContainer().getCraftingJobs().subList(firstRow, Math.min(this.getContainer().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
     }
 
-    protected void drawCraftingPlans(int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
+    protected void drawCraftingPlans(MatrixStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
         for (HandlerWrappedTerminalCraftingPlan craftingPlan : getVisiblePlans()) {
-            drawCraftingPlan(craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
+            drawCraftingPlan(matrixStack, craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
             offsetY += GuiHelpers.SLOT_SIZE;
         }
     }
 
-    protected void drawCraftingPlan(HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
+    protected void drawCraftingPlan(MatrixStack matrixStack, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
                                     ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int xOriginal = x;
         ITerminalCraftingPlan<?> plan = craftingPlan.getCraftingPlan();
@@ -124,7 +124,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         // Draw background color if hovering
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND
                 && RenderHelpers.isPointInRegion(x - guiLeft, y - guiTop, LINE_WIDTH, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
-            fill(x + 1, y + 1, x + LINE_WIDTH + 1, y + GuiHelpers.SLOT_SIZE, -2130706433);
+            fill(matrixStack, x + 1, y + 1, x + LINE_WIDTH + 1, y + GuiHelpers.SLOT_SIZE, -2130706433);
         }
 
 
@@ -135,8 +135,8 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
             int finalX = x;
             ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
-                    .ifPresent(h -> h.drawInstance(output.getPrototype(), quantity, GuiHelpers.quantityToScaledString(quantity),
-                            this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null));
+                    .ifPresent(h -> h.drawInstance(matrixStack, output.getPrototype(), quantity,
+                            GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null));
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
 
@@ -144,21 +144,21 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             String statusString = L10NHelpers.localize("gui.integratedterminals.craftingplan.status",
                     L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
-            RenderHelpers.drawScaledStringWithShadow(font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215);
+            RenderHelpers.drawScaledStringWithShadow(matrixStack, font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215);
 
             int dependencies = getDependencies(plan);
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            RenderHelpers.drawScaledStringWithShadow(font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215);
+            RenderHelpers.drawScaledStringWithShadow(matrixStack, font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215);
 
             if (plan.getChannel() != -1) {
                 String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", plan.getChannel());
-                RenderHelpers.drawScaledStringWithShadow(font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, 16777215);
+                RenderHelpers.drawScaledStringWithShadow(matrixStack, font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, 16777215);
             }
 
             long tickDuration = plan.getTickDuration();
             if (tickDuration >= 0) {
                 String durationString = GuiCraftingPlan.getDurationString(tickDuration);
-                RenderHelpers.drawScaledStringWithShadow(font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215);
+                RenderHelpers.drawScaledStringWithShadow(matrixStack, font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215);
             }
         }
     }
@@ -214,7 +214,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
-        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return this.getListener() != null && this.isDragging() && mouseButton == 0 && this.getListener().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {

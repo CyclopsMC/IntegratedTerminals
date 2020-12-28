@@ -6,6 +6,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.common.MinecraftForge;
@@ -156,7 +157,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     @Override
-    public void addError(ITextComponent error) {
+    public void addError(IFormattableTextComponent error) {
         List<ITextComponent> errors = getGlobalErrors();
         errors.add(error);
         CompoundNBT tag = this.containerTerminalStorage.getValue(this.errorsValueId);
@@ -189,7 +190,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
-    public void setLocalErrors(int slot, List<ITextComponent> errors) {
+    public void setLocalErrors(int slot, List<IFormattableTextComponent> errors) {
         CompoundNBT tag = this.containerTerminalStorage.getValue(this.errorsValueId);
         if (tag == null) {
             tag = new CompoundNBT();

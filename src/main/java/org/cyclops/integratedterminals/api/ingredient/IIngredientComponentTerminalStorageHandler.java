@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -41,6 +42,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
 
     /**
      * Draw the given instance in the given gui.
+     * @param matrixStack The matrix stack.
      * @param instance An instance.
      * @param maxQuantity The maximum allowed quantity of the given instance.
      * @param label An optional label that should be rendered instead of the quantity.
@@ -54,7 +56,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param additionalTooltipLines The additional tooltip lines to add.
      */
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(T instance, long maxQuantity, @Nullable String label, ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+    public void drawInstance(MatrixStack matrixStack, T instance, long maxQuantity, @Nullable String label, ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines);
 
     /**
@@ -66,7 +68,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
         ITextComponent line = new TranslationTextComponent(
                 "gui.integratedterminals.terminal_storage.tooltip.quantity",
                 formatQuantity(instance))
-                .applyTextStyle(TextFormatting.DARK_GRAY);
+                .mergeStyle(TextFormatting.DARK_GRAY);
         if (lines.size() <= 1) {
             lines.add(line);
         } else {

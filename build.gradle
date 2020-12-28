@@ -94,9 +94,13 @@ dependencies {
 	
     // Add something like 'integrateddynamics_version_local=0.1.0-DEV' to your gradle.properties if you want to use a custom local Integrated Tunnels Compat version.
     if(project.hasProperty("integrateddynamics_version_local")) {
-        compile "org.cyclops.integrateddynamics:IntegratedDynamics:${project.integrateddynamics_version_local}:deobf"
+        compile ("org.cyclops.integrateddynamics:IntegratedDynamics:${project.integrateddynamics_version_local}:deobf") {
+            transitive = false
+        }
     } else {
-        compile "org.cyclops.integrateddynamics:IntegratedDynamics:${config.integrateddynamics_version}:deobf"
+        compile ("org.cyclops.integrateddynamics:IntegratedDynamics:${config.integrateddynamics_version}:deobf") {
+            transitive = false
+        }
     }
 	
     // Add something like 'integratedcrafting_version_local=0.1.0-DEV' to your gradle.properties if you want to use a custom local Integrated Tunnels Compat version.
@@ -120,9 +124,11 @@ dependencies {
     }
 
     if(project.hasProperty("commoncapabilities_version_local")) {
-        compile "org.cyclops.commoncapabilities:CommonCapabilities:${project.commoncapabilities_version_local}:deobf"
+        compile ("org.cyclops.commoncapabilities:CommonCapabilities:${project.commoncapabilities_version_local}:deobf") {
+            transitive = false
+        }
     } else {
-        compile fg.deobf("org.cyclops.commoncapabilities:CommonCapabilities:${config.commoncapabilities_version}") { // https://dl.bintray.com/cyclopsmc/dev/org/cyclops/commoncapabilities/CommonCapabilities/
+        compile ("org.cyclops.commoncapabilities:CommonCapabilities:${config.commoncapabilities_version}:deobf") { // https://dl.bintray.com/cyclopsmc/dev/org/cyclops/commoncapabilities/CommonCapabilities/
             transitive = false
         }
     }

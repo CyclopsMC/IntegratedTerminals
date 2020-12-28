@@ -62,7 +62,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(Integer instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+    public void drawInstance(MatrixStack matrixStack, Integer instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
         if (instance > 0) {
@@ -72,10 +72,10 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                 GlStateManager.color4f(1, 1, 1, 1);
                 RenderHelper.enableStandardItemLighting();
                 RenderHelpers.bindTexture(Images.ICONS);
-                gui.blit(x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
+                gui.blit(matrixStack, x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
 
                 // Draw progress
-                GuiHelpers.renderProgressBar(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
+                GuiHelpers.renderProgressBar(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         16, 240, GuiHelpers.ProgressDirection.UP, instance, (int) maxQuantity);
 
                 // Draw amount

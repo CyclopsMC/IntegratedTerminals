@@ -42,24 +42,24 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawGuiContainerLayer(ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer,
+    public void drawGuiContainerLayer(ContainerScreen gui, MatrixStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,
                                       float partialTick, int x, int y, int mouseX, int mouseY,
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getIngredientComponentViewHandler();
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-            viewHandler.drawInstance(getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
+            viewHandler.drawInstance(matrixStack, getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
             drawCraftLabel(x, y);
         } else {
             long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-            getIngredientComponentViewHandler().drawInstance(getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, getTooltipLines());
+            getIngredientComponentViewHandler().drawInstance(matrixStack, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, getTooltipLines());
         }
     }
 
     protected List<ITextComponent> getTooltipLines() {
         List<ITextComponent> tooltipLines = Lists.newArrayList();
         tooltipLines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.tooltip.requirements")
-                .applyTextStyle(TextFormatting.YELLOW));
+                .mergeStyle(TextFormatting.YELLOW));
         ITerminalCraftingOption<T> option = getCraftingOption().getCraftingOption();
         for (IngredientComponent<?, ?> inputComponent : option.getInputComponents()) {
             IIngredientMatcher matcher = inputComponent.getMatcher();

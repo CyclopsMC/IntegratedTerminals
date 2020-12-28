@@ -1,20 +1,21 @@
 modLoader="javafml"
-loaderVersion="[31.2,)"
+loaderVersion="[34,)"
 issueTrackerURL="https://github.com/CyclopsMC/IntegratedTerminals/issues"
+displayURL="https://www.curseforge.com/minecraft/mc-mods/integrated-terminals"
+license="MIT"
+logoFile="logo.png"
+authors="rubensworks (aka kroeser)"
 [[mods]]
 modId="integratedterminals"
 version="${file.jarVersion}"
 displayName="IntegratedTerminals"
-displayURL="https://www.curseforge.com/minecraft/mc-mods/integrated-terminals"
-logoFile="logo.png"
-authors="rubensworks (aka kroeser)"
 description='''
 Terminals for managing and overviewing Integrated Dynamics networks.
 '''
 [[dependencies.integratedterminals]]
     modId="cyclopscore"
     mandatory=true
-    versionRange="[1.8.5,)"
+    versionRange="[1.9.0,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
@@ -32,12 +33,12 @@ Terminals for managing and overviewing Integrated Dynamics networks.
 [[dependencies.integratedterminals]]
     modId="forge"
     mandatory=true
-    versionRange="[31.2,)"
+    versionRange="[34,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.15.2]"
+    versionRange="[1.16.2,]"
     ordering="NONE"
     side="BOTH"

@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import it.unimi.dsi.fastutil.ints.Int2LongMap;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -695,7 +696,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public void onCommonSlotRender(ContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
+    public void onCommonSlotRender(ContainerScreen gui, MatrixStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                                    int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         TerminalStorageTabIngredientComponentCommon tab = (TerminalStorageTabIngredientComponentCommon) tabCommon;
 
@@ -706,7 +707,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
             if (!errors.isEmpty()) {
                 if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-                    Images.ERROR.draw(gui, x + 2, y + 2);
+                    Images.ERROR.draw(gui, matrixStack, x + 2, y + 2);
                 } else {
                     if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
                         GuiHelpers.drawTooltip(gui, errors.stream()

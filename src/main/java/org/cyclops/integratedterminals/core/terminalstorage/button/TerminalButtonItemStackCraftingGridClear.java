@@ -47,7 +47,7 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     @OnlyIn(Dist.CLIENT)
     public ButtonImage createButton(int x, int y) {
         return new ButtonImage(x, y,
-                L10NHelpers.localize("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
+                new TranslationTextComponent("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
                 (b) -> {},
                 Images.BUTTON_SMALL_BACKGROUND_INACTIVE,
                 Images.BUTTON_SMALL_OVERLAY_CROSS);

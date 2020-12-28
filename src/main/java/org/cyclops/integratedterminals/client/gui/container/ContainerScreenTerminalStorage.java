@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.client.gui.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
@@ -105,7 +106,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
 
         fieldChannel = new WidgetArrowedListField<String>(Minecraft.getInstance().fontRenderer, guiLeft + CHANNEL_X,
                 guiTop + CHANNEL_Y, CHANNEL_WIDTH, CHANNEL_HEIGHT, true,
-                L10NHelpers.localize("gui.integratedterminals.channel"), true,
+                new TranslationTextComponent("gui.integratedterminals.channel"), true,
                 getContainer().getChannelStrings());
         fieldChannel.setMaxStringLength(15);
         fieldChannel.setVisible(true);
@@ -118,7 +119,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         }
 
         scrollBar = new WidgetScrollBar(guiLeft + SCROLL_X, guiTop + SCROLL_Y, SCROLL_HEIGHT,
-                L10NHelpers.localize("gui.cyclopscore.scrollbar"),
+                new TranslationTextComponent("gui.cyclopscore.scrollbar"),
                 firstRow -> this.firstRow = firstRow, 0) {
             @Override
             public int getTotalRows() {
@@ -139,7 +140,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         this.children.add(this.scrollBar);
 
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().fontRenderer, guiLeft + SEARCH_X,
-                guiTop + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, L10NHelpers.localize("gui.cyclopscore.search"));
+                guiTop + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, new TranslationTextComponent("gui.cyclopscore.search"));
         fieldSearch.setMaxStringLength(50);
         fieldSearch.setVisible(true);
         fieldSearch.setTextColor(16777215);
@@ -175,14 +176,14 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float f, int mouseX, int mouseY) {
-        super.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
-        fieldChannel.render(mouseX, mouseY, f);
-        fieldSearch.render(mouseX, mouseY, f);
-        drawTabsBackground();
-        drawTabContents(getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.BACKGROUND,
+    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float f, int mouseX, int mouseY) {
+        super.drawGuiContainerBackgroundLayer(matrixStack, f, mouseX, mouseY);
+        fieldChannel.render(matrixStack, mouseX, mouseY, f);
+        fieldSearch.render(matrixStack, mouseX, mouseY, f);
+        drawTabsBackground(matrixStack);
+        drawTabContents(matrixStack, getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
-        scrollBar.drawGuiContainerBackgroundLayer(f, mouseX, mouseY);
+        scrollBar.drawGuiContainerBackgroundLayer(matrixStack, f, mouseX, mouseY);
 
         GlStateManager.color4f(1, 1, 1, 1);
         GlStateManager.disableLighting();
@@ -191,9 +192,9 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             int offset = 0;
             for (ITerminalButton button : tab.getButtons()) {
                 Button guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
-                guiButton.render(mouseX, mouseY, f);
+                guiButton.render(matrixStack, mouseX, mouseY, f);
                 if (button.isInLeftColumn()) {
-                    offset += BUTTONS_OFFSET + guiButton.getHeight();
+                    offset += BUTTONS_OFFSET + guiButton.getHeightRealms();
                 }
             }
 
@@ -201,21 +202,21 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             Optional<ITerminalStorageTabCommon> tabCommonOptional = getCommonTab(tabName);
             tabCommonOptional.ifPresent(tabCommon -> {
                 for (Triple<Slot, Integer, Integer> slot : getContainer().getTabSlots(tabName)) {
-                    tab.onCommonSlotRender(this, DrawLayer.BACKGROUND, 0,
-                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, slot.getLeft().slotNumber, tabCommon);
+                    tab.onCommonSlotRender(this, matrixStack, DrawLayer.BACKGROUND,
+                            0, guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, slot.getLeft().slotNumber, tabCommon);
                 }
             });
         });
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        super.drawGuiContainerForegroundLayer(mouseX, mouseY);
+    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+        // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         drawTabsForeground(mouseX, mouseY);
-        drawTabContents(getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.FOREGROUND,
+        drawTabContents(matrixStack, getContainer().getSelectedTab(), getContainer().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
         RenderItemExtendedSlotCount.getInstance().zLevel = 150.0F;
-        drawActiveStorageSlotItem(mouseX, mouseY);
+        drawActiveStorageSlotItem(matrixStack, mouseX, mouseY);
         RenderItemExtendedSlotCount.getInstance().zLevel = 0F;
 
         // Draw button tooltips
@@ -225,14 +226,14 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             for (ITerminalButton button : tab.getButtons()) {
                 Button guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
                 if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset),
-                        guiButton.getWidth(), guiButton.getHeight(), mouseX, mouseY)) {
+                        guiButton.getWidth(), guiButton.getHeightRealms(), mouseX, mouseY)) {
                     List<ITextComponent> lines = Lists.newArrayList();
                     lines.add(new TranslationTextComponent(button.getTranslationKey()));
                     button.getTooltip(getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL, lines);
                     drawTooltip(lines, mouseX - guiLeft, mouseY - guiTop);
                 }
                 if (button.isInLeftColumn()) {
-                    offset += BUTTONS_OFFSET + guiButton.getHeight();
+                    offset += BUTTONS_OFFSET + guiButton.getHeightRealms();
                 }
             }
 
@@ -240,16 +241,16 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             Optional<ITerminalStorageTabCommon> tabCommonOptional = getCommonTab(tabName);
             tabCommonOptional.ifPresent(tabCommon -> {
                 for (Triple<Slot, Integer, Integer> slot : getContainer().getTabSlots(tabName)) {
-                    tab.onCommonSlotRender(this, DrawLayer.FOREGROUND, 0,
-                            guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, slot.getLeft().slotNumber, tabCommon);
+                    tab.onCommonSlotRender(this, matrixStack, DrawLayer.FOREGROUND,
+                            0, guiLeft + slot.getMiddle(), guiTop + slot.getRight(), mouseX, mouseY, slot.getLeft().slotNumber, tabCommon);
                 }
             });
         });
     }
 
     @Override
-    protected void drawCurrentScreen(int mouseX, int mouseY, float partialTicks) {
-        scrollBar.render(mouseX, mouseY, partialTicks);
+    protected void drawCurrentScreen(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
 
         ResourceLocation oldTexture = this.texture;
         getSelectedClientTab().ifPresent(tab -> {
@@ -259,7 +260,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             }
         });
 
-        super.drawCurrentScreen(mouseX, mouseY, partialTicks);
+        super.drawCurrentScreen(matrixStack, mouseX, mouseY, partialTicks);
 
         // Draw slots
         GlStateManager.disableLighting();
@@ -269,7 +270,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             Slot slot = getContainer().inventorySlots.get(i1);
 
             if (slot.isEnabled()) {
-                this.drawSlotOverlay(slot);
+                this.drawSlotOverlay(matrixStack, slot);
             }
         }
         //this.zLevel = 0F;
@@ -277,7 +278,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         this.texture = oldTexture;
     }
 
-    private void drawSlotOverlay(Slot slot) {
+    private void drawSlotOverlay(MatrixStack matrixStack, Slot slot) {
         getSelectedClientTab().ifPresent(tab -> {
             if (this.terminalDragSplitting && this.terminalDragSplittingSlots.contains(slot)) {
                 if (tab.isSlotValidForDraggingInto(getContainer().getSelectedChannel(), slot)) {
@@ -288,7 +289,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                     int dragQuantity = tab.computeDraggingQuantity(this.terminalDragSplittingSlots, this.terminalDragMode, slot.getStack(), tab.getActiveSlotQuantity());
                     if (dragQuantity > 0) {
                         String dragString = "+" + GuiHelpers.quantityToScaledString(dragQuantity);
-                        RenderHelpers.drawScaledStringWithShadow(font, dragString, guiLeft + slot.xPos, guiTop + slot.yPos, 0.5F, 16777045);
+                        RenderHelpers.drawScaledStringWithShadow(matrixStack, font, dragString, guiLeft + slot.xPos, guiTop + slot.yPos, 0.5F, 16777045);
                     }
                 } else {
                     this.terminalDragSplittingSlots.remove(slot);
@@ -404,13 +405,13 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             ITerminalStorageTabCommon tabCommon = getContainer().getTabCommon(tab.getName().toString());
             for (ITerminalButton button : tab.getButtons()) {
                 Button guiButton = button.createButton(button.getX(guiLeft, BUTTONS_OFFSET_X), button.getY(guiTop, BUTTONS_OFFSET_Y + offset));
-                if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset), guiButton.getWidth(), guiButton.getHeight(), mouseX, mouseY)) {
+                if (isPointInRegion(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset), guiButton.getWidth(), guiButton.getHeightRealms(), mouseX, mouseY)) {
                     button.onClick(tab, tabCommon, guiButton, getContainer().getSelectedChannel(), mouseButton);
                     playButtonClickSound();
                     return;
                 }
                 if (button.isInLeftColumn()) {
-                    offset += BUTTONS_OFFSET + guiButton.getHeight();
+                    offset += BUTTONS_OFFSET + guiButton.getHeightRealms();
                 }
             }
         });
@@ -450,7 +451,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         }).orElse(false)) {
             return true;
         }
-        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return this.getListener() != null && this.isDragging() && mouseButton == 0 && this.getListener().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
     }
 
     private void updateTerminalDragSplitting(ITerminalStorageTabClient<?> tab) {
@@ -642,11 +643,11 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         return -1;
     }
 
-    protected void drawTabsBackground() {
+    protected void drawTabsBackground(MatrixStack matrixStack) {
         int offsetX = TAB_OFFSET_X;
 
         // Draw channels label
-        drawString(font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
+        drawString(matrixStack, font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getContainer().getTabsClient().values()) {
@@ -660,7 +661,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
 
             // Draw background
             RenderHelpers.bindTexture(this.texture);
-            this.blit(x, y, textureX, textureY, width, height);
+            this.blit(matrixStack, x, y, textureX, textureY, width, height);
 
             // Draw icon
             ItemStack icon = tab.getIcon();
@@ -708,14 +709,14 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         return firstRow;
     }
 
-    protected void drawTabContents(String tabId, int channel, DrawLayer layer,
+    protected void drawTabContents(MatrixStack matrixStack, String tabId, int channel, DrawLayer layer,
                                    float partialTick, int x, int y, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getClientTab(tabId);
         if (optionalTab.isPresent()) {
             ITerminalStorageTabClient<?> tab = optionalTab.get();
             // Draw status string
             if (layer == DrawLayer.BACKGROUND) {
-                drawCenteredString(font, tab.getStatus(channel), guiLeft + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (GuiHelpers.SLOT_SIZE * ITerminalStorageTabClient.DEFAULT_SLOT_ROW_LENGTH) / 2,
+                drawCenteredString(matrixStack, font, tab.getStatus(channel), guiLeft + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (GuiHelpers.SLOT_SIZE * ITerminalStorageTabClient.DEFAULT_SLOT_ROW_LENGTH) / 2,
                         y + 2 + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE, 16777215);
                 GlStateManager.color4f(1, 1, 1, 1);
             }
@@ -733,12 +734,12 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                     // highlight slot on hover
                     RenderHelpers.bindTexture(this.texture);
                     if (RenderHelpers.isPointInRegion(slotX, slotY, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY)) {
-                        fill(slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
+                        fill(matrixStack, slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
                     }
                 }
 
                 //this.zLevel = 200F;
-                slot.drawGuiContainerLayer(this, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
+                slot.drawGuiContainerLayer(this, matrixStack, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
                 //this.zLevel = 0F;
 
                 if (++slotI >= rowLength) {
@@ -751,12 +752,12 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
             }
         } else {
             GlStateManager.color4f(0.3F, 0.3F, 0.3F, 0.3F);
-            fill(x - 1, y - 1, x - 1 + GuiHelpers.SLOT_SIZE * getSlotRowLength(), y - 1 + GuiHelpers.SLOT_SIZE * getSlotVisibleRows(), Helpers.RGBAToInt(50, 50, 50, 100));
+            fill(matrixStack, x - 1, y - 1, x - 1 + GuiHelpers.SLOT_SIZE * getSlotRowLength(), y - 1 + GuiHelpers.SLOT_SIZE * getSlotVisibleRows(), Helpers.RGBAToInt(50, 50, 50, 100));
             GlStateManager.color4f(1, 1, 1, 1);
         }
     }
 
-    private void drawActiveStorageSlotItem(int mouseX, int mouseY) {
+    private void drawActiveStorageSlotItem(MatrixStack matrixStack, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getSelectedClientTab();
         optionalTab.ifPresent(tab -> {
             int slotId = tab.getActiveSlotId();
@@ -777,9 +778,9 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                         quantityString = TextFormatting.YELLOW + quantityString;
                     }
 
-                    slot.drawGuiContainerLayer(this, DrawLayer.BACKGROUND, 0,
-                            mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4, mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4,
-                            mouseX, mouseY, tab, getContainer().getSelectedChannel(), quantityString);
+                    slot.drawGuiContainerLayer(this, matrixStack, DrawLayer.BACKGROUND,
+                            0, mouseX - this.guiLeft - GuiHelpers.SLOT_SIZE_INNER / 4,
+                            mouseY - this.guiTop - GuiHelpers.SLOT_SIZE_INNER / 4, mouseX, mouseY, tab, getContainer().getSelectedChannel(), quantityString);
                 }
             }
         });
