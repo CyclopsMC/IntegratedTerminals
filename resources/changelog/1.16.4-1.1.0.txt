@@ -1,0 +1,14 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.9.0 or higher.
+
+Changes:
+* Limit shift-click items from storage to 64, #39
+* Improve formatting of crafting buttons, Closes #61
+* Allow JEI autocomplete to first check player inventory
+* Clear to storage when clearing recipe
+  Part of CyclopsMC/IntegratedTerminals#17
+* Reverse crafting grid clearance target
+  By default, clearing target will be storage.
+  Shift-clicking target is the player inventory.
+  This is more in line with other mods.
+  Closes #17
