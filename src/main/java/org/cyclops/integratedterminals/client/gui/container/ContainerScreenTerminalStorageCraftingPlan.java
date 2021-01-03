@@ -67,7 +67,7 @@ public class ContainerScreenTerminalStorageCraftingPlan extends ContainerScreenE
         this.buttons.clear();
         addButton(button = new ButtonText(guiLeft + 95, guiTop + 198, 50, 20,
                         new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft"),
-                        new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft").mergeStyle(TextFormatting.BOLD),
+                        new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft").mergeStyle(TextFormatting.YELLOW),
                         createServerPressable(ContainerTerminalStorageCraftingPlan.BUTTON_START, (b) -> {}),
                         true));
         button.active = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();

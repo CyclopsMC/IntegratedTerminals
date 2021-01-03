@@ -73,7 +73,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
 
             addButton(new ButtonText(guiLeft + 70, guiTop + 198, 100, 20,
                     new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
-                    new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel").mergeStyle(TextFormatting.BOLD),
+                    new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     (b) -> cancelCraftingJob(),
                     true)
             );

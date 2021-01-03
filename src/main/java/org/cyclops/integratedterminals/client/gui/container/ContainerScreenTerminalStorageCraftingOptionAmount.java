@@ -109,7 +109,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount extends Containe
 
         addButton(nextButton = new ButtonText(guiLeft + 81, guiTop + 33, 50, 20,
                 new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.next"),
-                new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.next").mergeStyle(TextFormatting.BOLD),
+                new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.next").mergeStyle(TextFormatting.YELLOW),
                 (bb) -> calculateCraftingJob(),
                 true));
     }
