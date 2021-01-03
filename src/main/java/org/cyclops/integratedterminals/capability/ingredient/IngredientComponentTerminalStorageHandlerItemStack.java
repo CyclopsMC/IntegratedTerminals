@@ -145,6 +145,11 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                                          @Nullable PlayerEntity player, boolean transferFullSelection) {
         IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
 
+        // Limit transfer to 64 at a time
+        if (maxInstance.getCount() > 64) {
+            maxInstance.setCount(64);
+        }
+
         Slot containerSlot = container.getSlot(containerSlotIndex);
         if (transferFullSelection && player != null && player.inventory.getItemStack().isEmpty()) {
             // Pick up container slot contents if not empty
