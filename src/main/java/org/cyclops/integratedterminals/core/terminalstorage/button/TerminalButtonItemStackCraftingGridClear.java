@@ -58,7 +58,7 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
                         TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, ButtonImage guiButton,
                         int channel, int mouseButton) {
-        boolean toStorage = MinecraftHelpers.isShifted();
+        boolean toStorage = !MinecraftHelpers.isShifted();
         TerminalButtonItemStackCraftingGridClear.clearGrid(commomTab, channel, toStorage);
     }
 
