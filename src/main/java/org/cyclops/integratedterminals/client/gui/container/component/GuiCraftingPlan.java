@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
  * * {@link #render(MatrixStack, int, int, float)}}
  * * {@link #drawGuiContainerBackgroundLayer(MatrixStack, float, int, int)}
  * * {@link #drawGuiContainerForegroundLayer(MatrixStack, int, int)}
+ * * {@link #mouseScrolled(double, double, double)}}
+ * * {@link #mouseDragged(double, double, int, double, double)}}
  *
  * @author rubensworks
  */

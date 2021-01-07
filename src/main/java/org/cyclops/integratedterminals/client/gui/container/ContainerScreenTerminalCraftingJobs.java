@@ -7,7 +7,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -104,7 +103,8 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     protected List<HandlerWrappedTerminalCraftingPlan> getVisiblePlans() {
-        return this.getContainer().getCraftingJobs().subList(firstRow, Math.min(this.getContainer().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
+        return this.getContainer().getCraftingJobs()
+                .subList(firstRow, Math.min(this.getContainer().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
     }
 
     protected void drawCraftingPlans(MatrixStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {

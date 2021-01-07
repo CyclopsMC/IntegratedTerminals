@@ -117,6 +117,22 @@ public class ContainerScreenTerminalStorageCraftingPlan extends ContainerScreenE
     }
 
     @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        if (this.guiCraftingPlan != null) {
+            return guiCraftingPlan.mouseScrolled(mouseX, mouseY, delta);
+        }
+        return super.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
+        if (this.guiCraftingPlan != null) {
+            return guiCraftingPlan.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        }
+        return super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+    }
+
+    @Override
     public void onUpdate(int valueId, CompoundNBT value) {
         super.onUpdate(valueId, value);
 
