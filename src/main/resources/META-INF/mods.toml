@@ -9,6 +9,7 @@ authors="rubensworks (aka kroeser)"
 modId="integratedterminals"
 version="${file.jarVersion}"
 displayName="IntegratedTerminals"
+updateJSONURL="https://raw.githubusercontent.com/CyclopsMC/Versions/master/forge_update/integrated-terminals.json"
 description='''
 Terminals for managing and overviewing Integrated Dynamics networks.
 '''
