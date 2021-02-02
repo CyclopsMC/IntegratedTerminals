@@ -14,7 +14,7 @@
         <section name="info_book.integratedterminals.storage_terminal.crafting">
             <tag>integratedterminals:menril_glass</tag>
             <tag>integratedterminals:chorus_glass</tag>
-            <tag>integratedterminals:part_terminal_storage_item</tag>
+            <tag>integratedterminals:part_terminal_storage</tag>
             <paragraph>info_book.integratedterminals.storage_terminal.crafting.text1</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.crafting.text2</paragraph>
             <appendix type="integrateddynamics:drying_basin">integratedterminals:drying_basin/menril_glass</appendix>
@@ -54,11 +54,11 @@
     </section>
 
     <section name="info_book.integratedterminals.crafting_job_terminal">
-        <tag>integratedterminals:part_terminal_crafting_job_item</tag>
+        <tag>integratedterminals:part_terminal_crafting_job</tag>
         <paragraph>info_book.integratedterminals.crafting_job_terminal.text1</paragraph>
         <paragraph>info_book.integratedterminals.crafting_job_terminal.text2</paragraph>
         <paragraph>info_book.integratedterminals.crafting_job_terminal.text3</paragraph>
         <paragraph>info_book.integratedterminals.crafting_job_terminal.text4</paragraph>
-        <appendix type="minecraft:crafting">integratedterminals:part_terminal_crafting_job</appendix>
+        <appendix type="minecraft:crafting">integratedterminals:crafting/part_terminal_crafting_job</appendix>
     </section>
 </section>
