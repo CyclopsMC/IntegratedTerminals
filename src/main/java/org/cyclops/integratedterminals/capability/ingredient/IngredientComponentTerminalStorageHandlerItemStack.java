@@ -157,7 +157,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             if (!containerStack.isEmpty()
                     && !matcher.matches(containerStack, maxInstance, matcher.getExactMatchNoQuantityCondition())
                     && containerSlot.canTakeStack(player)) {
-                player.inventory.setItemStack(containerStack);
+                player.inventory.setItemStack(containerSlot.onTake(player, containerStack));
                 containerSlot.putStack(ItemStack.EMPTY);
             }
         }
