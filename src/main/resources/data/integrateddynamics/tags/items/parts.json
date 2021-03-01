@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "integratedterminals:part_terminal_storage",
+    "integratedterminals:part_terminal_crafting_job"
+  ]
+}
