@@ -1,10 +1,12 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.common.util.Constants;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
+import org.cyclops.integratedterminals.Reference;
 
 import javax.annotation.Nullable;
 
@@ -16,6 +18,8 @@ public class TerminalStorageState {
     public static final String SETTING_TAB = "tab";
     public static final String SETTING_SEARCH = "search";
     public static final String SETTING_BUTTON = "button";
+
+    public static final String PLAYER_TAG_DEFAULT_KEY = Reference.MOD_ID + ":terminalStorageStateDefault";
 
     private CompoundNBT tag;
     private IDirtyMarkListener dirtyMarkListener;
@@ -103,5 +107,16 @@ public class TerminalStorageState {
 
     public static TerminalStorageState readFromPacketBuffer(PacketBuffer packetBuffer) {
         return new TerminalStorageState(packetBuffer.readCompoundTag(), () -> {});
+    }
+
+    public static void setPlayerDefault(PlayerEntity playerEntity, TerminalStorageState state) {
+        playerEntity.getPersistentData().put(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY, state.getTag().copy());
+    }
+
+    public static TerminalStorageState getPlayerDefault(PlayerEntity playerEntity, IDirtyMarkListener dirtyMarkListener) {
+        if (playerEntity.getPersistentData().contains(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY)) {
+            return new TerminalStorageState(playerEntity.getPersistentData().getCompound(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY), dirtyMarkListener);
+        }
+        return new TerminalStorageState(dirtyMarkListener);
     }
 }

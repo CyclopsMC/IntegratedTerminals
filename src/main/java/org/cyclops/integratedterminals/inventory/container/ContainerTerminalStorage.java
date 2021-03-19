@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.Slot;
@@ -16,6 +17,7 @@ import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
+import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipartAspects;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
@@ -38,6 +40,8 @@ import java.util.stream.Collectors;
  * @author rubensworks
  */
 public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTerminalStorage, PartTypeTerminalStorage.State> {
+
+    public static final String BUTTON_SET_DEFAULTS = "button_set_defaults";
 
     private final Map<String, ITerminalStorageTabClient<?>> tabsClient;
     private final Map<String, ITerminalStorageTabServer> tabsServer;
@@ -128,6 +132,13 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
         initTabData.ifPresent(d -> {
             setSelectedTab(d.getTabName());
             setSelectedChannel(d.getChannel());
+        });
+
+        // Update player's default state
+        putButtonAction(ContainerTerminalStorage.BUTTON_SET_DEFAULTS, (s, containerExtended) -> {
+            if (!playerInventory.player.world.isRemote()) {
+                TerminalStorageState.setPlayerDefault(playerInventory.player, getGuiState());
+            }
         });
     }
 

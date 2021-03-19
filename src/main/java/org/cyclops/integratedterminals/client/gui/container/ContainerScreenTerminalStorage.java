@@ -23,15 +23,18 @@ import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
+import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetArrowedListField;
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetTextFieldExtended;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
+import org.cyclops.cyclopscore.client.gui.image.Images;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
+import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipartAspects;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -87,6 +90,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
     private WidgetArrowedListField<String> fieldChannel;
     private WidgetScrollBar scrollBar;
     private WidgetTextFieldExtended fieldSearch;
+    private ButtonImage buttonSetDefaults;
     private int firstRow;
     private boolean initialized;
     protected final Set<Slot> terminalDragSplittingSlots = Sets.<Slot>newHashSet();
@@ -147,6 +151,11 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
         fieldSearch.setCanLoseFocus(true);
         fieldSearch.setEnabled(true);
         fieldSearch.setEnableBackgroundDrawing(false);
+
+        buttonSetDefaults = addButton(new ButtonImage(this.guiLeft + 202, this.guiTop + 193, 15, 15,
+                new TranslationTextComponent("gui.integratedterminals.terminal_storage.setdefaults"),
+                createServerPressable(ContainerTerminalStorage.BUTTON_SET_DEFAULTS, b -> {}), true,
+                Images.ANVIL, -2, -3));
     }
 
     @Override
@@ -246,6 +255,15 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                 }
             });
         });
+
+        // Draw save defaults button
+        if (buttonSetDefaults.isHovered()) {
+            List<ITextComponent> lines = Lists.newArrayList();
+            lines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.setdefaults"));
+            lines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.setdefaults.info")
+                .mergeStyle(TextFormatting.GRAY));
+            drawTooltip(lines, mouseX - guiLeft, mouseY - guiTop);
+        }
     }
 
     @Override

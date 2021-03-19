@@ -59,6 +59,8 @@
     "gui.integratedterminals.terminal_storage.crafting.filter.type.all": "§oBoth",
     "gui.integratedterminals.terminal_storage.crafting.filter.type.storage": "§aStorage",
     "gui.integratedterminals.terminal_storage.crafting.filter.type.craftable": "§aCraftable",
+    "gui.integratedterminals.terminal_storage.setdefaults": "Mark as default settings",
+    "gui.integratedterminals.terminal_storage.setdefaults.info": "Use current settings for new terminals.",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies": "Size: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.cancel": "Cancel Job",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all": "Cancel All Jobs",
@@ -145,6 +147,7 @@
     "info_book.integratedterminals.storage_terminal.usage.text6": "Using the search box, you can filter the displayed ingredients by name. Deeper searching through results can be done by define further parameters separated by space. &oor&r-conditions can be defined with ''|'.",
     "info_book.integratedterminals.storage_terminal.usage.text7": "Different prefixes are possible to define your search target. By default, you will search within the ingredient name. By prefixing the string with &o'@'&r, you can search by mod. With &o'#'&r, tooltips can be searched. Finally, &o'$'&r queries item tags. For instance, the search condition &o'$plank @minecraft'&r will show all planks added by Minecraft.",
     "info_book.integratedterminals.storage_terminal.usage.text8": "When an item storage network is available, you will also get an additional crafting tab. This is just like the item tab, but with an integrated crafting grid. It has several useful integrated functionalities, such as clearing the grid into your inventory or network, balancing the grid, and configuring the grid auto-refill behaviour after crafting.",
+    "info_book.integratedterminals.storage_terminal.usage.text9": "All terminal settings (buttons, searchboxes, tabs, ...) are persisted per player and per terminal. In order to configure what settings will be loaded for newly placed terminals, you can press the anvil button on the bottom right of your terminal gui.",
 
     "info_book.integratedterminals.storage_terminal.autocrafting": "Autocrafting",
     "info_book.integratedterminals.storage_terminal.autocrafting.text1": "&oNote: this section only applies if you have an autocrafting mod such as Integrated Crafting installed.&r",

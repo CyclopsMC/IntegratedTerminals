@@ -157,11 +157,11 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             this.setNamedInventory(name, latestItems);
         }
 
-        public TerminalStorageState getPlayerStorageState(PlayerEntity playerId) {
-            TerminalStorageState state = playerStorageStates.get(playerId.getUniqueID().toString());
+        public TerminalStorageState getPlayerStorageState(PlayerEntity player) {
+            TerminalStorageState state = playerStorageStates.get(player.getUniqueID().toString());
             if (state == null) {
-                state = new TerminalStorageState(this);
-                playerStorageStates.put(playerId.getUniqueID().toString(), state);
+                state = TerminalStorageState.getPlayerDefault(player, this);
+                playerStorageStates.put(player.getUniqueID().toString(), state);
                 this.onDirty();
             }
             return state;
