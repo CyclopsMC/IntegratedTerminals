@@ -17,6 +17,11 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
         O extends ITerminalStorageTabCommon, B extends Button> {
 
     /**
+     * Reload the button's visual representation based on the container's state.
+     */
+    public void reloadFromState();
+
+    /**
      * Calculate the final X position for this button.
      * @param guiLeft Gui left X
      * @param offset X offset.
@@ -76,5 +81,4 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      */
     @OnlyIn(Dist.CLIENT)
     public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines);
-
 }

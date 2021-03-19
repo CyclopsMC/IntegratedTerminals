@@ -172,6 +172,22 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
+    public void onSelect(int channel) {
+        // Reload search box
+        setInstanceFilter(channel, container.getGuiState().getSearch(getTabSettingsName().toString(), channel));
+
+        // Reload button states
+        for (ITerminalButton<?, ?, ?> button : getButtons()) {
+            button.reloadFromState();
+        }
+    }
+
+    @Override
+    public void onDeselect(int channel) {
+
+    }
+
+    @Override
     public ResourceLocation getName() {
         return this.name;
     }
@@ -189,8 +205,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public String getInstanceFilter(int channel) {
-        if (container.getGuiState().hasSearch(getName().toString(), channel)) {
-            return container.getGuiState().getSearch(getName().toString(), channel);
+        if (container.getGuiState().hasSearch(getTabSettingsName().toString(), channel)) {
+            return container.getGuiState().getSearch(getTabSettingsName().toString(), channel);
         }
         return "";
     }
@@ -215,7 +231,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         MinecraftForge.EVENT_BUS.post(event);
         filter = event.getSearchString();
         resetFilteredIngredientsViews(channel);
-        container.getGuiState().setSearch(getName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
+        container.getGuiState().setSearch(getTabSettingsName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
     }
 
     public List<InstanceWithMetadata<T>> getRawUnfilteredIngredientsView(int channel) {

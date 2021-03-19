@@ -12,6 +12,7 @@ import net.minecraft.util.text.TranslationTextComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -41,6 +42,11 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                                                                         IngredientComponent<?, ?> ingredientComponent) {
         super(container, name, ingredientComponent);
         this.icon = new ItemStack(Blocks.CRAFTING_TABLE);
+    }
+
+    @Override
+    public ResourceLocation getTabSettingsName() {
+        return GeneralConfig.syncItemStorageAndCraftingTabStates ? ingredientComponent.getName() : getName();
     }
 
     @Override

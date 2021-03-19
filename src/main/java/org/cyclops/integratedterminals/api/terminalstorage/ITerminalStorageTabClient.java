@@ -10,6 +10,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,9 +28,29 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     public static final int DEFAULT_SLOT_ROW_LENGTH = 9;
 
     /**
+     * When this tab is selected by the player.
+     * @param channel The channel.
+     */
+    public void onSelect(int channel);
+
+    /**
+     * When this tab is deselected by the player.
+     * @param channel The channel.
+     */
+    public void onDeselect(int channel);
+
+    /**
      * @return The unique tab name, as inherited from {@link ITerminalStorageTab#getName()}.
      */
     public ResourceLocation getName();
+
+    /**
+     * @return The tab name that will be used to store {@link TerminalStorageState} settings inside a tab.
+     * This can be used to modify in what tab certain settings are stored.
+     */
+    public default ResourceLocation getTabSettingsName() {
+        return getName();
+    }
 
     /**
      * @return An icon for the tab.

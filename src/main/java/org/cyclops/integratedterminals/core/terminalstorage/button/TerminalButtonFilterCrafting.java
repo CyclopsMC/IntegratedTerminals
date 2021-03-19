@@ -32,15 +32,22 @@ public class TerminalButtonFilterCrafting<T>
 
     private final TerminalStorageState state;
     private final String buttonName;
+    private final ITerminalStorageTabClient<?> clientTab;
 
     private FilterType active;
 
     public TerminalButtonFilterCrafting(TerminalStorageState state, ITerminalStorageTabClient<?> clientTab) {
         this.state = state;
         this.buttonName = "filter_crafting";
+        this.clientTab = clientTab;
 
-        if (state.hasButton(clientTab.getName().toString(), this.buttonName)) {
-            CompoundNBT data = (CompoundNBT) state.getButton(clientTab.getName().toString(), this.buttonName);
+        reloadFromState();
+    }
+
+    @Override
+    public void reloadFromState() {
+        if (state.hasButton(clientTab.getTabSettingsName().toString(), this.buttonName)) {
+            CompoundNBT data = (CompoundNBT) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
             this.active = FilterType.values()[data.getInt("active")];
         } else {
             this.active = FilterType.ALL;
@@ -66,7 +73,7 @@ public class TerminalButtonFilterCrafting<T>
 
         CompoundNBT data = new CompoundNBT();
         data.putInt("active", active.ordinal());
-        state.setButton(clientTab.getName().toString(), this.buttonName, data);
+        state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
 
         clientTab.resetFilteredIngredientsViews(channel);
     }

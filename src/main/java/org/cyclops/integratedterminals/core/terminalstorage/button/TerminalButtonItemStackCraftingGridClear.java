@@ -29,6 +29,11 @@ public class TerminalButtonItemStackCraftingGridClear<T>
         TerminalStorageTabIngredientComponentItemStackCraftingCommon, ButtonImage> {
 
     @Override
+    public void reloadFromState() {
+
+    }
+
+    @Override
     public int getX(int guiLeft, int offset) {
         return guiLeft + 85;
     }

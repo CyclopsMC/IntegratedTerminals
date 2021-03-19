@@ -12,7 +12,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
 /**
- * Packet for telling the server that the crafting grid must be balanced.
+ * Packet for updating the gui state server-side.
  * @author rubensworks
  *
  */

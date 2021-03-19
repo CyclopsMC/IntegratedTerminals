@@ -240,7 +240,15 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
         disableSlots(getSelectedTab());
 
         if (player.world.isRemote) {
+            ITerminalStorageTabClient previousTab = getTabClient(getSelectedTab());
+            if (previousTab != null) {
+                previousTab.onDeselect(getSelectedChannel());
+            }
             getGuiState().setTab(selectedTab);
+            ITerminalStorageTabClient newTab = getTabClient(selectedTab);
+            if (newTab != null) {
+                newTab.onSelect(getSelectedChannel());
+            }
         }
         if (selectedTab != null) {
             ValueNotifierHelpers.setValue(this, selectedTabIndexValueId, selectedTab);

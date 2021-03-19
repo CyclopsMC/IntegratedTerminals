@@ -32,6 +32,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     private final IIngredientInstanceSorter<T> instanceSorter;
     private final TerminalStorageState state;
     private final String buttonName;
+    private final ITerminalStorageTabClient<?> clientTab;
 
     private Comparator<T> effectiveSorter;
     private boolean active;
@@ -42,9 +43,15 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
         this.instanceSorter = instanceSorter;
         this.state = state;
         this.buttonName = "sort_" + instanceSorter.getTranslationKey();
+        this.clientTab = clientTab;
 
-        if (state.hasButton(clientTab.getName().toString(), this.buttonName)) {
-            CompoundNBT data = (CompoundNBT) state.getButton(clientTab.getName().toString(), this.buttonName);
+        reloadFromState();
+    }
+
+    @Override
+    public void reloadFromState() {
+        if (state.hasButton(clientTab.getTabSettingsName().toString(), this.buttonName)) {
+            CompoundNBT data = (CompoundNBT) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
             this.active = data.getBoolean("active");
             this.descending = data.getBoolean("descending");
         } else {
@@ -83,7 +90,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
         CompoundNBT data = new CompoundNBT();
         data.putBoolean("active", active);
         data.putBoolean("descending", descending);
-        state.setButton(clientTab.getName().toString(), this.buttonName, data);
+        state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
 
         updateSorter();
         clientTab.resetFilteredIngredientsViews(channel);

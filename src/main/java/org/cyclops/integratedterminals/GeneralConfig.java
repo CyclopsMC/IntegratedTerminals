@@ -54,6 +54,9 @@ public class GeneralConfig extends DummyConfig {
     @ConfigurableProperty(category = "general", comment = "The base energy usage for the storage terminal.", minimalValue = 0, configLocation = ModConfig.Type.SERVER)
     public static int terminalStorageBaseConsumption = 2;
 
+    @ConfigurableProperty(category = "general", comment = "If the search box and button states should be synchronized between the item storage and crafting tabs.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean syncItemStorageAndCraftingTabStates = true;
+
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");
     }
