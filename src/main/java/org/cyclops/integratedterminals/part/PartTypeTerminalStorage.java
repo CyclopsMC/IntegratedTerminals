@@ -29,6 +29,7 @@ import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -67,9 +68,12 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             @Override
             public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
                 Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(pos);
+                PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) data.getLeft()
+                        .getPartState(data.getRight().getCenter().getSide());
+                TerminalStorageState terminalStorageState = state.getPlayerStorageState(playerEntity);
                 return new ContainerTerminalStorage(id, playerInventory,
                         data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
-                        Optional.empty());
+                        Optional.empty(), terminalStorageState);
             }
         });
     }
@@ -82,6 +86,12 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
         // A false to indicate that there will follow no init data object
         packetBuffer.writeBoolean(false);
+
+        PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) PartHelpers
+                .getPartContainerChecked(pos)
+                .getPartState(pos.getSide());
+        TerminalStorageState terminalStorageState = state.getPlayerStorageState(player);
+        terminalStorageState.writeToPacketBuffer(packetBuffer);
     }
 
     @Override
@@ -105,9 +115,11 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
     public static class State extends PartStateEmpty<PartTypeTerminalStorage> {
 
         private final Map<String, NonNullList<ItemStack>> namedInventories;
+        private final Map<String, TerminalStorageState> playerStorageStates;
 
         public State() {
             this.namedInventories = Maps.newHashMap();
+            this.playerStorageStates = Maps.newHashMap();
         }
 
         public void clearNamedInventories() {
@@ -145,28 +157,59 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             this.setNamedInventory(name, latestItems);
         }
 
+        public TerminalStorageState getPlayerStorageState(PlayerEntity playerId) {
+            TerminalStorageState state = playerStorageStates.get(playerId.getUniqueID().toString());
+            if (state == null) {
+                state = new TerminalStorageState(this);
+                playerStorageStates.put(playerId.getUniqueID().toString(), state);
+                this.onDirty();
+            }
+            return state;
+        }
+
         @Override
         public void writeToNBT(CompoundNBT tag) {
             super.writeToNBT(tag);
-            ListNBT list = new ListNBT();
+
+            // Write namedInventories
+            ListNBT namedInventoriesList = new ListNBT();
             for (Map.Entry<String, NonNullList<ItemStack>> entry : this.namedInventories.entrySet()) {
                 CompoundNBT listEntry = new CompoundNBT();
                 listEntry.putString("tabName", entry.getKey());
                 listEntry.putInt("itemCount", entry.getValue().size());
                 ItemStackHelper.saveAllItems(listEntry, entry.getValue());
-                list.add(listEntry);
+                namedInventoriesList.add(listEntry);
             }
-            tag.put("namedInventories", list);
+            tag.put("namedInventories", namedInventoriesList);
+
+            // Write playerStorageStates
+            ListNBT playerStorageStatesList = new ListNBT();
+            for (Map.Entry<String, TerminalStorageState> entry : this.playerStorageStates.entrySet()) {
+                CompoundNBT stateEntry = new CompoundNBT();
+                stateEntry.putString("player", entry.getKey());
+                stateEntry.put("value", entry.getValue().getTag());
+                playerStorageStatesList.add(stateEntry);
+            }
+            tag.put("playerStorageStates", playerStorageStatesList);
         }
 
         @Override
         public void readFromNBT(CompoundNBT tag) {
             super.readFromNBT(tag);
+
+            // Read namedInventories
             for (INBT listEntry : tag.getList("namedInventories", Constants.NBT.TAG_COMPOUND)) {
                 NonNullList<ItemStack> list = NonNullList.withSize(((CompoundNBT) listEntry).getInt("itemCount"), ItemStack.EMPTY);
                 String tabName = ((CompoundNBT) listEntry).getString("tabName");
                 ItemStackHelper.loadAllItems((CompoundNBT) listEntry, list);
                 this.namedInventories.put(tabName, list);
+            }
+
+            // Read playerStorageStates
+            for (INBT listEntry : tag.getList("playerStorageStates", Constants.NBT.TAG_COMPOUND)) {
+                String playerName = ((CompoundNBT) listEntry).getString("player");
+                TerminalStorageState state = new TerminalStorageState(((CompoundNBT) listEntry).getCompound("value"), this);
+                this.playerStorageStates.put(playerName, state);
             }
         }
     }

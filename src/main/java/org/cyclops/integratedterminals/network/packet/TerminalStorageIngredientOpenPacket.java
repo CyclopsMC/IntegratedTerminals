@@ -23,6 +23,7 @@ import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 import org.cyclops.integratedterminals.part.PartTypes;
 
@@ -75,6 +76,10 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 		// Create common data
 		ContainerTerminalStorage.InitTabData initData = new ContainerTerminalStorage.InitTabData(tabName, channel);
 		PartPos partPos = PartPos.of(world, pos, side);
+		Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
+		PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) data.getLeft()
+				.getPartState(data.getRight().getCenter().getSide());
+		TerminalStorageState terminalStorageState = state.getPlayerStorageState(player);
 
 		// Create temporary container provider
 		INamedContainerProvider containerProvider = new INamedContainerProvider() {
@@ -85,10 +90,9 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 
 			@Override
 			public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-				Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
 				return new ContainerTerminalStorage(id, playerInventory,
 						data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
-						Optional.of(initData));
+						Optional.of(initData), terminalStorageState);
 			}
 		};
 
@@ -99,6 +103,8 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 
 			packetBuffer.writeBoolean(true);
 			initData.writeToPacketBuffer(packetBuffer);
+
+			terminalStorageState.writeToPacketBuffer(packetBuffer);
 		});
 	}
 

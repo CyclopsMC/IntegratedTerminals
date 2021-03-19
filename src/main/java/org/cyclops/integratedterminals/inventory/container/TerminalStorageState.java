@@ -2,7 +2,9 @@ package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.common.util.Constants;
+import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 
 import javax.annotation.Nullable;
 
@@ -15,10 +17,33 @@ public class TerminalStorageState {
     public static final String SETTING_SEARCH = "search";
     public static final String SETTING_BUTTON = "button";
 
-    private final CompoundNBT tag;
+    private CompoundNBT tag;
+    private IDirtyMarkListener dirtyMarkListener;
 
-    public TerminalStorageState() {
-        this.tag = new CompoundNBT();
+    public TerminalStorageState(IDirtyMarkListener dirtyMarkListener) {
+        this(new CompoundNBT(), dirtyMarkListener);
+    }
+
+    public TerminalStorageState(CompoundNBT tag, IDirtyMarkListener dirtyMarkListener) {
+        this.tag = tag;
+        this.dirtyMarkListener = dirtyMarkListener;
+    }
+
+    public void setDirtyMarkListener(IDirtyMarkListener dirtyMarkListener) {
+        this.dirtyMarkListener = dirtyMarkListener;
+    }
+
+    protected void markDirty() {
+        this.dirtyMarkListener.onDirty();
+    }
+
+    public CompoundNBT getTag() {
+        return tag;
+    }
+
+    public void setTag(CompoundNBT tag) {
+        this.tag = tag;
+        this.markDirty();
     }
 
     public String getTab() {
@@ -35,6 +60,7 @@ public class TerminalStorageState {
         } else {
             tag.remove(SETTING_TAB);
         }
+        this.markDirty();
     }
 
     public String getSearch(String tab, int channel) {
@@ -51,6 +77,7 @@ public class TerminalStorageState {
         } else {
             tag.remove(SETTING_SEARCH + "_" + tab  + "_" + channel);
         }
+        this.markDirty();
     }
 
     public INBT getButton(String tab, String buttonName) {
@@ -67,5 +94,14 @@ public class TerminalStorageState {
         } else {
             tag.remove(SETTING_TAB);
         }
+        this.markDirty();
+    }
+
+    public void writeToPacketBuffer(PacketBuffer packetBuffer) {
+        packetBuffer.writeCompoundTag(tag);
+    }
+
+    public static TerminalStorageState readFromPacketBuffer(PacketBuffer packetBuffer) {
+        return new TerminalStorageState(packetBuffer.readCompoundTag(), () -> {});
     }
 }

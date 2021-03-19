@@ -11,12 +11,12 @@ import net.minecraft.inventory.container.Slot;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.lang3.tuple.Triple;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
+import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
@@ -24,6 +24,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCo
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabCommonLoadSlotsEvent;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageChangeGuiState;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import javax.annotation.Nullable;
@@ -42,6 +43,7 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
     private final Map<String, ITerminalStorageTabServer> tabsServer;
     private final Map<String, ITerminalStorageTabCommon> tabsCommon;
     private final Map<String, List<Triple<Slot, Integer, Integer>>> tabSlots;
+    private final TerminalStorageState terminalStorageState;
 
     private int selectedTabIndexValueId;
     private int selectedChannelValueId;
@@ -50,15 +52,16 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
     private final List<String> channelStrings;
     private String channelAllLabel;
 
-    private static final TerminalStorageState GLOBAL_PLAYER_STATE = new TerminalStorageState();
-
     public ContainerTerminalStorage(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), PartHelpers.readPart(packetBuffer),
-                packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty());
+                packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty(),
+                TerminalStorageState.readFromPacketBuffer(packetBuffer));
+        getGuiState().setDirtyMarkListener(this::sendGuiStateToServer);
     }
 
     public ContainerTerminalStorage(int id, PlayerInventory playerInventory, PartTarget target,
-                                    PartTypeTerminalStorage partType, Optional<ContainerTerminalStorage.InitTabData> initTabData) {
+                                    PartTypeTerminalStorage partType, Optional<ContainerTerminalStorage.InitTabData> initTabData,
+                                    TerminalStorageState terminalStorageState) {
         super(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE, id, playerInventory, new Inventory(),
                 Optional.of(target), Optional.of(PartHelpers.getPartContainer(target.getCenter().getPos(), target.getCenter().getSide())
                         .orElseThrow(() -> new IllegalStateException("Could not find part container"))), partType);
@@ -67,6 +70,7 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
         this.tabsServer = Maps.newLinkedHashMap();
         this.tabsCommon = Maps.newLinkedHashMap();
         this.tabSlots = Maps.newHashMap();
+        this.terminalStorageState = terminalStorageState;
 
         this.selectedTabIndexValueId = getNextValueId();
         this.selectedChannelValueId = getNextValueId();
@@ -132,7 +136,13 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
     }
 
     public TerminalStorageState getGuiState() {
-        return GLOBAL_PLAYER_STATE;
+        return this.terminalStorageState;
+    }
+
+    public void sendGuiStateToServer() {
+        if (player.world.isRemote()) {
+            IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageChangeGuiState(getGuiState()));
+        }
     }
 
     public int getNextValueId() {
