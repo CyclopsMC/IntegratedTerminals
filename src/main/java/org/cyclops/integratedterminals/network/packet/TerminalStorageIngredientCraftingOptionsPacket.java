@@ -16,7 +16,7 @@ import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import java.util.List;
 
@@ -67,8 +67,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void actionClient(World world, PlayerEntity player) {
-		if(player.openContainer instanceof ContainerTerminalStorage) {
-			ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
+		if(player.openContainer instanceof ContainerTerminalStorageBase) {
+			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
 
 
 			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);

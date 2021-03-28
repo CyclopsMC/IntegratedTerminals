@@ -16,7 +16,7 @@ import org.cyclops.commoncapabilities.ingredient.storage.IngredientComponentStor
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 /**
  * A crafting slot that will automatically auto-refill from the storage (if enabled).
@@ -27,13 +27,13 @@ public class SlotCraftingAutoRefill extends CraftingResultSlot {
     private final CraftingInventory inventoryCrafting;
     private final TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon;
     private final TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer;
-    private final ContainerTerminalStorage container;
+    private final ContainerTerminalStorageBase container;
 
     public SlotCraftingAutoRefill(PlayerEntity player, CraftingInventory inventoryCrafting,
                                   IInventory inventoryIn, int slotIndex, int xPosition, int yPosition,
                                   TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon,
                                   TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer,
-                                  ContainerTerminalStorage container) {
+                                  ContainerTerminalStorageBase container) {
         super(player, inventoryCrafting, inventoryIn, slotIndex, xPosition, yPosition);
         this.inventoryCrafting = inventoryCrafting;
         this.tabCommon = tabCommon;

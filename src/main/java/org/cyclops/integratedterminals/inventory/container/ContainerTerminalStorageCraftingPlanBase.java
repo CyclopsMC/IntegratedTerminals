@@ -4,24 +4,17 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.world.World;
+import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
-import org.cyclops.integrateddynamics.api.part.IPartContainer;
-import org.cyclops.integrateddynamics.api.part.PartPos;
-import org.cyclops.integrateddynamics.api.part.PartTarget;
-import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
-import org.cyclops.integrateddynamics.core.helper.PartHelpers;
-import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
 import org.cyclops.integratedterminals.GeneralConfig;
-import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.CraftingJobStartException;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
-import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -29,31 +22,33 @@ import java.util.concurrent.Executors;
  * A container for previewing a crafting plan.
  * @author rubensworks
  */
-public class ContainerTerminalStorageCraftingPlan extends ContainerMultipart<PartTypeTerminalStorage, PartTypeTerminalStorage.State> {
+public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends InventoryContainer {
 
     public static final String BUTTON_START = "start";
     private static final ExecutorService WORKER_POOL = Executors.newFixedThreadPool(GeneralConfig.craftingPlannerThreads);
 
     private final CraftingOptionGuiData craftingOptionGuiData;
     private final int craftingPlanNotifierId;
+    private final World world;
 
     private boolean calculatedCraftingPlan;
     private ITerminalCraftingPlan craftingPlan;
 
-    public ContainerTerminalStorageCraftingPlan(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
-        this(id, playerInventory, Optional.empty(), Optional.empty(), PartHelpers.readPart(packetBuffer),
-                CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
-    }
-
-    public ContainerTerminalStorageCraftingPlan(int id, PlayerInventory playerInventory, Optional<PartTarget> target, Optional<IPartContainer> partContainer,
-                                                PartTypeTerminalStorage partType, CraftingOptionGuiData craftingOptionGuiData) {
-        super(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_PLAN, id, playerInventory, new Inventory(), target, partContainer, partType);
+    public ContainerTerminalStorageCraftingPlanBase(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
+                                                    CraftingOptionGuiData craftingOptionGuiData) {
+        super(type, id, playerInventory, new Inventory());
 
         this.craftingOptionGuiData = craftingOptionGuiData;
-
         this.craftingPlanNotifierId = getNextValueId();
+        this.world = playerInventory.player.world;
 
         putButtonAction(BUTTON_START, (buttonId, container) -> startCraftingJob());
+    }
+
+    public abstract INetwork getNetwork();
+
+    public World getWorld() {
+        return world;
     }
 
     public CraftingOptionGuiData getCraftingOptionGuiData() {
@@ -77,7 +72,7 @@ public class ContainerTerminalStorageCraftingPlan extends ContainerMultipart<Par
 
     protected void updateCraftingPlan() {
         HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
-        INetwork network = NetworkHelpers.getNetworkChecked(getTarget().get().getCenter());
+        INetwork network = getNetwork();
         if (GeneralConfig.craftingPlannerEnableMultithreading) {
             WORKER_POOL.execute(() -> this.updateCraftingPlanJob(craftingOptionWrapper, network));
         } else {
@@ -109,27 +104,19 @@ public class ContainerTerminalStorageCraftingPlan extends ContainerMultipart<Par
         if (!getWorld().isRemote()) {
             // Start the crafting job
             if (craftingPlan != null) {
-                NetworkHelpers.getNetwork(PartPos.of(getWorld(), craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide()))
-                        .ifPresent(network -> {
-                            try {
-                                craftingOptionGuiData.getCraftingOption().getHandler()
-                                        .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayerEntity) player);
+                INetwork network = getNetwork();
+                try {
+                    craftingOptionGuiData.getCraftingOption().getHandler()
+                            .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayerEntity) player);
 
-                                // Re-open terminal gui
-                                TerminalStorageIngredientOpenPacket.openServer(
-                                        getWorld(),
-                                        craftingOptionGuiData.getPos(),
-                                        craftingOptionGuiData.getSide(),
-                                        (ServerPlayerEntity) player,
-                                        craftingOptionGuiData.getTabName(),
-                                        craftingOptionGuiData.getChannel()
-                                );
-                            } catch (CraftingJobStartException e) {
-                                // If the job could not be started, display the error in the plan
-                                craftingPlan.setError(e.getUnlocalizedError());
-                                this.setCraftingPlan(craftingPlan);
-                            }
-                        });
+                    // Re-open terminal gui
+                    craftingOptionGuiData.getLocation()
+                            .openContainerFromServer(craftingOptionGuiData, getWorld(), (ServerPlayerEntity) player);
+                } catch (CraftingJobStartException e) {
+                    // If the job could not be started, display the error in the plan
+                    craftingPlan.setError(e.getUnlocalizedError());
+                    this.setCraftingPlan(craftingPlan);
+                }
             }
         }
     }

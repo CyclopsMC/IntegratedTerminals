@@ -5,7 +5,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraftforge.eventbus.api.Event;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import java.util.List;
@@ -19,12 +19,12 @@ import java.util.List;
 public class TerminalStorageTabCommonLoadSlotsEvent extends Event {
 
     private final ITerminalStorageTabCommon commonTab;
-    private final ContainerTerminalStorage container;
+    private final ContainerTerminalStorageBase container;
 
     private List<Slot> slots;
 
     public TerminalStorageTabCommonLoadSlotsEvent(ITerminalStorageTabCommon commonTab,
-                                                  ContainerTerminalStorage container,
+                                                  ContainerTerminalStorageBase container,
                                                   List<Slot> slots) {
         this.commonTab = commonTab;
         this.container = container;
@@ -37,7 +37,7 @@ public class TerminalStorageTabCommonLoadSlotsEvent extends Event {
         return commonTab;
     }
 
-    public ContainerTerminalStorage getContainer() {
+    public ContainerTerminalStorageBase getContainer() {
         return container;
     }
 

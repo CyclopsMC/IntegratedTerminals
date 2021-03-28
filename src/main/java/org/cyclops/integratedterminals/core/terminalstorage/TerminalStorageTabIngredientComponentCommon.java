@@ -9,27 +9,22 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraftforge.common.MinecraftForge;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.inventory.SimpleInventory;
 import org.cyclops.cyclopscore.persist.nbt.NBTClassType;
-import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.network.INetwork;
-import org.cyclops.integrateddynamics.api.network.IPartNetwork;
 import org.cyclops.integrateddynamics.core.evaluate.InventoryVariableEvaluator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 import org.cyclops.integrateddynamics.core.helper.L10NValues;
-import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integrateddynamics.core.inventory.container.slot.SlotVariable;
-import org.cyclops.integrateddynamics.core.part.event.PartVariableDrivenVariableContentsUpdatedEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
-import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A common storage terminal ingredient tab.
@@ -39,7 +34,7 @@ import java.util.List;
  */
 public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITerminalStorageTabCommon, IVariableFacade.IValidator {
 
-    private final ContainerTerminalStorage containerTerminalStorage;
+    private final ContainerTerminalStorageBase containerTerminalStorage;
     private final ResourceLocation name;
     protected final IngredientComponent<T, M> ingredientComponent;
 
@@ -53,7 +48,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     private int variableSlotNumberStart;
     private int variableSlotNumberEnd;
 
-    public TerminalStorageTabIngredientComponentCommon(ContainerTerminalStorage containerTerminalStorage,
+    public TerminalStorageTabIngredientComponentCommon(ContainerTerminalStorageBase containerTerminalStorage,
                                                        ResourceLocation name,
                                                        IngredientComponent<T, M> ingredientComponent) {
         this.containerTerminalStorage = containerTerminalStorage;
@@ -70,12 +65,13 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
 
     @Override
     public List<Slot> loadSlots(Container container, int startIndex, PlayerEntity player,
-                                PartTypeTerminalStorage.State partState) {
+                                Optional<IVariableInventory> variableInventoryOptional) {
+        IVariableInventory variableInventory = variableInventoryOptional.get();
         List<Slot> slots = Lists.newArrayList();
 
         variableSlotNumberStart = startIndex;
         inventory = new SimpleInventory(3, 1);
-        partState.loadNamedInventory(this.getName().toString(), inventory);
+        variableInventory.loadNamedInventory(this.getName().toString(), inventory);
         variableEvaluators.clear();
         for (int i = 0; i < inventory.getSizeInventory(); i++) {
             int slot = i;
@@ -110,16 +106,17 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     @Override
-    public void onUpdate(Container container, PlayerEntity player, PartTypeTerminalStorage.State partState) {
+    public void onUpdate(Container container, PlayerEntity player,
+                         Optional<IVariableInventory> variableInventory) {
         if (this.dirtyInv && !player.world.isRemote) {
             this.dirtyInv = false;
 
-            ContainerTerminalStorage containerTerminalStorage = (ContainerTerminalStorage) container;
+            ContainerTerminalStorageBase<?> containerTerminalStorage = (ContainerTerminalStorageBase) container;
 
-            partState.saveNamedInventory(this.getName().toString(), inventory);
+            variableInventory.get().saveNamedInventory(this.getName().toString(), inventory);
 
             // Update variable facades
-            INetwork network = NetworkHelpers.getNetwork(containerTerminalStorage.getPartTarget().getCenter()).orElse(null);
+            INetwork network = containerTerminalStorage.getNetwork().get();
 
             clearGlobalErrors();
             this.variables.clear();
@@ -136,15 +133,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
                         this.variables.add(variable);
                     }
 
-                    try {
-                        IPartNetwork partNetwork = NetworkHelpers.getPartNetworkChecked(network);
-                        MinecraftForge.EVENT_BUS.post(new PartVariableDrivenVariableContentsUpdatedEvent<>(network,
-                                partNetwork, containerTerminalStorage.getPartTarget(),
-                                containerTerminalStorage.getPartType(), partState, player, variable,
-                                variable != null ? variable.getValue() : null));
-                    } catch (EvaluationException e) {
-                        // Ignore error
-                    }
+                    containerTerminalStorage.onVariableContentsUpdated(network, variable);
                 }
             }
 

@@ -73,7 +73,6 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final INetwork network;
     private final IngredientComponent<T, M> ingredientComponent;
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
-    private final PartPos pos;
     private final ServerPlayerEntity player;
     private final IIngredientComponentValueHandler<?, ?, T, M> valueHandler;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
@@ -89,13 +88,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
                                                        IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
-                                                       PartPos pos,
                                                        ServerPlayerEntity player) {
         this.name = name;
         this.network = network;
         this.ingredientComponent = ingredientComponent;
         this.ingredientNetwork = ingredientNetwork;
-        this.pos = pos;
         this.player = player;
         this.valueHandler = ingredientComponent.getCapability(Capabilities.INGREDIENTCOMPONENT_VALUEHANDLER)
                 .orElseThrow(() -> new IllegalStateException("No value handler was found for " + ingredientComponent.getName()));

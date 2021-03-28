@@ -2,18 +2,19 @@ package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
+import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 
 import javax.annotation.Nullable;
 
@@ -22,14 +23,12 @@ import javax.annotation.Nullable;
  * @author rubensworks
  *
  */
-public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M> extends PacketCodec {
+public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M, L> extends PacketCodec {
 
     @CodecField
     private String ingredientComponent;
-    @CodecField
-    private BlockPos pos;
-    @CodecField
-    private Direction side;
+    private ITerminalStorageLocation<L> location;
+    private L locationInstance;
     @CodecField
     private String tabName;
     @CodecField
@@ -45,10 +44,10 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
 
     }
 
-    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(CraftingOptionGuiData<T, M> craftingOptionData) {
+    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(CraftingOptionGuiData<T, M, L> craftingOptionData) {
         this.ingredientComponent = craftingOptionData.getComponent().getName().toString();
-        this.pos = craftingOptionData.getPos();
-        this.side = craftingOptionData.getSide();
+        this.location = craftingOptionData.getLocation();
+        this.locationInstance = craftingOptionData.getLocationInstance();
         this.tabName = craftingOptionData.getTabName();
         this.channel = craftingOptionData.getChannel();
         this.craftingOption = craftingOptionData.getCraftingOption() != null
@@ -58,6 +57,20 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         this.craftingPlan = craftingOptionData.getCraftingPlan() != null
                 ? HandlerWrappedTerminalCraftingPlan.serialize(craftingOptionData.getCraftingPlan())
                 : new CompoundNBT();
+    }
+
+    @Override
+    public void encode(PacketBuffer output) {
+        super.encode(output);
+        output.writeResourceLocation(location.getName());
+        location.writeToPacketBuffer(output, locationInstance);
+    }
+
+    @Override
+    public void decode(PacketBuffer input) {
+        super.decode(input);
+        this.location = (ITerminalStorageLocation<L>) TerminalStorageLocations.REGISTRY.getLocation(input.readResourceLocation());
+        this.locationInstance = this.location.readFromPacketBuffer(input);
     }
 
     @Override
@@ -109,9 +122,9 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         return amount;
     }
 
-    public CraftingOptionGuiData<T, M> getCraftingOptionData() {
+    public CraftingOptionGuiData<T, M, L> getCraftingOptionData() {
         IngredientComponent<T, M> ingredientComponent = getIngredientComponent();
-        return new CraftingOptionGuiData<>(pos, side, ingredientComponent, tabName, channel,
-                getCraftingOption(ingredientComponent), amount, getCraftingPlan());
+        return new CraftingOptionGuiData<>(ingredientComponent, tabName, channel,
+                getCraftingOption(ingredientComponent), amount, getCraftingPlan(), location, locationInstance);
     }
 }

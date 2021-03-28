@@ -12,7 +12,7 @@ import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 /**
  * Packet for sending a storage's quantity from server to client.
@@ -50,8 +50,8 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void actionClient(World world, PlayerEntity player) {
-		if(player.openContainer instanceof ContainerTerminalStorage) {
-			ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
+		if(player.openContainer instanceof ContainerTerminalStorageBase) {
+			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
 			IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(new ResourceLocation(this.ingredientName));
 			if (ingredientComponent == null) {
 				throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);

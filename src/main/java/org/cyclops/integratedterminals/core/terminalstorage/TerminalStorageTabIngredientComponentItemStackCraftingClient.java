@@ -22,7 +22,7 @@ import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTermi
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridClear;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridShiftClickOutput;
 
 import javax.annotation.Nullable;
@@ -37,7 +37,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
 
     private final ItemStack icon;
 
-    public TerminalStorageTabIngredientComponentItemStackCraftingClient(ContainerTerminalStorage container,
+    public TerminalStorageTabIngredientComponentItemStackCraftingClient(ContainerTerminalStorageBase container,
                                                                         ResourceLocation name,
                                                                         IngredientComponent<?, ?> ingredientComponent) {
         super(container, name, ingredientComponent);

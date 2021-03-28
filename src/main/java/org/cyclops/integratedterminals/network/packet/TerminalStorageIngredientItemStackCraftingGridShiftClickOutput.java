@@ -13,7 +13,7 @@ import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 /**
@@ -50,13 +50,13 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
 
     @Override
     public void actionServer(World world, ServerPlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorage) {
-            ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
+        if(player.openContainer instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase<?> container = ((ContainerTerminalStorageBase) player.openContainer);
             ITerminalStorageTabCommon tabCommon = container.getTabCommon(tabId);
             if (tabCommon instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon) {
                 TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
                         (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
-                PartTypeTerminalStorage.State partState = container.getPartState().get();
+                ITerminalStorageTabCommon.IVariableInventory variableInventory = container.getVariableInventory().get();
 
                 // Loop until the result slot is empty
                 CraftingResultSlot slotCrafting = tabCommonCrafting.getSlotCrafting();
@@ -84,7 +84,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                         player.inventory.placeItemBackInInventory(world, resultStack.copy());
 
                         // Re-calculate recipe
-                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, partState);
+                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, variableInventory);
                     }
                 } while(!resultStack.isEmpty() && craftedAmount < resultStack.getMaxStackSize());
             }

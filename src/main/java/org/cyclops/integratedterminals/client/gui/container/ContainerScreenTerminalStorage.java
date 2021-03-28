@@ -34,7 +34,6 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
-import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipartAspects;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -43,7 +42,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridClear;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.glfw.GLFW;
@@ -58,7 +57,7 @@ import java.util.Set;
 /**
  * @author rubensworks
  */
-public class ContainerScreenTerminalStorage extends ContainerScreenExtended<ContainerTerminalStorage> {
+public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorageBase<L>> extends ContainerScreenExtended<C> {
 
     private static int TAB_OFFSET_X = 24;
     private static int TAB_WIDTH = 24;
@@ -100,7 +99,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
     private int terminalDragSplittingRemnant;
     private boolean clicked;
 
-    public ContainerScreenTerminalStorage(ContainerTerminalStorage container, PlayerInventory inventory, ITextComponent title) {
+    public ContainerScreenTerminalStorage(C container, PlayerInventory inventory, ITextComponent title) {
         super(container, inventory, title);
     }
 
@@ -127,7 +126,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
                 firstRow -> this.firstRow = firstRow, 0) {
             @Override
             public int getTotalRows() {
-                ContainerTerminalStorage container = getContainer();
+                ContainerTerminalStorageBase container = getContainer();
                 Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
                 if (!tabOptional.isPresent()) {
                     return 0;
@@ -154,7 +153,7 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
 
         buttonSetDefaults = addButton(new ButtonImage(this.guiLeft + 202, this.guiTop + 193, 15, 15,
                 new TranslationTextComponent("gui.integratedterminals.terminal_storage.setdefaults"),
-                createServerPressable(ContainerTerminalStorage.BUTTON_SET_DEFAULTS, b -> {}), true,
+                createServerPressable(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, b -> {}), true,
                 Images.ANVIL, -2, -3));
     }
 
@@ -318,8 +317,8 @@ public class ContainerScreenTerminalStorage extends ContainerScreenExtended<Cont
     }
 
     @Override
-    public ContainerTerminalStorage getContainer() {
-        return (ContainerTerminalStorage) super.getContainer();
+    public C getContainer() {
+        return super.getContainer();
     }
 
     protected Optional<ITerminalStorageTabClient<?>> getTabByIndex(int tabIndex) {

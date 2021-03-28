@@ -22,7 +22,8 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePart;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 import org.cyclops.integratedterminals.part.PartTypes;
@@ -34,7 +35,7 @@ import java.util.Optional;
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientOpenPacket extends PacketCodec {
+public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
 
 	@CodecField
 	private BlockPos pos;
@@ -45,11 +46,11 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 	@CodecField
 	private int channel;
 
-    public TerminalStorageIngredientOpenPacket() {
+    public TerminalStorageIngredientPartOpenPacket() {
 
     }
 
-	public TerminalStorageIngredientOpenPacket(BlockPos pos, Direction side, String tabName, int channel) {
+	public TerminalStorageIngredientPartOpenPacket(BlockPos pos, Direction side, String tabName, int channel) {
     	this.pos = pos;
     	this.side = side;
 		this.tabName = tabName;
@@ -74,7 +75,7 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 
 	public static void openServer(World world, BlockPos pos, Direction side, ServerPlayerEntity player, String tabName, int channel) {
 		// Create common data
-		ContainerTerminalStorage.InitTabData initData = new ContainerTerminalStorage.InitTabData(tabName, channel);
+		ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
 		PartPos partPos = PartPos.of(world, pos, side);
 		Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
 		PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) data.getLeft()
@@ -90,7 +91,7 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 
 			@Override
 			public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
-				return new ContainerTerminalStorage(id, playerInventory,
+				return new ContainerTerminalStoragePart(id, playerInventory,
 						data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
 						Optional.of(initData), terminalStorageState);
 			}
@@ -110,7 +111,7 @@ public class TerminalStorageIngredientOpenPacket extends PacketCodec {
 
 	public static void send(BlockPos pos, Direction side, String tabName, int channel) {
 		IntegratedTerminals._instance.getPacketHandler().sendToServer(
-				new TerminalStorageIngredientOpenPacket(pos, side, tabName, channel));
+				new TerminalStorageIngredientPartOpenPacket(pos, side, tabName, channel));
 	}
 	
 }

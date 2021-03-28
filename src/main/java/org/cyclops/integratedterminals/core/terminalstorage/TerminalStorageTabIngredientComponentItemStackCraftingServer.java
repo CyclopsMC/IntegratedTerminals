@@ -17,8 +17,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingServer
 
     public TerminalStorageTabIngredientComponentItemStackCraftingServer(ResourceLocation name, INetwork network, IngredientComponent<ItemStack, Integer> ingredientComponent,
                                                                         IPositionedAddonsNetworkIngredients<ItemStack, Integer> ingredientNetwork,
-                                                                        PartPos pos, ServerPlayerEntity player) {
-        super(name, network, ingredientComponent, ingredientNetwork, pos, player);
+                                                                        ServerPlayerEntity player) {
+        super(name, network, ingredientComponent, ingredientNetwork, player);
     }
 
     @Override

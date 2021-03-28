@@ -9,7 +9,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 /**
  * Packet for telling the server that the crafting grid must be cleared.
@@ -40,8 +40,8 @@ public class TerminalStorageIngredientItemStackCraftingGridSetResult extends Pac
     @Override
     @OnlyIn(Dist.CLIENT)
     public void actionClient(World world, PlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorage) {
-            ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
+        if(player.openContainer instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
             TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon =
                     (TerminalStorageTabIngredientComponentItemStackCraftingCommon) container.getTabCommon(tabId);
             tabCommon.getSlotCrafting().putStack(this.itemStack);

@@ -2,8 +2,8 @@ package org.cyclops.integratedterminals.api.terminalstorage;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
-import org.cyclops.integrateddynamics.api.part.PartTarget;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integrateddynamics.api.network.INetwork;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import javax.annotation.Nullable;
 
@@ -21,26 +21,24 @@ public interface ITerminalStorageTab {
     /**
      * @param container The container in which the tab is about to be created.
      * @param player The player opening the container.
-     * @param target The terminal storage part target.
      * @return A new client-side tab.
      */
-    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target);
+    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorageBase container, PlayerEntity player);
 
     /**
      * @param container The container in which the tab is about to be created.
      * @param player The player opening the container.
-     * @param target The terminal storage part target.
+     * @param network The network of the storage terminal.
      * @return A new server-side tab.
      */
-    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target);
+    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorageBase container, PlayerEntity player, INetwork network);
 
     /**
      * @param container The container in which the tab is about to be created.
      * @param player The player opening the container.
-     * @param target The terminal storage part target.
      * @return A new common tab.
      */
     @Nullable
-    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorage container, PlayerEntity player, PartTarget target);
+    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorageBase container, PlayerEntity player);
 
 }

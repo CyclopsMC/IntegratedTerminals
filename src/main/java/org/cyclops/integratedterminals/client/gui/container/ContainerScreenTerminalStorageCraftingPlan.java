@@ -15,8 +15,7 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlan;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanBase;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
@@ -25,14 +24,14 @@ import javax.annotation.Nullable;
  * A gui for previewing a crafting plan.
  * @author rubensworks
  */
-public class ContainerScreenTerminalStorageCraftingPlan extends ContainerScreenExtended<ContainerTerminalStorageCraftingPlan> {
+public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTerminalStorageCraftingPlanBase<L>> extends ContainerScreenExtended<C> {
 
     @Nullable
     private GuiCraftingPlan guiCraftingPlan;
 
     private ITerminalCraftingPlan craftingPlan;
 
-    public ContainerScreenTerminalStorageCraftingPlan(ContainerTerminalStorageCraftingPlan container, PlayerInventory inventory, ITextComponent title) {
+    public ContainerScreenTerminalStorageCraftingPlan(C container, PlayerInventory inventory, ITextComponent title) {
         super(container, inventory, title);
     }
 
@@ -68,7 +67,7 @@ public class ContainerScreenTerminalStorageCraftingPlan extends ContainerScreenE
         addButton(button = new ButtonText(guiLeft + 95, guiTop + 198, 50, 20,
                         new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft"),
                         new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft").mergeStyle(TextFormatting.YELLOW),
-                        createServerPressable(ContainerTerminalStorageCraftingPlan.BUTTON_START, (b) -> {}),
+                        createServerPressable(ContainerTerminalStorageCraftingPlanBase.BUTTON_START, (b) -> {}),
                         true));
         button.active = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
     }
@@ -84,9 +83,8 @@ public class ContainerScreenTerminalStorageCraftingPlan extends ContainerScreenE
     }
 
     private void returnToTerminalStorage() {
-        CraftingOptionGuiData craftingOptionGuiData = getContainer().getCraftingOptionGuiData();
-        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
-                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
+        CraftingOptionGuiData data = getContainer().getCraftingOptionGuiData();
+        data.getLocation().openContainerFromClient(data);
     }
 
     @Override

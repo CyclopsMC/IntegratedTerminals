@@ -5,29 +5,35 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
+import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
+import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
+import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
-import org.cyclops.integrateddynamics.api.part.PartTarget;
-import org.cyclops.integrateddynamics.core.helper.PartHelpers;
-import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
-import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipartAspects;
+import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabCommonLoadSlotsEvent;
+import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
+import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
+import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocationPart;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageChangeGuiState;
-import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -39,15 +45,18 @@ import java.util.stream.Collectors;
 /**
  * @author rubensworks
  */
-public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTerminalStorage, PartTypeTerminalStorage.State> {
+public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer implements IDirtyMarkListener {
 
     public static final String BUTTON_SET_DEFAULTS = "button_set_defaults";
 
+    private final World world;
     private final Map<String, ITerminalStorageTabClient<?>> tabsClient;
     private final Map<String, ITerminalStorageTabServer> tabsServer;
     private final Map<String, ITerminalStorageTabCommon> tabsCommon;
     private final Map<String, List<Triple<Slot, Integer, Integer>>> tabSlots;
     private final TerminalStorageState terminalStorageState;
+    private final Optional<INetwork> network;
+    private final Optional<ITerminalStorageTabCommon.IVariableInventory> variableInventory;
 
     private int selectedTabIndexValueId;
     private int selectedChannelValueId;
@@ -56,25 +65,20 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
     private final List<String> channelStrings;
     private String channelAllLabel;
 
-    public ContainerTerminalStorage(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
-        this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), PartHelpers.readPart(packetBuffer),
-                packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty(),
-                TerminalStorageState.readFromPacketBuffer(packetBuffer));
-        getGuiState().setDirtyMarkListener(this::sendGuiStateToServer);
-    }
+    public ContainerTerminalStorageBase(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
+                                        Optional<ContainerTerminalStorageBase.InitTabData> initTabData,
+                                        TerminalStorageState terminalStorageState, Optional<INetwork> network,
+                                        Optional<ITerminalStorageTabCommon.IVariableInventory> variableInventory) {
+        super(type, id, playerInventory, new Inventory());
 
-    public ContainerTerminalStorage(int id, PlayerInventory playerInventory, PartTarget target,
-                                    PartTypeTerminalStorage partType, Optional<ContainerTerminalStorage.InitTabData> initTabData,
-                                    TerminalStorageState terminalStorageState) {
-        super(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE, id, playerInventory, new Inventory(),
-                Optional.of(target), Optional.of(PartHelpers.getPartContainer(target.getCenter().getPos(), target.getCenter().getSide())
-                        .orElseThrow(() -> new IllegalStateException("Could not find part container"))), partType);
-
+        this.world = player.getEntityWorld();
         this.tabsClient = Maps.newLinkedHashMap();
         this.tabsServer = Maps.newLinkedHashMap();
         this.tabsCommon = Maps.newLinkedHashMap();
         this.tabSlots = Maps.newHashMap();
         this.terminalStorageState = terminalStorageState;
+        this.network = network;
+        this.variableInventory = variableInventory;
 
         this.selectedTabIndexValueId = getNextValueId();
         this.selectedChannelValueId = getNextValueId();
@@ -89,16 +93,16 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
         for (ITerminalStorageTab tab : TerminalStorageTabs.REGISTRY.getTabs()) {
             String tabId = tab.getName().toString();
             if (this.getWorld().isRemote()) {
-                this.tabsClient.put(tabId, tab.createClientTab(this, player, target));
+                this.tabsClient.put(tabId, tab.createClientTab(this, player));
             } else {
-                this.tabsServer.put(tabId, tab.createServerTab(this, player, target));
+                this.tabsServer.put(tabId, tab.createServerTab(this, player, network.get()));
             }
-            ITerminalStorageTabCommon commonTab = tab.createCommonTab(this, player, target);
+            ITerminalStorageTabCommon commonTab = tab.createCommonTab(this, player);
             if (commonTab != null) {
                 this.tabsCommon.put(tabId, commonTab);
 
                 int slotStartIndex = this.inventorySlots.size();
-                List<Slot> slots = commonTab.loadSlots(this, slotStartIndex, player, getPartState().get());
+                List<Slot> slots = commonTab.loadSlots(this, slotStartIndex, player, getVariableInventory());
                 TerminalStorageTabCommonLoadSlotsEvent loadSlotsEvent = new TerminalStorageTabCommonLoadSlotsEvent(
                         commonTab, this, slots);
                 MinecraftForge.EVENT_BUS.post(loadSlotsEvent);
@@ -135,15 +139,31 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
         });
 
         // Update player's default state
-        putButtonAction(ContainerTerminalStorage.BUTTON_SET_DEFAULTS, (s, containerExtended) -> {
+        putButtonAction(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, (s, containerExtended) -> {
             if (!playerInventory.player.world.isRemote()) {
                 TerminalStorageState.setPlayerDefault(playerInventory.player, getGuiState());
             }
         });
     }
 
-    public PartTarget getPartTarget() {
-        return getTarget().get();
+    public Optional<ITerminalStorageTabCommon.IVariableInventory> getVariableInventory() {
+        return this.variableInventory;
+    }
+
+    public Optional<INetwork> getNetwork() {
+        return this.network;
+    }
+
+    public abstract ITerminalStorageLocation<L> getLocation();
+    public abstract L getLocationInstance();
+
+    @Override
+    public void onDirty() {
+
+    }
+
+    public World getWorld() {
+        return world;
     }
 
     public TerminalStorageState getGuiState() {
@@ -173,7 +193,7 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
 
         // Update common tabs
         for (ITerminalStorageTabCommon tab : this.tabsCommon.values()) {
-            tab.onUpdate(this, player, getPartState().get());
+            tab.onUpdate(this, player, getVariableInventory());
         }
 
         // Update active server tab
@@ -181,6 +201,16 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
         if (activeServerTab != null) {
             activeServerTab.updateActive();
         }
+    }
+
+    public <T, M, L> void sendOpenCraftingPlanGuiPacketToServer(CraftingOptionGuiData<T, M, L> craftingOptionData) {
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientOpenCraftingPlanGuiPacket<>(craftingOptionData));
+    }
+
+    public <T, M, L> void sendOpenCraftingJobAmountGuiPacketToServer(CraftingOptionGuiData<T, M, L> craftingOptionData) {
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<>(craftingOptionData));
     }
 
     @Override
@@ -201,11 +231,6 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
     @Override
     protected int getSizeInventory() {
         return inventorySlots.size() - player.inventory.mainInventory.size();
-    }
-
-    @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
-        return PartHelpers.canInteractWith(getPartTarget(), player, getPartContainer().get());
     }
 
     public List<Triple<Slot, Integer, Integer>> getTabSlots(String tabName) {
@@ -326,6 +351,8 @@ public class ContainerTerminalStorage extends ContainerMultipart<PartTypeTermina
             }
         }
     }
+
+    public abstract void onVariableContentsUpdated(INetwork network, IVariable<?> variable);
 
     public static class InitTabData {
 

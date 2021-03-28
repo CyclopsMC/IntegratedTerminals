@@ -26,9 +26,8 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmount;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenPacket;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
@@ -37,7 +36,7 @@ import java.util.List;
  * A gui for setting the amount for a given crafting option.
  * @author rubensworks
  */
-public class ContainerScreenTerminalStorageCraftingOptionAmount extends ContainerScreenExtended<ContainerTerminalStorageCraftingOptionAmount> {
+public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends ContainerTerminalStorageCraftingOptionAmountBase<L>> extends ContainerScreenExtended<C> {
 
     public static int OUTPUT_SLOT_X = 135;
     public static int OUTPUT_SLOT_Y = 15;
@@ -49,7 +48,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount extends Containe
     private int firstRow;
     private ButtonText nextButton;
 
-    public ContainerScreenTerminalStorageCraftingOptionAmount(ContainerTerminalStorageCraftingOptionAmount container, PlayerInventory inventory, ITextComponent title) {
+    public ContainerScreenTerminalStorageCraftingOptionAmount(C container, PlayerInventory inventory, ITextComponent title) {
         super(container, inventory, title);
 
         this.outputs = Lists.newArrayList();
@@ -132,20 +131,19 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount extends Containe
     }
 
     private void returnToTerminalStorage() {
-        CraftingOptionGuiData craftingOptionGuiData = getContainer().getCraftingOptionGuiData();
-        TerminalStorageIngredientOpenPacket.send(craftingOptionGuiData.getPos(), craftingOptionGuiData.getSide(),
-                craftingOptionGuiData.getTabName(), craftingOptionGuiData.getChannel());
+        CraftingOptionGuiData data = getContainer().getCraftingOptionGuiData();
+        data.getLocation().openContainerFromClient(data);
     }
 
     public void buttonChangeQuantity(Button button) {
-        if (button instanceof ButtonChangeQuantity) {
+        if (button instanceof ContainerScreenTerminalStorageCraftingOptionAmount.ButtonChangeQuantity) {
             int diff = ((ButtonChangeQuantity) button).getDiff();
             setAmount(getAmount() + diff);
         }
     }
 
     private void calculateCraftingJob() {
-        CraftingOptionGuiData craftingOptionData = CraftingOptionGuiData.copyWithAmount(getContainer().getCraftingOptionGuiData(), getAmount());
+        CraftingOptionGuiData craftingOptionData = getContainer().getCraftingOptionGuiData().copyWithAmount(getAmount());
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
                 new TerminalStorageIngredientOpenCraftingPlanGuiPacket(craftingOptionData));
     }

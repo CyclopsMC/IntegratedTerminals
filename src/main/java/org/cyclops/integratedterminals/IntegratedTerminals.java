@@ -19,6 +19,7 @@ import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integrateddynamics.infobook.OnTheDynamicsOfIntegrationBook;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandlerRegistry;
+import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocationRegistry;
 import org.cyclops.integratedterminals.block.BlockChorusGlassConfig;
 import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
@@ -27,11 +28,13 @@ import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRe
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlerRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
+import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocationRegistry;
+import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsConfig;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlanConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanConfig;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountPartConfig;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanPartConfig;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePartConfig;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
 import org.cyclops.integratedterminals.part.PartTypes;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
@@ -53,10 +56,12 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
         // Registries
         getRegistryManager().addRegistry(ITerminalStorageTabRegistry.class, new TerminalStorageTabRegistry());
         getRegistryManager().addRegistry(ITerminalStorageTabIngredientCraftingHandlerRegistry.class, TerminalStorageTabIngredientCraftingHandlerRegistry.getInstance());
+        getRegistryManager().addRegistry(ITerminalStorageLocationRegistry.class, new TerminalStorageLocationRegistry());
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onRegistriesCreate);
         TerminalStorageTabs.load();
         TerminalStorageTabIngredientCraftingHandlers.load();
+        TerminalStorageLocations.load();
     }
 
     public void onRegistriesCreate(RegistryEvent.NewRegistry event) {
@@ -105,9 +110,9 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
 
         configHandler.addConfigurable(new ContainerTerminalCraftingJobsConfig());
         configHandler.addConfigurable(new ContainerTerminalCraftingJobsPlanConfig());
-        configHandler.addConfigurable(new ContainerTerminalStorageConfig());
-        configHandler.addConfigurable(new ContainerTerminalStorageCraftingOptionAmountConfig());
-        configHandler.addConfigurable(new ContainerTerminalStorageCraftingPlanConfig());
+        configHandler.addConfigurable(new ContainerTerminalStoragePartConfig());
+        configHandler.addConfigurable(new ContainerTerminalStorageCraftingOptionAmountPartConfig());
+        configHandler.addConfigurable(new ContainerTerminalStorageCraftingPlanPartConfig());
     }
 
     @Override

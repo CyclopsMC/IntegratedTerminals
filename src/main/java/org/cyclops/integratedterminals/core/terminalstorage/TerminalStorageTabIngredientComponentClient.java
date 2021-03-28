@@ -61,7 +61,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredientCraftingOption;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
@@ -97,7 +97,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
-    protected final ContainerTerminalStorage container;
+    protected final ContainerTerminalStorageBase container;
     private final List<ITerminalButton<?, ?, ?>> buttons;
 
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> ingredientsViews;
@@ -115,8 +115,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @SubscribeEvent
     public static void onToolTip(ItemTooltipEvent event) {
         // If this tab is active, render the quantity in all player inventory item tooltips.
-        if (event.getPlayer() != null && event.getPlayer().openContainer instanceof ContainerTerminalStorage) {
-            ContainerTerminalStorage container = (ContainerTerminalStorage) event.getPlayer().openContainer;
+        if (event.getPlayer() != null && event.getPlayer().openContainer instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase<?> container = (ContainerTerminalStorageBase<?>) event.getPlayer().openContainer;
             ITerminalStorageTabClient<?> tab = container.getTabsClient().get(container.getSelectedTab());
             if (tab instanceof TerminalStorageTabIngredientComponentClient) {
                 IIngredientComponentTerminalStorageHandler handler = ((TerminalStorageTabIngredientComponentClient) tab).ingredientComponentViewHandler;
@@ -128,7 +128,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
     }
 
-    public TerminalStorageTabIngredientComponentClient(ContainerTerminalStorage container, ResourceLocation name,
+    public TerminalStorageTabIngredientComponentClient(ContainerTerminalStorageBase container, ResourceLocation name,
                                                        IngredientComponent<?, ?> ingredientComponent) {
         this.name = name;
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
@@ -631,17 +631,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 }
             }
             if (initiateCraftingOption) {
-                ContainerTerminalStorage containerTerminalStorage = ((ContainerTerminalStorage) container);
-                PartPos pos = containerTerminalStorage.getPartTarget().getCenter();
-                CraftingOptionGuiData<T, M> craftingOptionData = new CraftingOptionGuiData<>(pos.getPos().getBlockPos(), pos.getSide(),
-                        ingredientComponent, this.getName().toString(), channel,
-                        ((TerminalStorageSlotIngredientCraftingOption<T, M>) hoveringStorageSlotObject.get()).getCraftingOption(), 1, null);
+                ContainerTerminalStorageBase<?> containerTerminalStorage = ((ContainerTerminalStorageBase<?>) container);
+                CraftingOptionGuiData<T, M, ?> craftingOptionData = new CraftingOptionGuiData(ingredientComponent, this.getName().toString(), channel,
+                        ((TerminalStorageSlotIngredientCraftingOption<T, M>) hoveringStorageSlotObject.get()).getCraftingOption(), 1, null,
+                        containerTerminalStorage.getLocation(), containerTerminalStorage.getLocationInstance());
                 if (shift) {
-                    IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                            new TerminalStorageIngredientOpenCraftingPlanGuiPacket<>(craftingOptionData));
+                    containerTerminalStorage.sendOpenCraftingPlanGuiPacketToServer(craftingOptionData);
                 } else {
-                    IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                            new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<>(craftingOptionData));
+                    containerTerminalStorage.sendOpenCraftingJobAmountGuiPacketToServer(craftingOptionData);
                 }
             } else if (clickType != null) {
                 T activeInstance = matcher.getEmptyInstance();

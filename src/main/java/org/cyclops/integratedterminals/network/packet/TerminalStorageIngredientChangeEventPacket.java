@@ -15,7 +15,7 @@ import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 /**
  * Packet for sending a storage change event from server to client.
@@ -58,8 +58,8 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void actionClient(World world, PlayerEntity player) {
-		if(player.openContainer instanceof ContainerTerminalStorage) {
-			ContainerTerminalStorage container = ((ContainerTerminalStorage) player.openContainer);
+		if(player.openContainer instanceof ContainerTerminalStorageBase) {
+			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
 			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
 			IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
 

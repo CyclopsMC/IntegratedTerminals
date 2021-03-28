@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.api.terminalstorage.event;
 import net.minecraftforge.eventbus.api.Event;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import java.util.List;
 
@@ -15,12 +15,12 @@ import java.util.List;
  */
 public class TerminalStorageTabClientLoadButtonsEvent extends Event {
 
-    private final ContainerTerminalStorage container;
+    private final ContainerTerminalStorageBase container;
     private final ITerminalStorageTabClient<?> clientTab;
 
     private List<ITerminalButton<?, ?, ?>> buttons;
 
-    public TerminalStorageTabClientLoadButtonsEvent(ContainerTerminalStorage container,
+    public TerminalStorageTabClientLoadButtonsEvent(ContainerTerminalStorageBase container,
                                                     ITerminalStorageTabClient<?> clientTab,
                                                     List<ITerminalButton<?, ?, ?>> buttons) {
         this.container = container;
@@ -29,7 +29,7 @@ public class TerminalStorageTabClientLoadButtonsEvent extends Event {
         this.buttons = buttons;
     }
 
-    public ContainerTerminalStorage getContainer() {
+    public ContainerTerminalStorageBase getContainer() {
         return container;
     }
 

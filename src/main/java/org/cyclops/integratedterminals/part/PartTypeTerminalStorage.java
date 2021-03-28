@@ -26,9 +26,11 @@ import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
 import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.GeneralConfig;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorage;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePart;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
 import javax.annotation.Nullable;
@@ -71,7 +73,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
                 PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) data.getLeft()
                         .getPartState(data.getRight().getCenter().getSide());
                 TerminalStorageState terminalStorageState = state.getPlayerStorageState(playerEntity);
-                return new ContainerTerminalStorage(id, playerInventory,
+                return new ContainerTerminalStoragePart(id, playerInventory,
                         data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
                         Optional.empty(), terminalStorageState);
             }
@@ -112,7 +114,8 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         super.addDrops(target, state, itemStacks, dropMainElement, saveState);
     }
 
-    public static class State extends PartStateEmpty<PartTypeTerminalStorage> {
+    public static class State extends PartStateEmpty<PartTypeTerminalStorage>
+            implements ITerminalStorageTabCommon.IVariableInventory {
 
         private final Map<String, NonNullList<ItemStack>> namedInventories;
         private final Map<String, TerminalStorageState> playerStorageStates;
@@ -126,6 +129,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             this.namedInventories.clear();
         }
 
+        @Override
         public void setNamedInventory(String name, NonNullList<ItemStack> inventory) {
             this.namedInventories.put(name, inventory);
             this.onDirty();
@@ -135,11 +139,13 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             return namedInventories;
         }
 
+        @Override
         @Nullable
         public NonNullList<ItemStack> getNamedInventory(String name) {
             return this.namedInventories.get(name);
         }
 
+        @Override
         public void loadNamedInventory(String name, IInventory inventory) {
             NonNullList<ItemStack> tabItems = this.getNamedInventory(name);
             if (tabItems != null) {
@@ -149,6 +155,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             }
         }
 
+        @Override
         public void saveNamedInventory(String name, IInventory inventory) {
             NonNullList<ItemStack> latestItems = NonNullList.create();
             for (int i = 0; i < inventory.getSizeInventory(); i++) {
