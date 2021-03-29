@@ -32,9 +32,13 @@ import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalSto
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsConfig;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlanConfig;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountItemConfig;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountPartConfig;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanItemConfig;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanPartConfig;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageItemConfig;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePartConfig;
+import org.cyclops.integratedterminals.item.ItemTerminalStoragePortableConfig;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
 import org.cyclops.integratedterminals.part.PartTypes;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
@@ -108,11 +112,16 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
         configHandler.addConfigurable(new BlockMenrilGlassConfig());
         configHandler.addConfigurable(new BlockChorusGlassConfig());
 
+        configHandler.addConfigurable(new ItemTerminalStoragePortableConfig());
+
         configHandler.addConfigurable(new ContainerTerminalCraftingJobsConfig());
         configHandler.addConfigurable(new ContainerTerminalCraftingJobsPlanConfig());
         configHandler.addConfigurable(new ContainerTerminalStoragePartConfig());
         configHandler.addConfigurable(new ContainerTerminalStorageCraftingOptionAmountPartConfig());
         configHandler.addConfigurable(new ContainerTerminalStorageCraftingPlanPartConfig());
+        configHandler.addConfigurable(new ContainerTerminalStorageItemConfig());
+        configHandler.addConfigurable(new ContainerTerminalStorageCraftingOptionAmountItemConfig());
+        configHandler.addConfigurable(new ContainerTerminalStorageCraftingPlanItemConfig());
     }
 
     @Override

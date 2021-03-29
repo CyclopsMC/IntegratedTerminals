@@ -145,25 +145,6 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             return this.namedInventories.get(name);
         }
 
-        @Override
-        public void loadNamedInventory(String name, IInventory inventory) {
-            NonNullList<ItemStack> tabItems = this.getNamedInventory(name);
-            if (tabItems != null) {
-                for (int i = 0; i < tabItems.size(); i++) {
-                    inventory.setInventorySlotContents(i, tabItems.get(i));
-                }
-            }
-        }
-
-        @Override
-        public void saveNamedInventory(String name, IInventory inventory) {
-            NonNullList<ItemStack> latestItems = NonNullList.create();
-            for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                latestItems.add(inventory.getStackInSlot(i));
-            }
-            this.setNamedInventory(name, latestItems);
-        }
-
         public TerminalStorageState getPlayerStorageState(PlayerEntity player) {
             TerminalStorageState state = playerStorageStates.get(player.getUniqueID().toString());
             if (state == null) {

@@ -35,8 +35,23 @@ public interface ITerminalStorageTabCommon {
     }
 
     public static interface IVariableInventory {
-        public void loadNamedInventory(String name, IInventory inventory);
-        public void saveNamedInventory(String name, IInventory inventory);
+        public default void loadNamedInventory(String name, IInventory inventory) {
+            NonNullList<ItemStack> tabItems = this.getNamedInventory(name);
+            if (tabItems != null) {
+                for (int i = 0; i < tabItems.size(); i++) {
+                    inventory.setInventorySlotContents(i, tabItems.get(i));
+                }
+            }
+        }
+
+        public default void saveNamedInventory(String name, IInventory inventory) {
+            NonNullList<ItemStack> latestItems = NonNullList.create();
+            for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                latestItems.add(inventory.getStackInSlot(i));
+            }
+            this.setNamedInventory(name, latestItems);
+        }
+
         @Nullable
         public NonNullList<ItemStack> getNamedInventory(String name);
         public void setNamedInventory(String name, NonNullList<ItemStack> inventory);

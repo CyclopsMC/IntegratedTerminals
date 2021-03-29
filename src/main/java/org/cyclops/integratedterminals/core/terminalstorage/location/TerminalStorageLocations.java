@@ -12,9 +12,11 @@ public class TerminalStorageLocations {
             .getRegistry(ITerminalStorageLocationRegistry.class);
 
     public static TerminalStorageLocationPart PART;
+    public static TerminalStorageLocationItem ITEM;
 
     public static void load() {
         PART = TerminalStorageLocations.REGISTRY.register(new TerminalStorageLocationPart());
+        ITEM = TerminalStorageLocations.REGISTRY.register(new TerminalStorageLocationItem());
     }
 
 }

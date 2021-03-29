@@ -113,6 +113,13 @@
     "block.integratedterminals.chorus_glass": "Chorus Glass",
     "block.integratedterminals.chorus_glass.info": "Passable glass",
 
+    "_comment": "Items",
+    "item.integratedterminals.terminal_storage_portable": "Portable Storage Terminal",
+    "item.integratedterminals.terminal_storage_portable.info": "Visually interact with the ingredients stored in the linked network. Right click on Omni-Directional Connector to link.",
+    "item.integratedterminals.terminal_storage_portable.status.no_network": "No network has been linked. Right click on Omni-Directional Connector to link.",
+    "item.integratedterminals.terminal_storage_portable.status.invalid_network": "The linked network could not be found",
+    "item.integratedterminals.terminal_storage_portable.status.linked": "Linked to network",
+
     "_comment": "Part types",
     "parttype.integratedterminals.terminal_storage": "Storage Terminal",
     "parttype.integratedterminals.terminal_storage.info": "Visually interact with the ingredients stored in the network.",

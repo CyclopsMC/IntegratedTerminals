@@ -15,6 +15,7 @@ import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -45,7 +46,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         putButtonAction(BUTTON_START, (buttonId, container) -> startCraftingJob());
     }
 
-    public abstract INetwork getNetwork();
+    public abstract Optional<INetwork> getNetwork();
 
     public World getWorld() {
         return world;
@@ -72,12 +73,13 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     protected void updateCraftingPlan() {
         HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
-        INetwork network = getNetwork();
-        if (GeneralConfig.craftingPlannerEnableMultithreading) {
-            WORKER_POOL.execute(() -> this.updateCraftingPlanJob(craftingOptionWrapper, network));
-        } else {
-            this.updateCraftingPlanJob(craftingOptionWrapper, network);
-        }
+        getNetwork().ifPresent(network -> {
+            if (GeneralConfig.craftingPlannerEnableMultithreading) {
+                WORKER_POOL.execute(() -> this.updateCraftingPlanJob(craftingOptionWrapper, network));
+            } else {
+                this.updateCraftingPlanJob(craftingOptionWrapper, network);
+            }
+        });
     }
 
     protected void updateCraftingPlanJob(HandlerWrappedTerminalCraftingOption craftingOptionWrapper, INetwork network) {
@@ -104,19 +106,20 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         if (!getWorld().isRemote()) {
             // Start the crafting job
             if (craftingPlan != null) {
-                INetwork network = getNetwork();
-                try {
-                    craftingOptionGuiData.getCraftingOption().getHandler()
-                            .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayerEntity) player);
+                getNetwork().ifPresent(network -> {
+                    try {
+                        craftingOptionGuiData.getCraftingOption().getHandler()
+                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayerEntity) player);
 
-                    // Re-open terminal gui
-                    craftingOptionGuiData.getLocation()
-                            .openContainerFromServer(craftingOptionGuiData, getWorld(), (ServerPlayerEntity) player);
-                } catch (CraftingJobStartException e) {
-                    // If the job could not be started, display the error in the plan
-                    craftingPlan.setError(e.getUnlocalizedError());
-                    this.setCraftingPlan(craftingPlan);
-                }
+                        // Re-open terminal gui
+                        craftingOptionGuiData.getLocation()
+                                .openContainerFromServer(craftingOptionGuiData, getWorld(), (ServerPlayerEntity) player);
+                    } catch (CraftingJobStartException e) {
+                        // If the job could not be started, display the error in the plan
+                        craftingPlan.setError(e.getUnlocalizedError());
+                        this.setCraftingPlan(craftingPlan);
+                    }
+                });
             }
         }
     }

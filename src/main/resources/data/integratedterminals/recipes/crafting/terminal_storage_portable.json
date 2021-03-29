@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "C C",
+    "CPC",
+    "COC"
+  ],
+  "key": {
+    "P": {
+      "item": "integratedterminals:part_terminal_storage"
+    },
+    "C": {
+      "item": "integrateddynamics:crystalized_menril_chunk"
+    },
+    "O": {
+      "item": "integrateddynamics:part_connector_omni_directional"
+    }
+  },
+  "result": {
+    "item": "integratedterminals:terminal_storage_portable"
+  }
+}
