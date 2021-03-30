@@ -1,8 +1,6 @@
 package org.cyclops.integratedterminals.item;
 
-import net.minecraft.block.BlockState;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.ItemStackHelper;
@@ -12,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.NonNullList;
@@ -94,7 +91,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
     public INamedContainerProvider getContainer(World world, PlayerEntity playerEntity, int itemIndex, Hand hand, ItemStack itemStack) {
         return new NamedContainerProviderItem(itemIndex, hand, itemStack.getDisplayName(),
                 (id, playerInventory, slot, hand1) -> new ContainerTerminalStorageItem(id, playerInventory, slot, hand1, Optional.empty(),
-                        getTerminalStorageState(itemStack, playerEntity, itemIndex, hand)));
+                        getTerminalStorageState(InventoryHelpers.getItemFromIndex(playerEntity, itemIndex, hand), playerEntity, itemIndex, hand)));
     }
 
     @Override

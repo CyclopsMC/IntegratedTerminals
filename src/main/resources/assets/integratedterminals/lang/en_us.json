@@ -96,6 +96,7 @@
     "key.integratedterminals.terminal.craftinggrid.clearplayer": "Clear Crafting Grid into Inventory",
     "key.integratedterminals.terminal.craftinggrid.clearstorage": "Clear Crafting Grid into Storage",
     "key.integratedterminals.terminal.craftinggrid.balance": "Balance Crafting Grid",
+    "key.integratedterminals.terminal.storage.portable.open": "Open first Portable Storage Terminal",
 
     "_comment": "Advancements",
     "advancement.integratedterminals.menril_glass": "The Glass of Illumination",
