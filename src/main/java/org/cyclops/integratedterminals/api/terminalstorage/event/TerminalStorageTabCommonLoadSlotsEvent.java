@@ -9,10 +9,11 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * An event that is emitted on the Forge event bus after
- * {@link ITerminalStorageTabCommon#loadSlots(Container, int, PlayerEntity, PartTypeTerminalStorage.State)}
+ * {@link ITerminalStorageTabCommon#loadSlots(Container, int, PlayerEntity, Optional)}
  * is called.
  * @author rubensworks
  */
