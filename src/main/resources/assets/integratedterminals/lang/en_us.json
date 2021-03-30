@@ -96,7 +96,7 @@
     "key.integratedterminals.terminal.craftinggrid.clearplayer": "Clear Crafting Grid into Inventory",
     "key.integratedterminals.terminal.craftinggrid.clearstorage": "Clear Crafting Grid into Storage",
     "key.integratedterminals.terminal.craftinggrid.balance": "Balance Crafting Grid",
-    "key.integratedterminals.terminal.storage.portable.open": "Open first Portable Storage Terminal",
+    "key.integratedterminals.terminal.portable.open": "Open first Portable Storage Terminal",
 
     "_comment": "Advancements",
     "advancement.integratedterminals.menril_glass": "The Glass of Illumination",
@@ -167,6 +167,11 @@
     "info_book.integratedterminals.storage_terminal.power_usage.text1": "Power users tend to dislike clicking too much as it takes too much time. The &lStorage Terminal&r offers a couple of &ohotkeys&r to speed up the usage of common tasks such as selecting the search field, browsing through tabs, clearing the crafting grid, and balancing crafting grid slots. These hotkeys are listed at the end of this section.",
     "info_book.integratedterminals.storage_terminal.power_usage.text2": "When you have the JEI mod installed, you will be able to exploit JEI's recipe shift-clicking ability to quickly fill the crafting grid. The source of items is defined by the refill source. Furthermore, you can enable synchronization between the JEI and &lStorage Terminal&r search fields.",
     "info_book.integratedterminals.storage_terminal.power_usage.text3": "If you are not satisfied with the provided text-based filtering options, you can insert your own &lPredicates&r via &lVariable Cards&r. These will should accept the ingredient type as input, and a &9Boolean&0 as ouput.",
+
+    "info_book.integratedterminals.storage_terminal.portable": "Portable Terminal",
+    "info_book.integratedterminals.storage_terminal.portable.text1": "By attaching some &lCrystalized Menril Chunks&r to your &lStorage Terminal&r, you can create a portable variant of the terminal",
+    "info_book.integratedterminals.storage_terminal.portable.text2": "In order to link your &lPortable Storage Terminal&r to a certain network, your network will need an &lOmni-Directional Connector&r. Linking to it can be done by just right-clicking with your &lPortable Storage Terminal&r on the &lOmni-Directional Connector&r.",
+    "info_book.integratedterminals.storage_terminal.portable.text3": "For power users, it is possible to configure a hotkey to open the first &lPortable Storage Terminal&r that is available in your inventory.",
 
     "info_book.integratedterminals.crafting_job_terminal": "Crafting Job Terminal",
     "info_book.integratedterminals.crafting_job_terminal.text1": "&oNote: this section only applies if you have an autocrafting mod such as Integrated Crafting installed.&r",

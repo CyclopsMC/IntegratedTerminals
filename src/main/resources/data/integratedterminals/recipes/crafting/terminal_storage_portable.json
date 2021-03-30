@@ -1,9 +1,7 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "C C",
-    "CPC",
-    "COC"
+    "CPC"
   ],
   "key": {
     "P": {
@@ -11,9 +9,6 @@
     },
     "C": {
       "item": "integrateddynamics:crystalized_menril_chunk"
-    },
-    "O": {
-      "item": "integrateddynamics:part_connector_omni_directional"
     }
   },
   "result": {

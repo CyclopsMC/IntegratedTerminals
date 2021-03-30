@@ -52,7 +52,7 @@ public class ClientProxy extends ClientProxyComponent {
 			KeyConflictContext.GUI, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_B,
 			KEYBINDING_CATEGORY_NAME);
 	public static final KeyBinding TERMINAL_STORAGE_PORTABLE_OPEN = new KeyBinding(
-			"key." + Reference.MOD_ID + ".terminal.storage.portable.open",
+			"key." + Reference.MOD_ID + ".terminal.portable.open",
 			KeyConflictContext.IN_GAME, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_C,
 			KEYBINDING_CATEGORY_NAME);
 

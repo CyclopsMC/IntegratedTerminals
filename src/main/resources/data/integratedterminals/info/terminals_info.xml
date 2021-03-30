@@ -52,6 +52,14 @@
             <appendix type="keybinding">key.integratedterminals.terminal.craftinggrid.clearstorage</appendix>
             <appendix type="keybinding">key.integratedterminals.terminal.craftinggrid.balance</appendix>
         </section>
+
+        <section name="info_book.integratedterminals.storage_terminal.portable">
+            <paragraph>info_book.integratedterminals.storage_terminal.portable.text1</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.portable.text2</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.portable.text3</paragraph>
+            <appendix type="minecraft:crafting">integratedterminals:crafting/terminal_storage_portable</appendix>
+            <appendix type="keybinding">key.integratedterminals.terminal.portable.open</appendix>
+        </section>
     </section>
 
     <section name="info_book.integratedterminals.crafting_job_terminal">
