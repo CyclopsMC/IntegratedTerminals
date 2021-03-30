@@ -29,7 +29,6 @@ import org.cyclops.integrateddynamics.api.ingredient.IIngredientPositionsIndex;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
-import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeBoolean;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
@@ -383,6 +382,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             case STORAGE_QUICK_MOVE:
                 viewHandler.insertMaxIntoContainer(storage, container, 0, 4 * 9, hoveringStorageInstance);
                 break;
+            case STORAGE_QUICK_MOVE_INCREMENTAL:
+                viewHandler.insertMaxIntoContainer(storage, container, 0, 4 * 9,
+                        ingredientComponent.getMatcher().withQuantity(hoveringStorageInstance, viewHandler.getIncrementalInstanceMovementQuantity()));
+                break;
             case STORAGE_PLACE_WORLD:
                 viewHandler.throwIntoWorld(storage, activeStorageInstance, player);
                 break;
@@ -401,7 +404,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 updateActivePlayerStack = true;
                 break;
             case PLAYER_QUICK_MOVE:
-                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.inventory);
+                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.inventory, -1);
+                break;
+            case PLAYER_QUICK_MOVE_INCREMENTAL:
+                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.inventory, viewHandler.getIncrementalInstanceMovementQuantity());
                 break;
         }
 

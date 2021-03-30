@@ -9,6 +9,10 @@ public enum TerminalClickType {
      */
     STORAGE_QUICK_MOVE,
     /**
+     * Incremental movement from hovered storage ingredient to player.
+     */
+    STORAGE_QUICK_MOVE_INCREMENTAL,
+    /**
      * Movement from active storage ingredient into the world.
      */
     STORAGE_PLACE_WORLD,
@@ -23,5 +27,9 @@ public enum TerminalClickType {
     /**
      * Max movement from hovered player stack into storage.
      */
-    PLAYER_QUICK_MOVE
+    PLAYER_QUICK_MOVE,
+    /**
+     * Incremental movement from hovered player stack into storage.
+     */
+    PLAYER_QUICK_MOVE_INCREMENTAL
 }

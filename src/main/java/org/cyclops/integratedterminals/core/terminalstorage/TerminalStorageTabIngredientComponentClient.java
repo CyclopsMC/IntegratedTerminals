@@ -40,7 +40,6 @@ import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDi
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
-import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
@@ -62,8 +61,6 @@ import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQue
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredientCraftingOption;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 
 import javax.annotation.Nullable;
@@ -554,8 +551,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     initiateCraftingOption = true;
                 } else {
                     if (shift) {
-                        // Quick move max quantity from storage to player
-                        clickType = TerminalClickType.STORAGE_QUICK_MOVE;
+                        // Quick move single or max quantity from storage to player
+                        clickType = mouseButton == 2 ? TerminalClickType.STORAGE_QUICK_MOVE_INCREMENTAL : TerminalClickType.STORAGE_QUICK_MOVE;
                     } else {
                         // Pick up
                         this.activeSlotId = hoveringStorageSlot;
@@ -571,7 +568,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 }
             } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getStack().isEmpty() && shift) {
                 // Quick move max quantity from player to storage
-                clickType = TerminalClickType.PLAYER_QUICK_MOVE;
+                clickType = mouseButton == 2 ? TerminalClickType.PLAYER_QUICK_MOVE_INCREMENTAL : TerminalClickType.PLAYER_QUICK_MOVE;
             } else if (hasClickedInStorage && !player.inventory.getItemStack().isEmpty()) {
                 // Move into storage
                 clickType = TerminalClickType.PLAYER_PLACE_STORAGE;
@@ -605,7 +602,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     }
                     this.activeSlotQuantity -= moveQuantity;
                 } else if (hasClickedInStorage) {
-                    if (mouseButton == 0 && this.activeSlotId == hoveringStorageSlot) {
+                    if ((mouseButton == 0 || mouseButton == 2) && this.activeSlotId == hoveringStorageSlot) {
                         // Increase the active quantity
                         this.activeSlotQuantity = (int) Math.min(ingredientComponent.getMatcher().getQuantity(hoveringStorageInstance.get()),
                                 this.activeSlotQuantity + (shift ? viewHandler.getInitialInstanceMovementQuantity()
