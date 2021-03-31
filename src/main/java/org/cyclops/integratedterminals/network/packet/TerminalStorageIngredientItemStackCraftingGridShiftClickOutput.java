@@ -27,14 +27,17 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
     private String tabId;
     @CodecField
     private int channel;
+    @CodecField
+    private boolean craftOnce;
 
     public TerminalStorageIngredientItemStackCraftingGridShiftClickOutput() {
 
     }
 
-    public TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(String tabId, int channel) {
+    public TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(String tabId, int channel, boolean craftOnce) {
         this.tabId = tabId;
         this.channel = channel;
+        this.craftOnce = craftOnce;
     }
 
     @Override
@@ -86,7 +89,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                         // Re-calculate recipe
                         tabCommonCrafting.updateCraftingResult(player, player.openContainer, variableInventory);
                     }
-                } while(!resultStack.isEmpty() && craftedAmount < resultStack.getMaxStackSize());
+                } while(!this.craftOnce && !resultStack.isEmpty() && craftedAmount < resultStack.getMaxStackSize());
             }
         }
     }

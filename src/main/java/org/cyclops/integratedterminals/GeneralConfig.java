@@ -57,6 +57,9 @@ public class GeneralConfig extends DummyConfig {
     @ConfigurableProperty(category = "general", comment = "If the search box and button states should be synchronized between the item storage and crafting tabs.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean syncItemStorageAndCraftingTabStates = true;
 
+    @ConfigurableProperty(category = "general", comment = "If shift-clicking on the crafting terminal's crafting result slot should only produce a single result.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean shiftClickCraftingResultLimit = false;
+
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");
     }
