@@ -1,0 +1,26 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.11.1 or higher.
+
+Additions:
+* Add portable storage terminal, Closes #9
+* Allow storage quantity modification via scrolling, Closes #8
+* Add client config option to only craft one item on shift click
+  The config option `shiftClickCraftingResultLimit` can be used for this.
+  Closes #51
+* Improve middle-click behaviour in storage terminals, #8
+* Allow player-based default terminal settings to be set
+  This can be done via a new anvil button inside the terminal gui.
+  Closes #27
+  #66
+
+Changes:
+* Synchronize item storage and crafting tab states
+  Can be disabled via the config file
+  #66
+* Persist terminal settings per part per player, Closes #28
+  #66
+  #39
+
+
+
+
