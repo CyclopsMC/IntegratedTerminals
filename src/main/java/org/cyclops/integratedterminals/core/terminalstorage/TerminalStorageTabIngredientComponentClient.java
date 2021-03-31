@@ -657,6 +657,47 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
+    public boolean handleScroll(Container container, int channel, int hoveringStorageSlot, double delta,
+                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
+        this.activeChannel = channel;
+
+        Optional<TerminalStorageSlotIngredient<T, M>> hoveringStorageSlotObject = getSlot(channel, hoveringStorageSlot);
+        Optional<T> hoveringStorageInstance = hoveringStorageSlotObject.map(TerminalStorageSlotIngredient::getInstance);
+        boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
+        boolean isCraftingOption = hoveringStorageSlotObject.isPresent() && hoveringStorageSlotObject.get() instanceof TerminalStorageSlotIngredientCraftingOption;
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = this.getViewHandler();
+        boolean shift = MinecraftHelpers.isShifted();
+
+        boolean increment = delta < 0;
+        if (hasClickedInStorage && validHoveringStorageSlot && !isCraftingOption) {
+            // Select the current slot if none is selected
+            if (activeSlotId < 0) {
+                this.activeSlotId = hoveringStorageSlot;
+                this.activeSlotQuantity = 0;
+            }
+
+            // Only change quantity if hovering over the selected slot
+            if (this.activeSlotId == hoveringStorageSlot) {
+                if (increment) {
+                    // Increase the active quantity
+                    this.activeSlotQuantity = (int) Math.min(ingredientComponent.getMatcher().getQuantity(hoveringStorageInstance.get()),
+                            this.activeSlotQuantity + (shift ? viewHandler.getInitialInstanceMovementQuantity()
+                                    : viewHandler.getIncrementalInstanceMovementQuantity()));
+                } else {
+                    // Decrease active quantity
+                    this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - (shift ? viewHandler.getInitialInstanceMovementQuantity()
+                            : viewHandler.getIncrementalInstanceMovementQuantity()));
+                    if (this.activeSlotQuantity == 0) {
+                        activeSlotId = -1;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public int getActiveSlotId() {
         return this.activeSlotId;
     }

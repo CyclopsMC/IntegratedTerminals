@@ -130,6 +130,21 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot);
 
     /**
+     * Called when a mouse scroll happens in a gui.
+     * @param container The active container.
+     * @param channel The active channel.
+     * @param hoveringStorageSlot The storage slot id that is being hovered. -1 if none.
+     * @param delta The scroll delta.
+     * @param hasClickedOutside If the player has clicked outside the gui.
+     * @param hasClickedInStorage If the player has clicked inside the storage space.
+     *                            This can be true even if the storage slot is -1.
+     * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
+     * @return If further click processing should stop.
+     */
+    public boolean handleScroll(Container container, int channel, int hoveringStorageSlot, double delta,
+                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot);
+
+    /**
      * @return The active storage slot id.
      */
     public int getActiveSlotId();

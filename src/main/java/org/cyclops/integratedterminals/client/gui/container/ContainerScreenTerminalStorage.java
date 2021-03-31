@@ -545,6 +545,28 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return super.mouseReleased(mouseX, mouseY, mouseButton);
     }
 
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        // Handle scrolls
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+        if (tabOptional.isPresent()) {
+            int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+            Slot playerSlot = getSlotUnderMouse();
+
+            // Handle clicks on storage slots
+            boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.guiLeft, this.guiTop, 0);
+            boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
+            if (tabOptional.get().handleScroll(getContainer(), getContainer().getSelectedChannel(), slot, delta,
+                    hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.slotNumber : -1)) {
+                return true;
+            }
+        }
+
+        return this.getEventListenerForPos(mouseX, mouseY).filter((listener) -> {
+            return listener.mouseScrolled(mouseX, mouseY, delta);
+        }).isPresent();
+    }
+
     protected boolean handleKeyCodeFirst(int keyCode, int scanCode) {
         InputMappings.Input inputCode = InputMappings.getInputByCode(keyCode, scanCode);
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(inputCode)) {
