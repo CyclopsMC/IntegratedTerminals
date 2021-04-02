@@ -106,6 +106,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     @Override
     public void init() {
         super.init();
+        this.initialized = false;
 
         fieldChannel = new WidgetArrowedListField<String>(Minecraft.getInstance().fontRenderer, guiLeft + CHANNEL_X,
                 guiTop + CHANNEL_Y, CHANNEL_WIDTH, CHANNEL_HEIGHT, true,
