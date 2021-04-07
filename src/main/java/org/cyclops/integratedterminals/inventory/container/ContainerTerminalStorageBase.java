@@ -378,7 +378,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         }
 
         public static InitTabData readFromPacketBuffer(PacketBuffer packetBuffer) {
-            return new InitTabData(packetBuffer.readString(), packetBuffer.readInt());
+            return new InitTabData(packetBuffer.readString(32767), packetBuffer.readInt());
         }
 
     }

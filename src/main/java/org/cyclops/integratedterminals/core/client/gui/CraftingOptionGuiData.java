@@ -105,8 +105,8 @@ public class CraftingOptionGuiData<T, M, L> {
     }
 
     public static CraftingOptionGuiData readFromPacketBuffer(PacketBuffer packetBuffer) {
-        IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readString()));
-        String tabName = packetBuffer.readString();
+        IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readString(32767)));
+        String tabName = packetBuffer.readString(32767);
         int channel = packetBuffer.readInt();
         int amount = packetBuffer.readInt();
         HandlerWrappedTerminalCraftingOption craftingOption = null;

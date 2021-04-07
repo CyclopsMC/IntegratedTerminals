@@ -111,6 +111,6 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Pai
 
     @Override
     public Pair<Hand, Integer> readFromPacketBuffer(PacketBuffer packetBuffer) {
-        return Pair.of(Hand.valueOf(packetBuffer.readString()), packetBuffer.readInt());
+        return Pair.of(Hand.valueOf(packetBuffer.readString(32767)), packetBuffer.readInt());
     }
 }
