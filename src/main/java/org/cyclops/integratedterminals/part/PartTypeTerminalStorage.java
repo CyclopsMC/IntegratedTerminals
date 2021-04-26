@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
@@ -29,7 +28,6 @@ import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePart;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
@@ -123,6 +121,11 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         public State() {
             this.namedInventories = Maps.newHashMap();
             this.playerStorageStates = Maps.newHashMap();
+        }
+
+        @Override
+        public int getUpdateInterval() {
+            return 1; // For enabling energy consumption
         }
 
         public void clearNamedInventories() {

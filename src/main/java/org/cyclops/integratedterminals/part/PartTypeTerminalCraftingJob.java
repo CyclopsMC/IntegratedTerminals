@@ -43,7 +43,12 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
 
     @Override
     protected PartStateEmpty<PartTypeTerminalCraftingJob> constructDefaultState() {
-        return new PartStateEmpty<>();
+        return new PartStateEmpty<PartTypeTerminalCraftingJob>() {
+            @Override
+            public int getUpdateInterval() {
+                return 1; // For enabling energy consumption
+            }
+        };
     }
 
     @Override
