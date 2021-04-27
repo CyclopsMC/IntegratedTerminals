@@ -42,16 +42,16 @@ import java.util.function.Predicate;
  * Terminal storage handler for energy.
  * @author rubensworks
  */
-public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredientComponentTerminalStorageHandler<Integer, Boolean> {
+public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredientComponentTerminalStorageHandler<Long, Boolean> {
 
-    private final IngredientComponent<Integer, Boolean> ingredientComponent;
+    private final IngredientComponent<Long, Boolean> ingredientComponent;
 
-    public IngredientComponentTerminalStorageHandlerEnergy(IngredientComponent<Integer, Boolean> ingredientComponent) {
+    public IngredientComponentTerminalStorageHandlerEnergy(IngredientComponent<Long, Boolean> ingredientComponent) {
         this.ingredientComponent = ingredientComponent;
     }
 
     @Override
-    public IngredientComponent<Integer, Boolean> getComponent() {
+    public IngredientComponent<Long, Boolean> getComponent() {
         return ingredientComponent;
     }
 
@@ -62,7 +62,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(MatrixStack matrixStack, Integer instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+    public void drawInstance(MatrixStack matrixStack, Long instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
         if (instance > 0) {
@@ -75,8 +75,17 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                 gui.blit(matrixStack, x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
 
                 // Draw progress
+                int progressScaled;
+                int progressMaxScaled;
+                if ((int)maxQuantity == maxQuantity) {
+                    progressScaled = (int) (long) instance;
+                    progressMaxScaled = (int) maxQuantity;
+                } else {
+                    progressScaled = (int) (long) (instance >> 16);
+                    progressMaxScaled = (int) (maxQuantity >> 16);
+                }
                 GuiHelpers.renderProgressBar(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
-                        16, 240, GuiHelpers.ProgressDirection.UP, instance, (int) maxQuantity);
+                        16, 240, GuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
 
                 // Draw amount
                 GlStateManager.disableLighting();
@@ -99,7 +108,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public String formatQuantity(Integer instance) {
+    public String formatQuantity(Long instance) {
         return L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.energy.amount",
                 String.format("%,d", instance));
     }
@@ -110,10 +119,11 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public Integer getInstance(ItemStack itemStack) {
+    public Long getInstance(ItemStack itemStack) {
         return itemStack.getCapability(CapabilityEnergy.ENERGY)
                 .map(IEnergyStorage::getEnergyStored)
-                .orElse(0);
+                .orElse(0)
+                .longValue();
     }
 
     @Override
@@ -134,12 +144,12 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public int throwIntoWorld(IIngredientComponentStorage<Integer, Boolean> storage, Integer maxInstance,
+    public int throwIntoWorld(IIngredientComponentStorage<Long, Boolean> storage, Long maxInstance,
                               PlayerEntity player) {
         return 0; // Dropping energy in the world is not possible
     }
 
-    protected IIngredientComponentStorage<Integer, Boolean> getEnergyStorage(IngredientComponent<Integer, Boolean> component,
+    protected IIngredientComponentStorage<Long, Boolean> getEnergyStorage(IngredientComponent<Long, Boolean> component,
                                                                              IEnergyStorage energyStorage) {
         return component
                 .getStorageWrapperHandler(CapabilityEnergy.ENERGY)
@@ -147,15 +157,15 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public Integer insertIntoContainer(IIngredientComponentStorage<Integer, Boolean> storage,
-                                       Container container, int containerSlot, Integer maxInstance,
+    public Long insertIntoContainer(IIngredientComponentStorage<Long, Boolean> storage,
+                                       Container container, int containerSlot, Long maxInstance,
                                        @Nullable PlayerEntity player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getStack();
 
         return stack.getCapability(CapabilityEnergy.ENERGY)
                 .map(energyStorage -> {
-                    IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-                    Integer ret = 0;
+                    IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
+                    Long ret = 0L;
                     try {
                         ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
                     } catch (InconsistentIngredientInsertionException e) {
@@ -164,16 +174,16 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                     container.detectAndSendChanges();
                     return ret;
                 })
-                .orElse(0);
+                .orElse(0L);
     }
 
     @Override
-    public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<Integer, Boolean> storage,
+    public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<Long, Boolean> storage,
                                                       PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = playerInventory.getItemStack();
         playerStack.getCapability(CapabilityEnergy.ENERGY)
                 .ifPresent(energyStorage -> {
-                    IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
+                    IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
                     try {
                         IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
                     } catch (InconsistentIngredientInsertionException e) {
@@ -183,12 +193,12 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public void extractMaxFromContainerSlot(IIngredientComponentStorage<Integer, Boolean> storage,
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<Long, Boolean> storage,
                                             Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
         ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
         toMoveStack.getCapability(CapabilityEnergy.ENERGY)
                 .ifPresent(energyStorage -> {
-                    IIngredientComponentStorage<Integer, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
+                    IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
                     try {
                         IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, false);
                     } catch (InconsistentIngredientInsertionException e) {
@@ -224,12 +234,12 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public Predicate<Integer> getInstanceFilterPredicate(SearchMode searchMode, String query) {
+    public Predicate<Long> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         return integer -> true; // Searching does not make sense here, as at most one instance exists.
     }
 
     @Override
-    public Collection<IIngredientInstanceSorter<Integer>> getInstanceSorters() {
+    public Collection<IIngredientInstanceSorter<Long>> getInstanceSorters() {
         return Collections.emptyList();
     }
 }

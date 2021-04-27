@@ -35,9 +35,9 @@ public class TerminalIngredientComponentCapabilities {
                         new IngredientComponentTerminalStorageHandlerFluidStack(ingredientComponent));
             }
         });
-        attacherManager.addAttacher(new IngredientComponentCapabilityAttacherAdapter<Integer, Boolean>(IngredientComponentCapabilities.INGREDIENT_ENERGY_NAME, capabilityIngredientComponentViewHandler) {
+        attacherManager.addAttacher(new IngredientComponentCapabilityAttacherAdapter<Long, Boolean>(IngredientComponentCapabilities.INGREDIENT_ENERGY_NAME, capabilityIngredientComponentViewHandler) {
             @Override
-            public ICapabilityProvider createCapabilityProvider(IngredientComponent<Integer, Boolean> ingredientComponent) {
+            public ICapabilityProvider createCapabilityProvider(IngredientComponent<Long, Boolean> ingredientComponent) {
                 return new DefaultCapabilityProvider<>(() -> IngredientComponentTerminalStorageHandlerConfig.CAPABILITY,
                         new IngredientComponentTerminalStorageHandlerEnergy(ingredientComponent));
             }
