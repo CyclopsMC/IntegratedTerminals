@@ -1,0 +1,10 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.11.1 or higher.
+
+Fixes:
+* Handle energy counts larger than max integer
+  Closes CyclopsMC/IntegratedDynamics#1023
+* Fix terminals not being usable anymore when energy usage is disabled
+* Fix terminals still working if not enough energy
+  Closes CyclopsMC/IntegratedTunnels#224
+
