@@ -16,7 +16,7 @@ Terminals for managing and overviewing Integrated Dynamics networks.
 [[dependencies.integratedterminals]]
     modId="cyclopscore"
     mandatory=true
-    versionRange="[1.11.1,)"
+    versionRange="[1.11.6,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
