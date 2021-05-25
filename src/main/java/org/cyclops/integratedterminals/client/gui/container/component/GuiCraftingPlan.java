@@ -86,7 +86,7 @@ public class GuiCraftingPlan extends Widget {
         this.visibleElements = Lists.newArrayList(this.elements);
         this.valid = craftingPlan.getStatus().isValid();
         this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, new TranslationTextComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
-        this.scrollBar.setTotalRows(visibleElements.size() - 1);
+        this.scrollBar.setTotalRows(visibleElements.size());
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
         this.channel = craftingPlan.getChannel();
