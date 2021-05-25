@@ -1,0 +1,10 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.11.6 or higher.
+
+Changes:
+* Allow querying by fluid tag
+
+Fixes:
+* Fix updating crafting jobs resetting dropdown button states, #38
+* Fix crafting job terminal list not being scrollable, Closes #38
+* Fix crafting plan gui initial scroll length being one off
