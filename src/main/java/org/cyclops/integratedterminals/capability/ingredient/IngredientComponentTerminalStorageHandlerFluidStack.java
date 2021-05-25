@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -39,6 +40,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -232,7 +234,10 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             case TOOLTIP:
                 return i -> false; // Fluids have no tooltip
             case TAG:
-                return i -> false; // There is no fluid dictionary
+                return i -> FluidTags.getCollection().getOwningTags(i.getFluid()).stream()
+                        .filter(id -> id.toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                        .map(r -> FluidTags.getCollection().get(r))
+                        .anyMatch(Objects::nonNull);
             case DEFAULT:
                 return i -> i != null && i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }
