@@ -68,7 +68,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                 ItemStack currentCraftingItem = slotCrafting.getStack().copy();
                 ItemStack resultStack;
                 int craftedAmount = 0;
-				ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.world).orElse(null);
+		ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.world).orElse(null);
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
                     if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.inventory),
