@@ -15,6 +15,8 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCo
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
+import org.cyclops.cyclopscore.helper.CraftingHelpers;
+
 
 /**
  * Packet for sending a storage slot click event from client to server.
@@ -66,6 +68,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                 ItemStack currentCraftingItem = slotCrafting.getStack().copy();
                 ItemStack resultStack;
                 int craftedAmount = 0;
+				ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.world).orElse(null);
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
                     if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.inventory),
@@ -87,7 +90,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                         player.inventory.placeItemBackInInventory(world, resultStack.copy());
 
                         // Re-calculate recipe
-                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, variableInventory);
+                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, variableInventory,recipe);
                     }
                 } while(!this.craftOnce && !resultStack.isEmpty() && craftedAmount < resultStack.getMaxStackSize());
             }
