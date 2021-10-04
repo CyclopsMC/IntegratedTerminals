@@ -1,0 +1,6 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.11.6 or higher.
+
+Fixes:
+* Fix JEI autocomplete not working on recipes that should ignore NBT
+  Closes CyclopsMC/IntegratedDynamics#1096
