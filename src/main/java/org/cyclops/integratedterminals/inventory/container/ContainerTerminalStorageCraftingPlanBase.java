@@ -6,6 +6,7 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.world.World;
+import org.cyclops.cyclopscore.helper.TileHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -75,7 +76,11 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
         getNetwork().ifPresent(network -> {
             if (GeneralConfig.craftingPlannerEnableMultithreading) {
-                WORKER_POOL.execute(() -> this.updateCraftingPlanJob(craftingOptionWrapper, network));
+                WORKER_POOL.execute(() -> {
+                    TileHelpers.UNSAFE_TILE_ENTITY_GETTER = true;
+                    this.updateCraftingPlanJob(craftingOptionWrapper, network);
+                    TileHelpers.UNSAFE_TILE_ENTITY_GETTER = false;
+                });
             } else {
                 this.updateCraftingPlanJob(craftingOptionWrapper, network);
             }
