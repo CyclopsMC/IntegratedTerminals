@@ -1,0 +1,7 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.12.0 or higher.
+
+Fixes:
+* Fix packet size errors when autocompleting with JEI
+  Closes CyclopsMC/IntegratedTerminals#74
+
