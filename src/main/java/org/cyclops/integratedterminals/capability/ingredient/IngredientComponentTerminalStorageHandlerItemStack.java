@@ -101,7 +101,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public String formatQuantity(ItemStack instance) {
-        return String.format("%,d", instance.getCount());
+        return String.format(Locale.ROOT, "%,d", instance.getCount());
     }
 
     @Override

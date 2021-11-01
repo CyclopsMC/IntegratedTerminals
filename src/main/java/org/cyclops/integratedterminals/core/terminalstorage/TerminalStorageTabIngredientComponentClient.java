@@ -344,7 +344,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public String getStatus(int channel) {
-        return String.format("%,d / %,d", getTotalQuantity(channel), getMaxQuantity(channel));
+        return String.format(Locale.ROOT, "%,d / %,d", getTotalQuantity(channel), getMaxQuantity(channel));
     }
 
     /**

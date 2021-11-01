@@ -97,7 +97,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     public String formatQuantity(FluidStack instance) {
         return L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.fluid.amount",
-                String.format("%,d", FluidHelpers.getAmount(instance)));
+                String.format(Locale.ROOT, "%,d", FluidHelpers.getAmount(instance)));
     }
 
     @Override

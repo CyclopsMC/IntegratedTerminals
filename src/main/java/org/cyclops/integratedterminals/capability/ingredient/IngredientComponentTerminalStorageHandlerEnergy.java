@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Predicate;
 
 /**
@@ -110,7 +111,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public String formatQuantity(Long instance) {
         return L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.energy.amount",
-                String.format("%,d", instance));
+                String.format(Locale.ROOT, "%,d", instance));
     }
 
     @Override
