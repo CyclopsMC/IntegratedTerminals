@@ -8,6 +8,7 @@ import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.tags.FluidTags;
@@ -184,19 +185,22 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
-        ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
-        toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
-                .ifPresent(fluidHandler -> {
-                    IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-                    try {
-                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, false);
-                    } catch (InconsistentIngredientInsertionException e) {
-                        // Ignore
-                    }
+        Slot slot = container.getSlot(containerSlot);
+        if (slot.canTakeStack(playerInventory.player)) {
+            ItemStack toMoveStack = slot.getStack();
+            toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                    .ifPresent(fluidHandler -> {
+                        IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
+                        try {
+                            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, false);
+                        } catch (InconsistentIngredientInsertionException e) {
+                            // Ignore
+                        }
 
-                    container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
-                    container.detectAndSendChanges();
-                });
+                        container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
+                        container.detectAndSendChanges();
+                    });
+        }
     }
 
     @Override

@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -196,16 +197,19 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<Long, Boolean> storage,
                                             Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
-        ItemStack toMoveStack = container.getSlot(containerSlot).getStack();
-        toMoveStack.getCapability(CapabilityEnergy.ENERGY)
-                .ifPresent(energyStorage -> {
-                    IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-                    try {
-                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, false);
-                    } catch (InconsistentIngredientInsertionException e) {
-                        // Ignore
-                    }
-                });
+        Slot slot = container.getSlot(containerSlot);
+        if (slot.canTakeStack(playerInventory.player)) {
+            ItemStack toMoveStack = slot.getStack();
+            toMoveStack.getCapability(CapabilityEnergy.ENERGY)
+                    .ifPresent(energyStorage -> {
+                        IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
+                        try {
+                            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, false);
+                        } catch (InconsistentIngredientInsertionException e) {
+                            // Ignore
+                        }
+                    });
+        }
     }
 
     @Override

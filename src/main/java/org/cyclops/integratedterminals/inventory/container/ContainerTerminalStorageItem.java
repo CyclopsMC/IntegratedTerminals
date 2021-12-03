@@ -2,35 +2,27 @@ package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.Hand;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.LazyOptional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.helper.InventoryHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.inventory.container.ItemInventoryContainer;
-import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.network.INetwork;
-import org.cyclops.integrateddynamics.api.network.IPartNetwork;
-import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
-import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
-import org.cyclops.integrateddynamics.core.helper.PartHelpers;
-import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
-import org.cyclops.integrateddynamics.core.part.event.PartVariableDrivenVariableContentsUpdatedEvent;
 import org.cyclops.integrateddynamics.part.PartTypeConnectorOmniDirectional;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
-import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -114,5 +106,15 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
     @Override
     public void onVariableContentsUpdated(INetwork network, IVariable<?> variable) {
         // We don't have a real part, so don't emit anything here
+    }
+
+    @Override
+    protected Slot createNewSlot(IInventory inventory, int index, int x, int y) {
+        return new Slot(inventory, index, x, y) {
+            @Override
+            public boolean canTakeStack(PlayerEntity playerIn) {
+                return super.canTakeStack(playerIn) && itemIndex != index;
+            }
+        };
     }
 }
