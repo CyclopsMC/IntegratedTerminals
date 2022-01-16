@@ -37,6 +37,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
+import net.minecraft.item.Item.Properties;
+
 /**
  * A portable storage terminal.
  * @author rubensworks
@@ -53,7 +55,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
 
     @Override
     public void openGuiForItemIndex(World world, ServerPlayerEntity player, int itemIndex, Hand hand) {
-        if (world.isRemote()) {
+        if (world.isClientSide()) {
             super.openGuiForItemIndex(world, player, itemIndex, hand);
         } else {
             ItemStack itemStack = InventoryHelpers.getItemFromIndex(player, itemIndex, hand);
@@ -63,23 +65,23 @@ public class ItemTerminalStoragePortable extends ItemGui {
                 if (network.isPresent()) {
                     super.openGuiForItemIndex(world, player, itemIndex, hand);
                 } else {
-                    player.sendStatusMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
+                    player.displayClientMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
                 }
             } else {
-                player.sendStatusMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.no_network"), true);
+                player.displayClientMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.no_network"), true);
             }
         }
     }
 
     @Override
     public ActionResultType onItemUseFirst(ItemStack stack, ItemUseContext context) {
-        if (!context.getWorld().isRemote()) {
-            PartPos partPos = PartPos.of(context.getWorld(), context.getPos(), context.getFace());
+        if (!context.getLevel().isClientSide()) {
+            PartPos partPos = PartPos.of(context.getLevel(), context.getClickedPos(), context.getClickedFace());
             PartHelpers.PartStateHolder<?, ?> partStateHolder = PartHelpers.getPart(partPos);
             if (partStateHolder != null && partStateHolder.getPart() == PartTypes.CONNECTOR_OMNI) {
                 PartTypeConnectorOmniDirectional.State state = (PartTypeConnectorOmniDirectional.State) partStateHolder.getState();
                 setGroupId(stack, state.getGroupId());
-                context.getPlayer().sendStatusMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.linked"), true);
+                context.getPlayer().displayClientMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.linked"), true);
                 return ActionResultType.SUCCESS;
             }
         }
@@ -89,7 +91,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
     @Nullable
     @Override
     public INamedContainerProvider getContainer(World world, PlayerEntity playerEntity, int itemIndex, Hand hand, ItemStack itemStack) {
-        return new NamedContainerProviderItem(itemIndex, hand, itemStack.getDisplayName(),
+        return new NamedContainerProviderItem(itemIndex, hand, itemStack.getHoverName(),
                 (id, playerInventory, slot, hand1) -> new ContainerTerminalStorageItem(id, playerInventory, slot, hand1, Optional.empty(),
                         getTerminalStorageState(InventoryHelpers.getItemFromIndex(playerEntity, itemIndex, hand), playerEntity, itemIndex, hand)));
     }
@@ -112,8 +114,8 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     @Override
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+        super.appendHoverText(stack, worldIn, tooltip, flagIn);
         int groupId = getGroupId(stack);
         if (groupId >= 0) {
             tooltip.add(new TranslationTextComponent(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
@@ -169,7 +171,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
             tagRoot.put(NBT_KEY_STATES, new CompoundNBT());
         }
         CompoundNBT tagStates = tagRoot.getCompound(NBT_KEY_STATES);
-        String playerKey = player.getUniqueID().toString();
+        String playerKey = player.getUUID().toString();
 
         // Construct item dirty mark listener
         Wrapper<TerminalStorageState> stateWrapped = new Wrapper<>();

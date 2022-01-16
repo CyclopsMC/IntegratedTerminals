@@ -61,16 +61,16 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
         this.buttons.clear();
         this.children.clear();
 
-        ITerminalCraftingPlan craftingPlan = getContainer().getCraftingPlan().orElse(null);
+        ITerminalCraftingPlan craftingPlan = getMenu().getCraftingPlan().orElse(null);
         if (craftingPlan != null) {
             GuiCraftingPlan previousGuiCraftingPlan = this.guiCraftingPlan;
-            this.guiCraftingPlan = new GuiCraftingPlan(this, craftingPlan, guiLeft, guiTop, 9, 18, 10);
+            this.guiCraftingPlan = new GuiCraftingPlan(this, craftingPlan, leftPos, topPos, 9, 18, 10);
             if (previousGuiCraftingPlan != null) {
                 this.guiCraftingPlan.inheritVisualizationState(previousGuiCraftingPlan);
             }
             this.children.add(this.guiCraftingPlan);
 
-            addButton(new ButtonText(guiLeft + 70, guiTop + 198, 100, 20,
+            addButton(new ButtonText(leftPos + 70, topPos + 198, 100, 20,
                     new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     (b) -> cancelCraftingJob(),
@@ -92,27 +92,27 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     private void returnToOverview() {
-        PartPos center = getContainer().getTarget().get().getCenter();
+        PartPos center = getMenu().getTarget().get().getCenter();
         OpenCraftingJobsGuiPacket.send(center.getPos().getBlockPos(), center.getSide());
     }
 
     private void cancelCraftingJob() {
         // Send packet to cancel crafting job
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new CancelCraftingJobPacket(getContainer().getCraftingJobGuiData()));
+                new CancelCraftingJobPacket(getMenu().getCraftingJobGuiData()));
 
         // Return to overview
         returnToOverview();
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        // super.renderBg(matrixStack, partialTicks, mouseX, mouseY); // TODO: restore
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
         } else {
             drawCenteredString(matrixStack, font, L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.empty"),
-                    guiLeft + getBaseXSize() / 2, guiTop + 23, 16777215);
+                    leftPos + getBaseXSize() / 2, topPos + 23, 16777215);
         }
     }
 
@@ -125,7 +125,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
@@ -152,7 +152,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     public void onUpdate(int valueId, CompoundNBT value) {
         super.onUpdate(valueId, value);
 
-        if (getContainer().getCraftingPlanNotifierId() == valueId) {
+        if (getMenu().getCraftingPlanNotifierId() == valueId) {
             this.init();
         }
     }

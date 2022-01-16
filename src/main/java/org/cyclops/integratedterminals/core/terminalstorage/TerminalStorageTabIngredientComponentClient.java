@@ -112,8 +112,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @SubscribeEvent
     public static void onToolTip(ItemTooltipEvent event) {
         // If this tab is active, render the quantity in all player inventory item tooltips.
-        if (event.getPlayer() != null && event.getPlayer().openContainer instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase<?> container = (ContainerTerminalStorageBase<?>) event.getPlayer().openContainer;
+        if (event.getPlayer() != null && event.getPlayer().containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase<?> container = (ContainerTerminalStorageBase<?>) event.getPlayer().containerMenu;
             ITerminalStorageTabClient<?> tab = container.getTabsClient().get(container.getSelectedTab());
             if (tab instanceof TerminalStorageTabIngredientComponentClient) {
                 IIngredientComponentTerminalStorageHandler handler = ((TerminalStorageTabIngredientComponentClient) tab).ingredientComponentViewHandler;
@@ -545,7 +545,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             long moveQuantity = this.activeSlotQuantity;
             long movePlayerQuantity = 0;
             boolean reset = false; // So that a reset occurs after the packet is sent
-            if (validHoveringStorageSlot && player.inventory.getItemStack().isEmpty() && activeSlotId < 0) {
+            if (validHoveringStorageSlot && player.inventory.getCarried().isEmpty() && activeSlotId < 0) {
                 if (isCraftingOption) {
                     // Craft
                     initiateCraftingOption = true;
@@ -566,10 +566,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         }
                     }
                 }
-            } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getStack().isEmpty() && shift) {
+            } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getItem().isEmpty() && shift) {
                 // Quick move max quantity from player to storage
                 clickType = mouseButton == 2 ? TerminalClickType.PLAYER_QUICK_MOVE_INCREMENTAL : TerminalClickType.PLAYER_QUICK_MOVE;
-            } else if (hasClickedInStorage && !player.inventory.getItemStack().isEmpty()) {
+            } else if (hasClickedInStorage && !player.inventory.getCarried().isEmpty()) {
                 // Move into storage
                 clickType = TerminalClickType.PLAYER_PLACE_STORAGE;
                 if (mouseButton == 0) {
@@ -782,7 +782,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     public boolean isSlotValidForDraggingInto(int channel, Slot slot) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getViewHandler();
 
-        ItemStack stack = slot.getStack();
+        ItemStack stack = slot.getItem();
         if (!viewHandler.isInstance(stack)) {
             return false;
         }
@@ -825,14 +825,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             int activeSlotQuantityOld = this.activeSlotQuantity;
 
             this.activeSlotQuantity = quantity;
-            this.handleClick(container, channel, getActiveSlotId(), 0, false, false, slot.slotNumber);
+            this.handleClick(container, channel, getActiveSlotId(), 0, false, false, slot.index);
 
             this.activeSlotId = oldActiveSlotId;
             this.activeSlotQuantity = activeSlotQuantityOld;
         }
 
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getViewHandler();
-        ItemStack stack = slot.getStack();
+        ItemStack stack = slot.getItem();
         T stackInstance = viewHandler.getInstance(stack);
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
         int instanceQuantity = Helpers.castSafe(matcher.getQuantity(stackInstance));

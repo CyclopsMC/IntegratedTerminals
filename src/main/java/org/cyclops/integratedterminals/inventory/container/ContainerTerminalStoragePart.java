@@ -64,7 +64,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
         this.partContainer = partContainer;
 
         putButtonAction(ContainerMultipart.BUTTON_SETTINGS, (s, containerExtended) -> {
-            if(!getWorld().isRemote()) {
+            if(!getWorld().isClientSide()) {
                 PartHelpers.openContainerPart((ServerPlayerEntity) player, target.getCenter(), partType);
             }
         });
@@ -87,7 +87,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(PlayerEntity playerIn) {
         return PartHelpers.canInteractWith(getPartTarget(), player, this.partContainer.get());
     }
 

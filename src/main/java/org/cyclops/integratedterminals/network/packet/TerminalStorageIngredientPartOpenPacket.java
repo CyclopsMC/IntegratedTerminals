@@ -100,7 +100,7 @@ public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
 		// Trigger gui opening
 		NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
 			PacketCodec.write(packetBuffer, partPos);
-			packetBuffer.writeString(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
+			packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
 
 			packetBuffer.writeBoolean(true);
 			initData.writeToPacketBuffer(packetBuffer);

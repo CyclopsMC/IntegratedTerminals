@@ -75,10 +75,10 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
     }
 
     @Override
-    public void detectAndSendChanges() {
-        super.detectAndSendChanges();
+    public void broadcastChanges() {
+        super.broadcastChanges();
 
-        if (!this.getWorld().isRemote()
+        if (!this.getWorld().isClientSide()
                 && this.lastUpdate < System.currentTimeMillis()) {
             getNetwork().ifPresent(network -> {
                 this.lastUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
@@ -110,7 +110,7 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(PlayerEntity playerIn) {
         return true;
     }
 

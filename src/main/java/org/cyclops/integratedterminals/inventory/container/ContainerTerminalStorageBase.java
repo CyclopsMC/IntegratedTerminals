@@ -71,7 +71,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                                         Optional<ITerminalStorageTabCommon.IVariableInventory> variableInventory) {
         super(type, id, playerInventory, new Inventory());
 
-        this.world = player.getEntityWorld();
+        this.world = player.getCommandSenderWorld();
         this.tabsClient = Maps.newLinkedHashMap();
         this.tabsServer = Maps.newLinkedHashMap();
         this.tabsCommon = Maps.newLinkedHashMap();
@@ -92,7 +92,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         // Add all tabs from the registry
         for (ITerminalStorageTab tab : TerminalStorageTabs.REGISTRY.getTabs()) {
             String tabId = tab.getName().toString();
-            if (this.getWorld().isRemote()) {
+            if (this.getWorld().isClientSide()) {
                 this.tabsClient.put(tabId, tab.createClientTab(this, player));
             } else {
                 this.tabsServer.put(tabId, tab.createServerTab(this, player, network.get()));
@@ -101,16 +101,16 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
             if (commonTab != null) {
                 this.tabsCommon.put(tabId, commonTab);
 
-                int slotStartIndex = this.inventorySlots.size();
+                int slotStartIndex = this.slots.size();
                 List<Slot> slots = commonTab.loadSlots(this, slotStartIndex, player, getVariableInventory());
                 TerminalStorageTabCommonLoadSlotsEvent loadSlotsEvent = new TerminalStorageTabCommonLoadSlotsEvent(
                         commonTab, this, slots);
                 MinecraftForge.EVENT_BUS.post(loadSlotsEvent);
                 slots = loadSlotsEvent.getSlots();
                 this.tabSlots.put(tabId, slots.stream()
-                        .map(slot -> Triple.of(slot, slot.xPos, slot.yPos)).collect(Collectors.toList()));
+                        .map(slot -> Triple.of(slot, slot.x, slot.y)).collect(Collectors.toList()));
                 for (Slot slot : slots) {
-                    if (slot.slotNumber == 0) {
+                    if (slot.index == 0) {
                         this.addSlot(slot);
                     }
                 }
@@ -123,7 +123,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         }
 
         // Load gui state
-        if (player.world.isRemote()) {
+        if (player.level.isClientSide()) {
             TerminalStorageState state = getGuiState();
             setSelectedTab(state.hasTab() ? state.getTab() : getTabsClient().size() > 0
                     ? Iterables.getFirst(getTabsClient().values(), null).getName().toString() : null);
@@ -140,7 +140,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
         // Update player's default state
         putButtonAction(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, (s, containerExtended) -> {
-            if (!playerInventory.player.world.isRemote()) {
+            if (!playerInventory.player.level.isClientSide()) {
                 TerminalStorageState.setPlayerDefault(playerInventory.player, getGuiState());
             }
         });
@@ -171,7 +171,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     }
 
     public void sendGuiStateToServer() {
-        if (player.world.isRemote()) {
+        if (player.level.isClientSide()) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageChangeGuiState(getGuiState()));
         }
     }
@@ -181,8 +181,8 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     }
 
     @Override
-    public void detectAndSendChanges() {
-        super.detectAndSendChanges();
+    public void broadcastChanges() {
+        super.broadcastChanges();
         // Init tabs
         if (!serverTabsInitialized) {
             for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
@@ -214,14 +214,14 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     }
 
     @Override
-    public void onCraftMatrixChanged(IInventory inventoryIn) {
+    public void slotsChanged(IInventory inventoryIn) {
         // Do nothing, we handle this manually using dirty listeners
     }
 
     @Override
-    public void onContainerClosed(PlayerEntity playerIn) {
-        super.onContainerClosed(playerIn);
-        if (!getWorld().isRemote() && serverTabsInitialized) {
+    public void removed(PlayerEntity playerIn) {
+        super.removed(playerIn);
+        if (!getWorld().isClientSide() && serverTabsInitialized) {
             for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
                 tab.deInit();
             }
@@ -230,7 +230,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     @Override
     protected int getSizeInventory() {
-        return inventorySlots.size() - player.inventory.mainInventory.size();
+        return slots.size() - player.inventory.items.size();
     }
 
     public List<Triple<Slot, Integer, Integer>> getTabSlots(String tabName) {
@@ -264,7 +264,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     public void setSelectedTab(@Nullable String selectedTab) {
         disableSlots(getSelectedTab());
 
-        if (player.world.isRemote) {
+        if (player.level.isClientSide) {
             ITerminalStorageTabClient previousTab = getTabClient(getSelectedTab());
             if (previousTab != null) {
                 previousTab.onDeselect(getSelectedChannel());
@@ -373,12 +373,12 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         }
 
         public void writeToPacketBuffer(PacketBuffer packetBuffer) {
-            packetBuffer.writeString(tabName);
+            packetBuffer.writeUtf(tabName);
             packetBuffer.writeInt(channel);
         }
 
         public static InitTabData readFromPacketBuffer(PacketBuffer packetBuffer) {
-            return new InitTabData(packetBuffer.readString(32767), packetBuffer.readInt());
+            return new InitTabData(packetBuffer.readUtf(32767), packetBuffer.readInt());
         }
 
     }

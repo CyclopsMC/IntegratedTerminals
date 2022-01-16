@@ -149,10 +149,10 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         }
 
         public TerminalStorageState getPlayerStorageState(PlayerEntity player) {
-            TerminalStorageState state = playerStorageStates.get(player.getUniqueID().toString());
+            TerminalStorageState state = playerStorageStates.get(player.getUUID().toString());
             if (state == null) {
                 state = TerminalStorageState.getPlayerDefault(player, this);
-                playerStorageStates.put(player.getUniqueID().toString(), state);
+                playerStorageStates.put(player.getUUID().toString(), state);
                 this.onDirty();
             }
             return state;

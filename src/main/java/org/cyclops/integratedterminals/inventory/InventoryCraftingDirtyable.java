@@ -19,23 +19,23 @@ public class InventoryCraftingDirtyable extends CraftingInventory {
     }
 
     @Override
-    public ItemStack decrStackSize(int index, int count) {
-        ItemStack decreased = super.decrStackSize(index, count);
+    public ItemStack removeItem(int index, int count) {
+        ItemStack decreased = super.removeItem(index, count);
         if (!decreased.isEmpty()) {
-            this.markDirty();
+            this.setChanged();
         }
         return decreased;
     }
 
     @Override
-    public void setInventorySlotContents(int index, ItemStack stack) {
-        super.setInventorySlotContents(index, stack);
-        this.markDirty();
+    public void setItem(int index, ItemStack stack) {
+        super.setItem(index, stack);
+        this.setChanged();
     }
 
     @Override
-    public void markDirty() {
-        super.markDirty();
+    public void setChanged() {
+        super.setChanged();
         this.dirtyMarkListener.onDirty();
     }
 }

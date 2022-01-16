@@ -78,13 +78,13 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                 GuiHelpers.renderFluidSlot(gui, matrixStack, instance, x, y);
 
                 // Draw amount
-                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().fontRenderer, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
-                GlStateManager.disableLighting();
+                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
+                GlStateManager._disableLighting();
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<ITextComponent> lines = Lists.newArrayList();
                     lines.add(((IFormattableTextComponent) instance.getDisplayName())
-                            .mergeStyle(instance.getFluid().getAttributes().getRarity().color));
+                            .withStyle(instance.getFluid().getAttributes().getRarity().color));
                     addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
                         lines.addAll(additionalTooltipLines);
@@ -140,7 +140,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     public FluidStack insertIntoContainer(IIngredientComponentStorage<FluidStack, Integer> storage,
                                           Container container, int containerSlot, FluidStack maxInstance,
                                           @Nullable PlayerEntity player, boolean transferFullSelection) {
-        ItemStack stack = container.getSlot(containerSlot).getStack();
+        ItemStack stack = container.getSlot(containerSlot).getItem();
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .map(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
@@ -152,8 +152,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         // Ignore
                     }
 
-                    container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
-                    container.detectAndSendChanges();
+                    container.getSlot(containerSlot).set(fluidHandler.getContainer());
+                    container.broadcastChanges();
                     return moved;
                 })
                 .orElse(FluidStack.EMPTY);
@@ -169,7 +169,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
                                                       PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
-        ItemStack playerStack = playerInventory.getItemStack();
+        ItemStack playerStack = playerInventory.getCarried();
         playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .ifPresent(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
@@ -179,15 +179,15 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         // Ignore
                     }
 
-                    playerInventory.setItemStack(fluidHandler.getContainer());
+                    playerInventory.setCarried(fluidHandler.getContainer());
                 });
     }
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
         Slot slot = container.getSlot(containerSlot);
-        if (slot.canTakeStack(playerInventory.player)) {
-            ItemStack toMoveStack = slot.getStack();
+        if (slot.mayPickup(playerInventory.player)) {
+            ItemStack toMoveStack = slot.getItem();
             toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                     .ifPresent(fluidHandler -> {
                         IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
@@ -197,15 +197,15 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                             // Ignore
                         }
 
-                        container.getSlot(containerSlot).putStack(fluidHandler.getContainer());
-                        container.detectAndSendChanges();
+                        container.getSlot(containerSlot).set(fluidHandler.getContainer());
+                        container.broadcastChanges();
                     });
         }
     }
 
     @Override
     public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
-        ItemStack toMoveStack = playerInventory.getItemStack();
+        ItemStack toMoveStack = playerInventory.getCarried();
         return toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0).getAmount() : 0)
                 .orElse(0);
@@ -213,7 +213,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantityIn) {
-        ItemStack toMoveStack = playerInventory.getItemStack();
+        ItemStack toMoveStack = playerInventory.getCarried();
         toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .ifPresent(fluidHandler -> {
                     long quantity = quantityIn;
@@ -224,7 +224,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         }
                         quantity -= drained;
                     }
-                    playerInventory.setItemStack(fluidHandler.getContainer());
+                    playerInventory.setCarried(fluidHandler.getContainer());
                 });
     }
 
@@ -238,9 +238,9 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             case TOOLTIP:
                 return i -> false; // Fluids have no tooltip
             case TAG:
-                return i -> FluidTags.getCollection().getOwningTags(i.getFluid()).stream()
+                return i -> FluidTags.getAllTags().getMatchingTags(i.getFluid()).stream()
                         .filter(id -> id.toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                        .map(r -> FluidTags.getCollection().get(r))
+                        .map(r -> FluidTags.getAllTags().getTag(r))
                         .anyMatch(Objects::nonNull);
             case DEFAULT:
                 return i -> i != null && i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");

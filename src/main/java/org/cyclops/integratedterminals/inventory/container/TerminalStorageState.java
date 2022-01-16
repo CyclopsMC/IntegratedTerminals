@@ -102,11 +102,11 @@ public class TerminalStorageState {
     }
 
     public void writeToPacketBuffer(PacketBuffer packetBuffer) {
-        packetBuffer.writeCompoundTag(tag);
+        packetBuffer.writeNbt(tag);
     }
 
     public static TerminalStorageState readFromPacketBuffer(PacketBuffer packetBuffer) {
-        return new TerminalStorageState(packetBuffer.readCompoundTag(), () -> {});
+        return new TerminalStorageState(packetBuffer.readNbt(), () -> {});
     }
 
     public static void setPlayerDefault(PlayerEntity playerEntity, TerminalStorageState state) {

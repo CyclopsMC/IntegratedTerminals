@@ -58,11 +58,11 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     }
 
     @Override
-    public void detectAndSendChanges() {
-        super.detectAndSendChanges();
+    public void broadcastChanges() {
+        super.broadcastChanges();
 
         // Calculate crafting plan on server
-        if (!this.getWorld().isRemote()
+        if (!this.getWorld().isClientSide()
                 && this.lastUpdate < System.currentTimeMillis()) {
             this.lastUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
             updateCraftingPlan();
@@ -90,7 +90,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(PlayerEntity playerIn) {
         return true;
     }
 

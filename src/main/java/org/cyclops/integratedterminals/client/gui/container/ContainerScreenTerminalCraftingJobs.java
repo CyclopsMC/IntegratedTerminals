@@ -57,12 +57,12 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     public void init() {
         super.init();
 
-        scrollBar = new WidgetScrollBar(guiLeft + 236, guiTop + 18, 178,
+        scrollBar = new WidgetScrollBar(leftPos + 236, topPos + 18, 178,
                 new TranslationTextComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 10);
         this.children.add(this.scrollBar);
-        scrollBar.setTotalRows(getContainer().getCraftingJobs().size() - 1);
+        scrollBar.setTotalRows(getMenu().getCraftingJobs().size() - 1);
 
-        addButton(new ButtonText(guiLeft + 70, guiTop + 198, 120, 20,
+        addButton(new ButtonText(leftPos + 70, topPos + 198, 120, 20,
                 new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
                 new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
                 (b) -> cancelCraftingJobs(), true));
@@ -84,27 +84,27 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        // super.renderBg(matrixStack, partialTicks, mouseX, mouseY); // TODO: restore
         scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
         RenderHelpers.bindTexture(this.texture);
-        drawCraftingPlans(matrixStack, guiLeft, guiTop, partialTicks, mouseX - guiLeft, mouseY - guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
+        drawCraftingPlans(matrixStack, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
 
         // Draw plan label
-        drawString(matrixStack, Minecraft.getInstance().fontRenderer,
+        drawString(matrixStack, Minecraft.getInstance().font,
                 L10NHelpers.localize("parttype.integratedterminals.terminal_crafting_job"),
-                guiLeft + 8, guiTop + 5, 16777215);
+                leftPos + 8, topPos + 5, 16777215);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         drawCraftingPlans(matrixStack, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
     }
 
     protected List<HandlerWrappedTerminalCraftingPlan> getVisiblePlans() {
-        return this.getContainer().getCraftingJobs()
-                .subList(firstRow, Math.min(this.getContainer().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
+        return this.getMenu().getCraftingJobs()
+                .subList(firstRow, Math.min(this.getMenu().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
     }
 
     protected void drawCraftingPlans(MatrixStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
@@ -122,7 +122,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
         // Draw background color if hovering
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND
-                && RenderHelpers.isPointInRegion(x - guiLeft, y - guiTop, LINE_WIDTH, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
+                && RenderHelpers.isPointInRegion(x - leftPos, y - topPos, LINE_WIDTH, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
             fill(matrixStack, x + 1, y + 1, x + LINE_WIDTH + 1, y + GuiHelpers.SLOT_SIZE, -2130706433);
         }
 
@@ -172,22 +172,22 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     private void cancelCraftingJobs() {
         // Send packets to cancel crafting jobs
-        for (HandlerWrappedTerminalCraftingPlan craftingJob : getContainer().getCraftingJobs()) {
-            PartPos center = getContainer().getTarget().get().getCenter();
+        for (HandlerWrappedTerminalCraftingPlan craftingJob : getMenu().getCraftingJobs()) {
+            PartPos center = getMenu().getTarget().get().getCenter();
             CraftingJobGuiData data = new CraftingJobGuiData(center.getPos().getBlockPos(), center.getSide(),
-                    getContainer().getChannel(), craftingJob.getHandler(),
+                    getMenu().getChannel(), craftingJob.getHandler(),
                     craftingJob.getCraftingPlan().getId());
             IntegratedTerminals._instance.getPacketHandler().sendToServer(new CancelCraftingJobPacket(data));
         }
 
         // Close the gui
-        this.player.closeScreen();
+        this.player.closeContainer();
     }
 
     @Nullable
     protected HandlerWrappedTerminalCraftingPlan getHoveredPlan(double mouseX, double mouseY) {
-        mouseX -= guiLeft;
-        mouseY -= guiTop;
+        mouseX -= leftPos;
+        mouseY -= topPos;
         if (mouseX > OUTPUT_SLOT_X && mouseX < OUTPUT_SLOT_X + LINE_WIDTH
                 && mouseY > OUTPUT_SLOT_Y && mouseY < OUTPUT_SLOT_Y + GuiHelpers.SLOT_SIZE * scrollBar.getVisibleRows()) {
             int index = (((int) mouseY) - OUTPUT_SLOT_Y) / GuiHelpers.SLOT_SIZE;
@@ -203,8 +203,8 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
         HandlerWrappedTerminalCraftingPlan plan = getHoveredPlan(mouseX, mouseY);
         if (plan != null) {
-            PartPos pos = getContainer().getTarget().get().getCenter();
-            OpenCraftingJobsPlanGuiPacket.send(pos.getPos().getBlockPos(), pos.getSide(), getContainer().getChannel(), plan);
+            PartPos pos = getMenu().getTarget().get().getCenter();
+            OpenCraftingJobsPlanGuiPacket.send(pos.getPos().getBlockPos(), pos.getSide(), getMenu().getChannel(), plan);
             return true;
         }
 
@@ -213,7 +213,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
-        return this.getListener() != null && this.isDragging() && mouseButton == 0 && this.getListener().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {
@@ -224,7 +224,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     public void onUpdate(int valueId, CompoundNBT value) {
         super.onUpdate(valueId, value);
 
-        if (valueId == this.getContainer().getValueIdCraftingJobs()) {
+        if (valueId == this.getMenu().getValueIdCraftingJobs()) {
             this.init();
         }
     }

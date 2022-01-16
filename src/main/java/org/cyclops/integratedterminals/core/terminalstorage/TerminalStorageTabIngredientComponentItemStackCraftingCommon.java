@@ -29,6 +29,8 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientI
 import java.util.List;
 import java.util.Optional;
 
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon.IVariableInventory;
+
 /**
  * A common-side storage terminal ingredient tab for crafting with {@link ItemStack} instances.
  * @author rubensworks
@@ -52,7 +54,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         ITerminalStorageTabCommon tabCommon = ((ContainerTerminalStorageBase) container).getTabCommon(name.toString());
         TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
                 (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
-        return tabCommonCrafting.getSlotCrafting().slotNumber;
+        return tabCommonCrafting.getSlotCrafting().index;
     }
 
     @Override
@@ -66,9 +68,9 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
 
         this.inventoryCraftResult = new CraftResultInventory() {
             @Override
-            public void markDirty() {
+            public void setChanged() {
                 dirtyListener.onDirty();
-                super.markDirty();
+                super.setChanged();
             }
         };
         this.inventoryCrafting = new InventoryCraftingDirtyable(container, 3, 3, dirtyListener);
@@ -89,9 +91,9 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
             int i = 0;
             for (ItemStack tabItem : tabItems) {
                 if (i == 0) {
-                    this.inventoryCraftResult.setInventorySlotContents(i++, tabItem);
+                    this.inventoryCraftResult.setItem(i++, tabItem);
                 } else {
-                    this.inventoryCrafting.setInventorySlotContents(i++ - 1, tabItem);
+                    this.inventoryCrafting.setItem(i++ - 1, tabItem);
                 }
             }
         }
@@ -125,19 +127,19 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
 
     public void updateCraftingResult(PlayerEntity player, Container container,
                                      ITerminalStorageTabCommon.IVariableInventory variableInventory) {
-        if (!player.world.isRemote) {
+        if (!player.level.isClientSide) {
             ServerPlayerEntity entityplayermp = (ServerPlayerEntity)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.world).orElse(null);
+            ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.level).orElse(null);
 
-            if (recipe != null && (recipe.isDynamic()
-                    || !player.world.getGameRules().getBoolean(GameRules.DO_LIMITED_CRAFTING)
-                    || entityplayermp.getRecipeBook().isUnlocked(recipe))) {
+            if (recipe != null && (recipe.isSpecial()
+                    || !player.level.getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
+                    || entityplayermp.getRecipeBook().contains(recipe))) {
                 inventoryCraftResult.setRecipeUsed(recipe);
-                itemstack = recipe.getCraftingResult(inventoryCrafting);
+                itemstack = recipe.assemble(inventoryCrafting);
             }
 
-            inventoryCraftResult.setInventorySlotContents(0, itemstack);
+            inventoryCraftResult.setItem(0, itemstack);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientItemStackCraftingGridSetResult(getName().toString(), itemstack),
                     (ServerPlayerEntity) player);
@@ -146,7 +148,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         // Save changes into the part state
         NonNullList<ItemStack> latestItems = NonNullList.create();
         for (Slot slot : slots) {
-            latestItems.add(slot.getStack());
+            latestItems.add(slot.getItem());
         }
         variableInventory.setNamedInventory(this.getName().toString(), latestItems);
     }

@@ -6,6 +6,8 @@ import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
+import net.minecraft.client.gui.widget.button.Button.IPressable;
+
 /**
  * A gui button for toggling sorting modes.
  * @author rubensworks

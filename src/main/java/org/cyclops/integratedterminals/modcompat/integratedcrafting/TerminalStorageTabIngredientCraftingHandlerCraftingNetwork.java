@@ -230,7 +230,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 && craftingPlan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph();
             try {
-                CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetworkChecked(network), craftingJobDependencyGraph, true, player.getUniqueID());
+                CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetworkChecked(network), craftingJobDependencyGraph, true, player.getUUID());
             } catch (UnavailableCraftingInterfacesException e) {
                 throw new CraftingJobStartException("gui.integratedterminals.terminal_storage.craftingplan.label.failed.insufficient_crafting_interfaces");
             }
@@ -356,8 +356,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         if (uuid != null) {
             try {
                 UUID uuidObject = UUID.fromString(uuid);
-                GameProfile profile = ServerLifecycleHooks.getCurrentServer().getPlayerProfileCache()
-                        .getProfileByUUID(uuidObject);
+                GameProfile profile = ServerLifecycleHooks.getCurrentServer().getProfileCache()
+                        .get(uuidObject);
                 if (profile != null) {
                     return profile.getName();
                 }
@@ -443,6 +443,6 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
     @Override
     public Integer deserializeCraftingJobId(INBT tag) {
-        return ((IntNBT) tag).getInt();
+        return ((IntNBT) tag).getAsInt();
     }
 }

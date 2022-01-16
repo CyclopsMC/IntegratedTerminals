@@ -15,6 +15,6 @@ public class ItemStackNameSorter extends IngredientInstanceSorterAdapter<ItemSta
 
     @Override
     public int compare(ItemStack o1, ItemStack o2) {
-        return o1.getDisplayName().getString().compareTo(o2.getDisplayName().getString());
+        return o1.getHoverName().getString().compareTo(o2.getHoverName().getString());
     }
 }

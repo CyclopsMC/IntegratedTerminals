@@ -26,6 +26,8 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import java.util.List;
 import java.util.Optional;
 
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon.IVariableInventory;
+
 /**
  * A common storage terminal ingredient tab.
  * @param <T> The instance type.
@@ -73,7 +75,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         inventory = new SimpleInventory(3, 1);
         variableInventory.loadNamedInventory(this.getName().toString(), inventory);
         variableEvaluators.clear();
-        for (int i = 0; i < inventory.getSizeInventory(); i++) {
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
             int slot = i;
             variableEvaluators.add(new InventoryVariableEvaluator<ValueTypeOperator.ValueOperator>(inventory,
                     slot, ValueTypes.OPERATOR) {
@@ -84,7 +86,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
                 }
             });
         }
-        variableSlotNumberEnd = startIndex + inventory.getSizeInventory();
+        variableSlotNumberEnd = startIndex + inventory.getContainerSize();
 
         inventory.addDirtyMarkListener(() -> dirtyInv = true);
 
@@ -108,7 +110,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     @Override
     public void onUpdate(Container container, PlayerEntity player,
                          Optional<IVariableInventory> variableInventory) {
-        if (this.dirtyInv && !player.world.isRemote) {
+        if (this.dirtyInv && !player.level.isClientSide) {
             this.dirtyInv = false;
 
             ContainerTerminalStorageBase<?> containerTerminalStorage = (ContainerTerminalStorageBase) container;
@@ -123,13 +125,13 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
             if (network == null) {
                 addError(new TranslationTextComponent(L10NValues.GENERAL_ERROR_NONETWORK));
             } else {
-                for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                for (int i = 0; i < inventory.getContainerSize(); i++) {
                     InventoryVariableEvaluator<ValueTypeOperator.ValueOperator> evaluator = variableEvaluators.get(i);
                     evaluator.refreshVariable(network, false);
                     IVariable<ValueTypeOperator.ValueOperator> variable = evaluator.getVariable(network);
                     if (variable != null) {
                         // Refresh filter when variable is invalidated
-                        variable.addInvalidationListener(() -> inventory.markDirty());
+                        variable.addInvalidationListener(() -> inventory.setChanged());
                         this.variables.add(variable);
                     }
 

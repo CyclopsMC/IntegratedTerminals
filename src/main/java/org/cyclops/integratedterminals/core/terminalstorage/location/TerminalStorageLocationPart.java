@@ -80,7 +80,7 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
 
         // Trigger gui opening
         NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
-            packetBuffer.writeString(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
+            packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);
         });
     }
@@ -106,7 +106,7 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
 
         // Trigger gui opening
         NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
-            packetBuffer.writeString(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
+            packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);
         });
     }

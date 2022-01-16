@@ -56,7 +56,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
         if (this.craftingPlan != null) {
             this.children.clear();
-            this.guiCraftingPlan = new GuiCraftingPlan(this, this.craftingPlan, guiLeft, guiTop, 9, 18, 10);
+            this.guiCraftingPlan = new GuiCraftingPlan(this, this.craftingPlan, leftPos, topPos, 9, 18, 10);
             this.children.add(this.guiCraftingPlan);
         } else {
             this.guiCraftingPlan = null;
@@ -64,9 +64,9 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
         ButtonText button;
         this.buttons.clear();
-        addButton(button = new ButtonText(guiLeft + 95, guiTop + 198, 50, 20,
+        addButton(button = new ButtonText(leftPos + 95, topPos + 198, 50, 20,
                         new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft"),
-                        new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft").mergeStyle(TextFormatting.YELLOW),
+                        new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft").withStyle(TextFormatting.YELLOW),
                         createServerPressable(ContainerTerminalStorageCraftingPlanBase.BUTTON_START, (b) -> {}),
                         true));
         button.active = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
@@ -83,23 +83,23 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     private void returnToTerminalStorage() {
-        CraftingOptionGuiData data = getContainer().getCraftingOptionGuiData();
+        CraftingOptionGuiData data = getMenu().getCraftingOptionGuiData();
         data.getLocation().openContainerFromClient(data);
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
+    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        // super.renderBg(matrixStack, partialTicks, mouseX, mouseY); // TODO: restore
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
         } else {
             drawCenteredString(matrixStack, font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
-                    guiLeft + getBaseXSize() / 2, guiTop + 23, 16777215);
+                    leftPos + getBaseXSize() / 2, topPos + 23, 16777215);
         }
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
@@ -134,8 +134,8 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     public void onUpdate(int valueId, CompoundNBT value) {
         super.onUpdate(valueId, value);
 
-        if (getContainer().getCraftingPlanNotifierId() == valueId) {
-            this.craftingPlan = getContainer().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlan(value);
+        if (getMenu().getCraftingPlanNotifierId() == valueId) {
+            this.craftingPlan = getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlan(value);
             this.init();
         }
     }

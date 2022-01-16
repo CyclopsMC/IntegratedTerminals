@@ -71,8 +71,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
 
                 // Draw background
-                GlStateManager.color4f(1, 1, 1, 1);
-                RenderHelper.enableStandardItemLighting();
+                GlStateManager._color4f(1, 1, 1, 1);
+                RenderHelper.turnBackOn();
                 RenderHelpers.bindTexture(Images.ICONS);
                 gui.blit(matrixStack, x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
 
@@ -90,10 +90,10 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                         16, 240, GuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
 
                 // Draw amount
-                GlStateManager.disableLighting();
-                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().fontRenderer, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
+                GlStateManager._disableLighting();
+                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
 
-                RenderHelper.disableStandardItemLighting();
+                RenderHelper.turnOff();
             } else {
                 GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> {
@@ -162,7 +162,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     public Long insertIntoContainer(IIngredientComponentStorage<Long, Boolean> storage,
                                        Container container, int containerSlot, Long maxInstance,
                                        @Nullable PlayerEntity player, boolean transferFullSelection) {
-        ItemStack stack = container.getSlot(containerSlot).getStack();
+        ItemStack stack = container.getSlot(containerSlot).getItem();
 
         return stack.getCapability(CapabilityEnergy.ENERGY)
                 .map(energyStorage -> {
@@ -173,7 +173,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                     } catch (InconsistentIngredientInsertionException e) {
                         // Ignore
                     }
-                    container.detectAndSendChanges();
+                    container.broadcastChanges();
                     return ret;
                 })
                 .orElse(0L);
@@ -182,7 +182,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<Long, Boolean> storage,
                                                       PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
-        ItemStack playerStack = playerInventory.getItemStack();
+        ItemStack playerStack = playerInventory.getCarried();
         playerStack.getCapability(CapabilityEnergy.ENERGY)
                 .ifPresent(energyStorage -> {
                     IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
@@ -198,8 +198,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<Long, Boolean> storage,
                                             Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
         Slot slot = container.getSlot(containerSlot);
-        if (slot.canTakeStack(playerInventory.player)) {
-            ItemStack toMoveStack = slot.getStack();
+        if (slot.mayPickup(playerInventory.player)) {
+            ItemStack toMoveStack = slot.getItem();
             toMoveStack.getCapability(CapabilityEnergy.ENERGY)
                     .ifPresent(energyStorage -> {
                         IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
@@ -214,7 +214,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
-        ItemStack toMoveStack = playerInventory.getItemStack();
+        ItemStack toMoveStack = playerInventory.getCarried();
         return toMoveStack.getCapability(CapabilityEnergy.ENERGY)
                 .map(IEnergyStorage::getEnergyStored)
                 .orElse(0);
@@ -222,7 +222,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantityIn) {
-        ItemStack toMoveStack = playerInventory.getItemStack();
+        ItemStack toMoveStack = playerInventory.getCarried();
         toMoveStack.getCapability(CapabilityEnergy.ENERGY)
                 .ifPresent(energyStorage -> {
                     // Drain

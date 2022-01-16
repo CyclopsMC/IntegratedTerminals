@@ -42,7 +42,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
         this.craftingOptionGuiData = craftingOptionGuiData;
         this.craftingPlanNotifierId = getNextValueId();
-        this.world = playerInventory.player.world;
+        this.world = playerInventory.player.level;
 
         putButtonAction(BUTTON_START, (buttonId, container) -> startCraftingJob());
     }
@@ -58,11 +58,11 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
     }
 
     @Override
-    public void detectAndSendChanges() {
-        super.detectAndSendChanges();
+    public void broadcastChanges() {
+        super.broadcastChanges();
 
         // Calculate crafting plan on server
-        if (!player.world.isRemote && !calculatedCraftingPlan) {
+        if (!player.level.isClientSide && !calculatedCraftingPlan) {
             this.calculatedCraftingPlan = true;
             updateCraftingPlan();
         }
@@ -103,12 +103,12 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(PlayerEntity playerIn) {
         return true;
     }
 
     private void startCraftingJob() {
-        if (!getWorld().isRemote()) {
+        if (!getWorld().isClientSide()) {
             // Start the crafting job
             if (craftingPlan != null) {
                 getNetwork().ifPresent(network -> {

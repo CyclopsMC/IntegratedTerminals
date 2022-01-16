@@ -59,7 +59,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     protected List<ITextComponent> getTooltipLines() {
         List<ITextComponent> tooltipLines = Lists.newArrayList();
         tooltipLines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.tooltip.requirements")
-                .mergeStyle(TextFormatting.YELLOW));
+                .withStyle(TextFormatting.YELLOW));
         ITerminalCraftingOption<T> option = getCraftingOption().getCraftingOption();
         for (IngredientComponent<?, ?> inputComponent : option.getInputComponents()) {
             IIngredientMatcher matcher = inputComponent.getMatcher();
@@ -78,10 +78,10 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     }
 
     private void drawCraftLabel(int x, int y) {
-        RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().fontRenderer, new MatrixStack(),
+        RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new MatrixStack(),
                 TextFormatting.GOLD + L10NHelpers.localize("gui.integratedterminals.terminal_storage.craft"), x, y - 11);
-        GlStateManager.color4f(1, 1, 1, 1);
-        GlStateManager.disableLighting();
+        GlStateManager._color4f(1, 1, 1, 1);
+        GlStateManager._disableLighting();
     }
 
 }

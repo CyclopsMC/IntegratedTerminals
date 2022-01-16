@@ -158,7 +158,7 @@ public class GuiCraftingPlan extends Widget {
     }
 
     protected int getTick() {
-        return (int) Minecraft.getInstance().world.getGameTime() / TICK_DELAY;
+        return (int) Minecraft.getInstance().level.getGameTime() / TICK_DELAY;
     }
 
     private void drawElement(MatrixStack matrixStack, Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
@@ -172,7 +172,7 @@ public class GuiCraftingPlan extends Widget {
 
         // Draw dropdown arrow
         if (!element.getChildren().isEmpty() && layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            GlStateManager.color4f(1, 1, 1, 1);
+            GlStateManager._color4f(1, 1, 1, 1);
             Image image = element.getChildren().get(0).isEnabled() ? Images.ARROW_DOWN : Images.ARROW_RIGHT;
             image.draw(this, matrixStack, x, y);
         }
@@ -197,19 +197,19 @@ public class GuiCraftingPlan extends Widget {
             // Draw counters
             if (element.getStorageQuantity() > 0) {
                 renderItem(new ItemStack(Blocks.CHEST), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getCraftQuantity() > 0) {
                 renderItem(new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getMissingQuantity() > 0) {
                 renderItem(new ItemStack(Blocks.BARRIER), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().fontRenderer, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215);
             }
-            GlStateManager.color4f(1, 1, 1, 1);
+            GlStateManager._color4f(1, 1, 1, 1);
         } else {
             // Draw tooltip over crafting status
             GuiHelpers.renderTooltipOptional(this.parentGui, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
@@ -223,24 +223,24 @@ public class GuiCraftingPlan extends Widget {
     }
 
     protected static void renderItem(ItemStack itemStack, int x, int y, float scale) {
-        GlStateManager.pushMatrix();
-        GlStateManager.translatef(x, y, 0);
-        GlStateManager.scalef(scale, scale, scale);
+        GlStateManager._pushMatrix();
+        GlStateManager._translatef(x, y, 0);
+        GlStateManager._scalef(scale, scale, scale);
 
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
-        GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        RenderHelper.enableStandardItemLighting();
-        GlStateManager.enableRescaleNormal();
-        GlStateManager.enableDepthTest();
+        GlStateManager._pushMatrix();
+        GlStateManager._enableBlend();
+        GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        RenderHelper.turnBackOn();
+        GlStateManager._enableRescaleNormal();
+        GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        renderItem.renderItemAndEffectIntoGUI(itemStack, 0, 0);
-        renderItem.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, itemStack, 0, 0, "");
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.popMatrix();
+        renderItem.renderAndDecorateItem(itemStack, 0, 0);
+        renderItem.renderGuiItemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
+        RenderHelper.turnOff();
+        GlStateManager._popMatrix();
 
-        GlStateManager.popMatrix();
+        GlStateManager._popMatrix();
     }
 
     public static String getDurationString(long tickDuration) {
@@ -250,10 +250,10 @@ public class GuiCraftingPlan extends Widget {
     }
 
     public void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        FontRenderer fontRenderer = Minecraft.getInstance().fontRenderer;
+        FontRenderer fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
-        drawCenteredString(matrixStack, Minecraft.getInstance().fontRenderer, this.label, guiLeft + x + ELEMENT_WIDTH / 2 + 8, guiTop + y - 13, 16777215);
+        drawCenteredString(matrixStack, Minecraft.getInstance().font, this.label, guiLeft + x + ELEMENT_WIDTH / 2 + 8, guiTop + y - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {
@@ -299,7 +299,7 @@ public class GuiCraftingPlan extends Widget {
             int y = this.guiTop + this.y + offsetY;
             offsetY += ELEMENT_HEIGHT_TOTAL;
             if (RenderHelpers.isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point((int) mouseX, (int) mouseY))) {
-                Minecraft.getInstance().getSoundHandler().play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 // Toggle children
                 for (Element child : element.getChildren()) {
                     child.setEnabled(!child.isEnabled());

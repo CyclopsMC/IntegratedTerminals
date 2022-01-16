@@ -42,8 +42,8 @@ public class TerminalStorageChangeGuiState extends PacketCodec {
 
     @Override
     public void actionServer(World world, ServerPlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             container.getGuiState().setTag(this.state);
         }
     }

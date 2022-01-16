@@ -105,12 +105,12 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Pai
 
     @Override
     public void writeToPacketBuffer(PacketBuffer packetBuffer, Pair<Hand, Integer> location) {
-        packetBuffer.writeString(location.getLeft().name());
+        packetBuffer.writeUtf(location.getLeft().name());
         packetBuffer.writeInt(location.getRight());
     }
 
     @Override
     public Pair<Hand, Integer> readFromPacketBuffer(PacketBuffer packetBuffer) {
-        return Pair.of(Hand.valueOf(packetBuffer.readString(32767)), packetBuffer.readInt());
+        return Pair.of(Hand.valueOf(packetBuffer.readUtf(32767)), packetBuffer.readInt());
     }
 }

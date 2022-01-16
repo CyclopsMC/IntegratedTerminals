@@ -82,6 +82,6 @@ public class TerminalButtonItemStackCraftingGridClear<T>
                                  int channel, boolean toStorage) {
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
                 new TerminalStorageIngredientItemStackCraftingGridClear(commomTab.getName().toString(), channel, toStorage));
-        commomTab.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
+        commomTab.getInventoryCraftResult().setItem(0, ItemStack.EMPTY);
     }
 }

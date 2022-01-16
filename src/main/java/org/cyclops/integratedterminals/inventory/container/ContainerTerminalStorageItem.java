@@ -88,7 +88,7 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(PlayerEntity playerIn) {
         ItemStack item = getItemStack(player);
         return item != null && item.getItem() == RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE;
     }
@@ -112,8 +112,8 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
     protected Slot createNewSlot(IInventory inventory, int index, int x, int y) {
         return new Slot(inventory, index, x, y) {
             @Override
-            public boolean canTakeStack(PlayerEntity playerIn) {
-                return super.canTakeStack(playerIn) && itemIndex != index;
+            public boolean mayPickup(PlayerEntity playerIn) {
+                return super.mayPickup(playerIn) && itemIndex != index;
             }
         };
     }

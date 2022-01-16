@@ -32,6 +32,8 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 
+import net.minecraft.client.gui.widget.button.Button.IPressable;
+
 /**
  * A gui for setting the amount for a given crafting option.
  * @author rubensworks
@@ -52,7 +54,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         super(container, inventory, title);
 
         this.outputs = Lists.newArrayList();
-        ITerminalCraftingOption<?> option = getContainer().getCraftingOptionGuiData().getCraftingOption().getCraftingOption();
+        ITerminalCraftingOption<?> option = getMenu().getCraftingOptionGuiData().getCraftingOption().getCraftingOption();
         for (IngredientComponent<?, ?> outputComponent : option.getOutputComponents()) {
             for (Object output : option.getOutputs(outputComponent)) {
                 this.outputs.add(new PrototypedIngredient(outputComponent, output, null));
@@ -79,36 +81,36 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     public void init() {
         super.init();
 
-        numberField = new WidgetNumberField(Minecraft.getInstance().fontRenderer,
-                guiLeft + 25, guiTop + 36, 53, 14, true,
+        numberField = new WidgetNumberField(Minecraft.getInstance().font,
+                leftPos + 25, topPos + 36, 53, 14, true,
                 new TranslationTextComponent("gui.integratedterminals.amount"), true);
         numberField.setPositiveOnly(true);
-        numberField.setMaxStringLength(5);
+        numberField.setMaxLength(5);
         numberField.setMaxValue(10000);
         numberField.setMinValue(1);
         numberField.setVisible(true);
         numberField.setTextColor(16777215);
         numberField.setCanLoseFocus(true);
-        numberField.setText("1");
+        numberField.setValue("1");
         children.add(numberField);
 
-        scrollBar = new WidgetScrollBar(guiLeft + 153, guiTop + 15, 54,
+        scrollBar = new WidgetScrollBar(leftPos + 153, topPos + 15, 54,
                 new TranslationTextComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 3);
         scrollBar.setTotalRows(outputs.size() - 1);
         children.add(scrollBar);
 
-        addButton(new ButtonChangeQuantity(guiLeft + 5, guiTop + 10, +10, this::buttonChangeQuantity));
-        addButton(new ButtonChangeQuantity(guiLeft + 5, guiTop + 55, -10, this::buttonChangeQuantity));
+        addButton(new ButtonChangeQuantity(leftPos + 5, topPos + 10, +10, this::buttonChangeQuantity));
+        addButton(new ButtonChangeQuantity(leftPos + 5, topPos + 55, -10, this::buttonChangeQuantity));
 
-        addButton(new ButtonChangeQuantity(guiLeft + 48, guiTop + 10, +100, this::buttonChangeQuantity));
-        addButton(new ButtonChangeQuantity(guiLeft + 48, guiTop + 55, -100, this::buttonChangeQuantity));
+        addButton(new ButtonChangeQuantity(leftPos + 48, topPos + 10, +100, this::buttonChangeQuantity));
+        addButton(new ButtonChangeQuantity(leftPos + 48, topPos + 55, -100, this::buttonChangeQuantity));
 
-        addButton(new ButtonChangeQuantity(guiLeft + 91, guiTop + 10, +1000, this::buttonChangeQuantity));
-        addButton(new ButtonChangeQuantity(guiLeft + 91, guiTop + 55, -1000, this::buttonChangeQuantity));
+        addButton(new ButtonChangeQuantity(leftPos + 91, topPos + 10, +1000, this::buttonChangeQuantity));
+        addButton(new ButtonChangeQuantity(leftPos + 91, topPos + 55, -1000, this::buttonChangeQuantity));
 
-        addButton(nextButton = new ButtonText(guiLeft + 81, guiTop + 33, 50, 20,
+        addButton(nextButton = new ButtonText(leftPos + 81, topPos + 33, 50, 20,
                 new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.next"),
-                new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.next").mergeStyle(TextFormatting.YELLOW),
+                new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.next").withStyle(TextFormatting.YELLOW),
                 (bb) -> calculateCraftingJob(),
                 true));
     }
@@ -131,7 +133,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     }
 
     private void returnToTerminalStorage() {
-        CraftingOptionGuiData data = getContainer().getCraftingOptionGuiData();
+        CraftingOptionGuiData data = getMenu().getCraftingOptionGuiData();
         data.getLocation().openContainerFromClient(data);
     }
 
@@ -143,7 +145,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     }
 
     private void calculateCraftingJob() {
-        CraftingOptionGuiData craftingOptionData = getContainer().getCraftingOptionGuiData().copyWithAmount(getAmount());
+        CraftingOptionGuiData craftingOptionData = getMenu().getCraftingOptionGuiData().copyWithAmount(getAmount());
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
                 new TerminalStorageIngredientOpenCraftingPlanGuiPacket(craftingOptionData));
     }
@@ -164,7 +166,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     }
 
     private void setAmount(int amount) {
-        this.numberField.setText(Integer.toString(this.numberField.validateNumber(amount)));
+        this.numberField.setValue(Integer.toString(this.numberField.validateNumber(amount)));
     }
 
     protected void drawOutputSlots(MatrixStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
@@ -176,17 +178,17 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
-        numberField.renderButton(matrixStack, mouseX - guiLeft, mouseY - guiTop, partialTicks);
+    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        // super.renderBg(matrixStack, partialTicks, mouseX, mouseY); // TODO: restore
+        numberField.renderButton(matrixStack, mouseX - leftPos, mouseY - topPos, partialTicks);
         scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
 
         RenderHelpers.bindTexture(this.texture);
-        drawOutputSlots(matrixStack, guiLeft, guiTop, partialTicks, mouseX - guiLeft, mouseY - guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
+        drawOutputSlots(matrixStack, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
     }
 
     @Override
-    protected void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
 
         drawOutputSlots(matrixStack, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
@@ -194,7 +196,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
-        return this.getListener() != null && this.isDragging() && mouseButton == 0 && this.getListener().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {
@@ -212,14 +214,14 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
         @Override
         protected void drawButtonInner(MatrixStack matrixStack, int i, int j) {
-            GlStateManager.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager._color4f(1.0F, 1.0F, 1.0F, 1.0F);
             int color = 14737632;
             if (!this.active) {
                 color = 10526880;
             } else if (this.isHovered()) {
                 color = 16777120;
             }
-            this.drawCenteredString(matrixStack, minecraft.fontRenderer, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, color);
+            this.drawCenteredString(matrixStack, minecraft.font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, color);
         }
 
         public int getDiff() {

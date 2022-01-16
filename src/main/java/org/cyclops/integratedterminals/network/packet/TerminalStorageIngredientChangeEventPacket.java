@@ -58,8 +58,8 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void actionClient(World world, PlayerEntity player) {
-		if(player.openContainer instanceof ContainerTerminalStorageBase) {
-			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
+		if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
 			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
 			IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
 

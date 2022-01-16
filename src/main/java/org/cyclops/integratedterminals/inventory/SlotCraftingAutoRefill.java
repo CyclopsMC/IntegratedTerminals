@@ -44,7 +44,7 @@ public class SlotCraftingAutoRefill extends CraftingResultSlot {
     @Override
     public ItemStack onTake(PlayerEntity thePlayer, ItemStack stack) {
         TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = tabCommon.getAutoRefill();
-        if (!thePlayer.world.isRemote && autoRefill != TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.DISABLED) {
+        if (!thePlayer.level.isClientSide && autoRefill != TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.DISABLED) {
             NonNullList<ItemStack> beforeCraft = inventoryToList(inventoryCrafting, true);
             ItemStack taken = super.onTake(thePlayer, stack);
             NonNullList<ItemStack> afterCraft = inventoryToList(inventoryCrafting, false);
@@ -83,14 +83,14 @@ public class SlotCraftingAutoRefill extends CraftingResultSlot {
                             extracted = ItemStack.EMPTY;
                             break;
                     }
-                    thePlayer.openContainer.detectAndSendChanges();
+                    thePlayer.containerMenu.broadcastChanges();
 
-                    ItemStack existingStack = inventoryCrafting.getStackInSlot(i);
+                    ItemStack existingStack = inventoryCrafting.getItem(i);
                     existingStack.grow(extracted.getCount());
-                    inventoryCrafting.setInventorySlotContents(i, existingStack);
-                    ((ServerPlayerEntity) thePlayer).connection.sendPacket(
-                            new SSetSlotPacket(thePlayer.openContainer.windowId, i + this.slotNumber + 1,
-                                    inventoryCrafting.getStackInSlot(i)));
+                    inventoryCrafting.setItem(i, existingStack);
+                    ((ServerPlayerEntity) thePlayer).connection.send(
+                            new SSetSlotPacket(thePlayer.containerMenu.containerId, i + this.index + 1,
+                                    inventoryCrafting.getItem(i)));
                 }
             }
             return taken;
@@ -99,9 +99,9 @@ public class SlotCraftingAutoRefill extends CraftingResultSlot {
     }
 
     public static NonNullList<ItemStack> inventoryToList(IInventory inventory, boolean copy) {
-        NonNullList<ItemStack> list = NonNullList.withSize(inventory.getSizeInventory(), ItemStack.EMPTY);
-        for (int i = 0; i < inventory.getSizeInventory(); i++) {
-            list.set(i, copy ? inventory.getStackInSlot(i).copy() : inventory.getStackInSlot(i));
+        NonNullList<ItemStack> list = NonNullList.withSize(inventory.getContainerSize(), ItemStack.EMPTY);
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            list.set(i, copy ? inventory.getItem(i).copy() : inventory.getItem(i));
         }
         return list;
     }

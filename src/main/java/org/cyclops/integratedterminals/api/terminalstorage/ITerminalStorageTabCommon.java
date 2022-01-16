@@ -39,15 +39,15 @@ public interface ITerminalStorageTabCommon {
             NonNullList<ItemStack> tabItems = this.getNamedInventory(name);
             if (tabItems != null) {
                 for (int i = 0; i < tabItems.size(); i++) {
-                    inventory.setInventorySlotContents(i, tabItems.get(i));
+                    inventory.setItem(i, tabItems.get(i));
                 }
             }
         }
 
         public default void saveNamedInventory(String name, IInventory inventory) {
             NonNullList<ItemStack> latestItems = NonNullList.create();
-            for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                latestItems.add(inventory.getStackInSlot(i));
+            for (int i = 0; i < inventory.getContainerSize(); i++) {
+                latestItems.add(inventory.getItem(i));
             }
             this.setNamedInventory(name, latestItems);
         }

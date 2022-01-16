@@ -53,8 +53,8 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
 
     @Override
     public void actionServer(World world, ServerPlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase<?> container = ((ContainerTerminalStorageBase) player.openContainer);
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase<?> container = ((ContainerTerminalStorageBase) player.containerMenu);
             ITerminalStorageTabCommon tabCommon = container.getTabCommon(tabId);
             if (tabCommon instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon) {
                 TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
@@ -63,23 +63,23 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
 
                 // Loop until the result slot is empty
                 CraftingResultSlot slotCrafting = tabCommonCrafting.getSlotCrafting();
-                ItemStack currentCraftingItem = slotCrafting.getStack().copy();
+                ItemStack currentCraftingItem = slotCrafting.getItem().copy();
                 ItemStack resultStack;
                 int craftedAmount = 0;
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
                     if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.inventory),
-                            slotCrafting.getStack(), true).isEmpty()) {
+                            slotCrafting.getItem(), true).isEmpty()) {
                         break;
                     }
 
                     // Break the loop if we are crafting something else
-                    if (!ItemHandlerHelper.canItemStacksStackRelaxed(currentCraftingItem, slotCrafting.getStack())) {
+                    if (!ItemHandlerHelper.canItemStacksStackRelaxed(currentCraftingItem, slotCrafting.getItem())) {
                         break;
                     }
 
                     // Remove the current result stack and properly call all events
-                    resultStack = slotCrafting.onTake(player, slotCrafting.decrStackSize(64));
+                    resultStack = slotCrafting.onTake(player, slotCrafting.remove(64));
                     craftedAmount += resultStack.getCount();
 
                     if (!resultStack.isEmpty()) {
@@ -87,7 +87,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                         player.inventory.placeItemBackInInventory(world, resultStack.copy());
 
                         // Re-calculate recipe
-                        tabCommonCrafting.updateCraftingResult(player, player.openContainer, variableInventory);
+                        tabCommonCrafting.updateCraftingResult(player, player.containerMenu, variableInventory);
                     }
                 } while(!this.craftOnce && !resultStack.isEmpty() && craftedAmount < resultStack.getMaxStackSize());
             }

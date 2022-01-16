@@ -52,10 +52,10 @@ public class CraftingJobGuiData {
         packetBuffer.writeBlockPos(pos);
         packetBuffer.writeInt(side.ordinal());
         packetBuffer.writeInt(channel);
-        packetBuffer.writeString(handler.getId().toString());
+        packetBuffer.writeUtf(handler.getId().toString());
         CompoundNBT tag = new CompoundNBT();
         tag.put("id", handler.serializeCraftingJobId(craftingJob));
-        packetBuffer.writeCompoundTag(tag);
+        packetBuffer.writeNbt(tag);
     }
 
     public static CraftingJobGuiData readFromPacketBuffer(PacketBuffer packetBuffer) {
@@ -63,8 +63,8 @@ public class CraftingJobGuiData {
         Direction side = Direction.values()[packetBuffer.readInt()];
         int channel = packetBuffer.readInt();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
-                new ResourceLocation(packetBuffer.readString(32767)));
-        Object craftingJob = handler.deserializeCraftingJobId(packetBuffer.readCompoundTag().get("id"));
+                new ResourceLocation(packetBuffer.readUtf(32767)));
+        Object craftingJob = handler.deserializeCraftingJobId(packetBuffer.readNbt().get("id"));
         return new CraftingJobGuiData(
                 pos,
                 side,

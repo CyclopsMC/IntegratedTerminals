@@ -85,7 +85,7 @@ public class ClientProxy extends ClientProxyComponent {
 				}
 			}
 			if(found == null) {
-				if (player.getHeldItemOffhand().getItem() instanceof ItemTerminalStoragePortable) {
+				if (player.getOffhandItem().getItem() instanceof ItemTerminalStoragePortable) {
 					found = Pair.of(Hand.OFF_HAND, 0);
 				}
 			}

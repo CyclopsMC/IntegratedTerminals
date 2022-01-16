@@ -40,11 +40,11 @@ public class TerminalStorageIngredientItemStackCraftingGridSetResult extends Pac
     @Override
     @OnlyIn(Dist.CLIENT)
     public void actionClient(World world, PlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon =
                     (TerminalStorageTabIngredientComponentItemStackCraftingCommon) container.getTabCommon(tabId);
-            tabCommon.getSlotCrafting().putStack(this.itemStack);
+            tabCommon.getSlotCrafting().set(this.itemStack);
         }
     }
 

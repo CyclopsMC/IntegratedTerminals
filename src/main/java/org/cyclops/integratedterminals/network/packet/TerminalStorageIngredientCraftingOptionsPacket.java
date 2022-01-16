@@ -67,8 +67,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	@Override
 	@OnlyIn(Dist.CLIENT)
 	public void actionClient(World world, PlayerEntity player) {
-		if(player.openContainer instanceof ContainerTerminalStorageBase) {
-			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
+		if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
 
 
 			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);

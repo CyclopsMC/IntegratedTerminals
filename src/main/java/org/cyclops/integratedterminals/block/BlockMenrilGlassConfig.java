@@ -26,18 +26,18 @@ public class BlockMenrilGlassConfig extends BlockConfig {
         super(
                 IntegratedTerminals._instance,
                 "menril_glass",
-                eConfig -> new GlassBlock(Block.Properties.create(Material.GLASS)
-                        .hardnessAndResistance(0.3F)
+                eConfig -> new GlassBlock(Block.Properties.of(Material.GLASS)
+                        .strength(0.3F)
                         .sound(SoundType.GLASS)
-                        .setLightLevel((state) -> 3)
-                        .notSolid()),
+                        .lightLevel((state) -> 3)
+                        .noOcclusion()),
                 getDefaultItemConstructor(IntegratedTerminals._instance)
         );
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
-        RenderTypeLookup.setRenderLayer(getInstance(), RenderType.getTranslucent());
+        RenderTypeLookup.setRenderLayer(getInstance(), RenderType.translucent());
     }
 
 }

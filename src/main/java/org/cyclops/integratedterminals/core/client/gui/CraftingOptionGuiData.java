@@ -88,34 +88,34 @@ public class CraftingOptionGuiData<T, M, L> {
     }
 
     public void writeToPacketBuffer(PacketBuffer packetBuffer) {
-        packetBuffer.writeString(component.getName().toString());
-        packetBuffer.writeString(tabName);
+        packetBuffer.writeUtf(component.getName().toString());
+        packetBuffer.writeUtf(tabName);
         packetBuffer.writeInt(channel);
         packetBuffer.writeInt(amount);
         packetBuffer.writeBoolean(craftingOption != null);
         if (craftingOption != null) {
-            packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingOption.serialize(craftingOption));
+            packetBuffer.writeNbt(HandlerWrappedTerminalCraftingOption.serialize(craftingOption));
         }
         packetBuffer.writeBoolean(craftingPlan != null);
         if (craftingPlan != null) {
-            packetBuffer.writeCompoundTag(HandlerWrappedTerminalCraftingPlan.serialize(craftingPlan));
+            packetBuffer.writeNbt(HandlerWrappedTerminalCraftingPlan.serialize(craftingPlan));
         }
         packetBuffer.writeResourceLocation(location.getName());
         location.writeToPacketBuffer(packetBuffer, locationInstance);
     }
 
     public static CraftingOptionGuiData readFromPacketBuffer(PacketBuffer packetBuffer) {
-        IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readString(32767)));
-        String tabName = packetBuffer.readString(32767);
+        IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readUtf(32767)));
+        String tabName = packetBuffer.readUtf(32767);
         int channel = packetBuffer.readInt();
         int amount = packetBuffer.readInt();
         HandlerWrappedTerminalCraftingOption craftingOption = null;
         if (packetBuffer.readBoolean()) {
-            craftingOption = HandlerWrappedTerminalCraftingOption.deserialize(component, packetBuffer.readCompoundTag());
+            craftingOption = HandlerWrappedTerminalCraftingOption.deserialize(component, packetBuffer.readNbt());
         }
         HandlerWrappedTerminalCraftingPlan craftingPlan = null;
         if (packetBuffer.readBoolean()) {
-            craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.readCompoundTag());
+            craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.readNbt());
         }
         ITerminalStorageLocation<?> location = TerminalStorageLocations.REGISTRY.getLocation(packetBuffer.readResourceLocation());
         Object locationInstance = location.readFromPacketBuffer(packetBuffer);

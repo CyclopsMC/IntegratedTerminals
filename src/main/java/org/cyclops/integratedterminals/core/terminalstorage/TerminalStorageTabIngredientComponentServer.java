@@ -413,7 +413,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
         // Notify the client that the currently hovering player stack has changed.
         if (updateActivePlayerStack) {
-            player.connection.sendPacket(new SSetSlotPacket(-1, 0, player.inventory.getItemStack()));
+            player.connection.send(new SSetSlotPacket(-1, 0, player.inventory.getCarried()));
         }
     }
 }

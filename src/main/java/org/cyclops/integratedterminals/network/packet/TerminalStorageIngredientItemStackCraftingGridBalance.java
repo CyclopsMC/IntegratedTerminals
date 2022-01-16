@@ -50,12 +50,12 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
 
     @Override
     public void actionServer(World world, ServerPlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
                 TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon =
                         (TerminalStorageTabIngredientComponentItemStackCraftingCommon) container.getTabCommon(tabId);
-                tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
+                tabCommon.getInventoryCraftResult().setItem(0, ItemStack.EMPTY);
                 balanceGrid(tabCommon.getInventoryCrafting());
             }
         }
@@ -63,9 +63,9 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
 
     public static void balanceGrid(CraftingInventory craftingGrid) {
         // Init bins
-        List<Pair<ItemStack, List<Pair<Integer, Integer>>>> bins = Lists.newArrayListWithExpectedSize(craftingGrid.getSizeInventory());
-        for(int slot = 0; slot < craftingGrid.getSizeInventory(); slot++) {
-            ItemStack itemStack = craftingGrid.getStackInSlot(slot);
+        List<Pair<ItemStack, List<Pair<Integer, Integer>>>> bins = Lists.newArrayListWithExpectedSize(craftingGrid.getContainerSize());
+        for(int slot = 0; slot < craftingGrid.getContainerSize(); slot++) {
+            ItemStack itemStack = craftingGrid.getItem(slot);
             if(!itemStack.isEmpty()) {
                 int amount = itemStack.getCount();
                 itemStack = itemStack.copy();
@@ -106,7 +106,7 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
             for(Pair<Integer, Integer> slot : pair.getRight()) {
                 ItemStack itemStack = pair.getKey().copy();
                 itemStack.setCount(slot.getRight());
-                craftingGrid.setInventorySlotContents(slot.getKey(), itemStack);
+                craftingGrid.setItem(slot.getKey(), itemStack);
             }
         }
     }

@@ -71,21 +71,21 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
-        GlStateManager.pushMatrix();
-        GlStateManager.enableBlend();
-        GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        RenderHelper.enableStandardItemLighting();
-        GlStateManager.enableRescaleNormal();
-        GlStateManager.enableDepthTest();
+        GlStateManager._pushMatrix();
+        GlStateManager._enableBlend();
+        GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        RenderHelper.turnBackOn();
+        GlStateManager._enableRescaleNormal();
+        GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            Minecraft.getInstance().getItemRenderer().renderItemAndEffectIntoGUI(instance, x, y);
-            renderItem.renderItemOverlayIntoGUI(Minecraft.getInstance().fontRenderer, instance, x, y, label);
+            Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(instance, x, y);
+            renderItem.renderGuiItemDecorations(Minecraft.getInstance().font, instance, x, y, label);
         } else {
             GuiUtils.preItemToolTip(instance);
             GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
-                List<ITextComponent> lines = instance.getTooltip(
-                        Minecraft.getInstance().player, Minecraft.getInstance().gameSettings.advancedItemTooltips
+                List<ITextComponent> lines = instance.getTooltipLines(
+                        Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
                                 ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
                 if (additionalTooltipLines != null) {
                     lines.addAll(additionalTooltipLines);
@@ -95,8 +95,8 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             });
             GuiUtils.postItemToolTip();
         }
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.popMatrix();
+        RenderHelper.turnOff();
+        GlStateManager._popMatrix();
     }
 
     @Override
@@ -134,7 +134,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                               PlayerEntity player) {
         ItemStack extracted = storage.extract(maxInstance, ItemMatch.EXACT, false);
         if (!extracted.isEmpty()) {
-            player.dropItem(extracted, true);
+            player.drop(extracted, true);
         }
         return extracted.getCount();
     }
@@ -151,14 +151,14 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         }
 
         Slot containerSlot = container.getSlot(containerSlotIndex);
-        if (transferFullSelection && player != null && player.inventory.getItemStack().isEmpty()) {
+        if (transferFullSelection && player != null && player.inventory.getCarried().isEmpty()) {
             // Pick up container slot contents if not empty
-            ItemStack containerStack = containerSlot.getStack();
+            ItemStack containerStack = containerSlot.getItem();
             if (!containerStack.isEmpty()
                     && !matcher.matches(containerStack, maxInstance, matcher.getExactMatchNoQuantityCondition())
-                    && containerSlot.canTakeStack(player)) {
-                player.inventory.setItemStack(containerSlot.onTake(player, containerStack));
-                containerSlot.putStack(ItemStack.EMPTY);
+                    && containerSlot.mayPickup(player)) {
+                player.inventory.setCarried(containerSlot.onTake(player, containerStack));
+                containerSlot.set(ItemStack.EMPTY);
             }
         }
 
@@ -169,9 +169,9 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             if (extracted.isEmpty()) {
                 break;
             }
-            ItemStack playerStack = containerSlot.getStack();
+            ItemStack playerStack = containerSlot.getItem();
             if ((playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack))
-                    && containerSlot.isItemValid(extracted)) {
+                    && containerSlot.mayPlace(extracted)) {
                 int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
                 int inserted = newCount - playerStack.getCount();
                 ItemStack moved = storage.extract(matcher.withQuantity(maxInstance, inserted),
@@ -181,8 +181,8 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 }
                 movedTotal += moved.getCount();
 
-                containerSlot.putStack(matcher.withQuantity(maxInstance, containerSlot.getStack().getCount() + moved.getCount()).copy());
-                container.detectAndSendChanges();
+                containerSlot.set(matcher.withQuantity(maxInstance, containerSlot.getItem().getCount() + moved.getCount()).copy());
+                container.broadcastChanges();
             } else {
                 break;
             }
@@ -193,45 +193,45 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
                                                       PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
-        ItemStack playerStack = IngredientComponent.ITEMSTACK.getMatcher().withQuantity(playerInventory.getItemStack(),
+        ItemStack playerStack = IngredientComponent.ITEMSTACK.getMatcher().withQuantity(playerInventory.getCarried(),
                 moveQuantityPlayerSlot);
         int remaining = storage.insert(playerStack.copy(), false).getCount();
         int moved = (int) (moveQuantityPlayerSlot - remaining);
-        playerInventory.getItemStack().shrink(moved);
+        playerInventory.getCarried().shrink(moved);
     }
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<ItemStack, Integer> storage,
                                             Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
         Slot slot = container.getSlot(containerSlot);
-        if (slot.canTakeStack(playerInventory.player)) {
-            ItemStack toMove = slot.decrStackSize(limit == -1 ? Integer.MAX_VALUE : limit);
+        if (slot.mayPickup(playerInventory.player)) {
+            ItemStack toMove = slot.remove(limit == -1 ? Integer.MAX_VALUE : limit);
             if (!toMove.isEmpty()) {
                 // The following code is a bit convoluted to handle cases where the container and the storage point to the same inventory.
                 // See https://github.com/CyclopsMC/IntegratedTerminals/issues/47
                 ItemStack remainingStack = storage.insert(toMove, false);
                 if (!remainingStack.isEmpty()) {
                     // Check if the slot is still empty, because the storage may be linked to the container in some exotic cases (e.g. player interfaces).
-                    if (!slot.getHasStack()) {
-                        slot.putStack(remainingStack);
+                    if (!slot.hasItem()) {
+                        slot.set(remainingStack);
                     } else {
                         // Simply add the remainder to the player's container
-                        playerInventory.addItemStackToInventory(remainingStack);
+                        playerInventory.add(remainingStack);
                     }
                 }
-                container.detectAndSendChanges();
+                container.broadcastChanges();
             }
         }
     }
 
     @Override
     public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
-        return playerInventory.getItemStack().getCount();
+        return playerInventory.getCarried().getCount();
     }
 
     @Override
     public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantity) {
-        playerInventory.getItemStack().shrink((int) quantity);
+        playerInventory.getCarried().shrink((int) quantity);
     }
 
     @Override
@@ -243,15 +243,15 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                         .orElse("minecraft").toLowerCase(Locale.ENGLISH)
                         .matches(".*" + query + ".*");
             case TOOLTIP:
-                return i -> i.getTooltip(Minecraft.getInstance().player, ITooltipFlag.TooltipFlags.NORMAL).stream()
+                return i -> i.getTooltipLines(Minecraft.getInstance().player, ITooltipFlag.TooltipFlags.NORMAL).stream()
                         .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
             case TAG:
-                return i -> ItemTags.getCollection().getOwningTags(i.getItem()).stream()
+                return i -> ItemTags.getAllTags().getMatchingTags(i.getItem()).stream()
                         .filter(id -> id.toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                        .map(r -> ItemTags.getCollection().get(r))
+                        .map(r -> ItemTags.getAllTags().getTag(r))
                         .anyMatch(Objects::nonNull);
             case DEFAULT:
-                return i -> i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+                return i -> i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         }
         return null;
     }

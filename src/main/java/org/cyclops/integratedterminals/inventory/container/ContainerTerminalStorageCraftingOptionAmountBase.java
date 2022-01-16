@@ -36,7 +36,7 @@ public class ContainerTerminalStorageCraftingOptionAmountBase<L> extends Invento
     }
 
     @Override
-    public boolean canInteractWith(PlayerEntity playerIn) {
+    public boolean stillValid(PlayerEntity playerIn) {
         return true;
     }
 

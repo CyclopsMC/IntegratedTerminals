@@ -50,8 +50,8 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
 
     @Override
     public void actionServer(World world, ServerPlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
                 TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer =
                         (TerminalStorageTabIngredientComponentServer<ItemStack, Integer>) container.getTabServer(tabId);
@@ -65,19 +65,19 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
     public static void clearGrid(TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon,
                                  TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer,
                                  int channel, boolean toStorage, PlayerEntity player) {
-        tabCommon.getInventoryCraftResult().setInventorySlotContents(0, ItemStack.EMPTY);
+        tabCommon.getInventoryCraftResult().setItem(0, ItemStack.EMPTY);
         CraftingInventory inventoryCrafting = tabCommon.getInventoryCrafting();
-        for (int i = 0; i < inventoryCrafting.getSizeInventory(); i++) {
-            ItemStack itemStack = inventoryCrafting.removeStackFromSlot(i);
+        for (int i = 0; i < inventoryCrafting.getContainerSize(); i++) {
+            ItemStack itemStack = inventoryCrafting.removeItemNoUpdate(i);
             if (!itemStack.isEmpty()) {
                 if (toStorage) {
                     // To storage
                     ItemStack remainder = tabServer.getIngredientNetwork().getChannel(channel).insert(itemStack, false);
                     // Place the remainder back into the grid, so we don't loose it.
-                    inventoryCrafting.setInventorySlotContents(i, remainder);
+                    inventoryCrafting.setItem(i, remainder);
                 } else {
                     // To player inventory
-                    player.inventory.placeItemBackInInventory(player.world, itemStack);
+                    player.inventory.placeItemBackInInventory(player.level, itemStack);
                 }
             }
         }

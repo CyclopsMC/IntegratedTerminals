@@ -105,7 +105,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
         // Trigger gui opening
         NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
             PacketCodec.write(packetBuffer, partPos);
-            packetBuffer.writeString(PartTypes.TERMINAL_CRAFTING_JOB.getUniqueName().toString());
+            packetBuffer.writeUtf(PartTypes.TERMINAL_CRAFTING_JOB.getUniqueName().toString());
             craftingJobGuiData.writeToPacketBuffer(packetBuffer);
         });
     }

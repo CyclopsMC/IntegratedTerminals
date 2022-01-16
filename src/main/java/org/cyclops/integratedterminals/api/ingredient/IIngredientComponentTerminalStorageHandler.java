@@ -68,7 +68,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
         ITextComponent line = new TranslationTextComponent(
                 "gui.integratedterminals.terminal_storage.tooltip.quantity",
                 formatQuantity(instance))
-                .mergeStyle(TextFormatting.DARK_GRAY);
+                .withStyle(TextFormatting.DARK_GRAY);
         if (lines.size() <= 1) {
             lines.add(line);
         } else {

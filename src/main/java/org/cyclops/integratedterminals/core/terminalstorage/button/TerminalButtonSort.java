@@ -122,10 +122,10 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
                     new TranslationTextComponent(descending
                             ? "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.descending"
                             : "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.ascending"))
-                    .mergeStyle(TextFormatting.ITALIC));
+                    .withStyle(TextFormatting.ITALIC));
         } else {
             lines.add(new TranslationTextComponent("general.cyclopscore.info.disabled")
-                    .mergeStyle(TextFormatting.ITALIC));
+                    .withStyle(TextFormatting.ITALIC));
         }
     }
 

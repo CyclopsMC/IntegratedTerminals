@@ -28,10 +28,10 @@ public class BlockChorusGlassConfig extends BlockConfig {
         super(
                 IntegratedTerminals._instance,
                 "chorus_glass",
-                eConfig -> new GlassBlock(Block.Properties.create(Material.GLASS)
-                        .hardnessAndResistance(0.3F)
+                eConfig -> new GlassBlock(Block.Properties.of(Material.GLASS)
+                        .strength(0.3F)
                         .sound(SoundType.GLASS)
-                        .notSolid()) {
+                        .noOcclusion()) {
                     @Override
                     public VoxelShape getCollisionShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context) {
                         return VoxelShapes.empty();
@@ -43,7 +43,7 @@ public class BlockChorusGlassConfig extends BlockConfig {
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
-        RenderTypeLookup.setRenderLayer(getInstance(), RenderType.getTranslucent());
+        RenderTypeLookup.setRenderLayer(getInstance(), RenderType.translucent());
     }
 
 }

@@ -77,8 +77,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
 
     @Override
     public void actionServer(World world, ServerPlayerEntity player) {
-        if(player.openContainer instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.openContainer);
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             TerminalStorageTabIngredientComponentServer<T, ?> tab = (TerminalStorageTabIngredientComponentServer<T, ?>)
                     container.getTabServer(tabId);
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
