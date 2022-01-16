@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
@@ -48,7 +48,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param craftingOption A crafting option.
      * @return An NBT tag.
      */
-    public CompoundNBT serializeCraftingOption(O craftingOption);
+    public CompoundTag serializeCraftingOption(O craftingOption);
 
     /**
      * Deserialize a crafting option from NBT.
@@ -59,7 +59,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @return A crafting option.
      * @throws IllegalArgumentException If the given tag was invalid.
      */
-    public <T, M> O deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, CompoundNBT tag) throws IllegalArgumentException;
+    public <T, M> O deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException;
 
     /**
      * Calculate a crafting plan for the given crafting option.
@@ -77,7 +77,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param craftingPlan A crafting plan.
      * @return An NBT tag.
      */
-    public default CompoundNBT serializeCraftingPlan(ITerminalCraftingPlan<I> craftingPlan) {
+    public default CompoundTag serializeCraftingPlan(ITerminalCraftingPlan<I> craftingPlan) {
         return TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) craftingPlan, this);
     }
 
@@ -87,7 +87,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @return A crafting option.
      * @throws IllegalArgumentException If the given tag was invalid.
      */
-    public default ITerminalCraftingPlan<I> deserializeCraftingPlan(CompoundNBT tag) throws IllegalArgumentException {
+    public default ITerminalCraftingPlan<I> deserializeCraftingPlan(CompoundTag tag) throws IllegalArgumentException {
         return TerminalCraftingPlanStatic.deserialize(tag, this);
     }
 
@@ -96,14 +96,14 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param id An id.
      * @return An NBT tag.
      */
-    public INBT serializeCraftingJobId(I id);
+    public Tag serializeCraftingJobId(I id);
 
     /**
      * Deserialize a crafting job id.
      * @param tag An NBT tag.
      * @return An id.
      */
-    public I deserializeCraftingJobId(INBT tag);
+    public I deserializeCraftingJobId(Tag tag);
 
     /**
      * Start a crafting job.
@@ -114,7 +114,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @throws CraftingJobStartException If the crafting job failed to start.
      */
     public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan,
-                                 ServerPlayerEntity player) throws CraftingJobStartException;
+                                 ServerPlayer player) throws CraftingJobStartException;
 
     /**
      * @param network The network in which the plan should be started.

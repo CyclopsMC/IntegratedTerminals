@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.datastructure.DimPos;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -40,12 +40,12 @@ public class OpenCraftingJobsGuiPacket extends PacketCodec {
     }
 
     @Override
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
 
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
         PartHelpers.openContainerPart(player, PartPos.of(DimPos.of(world, pos), side), PartTypes.TERMINAL_CRAFTING_JOB);
     }
 

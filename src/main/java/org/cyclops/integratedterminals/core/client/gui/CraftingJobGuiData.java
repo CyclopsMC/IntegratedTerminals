@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.core.client.gui;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 
@@ -48,17 +48,17 @@ public class CraftingJobGuiData {
         return craftingJob;
     }
 
-    public void writeToPacketBuffer(PacketBuffer packetBuffer) {
+    public void writeToPacketBuffer(FriendlyByteBuf packetBuffer) {
         packetBuffer.writeBlockPos(pos);
         packetBuffer.writeInt(side.ordinal());
         packetBuffer.writeInt(channel);
         packetBuffer.writeUtf(handler.getId().toString());
-        CompoundNBT tag = new CompoundNBT();
+        CompoundTag tag = new CompoundTag();
         tag.put("id", handler.serializeCraftingJobId(craftingJob));
         packetBuffer.writeNbt(tag);
     }
 
-    public static CraftingJobGuiData readFromPacketBuffer(PacketBuffer packetBuffer) {
+    public static CraftingJobGuiData readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
         BlockPos pos = packetBuffer.readBlockPos();
         Direction side = Direction.values()[packetBuffer.readInt()];
         int channel = packetBuffer.readInt();

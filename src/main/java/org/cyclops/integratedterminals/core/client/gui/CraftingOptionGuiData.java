@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.client.gui;
 
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
@@ -87,7 +87,7 @@ public class CraftingOptionGuiData<T, M, L> {
         );
     }
 
-    public void writeToPacketBuffer(PacketBuffer packetBuffer) {
+    public void writeToPacketBuffer(FriendlyByteBuf packetBuffer) {
         packetBuffer.writeUtf(component.getName().toString());
         packetBuffer.writeUtf(tabName);
         packetBuffer.writeInt(channel);
@@ -104,7 +104,7 @@ public class CraftingOptionGuiData<T, M, L> {
         location.writeToPacketBuffer(packetBuffer, locationInstance);
     }
 
-    public static CraftingOptionGuiData readFromPacketBuffer(PacketBuffer packetBuffer) {
+    public static CraftingOptionGuiData readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
         IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readUtf(32767)));
         String tabName = packetBuffer.readUtf(32767);
         int channel = packetBuffer.readInt();

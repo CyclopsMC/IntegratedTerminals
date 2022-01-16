@@ -1,8 +1,8 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 
@@ -29,15 +29,15 @@ public class HandlerWrappedTerminalCraftingPlan {
         return craftingPlan;
     }
 
-    public static CompoundNBT serialize(HandlerWrappedTerminalCraftingPlan craftingPlan) {
+    public static CompoundTag serialize(HandlerWrappedTerminalCraftingPlan craftingPlan) {
         ITerminalStorageTabIngredientCraftingHandler handler = craftingPlan.getHandler();
-        CompoundNBT tag = handler.serializeCraftingPlan(craftingPlan.getCraftingPlan());
+        CompoundTag tag = handler.serializeCraftingPlan(craftingPlan.getCraftingPlan());
         tag.putString("craftingPlanHandler", handler.getId().toString());
         return tag;
     }
 
-    public static HandlerWrappedTerminalCraftingPlan deserialize(CompoundNBT tag) {
-        if (!tag.contains("craftingPlanHandler", Constants.NBT.TAG_STRING)) {
+    public static HandlerWrappedTerminalCraftingPlan deserialize(CompoundTag tag) {
+        if (!tag.contains("craftingPlanHandler", Tag.TAG_STRING)) {
             throw new IllegalArgumentException("Could not find a craftingPlanHandler entry in the given tag");
         }
         String handlerId = tag.getString("craftingPlanHandler");

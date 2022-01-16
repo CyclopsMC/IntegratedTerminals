@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.capability.ingredient.sorter;
 
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
 /**

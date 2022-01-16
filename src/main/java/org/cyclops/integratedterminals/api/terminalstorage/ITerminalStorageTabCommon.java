@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -24,18 +24,18 @@ public interface ITerminalStorageTabCommon {
      */
     public ResourceLocation getName();
 
-    public default List<Slot> loadSlots(Container container, int startIndex, PlayerEntity player,
+    public default List<Slot> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
                                         Optional<IVariableInventory> variableInventory) {
         return Collections.emptyList();
     }
 
-    public default void onUpdate(Container container, PlayerEntity player,
+    public default void onUpdate(AbstractContainerMenu container, Player player,
                                  Optional<IVariableInventory> variableInventory) {
 
     }
 
     public static interface IVariableInventory {
-        public default void loadNamedInventory(String name, IInventory inventory) {
+        public default void loadNamedInventory(String name, Container inventory) {
             NonNullList<ItemStack> tabItems = this.getNamedInventory(name);
             if (tabItems != null) {
                 for (int i = 0; i < tabItems.size(); i++) {
@@ -44,7 +44,7 @@ public interface ITerminalStorageTabCommon {
             }
         }
 
-        public default void saveNamedInventory(String name, IInventory inventory) {
+        public default void saveNamedInventory(String name, Container inventory) {
             NonNullList<ItemStack> latestItems = NonNullList.create();
             for (int i = 0; i < inventory.getContainerSize(); i++) {
                 latestItems.add(inventory.getItem(i));

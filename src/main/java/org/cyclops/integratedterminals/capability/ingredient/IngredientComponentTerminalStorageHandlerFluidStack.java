@@ -1,19 +1,19 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fluids.FluidStack;
@@ -68,22 +68,21 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(MatrixStack matrixStack, FluidStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+    public void drawInstance(PoseStack matrixStack, FluidStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
-                             @Nullable List<ITextComponent> additionalTooltipLines) {
+                             @Nullable List<Component> additionalTooltipLines) {
         if (instance != null) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
                 GuiHelpers.renderFluidSlot(gui, matrixStack, instance, x, y);
 
                 // Draw amount
-                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
-                GlStateManager._disableLighting();
+                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new PoseStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
             } else {
-                GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
-                    List<ITextComponent> lines = Lists.newArrayList();
-                    lines.add(((IFormattableTextComponent) instance.getDisplayName())
+                GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
+                    List<Component> lines = Lists.newArrayList();
+                    lines.add(((MutableComponent) instance.getDisplayName())
                             .withStyle(instance.getFluid().getAttributes().getRarity().color));
                     addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
@@ -132,14 +131,14 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public int throwIntoWorld(IIngredientComponentStorage<FluidStack, Integer> storage, FluidStack maxInstance,
-                              PlayerEntity player) {
+                              Player player) {
         return 0; // Dropping fluids in the world is not supported
     }
 
     @Override
     public FluidStack insertIntoContainer(IIngredientComponentStorage<FluidStack, Integer> storage,
-                                          Container container, int containerSlot, FluidStack maxInstance,
-                                          @Nullable PlayerEntity player, boolean transferFullSelection) {
+                                          AbstractContainerMenu container, int containerSlot, FluidStack maxInstance,
+                                          @Nullable Player player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getItem();
         return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .map(fluidHandler -> {
@@ -168,8 +167,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
-                                                      PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
-        ItemStack playerStack = playerInventory.getCarried();
+                                                      AbstractContainerMenu container, Inventory playerInventory, long moveQuantityPlayerSlot) {
+        ItemStack playerStack = container.getCarried();
         playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .ifPresent(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
@@ -179,12 +178,12 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         // Ignore
                     }
 
-                    playerInventory.setCarried(fluidHandler.getContainer());
+                    container.setCarried(fluidHandler.getContainer());
                 });
     }
 
     @Override
-    public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
+    public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, AbstractContainerMenu container, int containerSlot, Inventory playerInventory, int limit) {
         Slot slot = container.getSlot(containerSlot);
         if (slot.mayPickup(playerInventory.player)) {
             ItemStack toMoveStack = slot.getItem();
@@ -204,16 +203,16 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     }
 
     @Override
-    public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
-        ItemStack toMoveStack = playerInventory.getCarried();
+    public long getActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container) {
+        ItemStack toMoveStack = container.getCarried();
         return toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0).getAmount() : 0)
                 .orElse(0);
     }
 
     @Override
-    public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantityIn) {
-        ItemStack toMoveStack = playerInventory.getCarried();
+    public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantityIn) {
+        ItemStack toMoveStack = container.getCarried();
         toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
                 .ifPresent(fluidHandler -> {
                     long quantity = quantityIn;
@@ -224,7 +223,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         }
                         quantity -= drained;
                     }
-                    playerInventory.setCarried(fluidHandler.getContainer());
+                    container.setCarried(fluidHandler.getContainer());
                 });
     }
 

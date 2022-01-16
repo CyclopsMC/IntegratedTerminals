@@ -1,11 +1,11 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -51,7 +51,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     @Override
     public void reloadFromState() {
         if (state.hasButton(clientTab.getTabSettingsName().toString(), this.buttonName)) {
-            CompoundNBT data = (CompoundNBT) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
+            CompoundTag data = (CompoundTag) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
             this.active = data.getBoolean("active");
             this.descending = data.getBoolean("descending");
         } else {
@@ -64,7 +64,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     @Override
     @OnlyIn(Dist.CLIENT)
     public ButtonSort createButton(int x, int y) {
-        return new ButtonSort(x, y, new TranslationTextComponent("gui.integratedterminals.terminal_storage.sort"), (b) -> {}, instanceSorter.getIcon(), active, descending);
+        return new ButtonSort(x, y, new TranslatableComponent("gui.integratedterminals.terminal_storage.sort"), (b) -> {}, instanceSorter.getIcon(), active, descending);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
             descending = true;
         }
 
-        CompoundNBT data = new CompoundNBT();
+        CompoundTag data = new CompoundTag();
         data.putBoolean("active", active);
         data.putBoolean("descending", descending);
         state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
@@ -115,17 +115,17 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines) {
+    public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
         instanceSorter.getTooltip(player, tooltipFlag, lines);
         if (active) {
-            lines.add(new TranslationTextComponent("gui." + Reference.MOD_ID + ".terminal_storage.sort.order.label",
-                    new TranslationTextComponent(descending
+            lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.sort.order.label",
+                    new TranslatableComponent(descending
                             ? "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.descending"
                             : "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.ascending"))
-                    .withStyle(TextFormatting.ITALIC));
+                    .withStyle(ChatFormatting.ITALIC));
         } else {
-            lines.add(new TranslationTextComponent("general.cyclopscore.info.disabled")
-                    .withStyle(TextFormatting.ITALIC));
+            lines.add(new TranslatableComponent("general.cyclopscore.info.disabled")
+                    .withStyle(ChatFormatting.ITALIC));
         }
     }
 

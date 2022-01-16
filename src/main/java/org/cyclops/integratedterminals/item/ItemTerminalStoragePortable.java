@@ -1,22 +1,22 @@
 package org.cyclops.integratedterminals.item;
 
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.ItemStackHelper;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.datastructure.Wrapper;
 import org.cyclops.cyclopscore.helper.InventoryHelpers;
 import org.cyclops.cyclopscore.inventory.container.NamedContainerProviderItem;
@@ -37,8 +37,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-import net.minecraft.item.Item.Properties;
-
 /**
  * A portable storage terminal.
  * @author rubensworks
@@ -54,7 +52,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     @Override
-    public void openGuiForItemIndex(World world, ServerPlayerEntity player, int itemIndex, Hand hand) {
+    public void openGuiForItemIndex(Level world, ServerPlayer player, int itemIndex, InteractionHand hand) {
         if (world.isClientSide()) {
             super.openGuiForItemIndex(world, player, itemIndex, hand);
         } else {
@@ -65,44 +63,44 @@ public class ItemTerminalStoragePortable extends ItemGui {
                 if (network.isPresent()) {
                     super.openGuiForItemIndex(world, player, itemIndex, hand);
                 } else {
-                    player.displayClientMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
+                    player.displayClientMessage(new TranslatableComponent("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
                 }
             } else {
-                player.displayClientMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.no_network"), true);
+                player.displayClientMessage(new TranslatableComponent("item.integratedterminals.terminal_storage_portable.status.no_network"), true);
             }
         }
     }
 
     @Override
-    public ActionResultType onItemUseFirst(ItemStack stack, ItemUseContext context) {
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         if (!context.getLevel().isClientSide()) {
             PartPos partPos = PartPos.of(context.getLevel(), context.getClickedPos(), context.getClickedFace());
             PartHelpers.PartStateHolder<?, ?> partStateHolder = PartHelpers.getPart(partPos);
             if (partStateHolder != null && partStateHolder.getPart() == PartTypes.CONNECTOR_OMNI) {
                 PartTypeConnectorOmniDirectional.State state = (PartTypeConnectorOmniDirectional.State) partStateHolder.getState();
                 setGroupId(stack, state.getGroupId());
-                context.getPlayer().displayClientMessage(new TranslationTextComponent("item.integratedterminals.terminal_storage_portable.status.linked"), true);
-                return ActionResultType.SUCCESS;
+                context.getPlayer().displayClientMessage(new TranslatableComponent("item.integratedterminals.terminal_storage_portable.status.linked"), true);
+                return InteractionResult.SUCCESS;
             }
         }
-        return ActionResultType.PASS;
+        return InteractionResult.PASS;
     }
 
     @Nullable
     @Override
-    public INamedContainerProvider getContainer(World world, PlayerEntity playerEntity, int itemIndex, Hand hand, ItemStack itemStack) {
+    public MenuProvider getContainer(Level world, Player playerEntity, int itemIndex, InteractionHand hand, ItemStack itemStack) {
         return new NamedContainerProviderItem(itemIndex, hand, itemStack.getHoverName(),
                 (id, playerInventory, slot, hand1) -> new ContainerTerminalStorageItem(id, playerInventory, slot, hand1, Optional.empty(),
                         getTerminalStorageState(InventoryHelpers.getItemFromIndex(playerEntity, itemIndex, hand), playerEntity, itemIndex, hand)));
     }
 
     @Override
-    public Class<? extends Container> getContainerClass(World world, PlayerEntity playerEntity, ItemStack itemStack) {
+    public Class<? extends AbstractContainerMenu> getContainerClass(Level world, Player playerEntity, ItemStack itemStack) {
         return ContainerTerminalStorageItem.class;
     }
 
     @Override
-    public void writeExtraGuiData(PacketBuffer packetBuffer, World world, ServerPlayerEntity player, int itemIndex, Hand hand) {
+    public void writeExtraGuiData(FriendlyByteBuf packetBuffer, Level world, ServerPlayer player, int itemIndex, InteractionHand hand) {
         super.writeExtraGuiData(packetBuffer, world, player, itemIndex, hand);
         packetBuffer.writeBoolean(false);
         getTerminalStorageState(InventoryHelpers.getItemFromIndex(player, itemIndex, hand), player, itemIndex, hand).writeToPacketBuffer(packetBuffer);
@@ -114,17 +112,17 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn) {
+    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
         super.appendHoverText(stack, worldIn, tooltip, flagIn);
         int groupId = getGroupId(stack);
         if (groupId >= 0) {
-            tooltip.add(new TranslationTextComponent(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
+            tooltip.add(new TranslatableComponent(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
         }
     }
 
     public static int getGroupId(ItemStack itemStack) {
-        CompoundNBT tag = itemStack.getTag();
-        if (tag == null || !tag.contains(NBT_KEY_GROUP, Constants.NBT.TAG_INT)) {
+        CompoundTag tag = itemStack.getTag();
+        if (tag == null || !tag.contains(NBT_KEY_GROUP, Tag.TAG_INT)) {
             return -1;
         } else {
             return tag.getInt(NBT_KEY_GROUP);
@@ -132,45 +130,45 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     public static void setGroupId(ItemStack itemStack, int groupId) {
-        CompoundNBT tag = itemStack.getOrCreateTag();
+        CompoundTag tag = itemStack.getOrCreateTag();
         tag.putInt(NBT_KEY_GROUP, groupId);
     }
 
     public static ITerminalStorageTabCommon.IVariableInventory getVariableInventory(ItemStack itemStack) {
         // Navigate to relevant tag in item
-        CompoundNBT tagRoot = itemStack.getOrCreateTag();
-        if (!tagRoot.contains(NBT_KEY_NAMED_INVENTORIES, Constants.NBT.TAG_COMPOUND)) {
-            tagRoot.put(NBT_KEY_NAMED_INVENTORIES, new CompoundNBT());
+        CompoundTag tagRoot = itemStack.getOrCreateTag();
+        if (!tagRoot.contains(NBT_KEY_NAMED_INVENTORIES, Tag.TAG_COMPOUND)) {
+            tagRoot.put(NBT_KEY_NAMED_INVENTORIES, new CompoundTag());
         }
-        CompoundNBT tagInventories = tagRoot.getCompound(NBT_KEY_NAMED_INVENTORIES);
+        CompoundTag tagInventories = tagRoot.getCompound(NBT_KEY_NAMED_INVENTORIES);
 
         return new ITerminalStorageTabCommon.IVariableInventory() {
             @Override
             public NonNullList<ItemStack> getNamedInventory(String name) {
-                CompoundNBT tag = tagInventories.getCompound(name);
+                CompoundTag tag = tagInventories.getCompound(name);
                 NonNullList<ItemStack> list = NonNullList.withSize(tag.getInt("itemCount"), ItemStack.EMPTY);
-                ItemStackHelper.loadAllItems(tag, list);
+                ContainerHelper.loadAllItems(tag, list);
                 return list;
             }
 
             @Override
             public void setNamedInventory(String name, NonNullList<ItemStack> inventory) {
-                CompoundNBT tag = new CompoundNBT();
+                CompoundTag tag = new CompoundTag();
                 tag.putString("tabName", name);
                 tag.putInt("itemCount", inventory.size());
-                ItemStackHelper.saveAllItems(tag, inventory);
+                ContainerHelper.saveAllItems(tag, inventory);
                 tagInventories.put(name, tag);
             }
         };
     }
 
-    public static TerminalStorageState getTerminalStorageState(ItemStack itemStack, PlayerEntity player, int slot, Hand hand) {
+    public static TerminalStorageState getTerminalStorageState(ItemStack itemStack, Player player, int slot, InteractionHand hand) {
         // Navigate to relevant tag in item
-        CompoundNBT tagRoot = itemStack.getOrCreateTag();
-        if (!tagRoot.contains(NBT_KEY_STATES, Constants.NBT.TAG_COMPOUND)) {
-            tagRoot.put(NBT_KEY_STATES, new CompoundNBT());
+        CompoundTag tagRoot = itemStack.getOrCreateTag();
+        if (!tagRoot.contains(NBT_KEY_STATES, Tag.TAG_COMPOUND)) {
+            tagRoot.put(NBT_KEY_STATES, new CompoundTag());
         }
-        CompoundNBT tagStates = tagRoot.getCompound(NBT_KEY_STATES);
+        CompoundTag tagStates = tagRoot.getCompound(NBT_KEY_STATES);
         String playerKey = player.getUUID().toString();
 
         // Construct item dirty mark listener
@@ -181,7 +179,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
         };
 
         // Instantiate storage state from NBT
-        if (!tagStates.contains(playerKey, Constants.NBT.TAG_COMPOUND)) {
+        if (!tagStates.contains(playerKey, Tag.TAG_COMPOUND)) {
             TerminalStorageState state = TerminalStorageState.getPlayerDefault(player, dirtyMarkListener);
             stateWrapped.set(state);
             tagStates.put(playerKey, state.getTag());

@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
@@ -30,7 +30,7 @@ public class CancelCraftingJobPacket extends PacketCodec {
     @CodecField
     private String craftingPlanHandler;
     @CodecField
-    private CompoundNBT craftingJobId;
+    private CompoundTag craftingJobId;
 
     public CancelCraftingJobPacket() {
 
@@ -41,7 +41,7 @@ public class CancelCraftingJobPacket extends PacketCodec {
         this.side = craftingPlanGuiData.getSide();
         this.channel = craftingPlanGuiData.getChannel();
         this.craftingPlanHandler = craftingPlanGuiData.getHandler().getId().toString();
-        this.craftingJobId = new CompoundNBT();
+        this.craftingJobId = new CompoundTag();
         this.craftingJobId.put("id", craftingPlanGuiData.getHandler().serializeCraftingJobId(craftingPlanGuiData.getCraftingJob()));
     }
 
@@ -51,12 +51,12 @@ public class CancelCraftingJobPacket extends PacketCodec {
     }
 
     @Override
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
 
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
         NetworkHelpers.getNetwork(world, pos, side)
                 .ifPresent(network -> {
                     ITerminalStorageTabIngredientCraftingHandler handler = getHandler();

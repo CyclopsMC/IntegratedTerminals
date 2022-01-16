@@ -1,10 +1,9 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integratedterminals.Reference;
 
@@ -21,14 +20,14 @@ public class TerminalStorageState {
 
     public static final String PLAYER_TAG_DEFAULT_KEY = Reference.MOD_ID + ":terminalStorageStateDefault";
 
-    private CompoundNBT tag;
+    private CompoundTag tag;
     private IDirtyMarkListener dirtyMarkListener;
 
     public TerminalStorageState(IDirtyMarkListener dirtyMarkListener) {
-        this(new CompoundNBT(), dirtyMarkListener);
+        this(new CompoundTag(), dirtyMarkListener);
     }
 
-    public TerminalStorageState(CompoundNBT tag, IDirtyMarkListener dirtyMarkListener) {
+    public TerminalStorageState(CompoundTag tag, IDirtyMarkListener dirtyMarkListener) {
         this.tag = tag;
         this.dirtyMarkListener = dirtyMarkListener;
     }
@@ -41,11 +40,11 @@ public class TerminalStorageState {
         this.dirtyMarkListener.onDirty();
     }
 
-    public CompoundNBT getTag() {
+    public CompoundTag getTag() {
         return tag;
     }
 
-    public void setTag(CompoundNBT tag) {
+    public void setTag(CompoundTag tag) {
         this.tag = tag;
         this.markDirty();
     }
@@ -55,7 +54,7 @@ public class TerminalStorageState {
     }
 
     public boolean hasTab() {
-        return tag.contains(SETTING_TAB, Constants.NBT.TAG_STRING);
+        return tag.contains(SETTING_TAB, Tag.TAG_STRING);
     }
 
     public void setTab(@Nullable String tab) {
@@ -72,7 +71,7 @@ public class TerminalStorageState {
     }
 
     public boolean hasSearch(String tab, int channel) {
-        return tag.contains(SETTING_SEARCH + "_" + tab  + "_" + channel, Constants.NBT.TAG_STRING);
+        return tag.contains(SETTING_SEARCH + "_" + tab  + "_" + channel, Tag.TAG_STRING);
     }
 
     public void setSearch(String tab, int channel, @Nullable String search) {
@@ -84,7 +83,7 @@ public class TerminalStorageState {
         this.markDirty();
     }
 
-    public INBT getButton(String tab, String buttonName) {
+    public Tag getButton(String tab, String buttonName) {
         return tag.get(SETTING_BUTTON + "_" + tab + "_" + buttonName);
     }
 
@@ -92,7 +91,7 @@ public class TerminalStorageState {
         return tag.contains(SETTING_BUTTON + "_" + tab + "_" + buttonName);
     }
 
-    public void setButton(String tab, String buttonName, @Nullable INBT button) {
+    public void setButton(String tab, String buttonName, @Nullable Tag button) {
         if (button != null) {
             tag.put(SETTING_BUTTON + "_" + tab + "_" + buttonName, button);
         } else {
@@ -101,19 +100,19 @@ public class TerminalStorageState {
         this.markDirty();
     }
 
-    public void writeToPacketBuffer(PacketBuffer packetBuffer) {
+    public void writeToPacketBuffer(FriendlyByteBuf packetBuffer) {
         packetBuffer.writeNbt(tag);
     }
 
-    public static TerminalStorageState readFromPacketBuffer(PacketBuffer packetBuffer) {
+    public static TerminalStorageState readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
         return new TerminalStorageState(packetBuffer.readNbt(), () -> {});
     }
 
-    public static void setPlayerDefault(PlayerEntity playerEntity, TerminalStorageState state) {
+    public static void setPlayerDefault(Player playerEntity, TerminalStorageState state) {
         playerEntity.getPersistentData().put(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY, state.getTag().copy());
     }
 
-    public static TerminalStorageState getPlayerDefault(PlayerEntity playerEntity, IDirtyMarkListener dirtyMarkListener) {
+    public static TerminalStorageState getPlayerDefault(Player playerEntity, IDirtyMarkListener dirtyMarkListener) {
         if (playerEntity.getPersistentData().contains(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY)) {
             return new TerminalStorageState(playerEntity.getPersistentData().getCompound(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY), dirtyMarkListener);
         }

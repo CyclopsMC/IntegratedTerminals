@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.client.gui.IHasContainer;
-import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.ScreenFactorySafe;
@@ -29,11 +29,11 @@ public class ContainerTerminalStorageCraftingOptionAmountPartConfig extends GuiC
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public <U extends Screen & IHasContainer<ContainerTerminalStorageCraftingOptionAmountPart>> ScreenManager.IScreenFactory<ContainerTerminalStorageCraftingOptionAmountPart, U> getScreenFactory() {
+    public <U extends Screen & MenuAccess<ContainerTerminalStorageCraftingOptionAmountPart>> MenuScreens.ScreenConstructor<ContainerTerminalStorageCraftingOptionAmountPart, U> getScreenFactory() {
         // Does not compile when simplified with lambdas
-        return new ScreenFactorySafe<>(new ScreenManager.IScreenFactory<ContainerTerminalStorageCraftingOptionAmountPart, ContainerScreenTerminalStorageCraftingOptionAmount<PartPos, ContainerTerminalStorageCraftingOptionAmountPart>>() {
+        return new ScreenFactorySafe<>(new MenuScreens.ScreenConstructor<ContainerTerminalStorageCraftingOptionAmountPart, ContainerScreenTerminalStorageCraftingOptionAmount<PartPos, ContainerTerminalStorageCraftingOptionAmountPart>>() {
             @Override
-            public ContainerScreenTerminalStorageCraftingOptionAmount<PartPos, ContainerTerminalStorageCraftingOptionAmountPart> create(ContainerTerminalStorageCraftingOptionAmountPart p_create_1_, PlayerInventory p_create_2_, ITextComponent p_create_3_) {
+            public ContainerScreenTerminalStorageCraftingOptionAmount<PartPos, ContainerTerminalStorageCraftingOptionAmountPart> create(ContainerTerminalStorageCraftingOptionAmountPart p_create_1_, Inventory p_create_2_, Component p_create_3_) {
                 return new ContainerScreenTerminalStorageCraftingOptionAmount<>(p_create_1_, p_create_2_, p_create_3_);
             }
         });

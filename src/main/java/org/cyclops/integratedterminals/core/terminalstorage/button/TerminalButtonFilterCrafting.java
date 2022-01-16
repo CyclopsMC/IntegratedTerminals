@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
@@ -47,7 +47,7 @@ public class TerminalButtonFilterCrafting<T>
     @Override
     public void reloadFromState() {
         if (state.hasButton(clientTab.getTabSettingsName().toString(), this.buttonName)) {
-            CompoundNBT data = (CompoundNBT) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
+            CompoundTag data = (CompoundTag) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
             this.active = FilterType.values()[data.getInt("active")];
         } else {
             this.active = FilterType.ALL;
@@ -58,7 +58,7 @@ public class TerminalButtonFilterCrafting<T>
     @OnlyIn(Dist.CLIENT)
     public ButtonImage createButton(int x, int y) {
         return new ButtonImage(x, y,
-                new TranslationTextComponent("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
+                new TranslatableComponent("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
                 (b) -> {},
                 active == FilterType.ALL ? Images.BUTTON_BACKGROUND_INACTIVE : Images.BUTTON_BACKGROUND_ACTIVE,
                 active.getImage());
@@ -71,7 +71,7 @@ public class TerminalButtonFilterCrafting<T>
                         int channel, int mouseButton) {
         this.active = mouseButton == 0 ? FilterType.values()[(this.active.ordinal() + 1) % FilterType.values().length] : FilterType.ALL;
 
-        CompoundNBT data = new CompoundNBT();
+        CompoundTag data = new CompoundTag();
         data.putInt("active", active.ordinal());
         state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
 
@@ -85,9 +85,9 @@ public class TerminalButtonFilterCrafting<T>
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines) {
-        lines.add(new TranslationTextComponent("gui." + Reference.MOD_ID + ".terminal_storage.crafting.filter.info"));
-        lines.add(new TranslationTextComponent(active.getLabel()));
+    public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
+        lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.crafting.filter.info"));
+        lines.add(new TranslatableComponent(active.getLabel()));
     }
 
     public Predicate<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<T>> getEffectiveFilter() {

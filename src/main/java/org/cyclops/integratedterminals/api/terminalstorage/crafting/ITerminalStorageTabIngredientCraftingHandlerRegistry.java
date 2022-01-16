@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.cyclops.cyclopscore.init.IRegistry;
 
 import javax.annotation.Nullable;

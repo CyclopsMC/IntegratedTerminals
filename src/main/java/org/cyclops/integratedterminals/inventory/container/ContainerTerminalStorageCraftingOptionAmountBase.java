@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.MenuType;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 
@@ -17,11 +17,11 @@ public class ContainerTerminalStorageCraftingOptionAmountBase<L> extends Invento
 
     private final CraftingOptionGuiData<?, ?, L> craftingOptionGuiData;
 
-    public ContainerTerminalStorageCraftingOptionAmountBase(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
+    public ContainerTerminalStorageCraftingOptionAmountBase(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                                             CraftingOptionGuiData craftingOptionGuiData) {
-        super(type, id, playerInventory, new Inventory());
+        super(type, id, playerInventory, new SimpleContainer());
 
-        addPlayerInventory(player.inventory, 9, 80);
+        addPlayerInventory(player.getInventory(), 9, 80);
 
         this.craftingOptionGuiData = craftingOptionGuiData;
     }
@@ -36,7 +36,7 @@ public class ContainerTerminalStorageCraftingOptionAmountBase<L> extends Invento
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return true;
     }
 

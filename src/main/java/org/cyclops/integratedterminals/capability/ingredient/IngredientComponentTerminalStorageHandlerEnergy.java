@@ -1,18 +1,18 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.energy.CapabilityEnergy;
@@ -64,15 +64,14 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(MatrixStack matrixStack, Long instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+    public void drawInstance(PoseStack matrixStack, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
+                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
         if (instance > 0) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
 
                 // Draw background
-                GlStateManager._color4f(1, 1, 1, 1);
-                RenderHelper.turnBackOn();
+                Lighting.setupForFlatItems();
                 RenderHelpers.bindTexture(Images.ICONS);
                 gui.blit(matrixStack, x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
 
@@ -90,15 +89,14 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                         16, 240, GuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
 
                 // Draw amount
-                GlStateManager._disableLighting();
-                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new MatrixStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
+                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new PoseStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
 
-                RenderHelper.turnOff();
+                Lighting.setupFor3DItems();
             } else {
-                GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
+                GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> {
-                            List<ITextComponent> lines = Lists.newArrayList();
-                            lines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.tooltip.energy"));
+                            List<Component> lines = Lists.newArrayList();
+                            lines.add(new TranslatableComponent("gui.integratedterminals.terminal_storage.tooltip.energy"));
                             addQuantityTooltip(lines, instance);
                             if (additionalTooltipLines != null) {
                                 lines.addAll(additionalTooltipLines);
@@ -147,7 +145,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public int throwIntoWorld(IIngredientComponentStorage<Long, Boolean> storage, Long maxInstance,
-                              PlayerEntity player) {
+                              Player player) {
         return 0; // Dropping energy in the world is not possible
     }
 
@@ -160,8 +158,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public Long insertIntoContainer(IIngredientComponentStorage<Long, Boolean> storage,
-                                       Container container, int containerSlot, Long maxInstance,
-                                       @Nullable PlayerEntity player, boolean transferFullSelection) {
+                                       AbstractContainerMenu container, int containerSlot, Long maxInstance,
+                                       @Nullable Player player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getItem();
 
         return stack.getCapability(CapabilityEnergy.ENERGY)
@@ -181,8 +179,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<Long, Boolean> storage,
-                                                      PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
-        ItemStack playerStack = playerInventory.getCarried();
+                                                      AbstractContainerMenu container, Inventory playerInventory, long moveQuantityPlayerSlot) {
+        ItemStack playerStack = container.getCarried();
         playerStack.getCapability(CapabilityEnergy.ENERGY)
                 .ifPresent(energyStorage -> {
                     IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
@@ -196,7 +194,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<Long, Boolean> storage,
-                                            Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
+                                            AbstractContainerMenu container, int containerSlot, Inventory playerInventory, int limit) {
         Slot slot = container.getSlot(containerSlot);
         if (slot.mayPickup(playerInventory.player)) {
             ItemStack toMoveStack = slot.getItem();
@@ -213,16 +211,16 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
-    public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
-        ItemStack toMoveStack = playerInventory.getCarried();
+    public long getActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container) {
+        ItemStack toMoveStack = container.getCarried();
         return toMoveStack.getCapability(CapabilityEnergy.ENERGY)
                 .map(IEnergyStorage::getEnergyStored)
                 .orElse(0);
     }
 
     @Override
-    public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantityIn) {
-        ItemStack toMoveStack = playerInventory.getCarried();
+    public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantityIn) {
+        ItemStack toMoveStack = container.getCarried();
         toMoveStack.getCapability(CapabilityEnergy.ENERGY)
                 .ifPresent(energyStorage -> {
                     // Drain

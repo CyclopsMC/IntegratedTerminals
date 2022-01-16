@@ -1,8 +1,8 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.network.FriendlyByteBuf;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
@@ -27,19 +27,19 @@ public class ContainerTerminalStorageCraftingPlanPart extends ContainerTerminalS
     private final Optional<IPartContainer> partContainer;
     private final PartTypeTerminalStorage partType;
 
-    public ContainerTerminalStorageCraftingPlanPart(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+    public ContainerTerminalStorageCraftingPlanPart(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, Optional.empty(), Optional.empty(), PartHelpers.readPart(packetBuffer),
                 CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
     }
 
-    public ContainerTerminalStorageCraftingPlanPart(int id, PlayerInventory playerInventory,
+    public ContainerTerminalStorageCraftingPlanPart(int id, Inventory playerInventory,
                                                     Optional<PartTarget> target, Optional<IPartContainer> partContainer,
                                                     PartTypeTerminalStorage partType, CraftingOptionGuiData craftingOptionGuiData) {
         this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_PLAN_PART, id, playerInventory,
                 target, partContainer, partType, craftingOptionGuiData);
     }
 
-    public ContainerTerminalStorageCraftingPlanPart(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
+    public ContainerTerminalStorageCraftingPlanPart(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                                     Optional<PartTarget> target, Optional<IPartContainer> partContainer, PartTypeTerminalStorage partType,
                                                     CraftingOptionGuiData craftingOptionGuiData) {
         super(type, id, playerInventory, craftingOptionGuiData);

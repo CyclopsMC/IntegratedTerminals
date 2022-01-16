@@ -1,11 +1,11 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -44,12 +44,12 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
 
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
@@ -61,7 +61,7 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
         }
     }
 
-    public static void balanceGrid(CraftingInventory craftingGrid) {
+    public static void balanceGrid(CraftingContainer craftingGrid) {
         // Init bins
         List<Pair<ItemStack, List<Pair<Integer, Integer>>>> bins = Lists.newArrayListWithExpectedSize(craftingGrid.getContainerSize());
         for(int slot = 0; slot < craftingGrid.getContainerSize(); slot++) {

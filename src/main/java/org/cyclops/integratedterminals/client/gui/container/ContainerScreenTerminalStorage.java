@@ -3,23 +3,24 @@ package org.cyclops.integratedterminals.client.gui.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.client.util.InputMappings;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.item.TooltipFlag;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
@@ -99,7 +100,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     private int terminalDragSplittingRemnant;
     private boolean clicked;
 
-    public ContainerScreenTerminalStorage(C container, PlayerInventory inventory, ITextComponent title) {
+    public ContainerScreenTerminalStorage(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
     }
 
@@ -110,7 +111,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
         fieldChannel = new WidgetArrowedListField<String>(Minecraft.getInstance().font, leftPos + CHANNEL_X,
                 topPos + CHANNEL_Y, CHANNEL_WIDTH, CHANNEL_HEIGHT, true,
-                new TranslationTextComponent("gui.integratedterminals.channel"), true,
+                new TranslatableComponent("gui.integratedterminals.channel"), true,
                 getMenu().getChannelStrings());
         fieldChannel.setMaxLength(15);
         fieldChannel.setVisible(true);
@@ -123,7 +124,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         scrollBar = new WidgetScrollBar(leftPos + SCROLL_X, topPos + SCROLL_Y, SCROLL_HEIGHT,
-                new TranslationTextComponent("gui.cyclopscore.scrollbar"),
+                new TranslatableComponent("gui.cyclopscore.scrollbar"),
                 firstRow -> this.firstRow = firstRow, 0) {
             @Override
             public int getTotalRows() {
@@ -141,10 +142,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 return getSlotVisibleRows();
             }
         };
-        this.children.add(this.scrollBar);
+        this.renderables.add(this.scrollBar);
 
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().font, leftPos + SEARCH_X,
-                topPos + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, new TranslationTextComponent("gui.cyclopscore.search"));
+                topPos + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, new TranslatableComponent("gui.cyclopscore.search"));
         fieldSearch.setMaxLength(50);
         fieldSearch.setVisible(true);
         fieldSearch.setTextColor(16777215);
@@ -152,15 +153,15 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         fieldSearch.setEditable(true);
         fieldSearch.setBordered(false);
 
-        buttonSetDefaults = addButton(new ButtonImage(this.leftPos + 202, this.topPos + 193, 15, 15,
-                new TranslationTextComponent("gui.integratedterminals.terminal_storage.setdefaults"),
+        buttonSetDefaults = addRenderableWidget(new ButtonImage(this.leftPos + 202, this.topPos + 193, 15, 15,
+                new TranslatableComponent("gui.integratedterminals.terminal_storage.setdefaults"),
                 createServerPressable(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, b -> {}), true,
                 Images.ANVIL, -2, -3));
     }
 
     @Override
-    public void tick() {
-        super.tick();
+    public void containerTick() {
+        super.containerTick();
         if (!initialized && getSelectedClientTab().isPresent()) {
             initialized = true;
 
@@ -185,17 +186,17 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected void renderBg(MatrixStack matrixStack, float f, int mouseX, int mouseY) {
-        // super.renderBg(matrixStack, f, mouseX, mouseY); // TODO: restore
+    protected void renderBg(PoseStack matrixStack, float f, int mouseX, int mouseY) {
+        super.renderBg(matrixStack, f, mouseX, mouseY);
+        matrixStack.pushPose();
         fieldChannel.render(matrixStack, mouseX, mouseY, f);
         fieldSearch.render(matrixStack, mouseX, mouseY, f);
         drawTabsBackground(matrixStack);
         drawTabContents(matrixStack, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(matrixStack, f, mouseX, mouseY);
+        matrixStack.popPose();
 
-        GlStateManager._color4f(1, 1, 1, 1);
-        GlStateManager._disableLighting();
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         tabOptional.ifPresent(tab -> {
             int offset = 0;
@@ -219,9 +220,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
-        drawTabsForeground(mouseX, mouseY);
+        drawTabsForeground(matrixStack, mouseX, mouseY);
         drawTabContents(matrixStack, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
         RenderItemExtendedSlotCount.getInstance().blitOffset = 150.0F;
@@ -236,10 +237,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 Button guiButton = button.createButton(button.getX(leftPos, BUTTONS_OFFSET_X), button.getY(topPos, BUTTONS_OFFSET_Y + offset));
                 if (isHovering(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset),
                         guiButton.getWidth(), guiButton.getHeight(), mouseX, mouseY)) {
-                    List<ITextComponent> lines = Lists.newArrayList();
-                    lines.add(new TranslationTextComponent(button.getTranslationKey()));
-                    button.getTooltip(getMinecraft().player, ITooltipFlag.TooltipFlags.NORMAL, lines);
-                    drawTooltip(lines, mouseX - leftPos, mouseY - topPos);
+                    List<Component> lines = Lists.newArrayList();
+                    lines.add(new TranslatableComponent(button.getTranslationKey()));
+                    button.getTooltip(getMinecraft().player, TooltipFlag.Default.NORMAL, lines);
+                    drawTooltip(lines, matrixStack, mouseX - leftPos, mouseY - topPos);
                 }
                 if (button.isInLeftColumn()) {
                     offset += BUTTONS_OFFSET + guiButton.getHeight();
@@ -257,17 +258,17 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         });
 
         // Draw save defaults button
-        if (buttonSetDefaults.isHovered()) {
-            List<ITextComponent> lines = Lists.newArrayList();
-            lines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.setdefaults"));
-            lines.add(new TranslationTextComponent("gui.integratedterminals.terminal_storage.setdefaults.info")
-                .withStyle(TextFormatting.GRAY));
-            drawTooltip(lines, mouseX - leftPos, mouseY - topPos);
+        if (buttonSetDefaults.isHoveredOrFocused()) {
+            List<Component> lines = Lists.newArrayList();
+            lines.add(new TranslatableComponent("gui.integratedterminals.terminal_storage.setdefaults"));
+            lines.add(new TranslatableComponent("gui.integratedterminals.terminal_storage.setdefaults.info")
+                .withStyle(ChatFormatting.GRAY));
+            drawTooltip(lines, matrixStack, mouseX - leftPos, mouseY - topPos);
         }
     }
 
     @Override
-    protected void drawCurrentScreen(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    protected void drawCurrentScreen(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
 
         ResourceLocation oldTexture = this.texture;
@@ -281,7 +282,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         super.drawCurrentScreen(matrixStack, mouseX, mouseY, partialTicks);
 
         // Draw slots
-        GlStateManager._disableLighting();
         GlStateManager._disableDepthTest();
         //this.zLevel = 0F;
         for (int i1 = 0; i1 < getMenu().slots.size(); ++i1) {
@@ -296,7 +296,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         this.texture = oldTexture;
     }
 
-    private void drawSlotOverlay(MatrixStack matrixStack, Slot slot) {
+    private void drawSlotOverlay(PoseStack matrixStack, Slot slot) {
         getSelectedClientTab().ifPresent(tab -> {
             if (this.terminalDragSplitting && this.terminalDragSplittingSlots.contains(slot)) {
                 if (tab.isSlotValidForDraggingInto(getMenu().getSelectedChannel(), slot)) {
@@ -347,7 +347,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     protected void playButtonClickSound() {
-        this.getMinecraft().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+        this.getMinecraft().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
     }
 
     @Override
@@ -569,7 +569,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     protected boolean handleKeyCodeFirst(int keyCode, int scanCode) {
-        InputMappings.Input inputCode = InputMappings.getKey(keyCode, scanCode);
+        InputConstants.Key inputCode = InputConstants.getKey(keyCode, scanCode);
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(inputCode)) {
             fieldSearch.changeFocus(true);
             return true;
@@ -592,7 +592,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     protected boolean handleKeyCodeLast(int keyCode, int scanCode) {
-        InputMappings.Input inputCode = InputMappings.getKey(keyCode, scanCode);
+        InputConstants.Key inputCode = InputConstants.getKey(keyCode, scanCode);
         if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARPLAYER.isActiveAndMatches(inputCode)) {
             clearCraftingGrid(false);
             playButtonClickSound();
@@ -683,7 +683,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return -1;
     }
 
-    protected void drawTabsBackground(MatrixStack matrixStack) {
+    protected void drawTabsBackground(PoseStack matrixStack) {
         int offsetX = TAB_OFFSET_X;
 
         // Draw channels label
@@ -706,15 +706,14 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             // Draw icon
             ItemStack icon = tab.getIcon();
             ItemRenderer renderItem = Minecraft.getInstance().getItemRenderer();
-            GlStateManager._pushMatrix();
+            matrixStack.pushPose();
             GlStateManager._enableBlend();
             GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            RenderHelper.turnBackOn();
-            GlStateManager._enableRescaleNormal();
+            Lighting.setupForFlatItems();
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             renderItem.renderAndDecorateItem(icon, x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
-            RenderHelper.turnOff();
-            GlStateManager._popMatrix();
+            Lighting.setupFor3DItems();
+            matrixStack.popPose();
             GL11.glDisable(GL11.GL_DEPTH_TEST);
 
             offsetX += width;
@@ -749,7 +748,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return firstRow;
     }
 
-    protected void drawTabContents(MatrixStack matrixStack, String tabId, int channel, DrawLayer layer,
+    protected void drawTabContents(PoseStack matrixStack, String tabId, int channel, DrawLayer layer,
                                    float partialTick, int x, int y, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getClientTab(tabId);
         if (optionalTab.isPresent()) {
@@ -758,7 +757,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             if (layer == DrawLayer.BACKGROUND) {
                 drawCenteredString(matrixStack, font, tab.getStatus(channel), leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (GuiHelpers.SLOT_SIZE * ITerminalStorageTabClient.DEFAULT_SLOT_ROW_LENGTH) / 2,
                         y + 2 + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE, 16777215);
-                GlStateManager._color4f(1, 1, 1, 1);
+                RenderSystem.setShaderColor(1, 1, 1, 1);
             }
 
             // Draw slots
@@ -791,13 +790,13 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 }
             }
         } else {
-            GlStateManager._color4f(0.3F, 0.3F, 0.3F, 0.3F);
+            RenderSystem.setShaderColor(0.3F, 0.3F, 0.3F, 0.3F);
             fill(matrixStack, x - 1, y - 1, x - 1 + GuiHelpers.SLOT_SIZE * getSlotRowLength(), y - 1 + GuiHelpers.SLOT_SIZE * getSlotVisibleRows(), Helpers.RGBAToInt(50, 50, 50, 100));
-            GlStateManager._color4f(1, 1, 1, 1);
+            RenderSystem.setShaderColor(1, 1, 1, 1);
         }
     }
 
-    private void drawActiveStorageSlotItem(MatrixStack matrixStack, int mouseX, int mouseY) {
+    private void drawActiveStorageSlotItem(PoseStack matrixStack, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getSelectedClientTab();
         optionalTab.ifPresent(tab -> {
             int slotId = tab.getActiveSlotId();
@@ -807,7 +806,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 if (!slots.isEmpty()) {
                     ITerminalStorageSlot slot = (ITerminalStorageSlot) slots.get(0);
                     RenderHelpers.bindTexture(this.texture);
-                    GlStateManager._color4f(1, 1, 1, 1);
+                    RenderSystem.setShaderColor(1, 1, 1, 1);
 
                     if (this.terminalDragSplitting && this.terminalDragSplittingSlots.size() > 1) {
                         quantity = this.terminalDragSplittingRemnant;
@@ -815,7 +814,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
                     String quantityString = GuiHelpers.quantityToScaledString(quantity);
                     if (quantity == 0) {
-                        quantityString = TextFormatting.YELLOW + quantityString;
+                        quantityString = ChatFormatting.YELLOW + quantityString;
                     }
 
                     slot.drawGuiContainerLayer(this, matrixStack, DrawLayer.BACKGROUND,
@@ -852,13 +851,13 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return -1;
     }
 
-    protected void drawTabsForeground(int mouseX, int mouseY) {
+    protected void drawTabsForeground(PoseStack poseStack, int mouseX, int mouseY) {
         if (mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
                 && mouseX > getGuiLeft() + TAB_OFFSET_X
                 && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
             int tabIndex = (mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH;
             getTabByIndex(tabIndex)
-                    .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), mouseX - getGuiLeft(), mouseY - getGuiTop()));
+                    .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), poseStack, mouseX - getGuiLeft(), mouseY - getGuiTop()));
         }
     }
 

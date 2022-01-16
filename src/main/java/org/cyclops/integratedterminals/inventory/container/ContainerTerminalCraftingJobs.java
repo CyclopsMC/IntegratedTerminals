@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.inventory.container;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.common.util.LazyOptional;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
@@ -40,14 +40,14 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
     private long lastUpdate;
     private List<HandlerWrappedTerminalCraftingPlan> craftingJobs;
 
-    public ContainerTerminalCraftingJobs(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+    public ContainerTerminalCraftingJobs(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer));
     }
 
-    public ContainerTerminalCraftingJobs(int id, PlayerInventory playerInventory,
+    public ContainerTerminalCraftingJobs(int id, Inventory playerInventory,
                                          PartTarget target, Optional<IPartContainer> partContainer,
                                          PartTypeTerminalCraftingJob partType) {
-        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS, id, playerInventory, new Inventory(), Optional.of(target), partContainer, partType);
+        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS, id, playerInventory, new SimpleContainer(), Optional.of(target), partContainer, partType);
 
         this.network = getTarget()
                 .map(t -> NetworkHelpers.getNetwork(t.getCenter()))
@@ -78,7 +78,7 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
     public void broadcastChanges() {
         super.broadcastChanges();
 
-        if (!this.getWorld().isClientSide()
+        if (!this.getLevel().isClientSide()
                 && this.lastUpdate < System.currentTimeMillis()) {
             getNetwork().ifPresent(network -> {
                 this.lastUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
@@ -93,11 +93,11 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
                 }
 
                 // Send crafting jobs to client
-                ListNBT tagList = new ListNBT();
+                ListTag tagList = new ListTag();
                 for (HandlerWrappedTerminalCraftingPlan craftingJob : this.craftingJobs) {
                     tagList.add(HandlerWrappedTerminalCraftingPlan.serialize(craftingJob));
                 }
-                CompoundNBT tag = new CompoundNBT();
+                CompoundTag tag = new CompoundTag();
                 tag.put("craftingJobs", tagList);
                 setValue(this.valueIdCraftingJobs, tag);
             });
@@ -110,16 +110,16 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return true;
     }
 
     @Override
-    public void onUpdate(int valueId, CompoundNBT value) {
+    public void onUpdate(int valueId, CompoundTag value) {
         super.onUpdate(valueId, value);
 
         if (valueId == this.valueIdCraftingJobs) {
-            ListNBT tagList = value.getList("craftingJobs", Constants.NBT.TAG_COMPOUND);
+            ListTag tagList = value.getList("craftingJobs", Tag.TAG_COMPOUND);
             this.craftingJobs = Lists.newArrayListWithExpectedSize(tagList.size());
             for (int i = 0; i < tagList.size(); i++) {
                 this.craftingJobs.add(HandlerWrappedTerminalCraftingPlan.deserialize(tagList.getCompound(i)));

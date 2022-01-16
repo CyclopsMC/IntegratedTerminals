@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.common.MinecraftForge;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
@@ -36,14 +36,14 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     private final Optional<IPartContainer> partContainer;
     private final PartTypeTerminalStorage partType;
 
-    public ContainerTerminalStoragePart(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+    public ContainerTerminalStoragePart(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), PartHelpers.readPart(packetBuffer),
                 packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty(),
                 TerminalStorageState.readFromPacketBuffer(packetBuffer));
         getGuiState().setDirtyMarkListener(this::sendGuiStateToServer);
     }
 
-    public ContainerTerminalStoragePart(int id, PlayerInventory playerInventory, PartTarget target,
+    public ContainerTerminalStoragePart(int id, Inventory playerInventory, PartTarget target,
                                         PartTypeTerminalStorage partType, Optional<ContainerTerminalStorageBase.InitTabData> initTabData,
                                         TerminalStorageState terminalStorageState) {
         this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_PART, id, playerInventory,
@@ -52,7 +52,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
                 initTabData, terminalStorageState);
     }
 
-    public ContainerTerminalStoragePart(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
+    public ContainerTerminalStoragePart(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                         PartTarget target, Optional<IPartContainer> partContainer, PartTypeTerminalStorage partType,
                                         Optional<ContainerTerminalStorageBase.InitTabData> initTabData,
                                         TerminalStorageState terminalStorageState) {
@@ -65,7 +65,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
 
         putButtonAction(ContainerMultipart.BUTTON_SETTINGS, (s, containerExtended) -> {
             if(!getWorld().isClientSide()) {
-                PartHelpers.openContainerPart((ServerPlayerEntity) player, target.getCenter(), partType);
+                PartHelpers.openContainerPart((ServerPlayer) player, target.getCenter(), partType);
             }
         });
     }
@@ -87,7 +87,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return PartHelpers.canInteractWith(getPartTarget(), player, this.partContainer.get());
     }
 

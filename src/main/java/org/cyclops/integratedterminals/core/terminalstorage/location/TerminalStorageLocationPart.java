@@ -1,16 +1,16 @@
 package org.cyclops.integratedterminals.core.terminalstorage.location;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -47,7 +47,7 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
     }
 
     @Override
-    public <T, M> void openContainerFromServer(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, World world, ServerPlayerEntity player) {
+    public <T, M> void openContainerFromServer(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, Level world, ServerPlayer player) {
         PartPos partPos = craftingOptionGuiData.getLocationInstance();
         TerminalStorageIngredientPartOpenPacket.openServer(
                 world,
@@ -60,16 +60,16 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
     }
 
     @Override
-    public <T, M> void openContainerCraftingPlan(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, World world, ServerPlayerEntity player) {
+    public <T, M> void openContainerCraftingPlan(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, Level world, ServerPlayer player) {
         // Create temporary container provider
-        INamedContainerProvider containerProvider = new INamedContainerProvider() {
+        MenuProvider containerProvider = new MenuProvider() {
             @Override
-            public ITextComponent getDisplayName() {
-                return new StringTextComponent("");
+            public Component getDisplayName() {
+                return new TextComponent("");
             }
 
             @Override
-            public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+            public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
                 PartPos location = craftingOptionGuiData.getLocationInstance();
                 Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(PartPos.of(world, location.getPos().getBlockPos(), location.getSide()));
                 return new ContainerTerminalStorageCraftingPlanPart(id, playerInventory,
@@ -86,16 +86,16 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
     }
 
     @Override
-    public <T, M> void openContainerCraftingOptionAmount(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, World world, ServerPlayerEntity player) {
+    public <T, M> void openContainerCraftingOptionAmount(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, Level world, ServerPlayer player) {
         // Create temporary container provider
-        INamedContainerProvider containerProvider = new INamedContainerProvider() {
+        MenuProvider containerProvider = new MenuProvider() {
             @Override
-            public ITextComponent getDisplayName() {
-                return new StringTextComponent("");
+            public Component getDisplayName() {
+                return new TextComponent("");
             }
 
             @Override
-            public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+            public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
                 PartPos location = craftingOptionGuiData.getLocationInstance();
                 Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(PartPos.of(world, location.getPos().getBlockPos(), location.getSide()));
                 return new ContainerTerminalStorageCraftingOptionAmountPart(id, playerInventory,
@@ -112,12 +112,12 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
     }
 
     @Override
-    public void writeToPacketBuffer(PacketBuffer packetBuffer, PartPos location) {
+    public void writeToPacketBuffer(FriendlyByteBuf packetBuffer, PartPos location) {
         PacketCodec.getAction(PartPos.class).encode(location, packetBuffer);
     }
 
     @Override
-    public PartPos readFromPacketBuffer(PacketBuffer packetBuffer) {
+    public PartPos readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
         return (PartPos) PacketCodec.getAction(PartPos.class).decode(packetBuffer);
     }
 }

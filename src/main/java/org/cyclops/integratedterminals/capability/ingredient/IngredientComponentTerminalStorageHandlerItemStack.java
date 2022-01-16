@@ -1,23 +1,22 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.client.gui.GuiUtils;
 import net.minecraftforge.items.ItemHandlerHelper;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -67,36 +66,34 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(MatrixStack matrixStack, ItemStack instance, long maxQuantity, @Nullable String label, ContainerScreen gui,
+    public void drawInstance(PoseStack matrixStack, ItemStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<ITextComponent> additionalTooltipLines) {
+                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
-        GlStateManager._pushMatrix();
+        matrixStack.popPose();
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        RenderHelper.turnBackOn();
-        GlStateManager._enableRescaleNormal();
+        Lighting.setupForFlatItems();
+        //GlStateManager._enableRescaleNormal();
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(instance, x, y);
             renderItem.renderGuiItemDecorations(Minecraft.getInstance().font, instance, x, y, label);
         } else {
-            GuiUtils.preItemToolTip(instance);
-            GuiHelpers.renderTooltip(gui, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
-                List<ITextComponent> lines = instance.getTooltipLines(
+            GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
+                List<Component> lines = instance.getTooltipLines(
                         Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
-                                ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
+                                ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
                 if (additionalTooltipLines != null) {
                     lines.addAll(additionalTooltipLines);
                 }
                 addQuantityTooltip(lines, instance);
                 return lines;
             });
-            GuiUtils.postItemToolTip();
         }
-        RenderHelper.turnOff();
-        GlStateManager._popMatrix();
+        Lighting.setupFor3DItems();
+        matrixStack.popPose();
     }
 
     @Override
@@ -131,7 +128,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public int throwIntoWorld(IIngredientComponentStorage<ItemStack, Integer> storage, ItemStack maxInstance,
-                              PlayerEntity player) {
+                              Player player) {
         ItemStack extracted = storage.extract(maxInstance, ItemMatch.EXACT, false);
         if (!extracted.isEmpty()) {
             player.drop(extracted, true);
@@ -141,8 +138,8 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public ItemStack insertIntoContainer(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                         Container container, int containerSlotIndex, ItemStack maxInstance,
-                                         @Nullable PlayerEntity player, boolean transferFullSelection) {
+                                         AbstractContainerMenu container, int containerSlotIndex, ItemStack maxInstance,
+                                         @Nullable Player player, boolean transferFullSelection) {
         IIngredientMatcher<ItemStack, Integer> matcher = IngredientComponent.ITEMSTACK.getMatcher();
 
         // Limit transfer to 64 at a time
@@ -151,13 +148,14 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         }
 
         Slot containerSlot = container.getSlot(containerSlotIndex);
-        if (transferFullSelection && player != null && player.inventory.getCarried().isEmpty()) {
+        if (transferFullSelection && player != null && container.getCarried().isEmpty()) {
             // Pick up container slot contents if not empty
             ItemStack containerStack = containerSlot.getItem();
             if (!containerStack.isEmpty()
                     && !matcher.matches(containerStack, maxInstance, matcher.getExactMatchNoQuantityCondition())
                     && containerSlot.mayPickup(player)) {
-                player.inventory.setCarried(containerSlot.onTake(player, containerStack));
+                container.setCarried(containerStack);
+                containerSlot.onTake(player, containerStack);
                 containerSlot.set(ItemStack.EMPTY);
             }
         }
@@ -192,17 +190,18 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                                      PlayerInventory playerInventory, long moveQuantityPlayerSlot) {
-        ItemStack playerStack = IngredientComponent.ITEMSTACK.getMatcher().withQuantity(playerInventory.getCarried(),
+                                                      AbstractContainerMenu container, Inventory playerInventory,
+                                                      long moveQuantityPlayerSlot) {
+        ItemStack playerStack = IngredientComponent.ITEMSTACK.getMatcher().withQuantity(container.getCarried(),
                 moveQuantityPlayerSlot);
         int remaining = storage.insert(playerStack.copy(), false).getCount();
         int moved = (int) (moveQuantityPlayerSlot - remaining);
-        playerInventory.getCarried().shrink(moved);
+        container.getCarried().shrink(moved);
     }
 
     @Override
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<ItemStack, Integer> storage,
-                                            Container container, int containerSlot, PlayerInventory playerInventory, int limit) {
+                                            AbstractContainerMenu container, int containerSlot, Inventory playerInventory, int limit) {
         Slot slot = container.getSlot(containerSlot);
         if (slot.mayPickup(playerInventory.player)) {
             ItemStack toMove = slot.remove(limit == -1 ? Integer.MAX_VALUE : limit);
@@ -225,13 +224,13 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
-    public long getActivePlayerStackQuantity(PlayerInventory playerInventory) {
-        return playerInventory.getCarried().getCount();
+    public long getActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container) {
+        return container.getCarried().getCount();
     }
 
     @Override
-    public void drainActivePlayerStackQuantity(PlayerInventory playerInventory, long quantity) {
-        playerInventory.getCarried().shrink((int) quantity);
+    public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantity) {
+        container.getCarried().shrink((int) quantity);
     }
 
     @Override
@@ -243,7 +242,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                         .orElse("minecraft").toLowerCase(Locale.ENGLISH)
                         .matches(".*" + query + ".*");
             case TOOLTIP:
-                return i -> i.getTooltipLines(Minecraft.getInstance().player, ITooltipFlag.TooltipFlags.NORMAL).stream()
+                return i -> i.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
                         .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
             case TAG:
                 return i -> ItemTags.getAllTags().getMatchingTags(i.getItem()).stream()

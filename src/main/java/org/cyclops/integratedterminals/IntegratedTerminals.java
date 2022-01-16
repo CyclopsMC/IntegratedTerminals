@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals;
 
-import net.minecraft.item.ItemGroup;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.event.RegistryEvent;
@@ -87,17 +87,17 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
 
         // Initialize info book
         IntegratedDynamics._instance.getRegistryManager().getRegistry(IInfoBookRegistry.class)
-                .registerSection(
+                .registerSection(this,
                         OnTheDynamicsOfIntegrationBook.getInstance(), "info_book.integrateddynamics.manual",
                         "/data/" + Reference.MOD_ID + "/info/terminals_info.xml");
         IntegratedDynamics._instance.getRegistryManager().getRegistry(IInfoBookRegistry.class)
-                .registerSection(
+                .registerSection(this,
                         OnTheDynamicsOfIntegrationBook.getInstance(), "info_book.integrateddynamics.tutorials",
                         "/data/" + Reference.MOD_ID + "/info/terminals_tutorials.xml");
     }
 
     @Override
-    public ItemGroup constructDefaultItemGroup() {
+    public CreativeModeTab constructDefaultCreativeModeTab() {
         return new ItemGroupMod(this, () -> RegistryEntries.ITEM_PART_TERMINAL_STORAGE);
     }
 

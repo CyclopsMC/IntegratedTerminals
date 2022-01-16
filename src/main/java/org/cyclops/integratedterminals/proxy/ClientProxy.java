@@ -1,14 +1,14 @@
 package org.cyclops.integratedterminals.proxy;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.player.ClientPlayerEntity;
-import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.client.util.InputMappings;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Hand;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
-import net.minecraftforge.fml.client.registry.ClientRegistry;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.client.key.IKeyRegistry;
 import org.cyclops.cyclopscore.init.ModBase;
@@ -18,7 +18,6 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemOpenGenericPacket;
-import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemOpenPacket;
 import org.lwjgl.glfw.GLFW;
 
 /**
@@ -31,29 +30,29 @@ public class ClientProxy extends ClientProxyComponent {
 
 	private static final String KEYBINDING_CATEGORY_NAME = "key.categories." + Reference.MOD_ID;
 
-	public static final KeyBinding TERMINAL_TAB_NEXT = new KeyBinding(
+	public static final KeyMapping TERMINAL_TAB_NEXT = new KeyMapping(
 			"key." + Reference.MOD_ID + ".terminal.tab.next",
-			KeyConflictContext.GUI, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
+			KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
 			KEYBINDING_CATEGORY_NAME);
-	public static final KeyBinding TERMINAL_TAB_PREVIOUS = new KeyBinding(
+	public static final KeyMapping TERMINAL_TAB_PREVIOUS = new KeyMapping(
 			"key." + Reference.MOD_ID + ".terminal.tab.previous",
-			KeyConflictContext.GUI, KeyModifier.SHIFT, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
+			KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
 			KEYBINDING_CATEGORY_NAME);
-	public static final KeyBinding TERMINAL_CRAFTINGGRID_CLEARPLAYER = new KeyBinding(
+	public static final KeyMapping TERMINAL_CRAFTINGGRID_CLEARPLAYER = new KeyMapping(
 			"key." + Reference.MOD_ID + ".terminal.craftinggrid.clearplayer",
-			KeyConflictContext.GUI, KeyModifier.SHIFT, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_C,
+			KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
 			KEYBINDING_CATEGORY_NAME);
-	public static final KeyBinding TERMINAL_CRAFTINGGRID_CLEARSTORAGE = new KeyBinding(
+	public static final KeyMapping TERMINAL_CRAFTINGGRID_CLEARSTORAGE = new KeyMapping(
 			"key." + Reference.MOD_ID + ".terminal.craftinggrid.clearstorage",
-			KeyConflictContext.GUI, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_C,
+			KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
 			KEYBINDING_CATEGORY_NAME);
-	public static final KeyBinding TERMINAL_CRAFTINGGRID_BALANCE = new KeyBinding(
+	public static final KeyMapping TERMINAL_CRAFTINGGRID_BALANCE = new KeyMapping(
 			"key." + Reference.MOD_ID + ".terminal.craftinggrid.balance",
-			KeyConflictContext.GUI, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_B,
+			KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B,
 			KEYBINDING_CATEGORY_NAME);
-	public static final KeyBinding TERMINAL_STORAGE_PORTABLE_OPEN = new KeyBinding(
+	public static final KeyMapping TERMINAL_STORAGE_PORTABLE_OPEN = new KeyMapping(
 			"key." + Reference.MOD_ID + ".terminal.portable.open",
-			KeyConflictContext.IN_GAME, InputMappings.Type.KEYSYM, GLFW.GLFW_KEY_C,
+			KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
 			KEYBINDING_CATEGORY_NAME);
 
 	public ClientProxy() {
@@ -75,18 +74,18 @@ public class ClientProxy extends ClientProxyComponent {
 		ClientRegistry.registerKeyBinding(TERMINAL_STORAGE_PORTABLE_OPEN);
 
 		keyRegistry.addKeyHandler(TERMINAL_STORAGE_PORTABLE_OPEN, (kb) -> {
-			ClientPlayerEntity player = Minecraft.getInstance().player;
-			Pair<Hand, Integer> found = null;
+			LocalPlayer player = Minecraft.getInstance().player;
+			Pair<InteractionHand, Integer> found = null;
 			PlayerInventoryIterator it = new PlayerInventoryIterator(player);
 			while (it.hasNext() && found == null) {
 				Pair<Integer, ItemStack> pair = it.nextIndexed();
 				if (pair.getRight() != null && pair.getRight().getItem() instanceof ItemTerminalStoragePortable) {
-					found = Pair.of(Hand.MAIN_HAND, pair.getLeft());
+					found = Pair.of(InteractionHand.MAIN_HAND, pair.getLeft());
 				}
 			}
 			if(found == null) {
 				if (player.getOffhandItem().getItem() instanceof ItemTerminalStoragePortable) {
-					found = Pair.of(Hand.OFF_HAND, 0);
+					found = Pair.of(InteractionHand.OFF_HAND, 0);
 				}
 			}
 			if(found != null) {

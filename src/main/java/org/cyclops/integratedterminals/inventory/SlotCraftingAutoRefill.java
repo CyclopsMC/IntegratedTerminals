@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.inventory;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.CraftingResultSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.server.SSetSlotPacket;
-import net.minecraft.util.NonNullList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.ResultSlot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -22,15 +22,15 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  * A crafting slot that will automatically auto-refill from the storage (if enabled).
  * @author rubensworks
  */
-public class SlotCraftingAutoRefill extends CraftingResultSlot {
+public class SlotCraftingAutoRefill extends ResultSlot {
 
-    private final CraftingInventory inventoryCrafting;
+    private final CraftingContainer inventoryCrafting;
     private final TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon;
     private final TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer;
     private final ContainerTerminalStorageBase container;
 
-    public SlotCraftingAutoRefill(PlayerEntity player, CraftingInventory inventoryCrafting,
-                                  IInventory inventoryIn, int slotIndex, int xPosition, int yPosition,
+    public SlotCraftingAutoRefill(Player player, CraftingContainer inventoryCrafting,
+                                  Container inventoryIn, int slotIndex, int xPosition, int yPosition,
                                   TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon,
                                   TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer,
                                   ContainerTerminalStorageBase container) {
@@ -42,18 +42,18 @@ public class SlotCraftingAutoRefill extends CraftingResultSlot {
     }
 
     @Override
-    public ItemStack onTake(PlayerEntity thePlayer, ItemStack stack) {
+    public void onTake(Player thePlayer, ItemStack stack) {
         TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = tabCommon.getAutoRefill();
         if (!thePlayer.level.isClientSide && autoRefill != TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.DISABLED) {
             NonNullList<ItemStack> beforeCraft = inventoryToList(inventoryCrafting, true);
-            ItemStack taken = super.onTake(thePlayer, stack);
+            super.onTake(thePlayer, stack);
             NonNullList<ItemStack> afterCraft = inventoryToList(inventoryCrafting, false);
 
             NonNullList<ItemStack> removed = getRemoved(beforeCraft, afterCraft);
             // Attempt to get and re-add removed stacks from storage
             IIngredientComponentStorage<ItemStack, Integer> storage = tabServer.getIngredientNetwork()
                     .getChannel(this.container.getSelectedChannel());
-            IIngredientComponentStorage<ItemStack, Integer> player = new IngredientComponentStorageWrapperHandlerItemStack.ComponentStorageWrapper(IngredientComponent.ITEMSTACK, new PlayerInvWrapper(thePlayer.inventory));
+            IIngredientComponentStorage<ItemStack, Integer> player = new IngredientComponentStorageWrapperHandlerItemStack.ComponentStorageWrapper(IngredientComponent.ITEMSTACK, new PlayerInvWrapper(thePlayer.getInventory()));
             for (int i = 0; i < removed.size(); i++) {
                 ItemStack removedStack = removed.get(i);
                 if (!removedStack.isEmpty()) {
@@ -88,17 +88,16 @@ public class SlotCraftingAutoRefill extends CraftingResultSlot {
                     ItemStack existingStack = inventoryCrafting.getItem(i);
                     existingStack.grow(extracted.getCount());
                     inventoryCrafting.setItem(i, existingStack);
-                    ((ServerPlayerEntity) thePlayer).connection.send(
-                            new SSetSlotPacket(thePlayer.containerMenu.containerId, i + this.index + 1,
+                    ((ServerPlayer) thePlayer).connection.send(
+                            new ClientboundContainerSetSlotPacket(thePlayer.containerMenu.containerId, thePlayer.containerMenu.getStateId(), i + this.index + 1,
                                     inventoryCrafting.getItem(i)));
                 }
             }
-            return taken;
         }
-        return super.onTake(thePlayer, stack);
+        super.onTake(thePlayer, stack);
     }
 
-    public static NonNullList<ItemStack> inventoryToList(IInventory inventory, boolean copy) {
+    public static NonNullList<ItemStack> inventoryToList(Container inventory, boolean copy) {
         NonNullList<ItemStack> list = NonNullList.withSize(inventory.getContainerSize(), ItemStack.EMPTY);
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             list.set(i, copy ? inventory.getItem(i).copy() : inventory.getItem(i));

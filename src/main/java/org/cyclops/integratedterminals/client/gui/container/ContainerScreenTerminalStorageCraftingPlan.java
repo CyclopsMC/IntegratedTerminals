@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -31,7 +31,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
     private ITerminalCraftingPlan craftingPlan;
 
-    public ContainerScreenTerminalStorageCraftingPlan(C container, PlayerInventory inventory, ITextComponent title) {
+    public ContainerScreenTerminalStorageCraftingPlan(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
     }
 
@@ -54,19 +54,19 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     public void init() {
         super.init();
 
+        this.renderables.clear();
+        this.children().clear();
         if (this.craftingPlan != null) {
-            this.children.clear();
             this.guiCraftingPlan = new GuiCraftingPlan(this, this.craftingPlan, leftPos, topPos, 9, 18, 10);
-            this.children.add(this.guiCraftingPlan);
+            addRenderableWidget(this.guiCraftingPlan);
         } else {
             this.guiCraftingPlan = null;
         }
 
         ButtonText button;
-        this.buttons.clear();
-        addButton(button = new ButtonText(leftPos + 95, topPos + 198, 50, 20,
-                        new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft"),
-                        new TranslationTextComponent("gui.integratedterminals.terminal_storage.step.craft").withStyle(TextFormatting.YELLOW),
+        addRenderableWidget(button = new ButtonText(leftPos + 95, topPos + 198, 50, 20,
+                        new TranslatableComponent("gui.integratedterminals.terminal_storage.step.craft"),
+                        new TranslatableComponent("gui.integratedterminals.terminal_storage.step.craft").withStyle(ChatFormatting.YELLOW),
                         createServerPressable(ContainerTerminalStorageCraftingPlanBase.BUTTON_START, (b) -> {}),
                         true));
         button.active = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
@@ -76,7 +76,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     public boolean keyPressed(int typedChar, int keyCode, int modifiers) {
         if (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()
                 && (typedChar == GLFW.GLFW_KEY_ENTER || typedChar == GLFW.GLFW_KEY_KP_ENTER)) {
-            ((Button) this.buttons.get(0)).onPress();
+            ((Button) this.children().get(0)).onPress();
             return true;
         }
         return super.keyPressed(typedChar, keyCode, modifiers);
@@ -88,8 +88,8 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        // super.renderBg(matrixStack, partialTicks, mouseX, mouseY); // TODO: restore
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
         } else {
@@ -99,7 +99,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
@@ -107,7 +107,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    protected void drawCurrentScreen(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    protected void drawCurrentScreen(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawCurrentScreen(matrixStack, mouseX, mouseY, partialTicks);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.render(matrixStack, mouseX, mouseY, partialTicks);
@@ -131,7 +131,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    public void onUpdate(int valueId, CompoundNBT value) {
+    public void onUpdate(int valueId, CompoundTag value) {
         super.onUpdate(valueId, value);
 
         if (getMenu().getCraftingPlanNotifierId() == valueId) {

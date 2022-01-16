@@ -1,19 +1,19 @@
 package org.cyclops.integratedterminals.inventory;
 
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 
 /**
  * An extended {@link CraftingInventory} that has a {@link IDirtyMarkListener}.
  * @author rubensworks
  */
-public class InventoryCraftingDirtyable extends CraftingInventory {
+public class InventoryCraftingDirtyable extends CraftingContainer {
 
     private final IDirtyMarkListener dirtyMarkListener;
 
-    public InventoryCraftingDirtyable(Container eventHandlerIn, int width, int height, IDirtyMarkListener dirtyMarkListener) {
+    public InventoryCraftingDirtyable(AbstractContainerMenu eventHandlerIn, int width, int height, IDirtyMarkListener dirtyMarkListener) {
         super(eventHandlerIn, width, height);
         this.dirtyMarkListener = dirtyMarkListener;
     }

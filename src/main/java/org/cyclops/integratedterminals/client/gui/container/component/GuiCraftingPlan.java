@@ -1,20 +1,22 @@
 package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import net.minecraft.block.Blocks;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.components.AbstractWidget;
+import com.mojang.blaze3d.platform.Lighting;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
@@ -48,15 +50,15 @@ import java.util.stream.Collectors;
  * A gui component for visualizing {@link CraftingOptionGuiData}.
  *
  * The using gui must call the following methods from its respective method:
- * * {@link #render(MatrixStack, int, int, float)}}
- * * {@link #drawGuiContainerBackgroundLayer(MatrixStack, float, int, int)}
- * * {@link #drawGuiContainerForegroundLayer(MatrixStack, int, int)}
+ * * {@link #render(PoseStack, int, int, float)}}
+ * * {@link #drawGuiContainerBackgroundLayer(PoseStack, float, int, int)}
+ * * {@link #drawGuiContainerForegroundLayer(PoseStack, int, int)}
  * * {@link #mouseScrolled(double, double, double)}}
  * * {@link #mouseDragged(double, double, int, double, double)}}
  *
  * @author rubensworks
  */
-public class GuiCraftingPlan extends Widget {
+public class GuiCraftingPlan extends AbstractWidget {
 
     private static final int ELEMENT_WIDTH = 221;
     private static final int ELEMENT_HEIGHT = 16;
@@ -64,7 +66,7 @@ public class GuiCraftingPlan extends Widget {
 
     protected static final int TICK_DELAY = 30;
 
-    private final ContainerScreen parentGui;
+    private final AbstractContainerScreen parentGui;
     private final int guiLeft;
     private final int guiTop;
     private final List<GuiCraftingPlan.Element> elements;
@@ -79,15 +81,15 @@ public class GuiCraftingPlan extends Widget {
 
     private int firstRow;
 
-    public GuiCraftingPlan(ContainerScreen parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
-        super(x, y, 0, 0, new StringTextComponent(""));
+    public GuiCraftingPlan(AbstractContainerScreen parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
+        super(x, y, 0, 0, new TextComponent(""));
         this.parentGui = parentGui;
         this.guiLeft = guiLeft;
         this.guiTop = guiTop;
         this.elements = getElements(craftingPlan);
         this.visibleElements = Lists.newArrayList(this.elements);
         this.valid = craftingPlan.getStatus().isValid();
-        this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, new TranslationTextComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
+        this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, new TranslatableComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size());
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
@@ -137,7 +139,7 @@ public class GuiCraftingPlan extends Widget {
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 
     }
 
@@ -149,7 +151,7 @@ public class GuiCraftingPlan extends Widget {
         return element.getIndent() * 8;
     }
 
-    public void drawGuiContainerLayer(MatrixStack matrixStack, int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    public void drawGuiContainerLayer(PoseStack matrixStack, int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
             drawElement(matrixStack, element,  getAbsoluteElementIndent(element), guiLeft + x, guiTop + y + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
@@ -161,7 +163,7 @@ public class GuiCraftingPlan extends Widget {
         return (int) Minecraft.getInstance().level.getGameTime() / TICK_DELAY;
     }
 
-    private void drawElement(MatrixStack matrixStack, Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    private void drawElement(PoseStack matrixStack, Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw background
             fill(matrixStack, x, y, x + width, y + height + 1, element.getColor());
@@ -172,7 +174,6 @@ public class GuiCraftingPlan extends Widget {
 
         // Draw dropdown arrow
         if (!element.getChildren().isEmpty() && layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            GlStateManager._color4f(1, 1, 1, 1);
             Image image = element.getChildren().get(0).isEnabled() ? Images.ARROW_DOWN : Images.ARROW_RIGHT;
             image.draw(this, matrixStack, x, y);
         }
@@ -196,51 +197,50 @@ public class GuiCraftingPlan extends Widget {
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw counters
             if (element.getStorageQuantity() > 0) {
-                renderItem(new ItemStack(Blocks.CHEST), x, y, 0.45F);
+                renderItem(matrixStack, new ItemStack(Blocks.CHEST), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getCraftQuantity() > 0) {
-                renderItem(new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
+                renderItem(matrixStack, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getMissingQuantity() > 0) {
-                renderItem(new ItemStack(Blocks.BARRIER), x, y, 0.45F);
+                renderItem(matrixStack, new ItemStack(Blocks.BARRIER), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215);
             }
-            GlStateManager._color4f(1, 1, 1, 1);
+            RenderSystem.setShaderColor(1, 1, 1, 1);
         } else {
             // Draw tooltip over crafting status
-            GuiHelpers.renderTooltipOptional(this.parentGui, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
+            GuiHelpers.renderTooltipOptional(this.parentGui, matrixStack, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
                 String unlocalizedName = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH);
                 return Optional.of(Lists.newArrayList(
-                        new TranslationTextComponent(unlocalizedName),
-                        new TranslationTextComponent(unlocalizedName + ".desc")
+                        new TranslatableComponent(unlocalizedName),
+                        new TranslatableComponent(unlocalizedName + ".desc")
                 ));
             });
         }
     }
 
-    protected static void renderItem(ItemStack itemStack, int x, int y, float scale) {
-        GlStateManager._pushMatrix();
-        GlStateManager._translatef(x, y, 0);
-        GlStateManager._scalef(scale, scale, scale);
+    protected static void renderItem(PoseStack poseStack, ItemStack itemStack, int x, int y, float scale) {
+        poseStack.pushPose();
+        poseStack.translate(x, y, 0);
+        poseStack.scale(scale, scale, scale);
 
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
-        GlStateManager._pushMatrix();
+        poseStack.pushPose();
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        RenderHelper.turnBackOn();
-        GlStateManager._enableRescaleNormal();
+        Lighting.setupForFlatItems();
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         renderItem.renderAndDecorateItem(itemStack, 0, 0);
         renderItem.renderGuiItemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
-        RenderHelper.turnOff();
-        GlStateManager._popMatrix();
+        Lighting.setupFor3DItems();
+        poseStack.popPose();
 
-        GlStateManager._popMatrix();
+        poseStack.popPose();
     }
 
     public static String getDurationString(long tickDuration) {
@@ -249,8 +249,8 @@ public class GuiCraftingPlan extends Widget {
                 DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
     }
 
-    public void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        FontRenderer fontRenderer = Minecraft.getInstance().font;
+    public void drawGuiContainerBackgroundLayer(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        Font fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
         drawCenteredString(matrixStack, Minecraft.getInstance().font, this.label, guiLeft + x + ELEMENT_WIDTH / 2 + 8, guiTop + y - 13, 16777215);
@@ -277,7 +277,7 @@ public class GuiCraftingPlan extends Widget {
         scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
     }
 
-    public void drawGuiContainerForegroundLayer(MatrixStack matrixStack, int mouseX, int mouseY) {
+    public void drawGuiContainerForegroundLayer(PoseStack matrixStack, int mouseX, int mouseY) {
         drawGuiContainerLayer(matrixStack, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
     }
 
@@ -299,7 +299,7 @@ public class GuiCraftingPlan extends Widget {
             int y = this.guiTop + this.y + offsetY;
             offsetY += ELEMENT_HEIGHT_TOTAL;
             if (RenderHelpers.isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point((int) mouseX, (int) mouseY))) {
-                Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 // Toggle children
                 for (Element child : element.getChildren()) {
                     child.setEnabled(!child.isEnabled());
@@ -366,6 +366,11 @@ public class GuiCraftingPlan extends Widget {
 
     public boolean isValid() {
         return valid;
+    }
+
+    @Override
+    public void updateNarration(NarrationElementOutput p_169152_) {
+
     }
 
     public static class Element {

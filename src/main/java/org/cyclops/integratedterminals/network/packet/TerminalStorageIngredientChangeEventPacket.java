@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.IngredientComponents;
@@ -27,7 +27,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 	@CodecField
 	private String tabId;
     @CodecField
-    private CompoundNBT changeData;
+    private CompoundTag changeData;
 	@CodecField
 	private int channel;
 	@CodecField
@@ -43,7 +43,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
     	this.tabId = tabId;
 		IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
 		IIngredientCollection<?, ?> instances = event.getInstances();
-		CompoundNBT serialized = IngredientCollections.serialize(instances);
+		CompoundTag serialized = IngredientCollections.serialize(instances);
 		serialized.putInt("changeType", changeType.ordinal());
 		this.changeData = serialized;
 		this.channel = event.getChannel();
@@ -57,7 +57,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void actionClient(World world, PlayerEntity player) {
+	public void actionClient(Level world, Player player) {
 		if(player.containerMenu instanceof ContainerTerminalStorageBase) {
 			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
 			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
@@ -79,7 +79,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 	}
 
 	@Override
-	public void actionServer(World world, ServerPlayerEntity player) {
+	public void actionServer(Level world, ServerPlayer player) {
 
 	}
 	

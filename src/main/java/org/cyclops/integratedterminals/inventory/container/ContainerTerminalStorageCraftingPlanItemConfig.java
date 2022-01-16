@@ -1,11 +1,11 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.client.gui.IHasContainer;
-import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.Hand;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,11 +29,11 @@ public class ContainerTerminalStorageCraftingPlanItemConfig extends GuiConfig<Co
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public <U extends Screen & IHasContainer<ContainerTerminalStorageCraftingPlanItem>> ScreenManager.IScreenFactory<ContainerTerminalStorageCraftingPlanItem, U> getScreenFactory() {
+    public <U extends Screen & MenuAccess<ContainerTerminalStorageCraftingPlanItem>> MenuScreens.ScreenConstructor<ContainerTerminalStorageCraftingPlanItem, U> getScreenFactory() {
         // Does not compile when simplified with lambdas
-        return new ScreenFactorySafe<>(new ScreenManager.IScreenFactory<ContainerTerminalStorageCraftingPlanItem, ContainerScreenTerminalStorageCraftingPlan<Pair<Hand, Integer>, ContainerTerminalStorageCraftingPlanItem>>() {
+        return new ScreenFactorySafe<>(new MenuScreens.ScreenConstructor<ContainerTerminalStorageCraftingPlanItem, ContainerScreenTerminalStorageCraftingPlan<Pair<InteractionHand, Integer>, ContainerTerminalStorageCraftingPlanItem>>() {
             @Override
-            public ContainerScreenTerminalStorageCraftingPlan<Pair<Hand, Integer>, ContainerTerminalStorageCraftingPlanItem> create(ContainerTerminalStorageCraftingPlanItem p_create_1_, PlayerInventory p_create_2_, ITextComponent p_create_3_) {
+            public ContainerScreenTerminalStorageCraftingPlan<Pair<InteractionHand, Integer>, ContainerTerminalStorageCraftingPlanItem> create(ContainerTerminalStorageCraftingPlanItem p_create_1_, Inventory p_create_2_, Component p_create_3_) {
                 return new ContainerScreenTerminalStorageCraftingPlan<>(p_create_1_, p_create_2_, p_create_3_);
             }
         });

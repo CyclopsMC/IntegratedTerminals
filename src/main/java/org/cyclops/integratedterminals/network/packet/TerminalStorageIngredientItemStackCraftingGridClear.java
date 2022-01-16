@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -44,12 +44,12 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
 
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             if (container.getTabServer(tabId) instanceof TerminalStorageTabIngredientComponentServer) {
@@ -64,9 +64,9 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
 
     public static void clearGrid(TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommon,
                                  TerminalStorageTabIngredientComponentServer<ItemStack, Integer> tabServer,
-                                 int channel, boolean toStorage, PlayerEntity player) {
+                                 int channel, boolean toStorage, Player player) {
         tabCommon.getInventoryCraftResult().setItem(0, ItemStack.EMPTY);
-        CraftingInventory inventoryCrafting = tabCommon.getInventoryCrafting();
+        CraftingContainer inventoryCrafting = tabCommon.getInventoryCrafting();
         for (int i = 0; i < inventoryCrafting.getContainerSize(); i++) {
             ItemStack itemStack = inventoryCrafting.removeItemNoUpdate(i);
             if (!itemStack.isEmpty()) {
@@ -77,7 +77,7 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
                     inventoryCrafting.setItem(i, remainder);
                 } else {
                     // To player inventory
-                    player.inventory.placeItemBackInInventory(player.level, itemStack);
+                    player.getInventory().placeItemBackInInventory(itemStack, true);
                 }
             }
         }

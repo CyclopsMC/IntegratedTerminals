@@ -1,14 +1,14 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.world.World;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.util.Constants;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -32,7 +32,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	@CodecField
 	private int channel;
     @CodecField
-    private CompoundNBT data;
+    private CompoundTag data;
     @CodecField
 	private boolean reset;
 	@CodecField
@@ -49,8 +49,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 															  boolean firstChannel) {
 		this.tabId = tabId;
 		this.channel = channel;
-		this.data = new CompoundNBT();
-		ListNBT list = new ListNBT();
+		this.data = new CompoundTag();
+		ListTag list = new ListTag();
 		for (HandlerWrappedTerminalCraftingOption<?> option : craftingOptions) {
 			list.add(HandlerWrappedTerminalCraftingOption.serialize(option));
 		}
@@ -66,7 +66,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void actionClient(World world, PlayerEntity player) {
+	public void actionClient(Level world, Player player) {
 		if(player.containerMenu instanceof ContainerTerminalStorageBase) {
 			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
 
@@ -74,7 +74,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
 			IngredientComponent<?, ?> ingredientComponent = tab.getIngredientComponent();
 
-			ListNBT list = this.data.getList("craftingOptions", Constants.NBT.TAG_COMPOUND);
+			ListTag list = this.data.getList("craftingOptions", Tag.TAG_COMPOUND);
 			List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
 			for (int i = 0; i < list.size(); i++) {
 				HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
@@ -97,7 +97,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 	}
 
 	@Override
-	public void actionServer(World world, ServerPlayerEntity player) {
+	public void actionServer(Level world, ServerPlayer player) {
 
 	}
 	

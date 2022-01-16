@@ -1,14 +1,14 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.inventory.SimpleInventory;
 import org.cyclops.cyclopscore.persist.nbt.NBTClassType;
@@ -66,7 +66,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     @Override
-    public List<Slot> loadSlots(Container container, int startIndex, PlayerEntity player,
+    public List<Slot> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
                                 Optional<IVariableInventory> variableInventoryOptional) {
         IVariableInventory variableInventory = variableInventoryOptional.get();
         List<Slot> slots = Lists.newArrayList();
@@ -108,7 +108,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     @Override
-    public void onUpdate(Container container, PlayerEntity player,
+    public void onUpdate(AbstractContainerMenu container, Player player,
                          Optional<IVariableInventory> variableInventory) {
         if (this.dirtyInv && !player.level.isClientSide) {
             this.dirtyInv = false;
@@ -123,7 +123,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
             clearGlobalErrors();
             this.variables.clear();
             if (network == null) {
-                addError(new TranslationTextComponent(L10NValues.GENERAL_ERROR_NONETWORK));
+                addError(new TranslatableComponent(L10NValues.GENERAL_ERROR_NONETWORK));
             } else {
                 for (int i = 0; i < inventory.getContainerSize(); i++) {
                     InventoryVariableEvaluator<ValueTypeOperator.ValueOperator> evaluator = variableEvaluators.get(i);
@@ -148,12 +148,12 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     @Override
-    public void addError(IFormattableTextComponent error) {
-        List<ITextComponent> errors = getGlobalErrors();
+    public void addError(MutableComponent error) {
+        List<Component> errors = getGlobalErrors();
         errors.add(error);
-        CompoundNBT tag = this.containerTerminalStorage.getValue(this.errorsValueId);
+        CompoundTag tag = this.containerTerminalStorage.getValue(this.errorsValueId);
         if (tag == null) {
-            tag = new CompoundNBT();
+            tag = new CompoundTag();
         } else {
             tag = tag.copy();
         }
@@ -161,8 +161,8 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
-    public List<ITextComponent> getGlobalErrors() {
-        CompoundNBT tag = this.containerTerminalStorage.getValue(this.errorsValueId);
+    public List<Component> getGlobalErrors() {
+        CompoundTag tag = this.containerTerminalStorage.getValue(this.errorsValueId);
         if (tag == null) {
             return Lists.newArrayList();
         } else {
@@ -171,9 +171,9 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     public void clearGlobalErrors() {
-        CompoundNBT tag = this.containerTerminalStorage.getValue(this.errorsValueId);
+        CompoundTag tag = this.containerTerminalStorage.getValue(this.errorsValueId);
         if (tag == null) {
-            tag = new CompoundNBT();
+            tag = new CompoundTag();
         } else {
             tag = tag.copy();
         }
@@ -181,10 +181,10 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
-    public void setLocalErrors(int slot, List<IFormattableTextComponent> errors) {
-        CompoundNBT tag = this.containerTerminalStorage.getValue(this.errorsValueId);
+    public void setLocalErrors(int slot, List<MutableComponent> errors) {
+        CompoundTag tag = this.containerTerminalStorage.getValue(this.errorsValueId);
         if (tag == null) {
-            tag = new CompoundNBT();
+            tag = new CompoundTag();
         } else {
             tag = tag.copy();
         }
@@ -192,8 +192,8 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
-    public List<ITextComponent> getLocalErrors(int slot) {
-        CompoundNBT tag = this.containerTerminalStorage.getValue(this.errorsValueId);
+    public List<Component> getLocalErrors(int slot) {
+        CompoundTag tag = this.containerTerminalStorage.getValue(this.errorsValueId);
         if (tag == null) {
             return Lists.newArrayList();
         } else {

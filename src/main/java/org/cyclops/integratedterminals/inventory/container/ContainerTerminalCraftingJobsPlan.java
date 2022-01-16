@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -32,16 +32,16 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     private long lastUpdate;
     private Optional<ITerminalCraftingPlan> craftingPlan;
 
-    public ContainerTerminalCraftingJobsPlan(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+    public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer),
                 CraftingJobGuiData.readFromPacketBuffer(packetBuffer));
     }
 
-    public ContainerTerminalCraftingJobsPlan(int id, PlayerInventory playerInventory,
+    public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory,
                                              PartTarget target, Optional<IPartContainer> partContainer,
                                              PartTypeTerminalCraftingJob partType,
                                              CraftingJobGuiData craftingJobGuiData) {
-        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS_PLAN, id, playerInventory, new Inventory(), Optional.of(target), partContainer, partType);
+        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS_PLAN, id, playerInventory, new SimpleContainer(), Optional.of(target), partContainer, partType);
 
         this.craftingJobGuiData = craftingJobGuiData;
         this.craftingPlan = Optional.empty();
@@ -62,7 +62,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
         super.broadcastChanges();
 
         // Calculate crafting plan on server
-        if (!this.getWorld().isClientSide()
+        if (!this.getLevel().isClientSide()
                 && this.lastUpdate < System.currentTimeMillis()) {
             this.lastUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
             updateCraftingPlan();
@@ -80,7 +80,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
                     this.craftingJobGuiData.getChannel(), craftingJobGuiData.getCraftingJob()));
             setValue(this.craftingPlanNotifierId, this.craftingPlan
                     .map(p -> this.craftingJobGuiData.getHandler().serializeCraftingPlan(p))
-                    .orElse(new CompoundNBT()));
+                    .orElse(new CompoundTag()));
         });
     }
 
@@ -90,12 +90,12 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return true;
     }
 
     @Override
-    public void onUpdate(int valueId, CompoundNBT value) {
+    public void onUpdate(int valueId, CompoundTag value) {
         if (valueId == this.craftingPlanNotifierId) {
             try {
                 this.craftingPlan = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlan(value));

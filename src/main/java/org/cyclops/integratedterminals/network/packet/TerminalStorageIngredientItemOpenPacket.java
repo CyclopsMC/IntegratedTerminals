@@ -1,17 +1,17 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.util.Hand;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.helper.InventoryHelpers;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -44,7 +44,7 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
 
     }
 
-	public TerminalStorageIngredientItemOpenPacket(Pair<Hand, Integer> location, String tabName, int channel) {
+	public TerminalStorageIngredientItemOpenPacket(Pair<InteractionHand, Integer> location, String tabName, int channel) {
     	this.slot = location.getRight();
     	this.handName = location.getLeft().name();
 		this.tabName = tabName;
@@ -58,30 +58,30 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void actionClient(World world, PlayerEntity player) {
+	public void actionClient(Level world, Player player) {
 
 	}
 
 	@Override
-	public void actionServer(World world, ServerPlayerEntity player) {
-		openServer(world, Pair.of(Hand.valueOf(handName), slot), player, tabName, channel);
+	public void actionServer(Level world, ServerPlayer player) {
+		openServer(world, Pair.of(InteractionHand.valueOf(handName), slot), player, tabName, channel);
 	}
 
-	public static void openServer(World world, Pair<Hand, Integer> location, ServerPlayerEntity player, String tabName, int channel) {
+	public static void openServer(Level world, Pair<InteractionHand, Integer> location, ServerPlayer player, String tabName, int channel) {
 		// Create common data
 		ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
 		TerminalStorageState terminalStorageState = ItemTerminalStoragePortable.getTerminalStorageState(InventoryHelpers
 				.getItemFromIndex(player, location.getRight(), location.getLeft()), player, location.getRight(), location.getLeft());
 
 		// Create temporary container provider
-		INamedContainerProvider containerProvider = new INamedContainerProvider() {
+		MenuProvider containerProvider = new MenuProvider() {
 			@Override
-			public ITextComponent getDisplayName() {
-				return new StringTextComponent("");
+			public Component getDisplayName() {
+				return new TextComponent("");
 			}
 
 			@Override
-			public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+			public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
 				return new ContainerTerminalStorageItem(id, playerInventory,
 						location.getRight(), location.getLeft(),
 						Optional.of(initData), terminalStorageState);
@@ -91,7 +91,7 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
 		// Trigger gui opening
 		NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
 			packetBuffer.writeInt(location.getRight());
-			packetBuffer.writeBoolean(location.getLeft() == Hand.MAIN_HAND);
+			packetBuffer.writeBoolean(location.getLeft() == InteractionHand.MAIN_HAND);
 
 			packetBuffer.writeBoolean(true);
 			initData.writeToPacketBuffer(packetBuffer);
@@ -100,7 +100,7 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
 		});
 	}
 
-	public static void send(Pair<Hand, Integer> location, String tabName, int channel) {
+	public static void send(Pair<InteractionHand, Integer> location, String tabName, int channel) {
 		IntegratedTerminals._instance.getPacketHandler().sendToServer(
 				new TerminalStorageIngredientItemOpenPacket(location, tabName, channel));
 	}

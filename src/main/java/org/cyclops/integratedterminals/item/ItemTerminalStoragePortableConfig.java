@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.item;
 
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 import org.cyclops.cyclopscore.config.extendedconfig.ItemConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 

@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
@@ -28,7 +28,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
     @CodecField
     private int channel;
     @CodecField
-    private CompoundNBT activeStorageInstanceData;
+    private CompoundTag activeStorageInstanceData;
 
     public TerminalStorageIngredientUpdateActiveStorageIngredientPacket() {
 
@@ -41,7 +41,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
         this.ingredientName = component.getName().toString();
         this.channel = channel;
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-        this.activeStorageInstanceData = new CompoundNBT();
+        this.activeStorageInstanceData = new CompoundTag();
         this.activeStorageInstanceData.put("i", serializer.serializeInstance(activeStorageInstance));
     }
 
@@ -52,7 +52,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             TerminalStorageTabIngredientComponentClient<T, ?> tab = (TerminalStorageTabIngredientComponentClient<T, ?>)
@@ -64,7 +64,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
 
     }
 

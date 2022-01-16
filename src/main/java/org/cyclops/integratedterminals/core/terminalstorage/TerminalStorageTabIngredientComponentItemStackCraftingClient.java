@@ -1,14 +1,14 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
@@ -64,9 +64,9 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public List<ITextComponent> getTooltip() {
-        return Lists.newArrayList(new TranslationTextComponent("gui.integratedterminals.terminal_storage.crafting_name",
-                new TranslationTextComponent(this.ingredientComponent.getTranslationKey())));
+    public List<Component> getTooltip() {
+        return Lists.newArrayList(new TranslatableComponent("gui.integratedterminals.terminal_storage.crafting_name",
+                new TranslatableComponent(this.ingredientComponent.getTranslationKey())));
     }
 
     @Override
@@ -87,7 +87,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
+    public boolean handleClick(AbstractContainerMenu container, int channel, int hoveringStorageSlot, int mouseButton,
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
         int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 .getCraftingResultSlotIndex(container, getName());
@@ -107,7 +107,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public void onCommonSlotRender(ContainerScreen gui, MatrixStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
+    public void onCommonSlotRender(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         // Delegate to regular itemstack tab
         String name = ingredientComponent.getName().toString();
         ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);

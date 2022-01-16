@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
@@ -60,7 +60,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     /**
      * @return A tooltip when hovering over the icon.
      */
-    public List<ITextComponent> getTooltip();
+    public List<Component> getTooltip();
 
     /**
      * Get the currently active filter.
@@ -126,7 +126,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
      * @return If further click processing should stop.
      */
-    public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
+    public boolean handleClick(AbstractContainerMenu container, int channel, int hoveringStorageSlot, int mouseButton,
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot);
 
     /**
@@ -141,7 +141,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
      * @return If further click processing should stop.
      */
-    public boolean handleScroll(Container container, int channel, int hoveringStorageSlot, double delta,
+    public boolean handleScroll(AbstractContainerMenu container, int channel, int hoveringStorageSlot, double delta,
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot);
 
     /**
@@ -189,7 +189,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
         return null;
     }
 
-    public default void onCommonSlotRender(ContainerScreen gui, MatrixStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,
+    public default void onCommonSlotRender(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,
                                            float partialTick, int x, int y, int mouseX, int mouseY,
                                            int slot, ITerminalStorageTabCommon tabCommon) {
 
@@ -222,6 +222,6 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @param simulate If insertion should only be simulated.
      * @return The quantity that was inserted.
      */
-    int dragIntoSlot(Container container, int channel, Slot slot, int quantity, boolean simulate);
+    int dragIntoSlot(AbstractContainerMenu container, int channel, Slot slot, int quantity, boolean simulate);
 
 }

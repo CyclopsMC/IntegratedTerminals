@@ -1,15 +1,15 @@
 package org.cyclops.integratedterminals.part;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -52,16 +52,16 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
     }
 
     @Override
-    public Optional<INamedContainerProvider> getContainerProvider(PartPos pos) {
-        return Optional.of(new INamedContainerProvider() {
+    public Optional<MenuProvider> getContainerProvider(PartPos pos) {
+        return Optional.of(new MenuProvider() {
 
             @Override
-            public ITextComponent getDisplayName() {
-                return new TranslationTextComponent(getTranslationKey());
+            public Component getDisplayName() {
+                return new TranslatableComponent(getTranslationKey());
             }
 
             @Override
-            public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+            public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
                 Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(pos);
                 return new ContainerTerminalCraftingJobs(id, playerInventory,
                         data.getRight(), Optional.of(data.getLeft()), (PartTypeTerminalCraftingJob) data.getMiddle());
@@ -70,18 +70,18 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
     }
 
     @Override
-    public void writeExtraGuiData(PacketBuffer packetBuffer, PartPos pos, ServerPlayerEntity player) {
+    public void writeExtraGuiData(FriendlyByteBuf packetBuffer, PartPos pos, ServerPlayer player) {
         PacketCodec.write(packetBuffer, pos);
         super.writeExtraGuiData(packetBuffer, pos, player);
     }
 
     @Override
-    public void loadTooltip(ItemStack itemStack, List<ITextComponent> lines) {
+    public void loadTooltip(ItemStack itemStack, List<Component> lines) {
         super.loadTooltip(itemStack, lines);
         if (TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
-            lines.add(new TranslationTextComponent(
+            lines.add(new TranslatableComponent(
                     "parttype.integratedterminals.terminal_crafting_job.tooltip.nohandlers")
-                    .withStyle(TextFormatting.GOLD));
+                    .withStyle(ChatFormatting.GOLD));
         }
     }
 }

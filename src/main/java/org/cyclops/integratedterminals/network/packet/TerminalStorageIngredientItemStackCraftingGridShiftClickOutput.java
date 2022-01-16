@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.CraftingResultSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.ResultSlot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -47,12 +47,12 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
 
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase<?> container = ((ContainerTerminalStorageBase) player.containerMenu);
             ITerminalStorageTabCommon tabCommon = container.getTabCommon(tabId);
@@ -62,13 +62,13 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                 ITerminalStorageTabCommon.IVariableInventory variableInventory = container.getVariableInventory().get();
 
                 // Loop until the result slot is empty
-                CraftingResultSlot slotCrafting = tabCommonCrafting.getSlotCrafting();
+                ResultSlot slotCrafting = tabCommonCrafting.getSlotCrafting();
                 ItemStack currentCraftingItem = slotCrafting.getItem().copy();
                 ItemStack resultStack;
                 int craftedAmount = 0;
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
-                    if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.inventory),
+                    if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.getInventory()),
                             slotCrafting.getItem(), true).isEmpty()) {
                         break;
                     }
@@ -79,12 +79,13 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                     }
 
                     // Remove the current result stack and properly call all events
-                    resultStack = slotCrafting.onTake(player, slotCrafting.remove(64));
+                    resultStack = slotCrafting.remove(64);
+                    slotCrafting.onTake(player, resultStack);
                     craftedAmount += resultStack.getCount();
 
                     if (!resultStack.isEmpty()) {
                         // Move result into player inventory
-                        player.inventory.placeItemBackInInventory(world, resultStack.copy());
+                        player.getInventory().placeItemBackInInventory(resultStack.copy(), true);
 
                         // Re-calculate recipe
                         tabCommonCrafting.updateCraftingResult(player, player.containerMenu, variableInventory);

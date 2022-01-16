@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.client.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.util.text.ITextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.network.chat.Component;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
-import net.minecraft.client.gui.widget.button.Button.IPressable;
+import net.minecraft.client.gui.components.Button.OnPress;
 
 /**
  * A gui button for toggling sorting modes.
@@ -17,14 +17,14 @@ public class ButtonSort extends ButtonImage {
     private final boolean active;
     private final boolean descending;
 
-    public ButtonSort(int x, int y, ITextComponent narrationMessage, IPressable pressCallback, IImage image, boolean active, boolean descending) {
+    public ButtonSort(int x, int y, Component narrationMessage, OnPress pressCallback, IImage image, boolean active, boolean descending) {
         super(x, y, narrationMessage, pressCallback, image);
         this.active = active;
         this.descending = descending;
     }
 
     @Override
-    protected void drawButtonInner(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void drawButtonInner(PoseStack matrixStack, int mouseX, int mouseY) {
         (active ? Images.BUTTON_BACKGROUND_ACTIVE : Images.BUTTON_BACKGROUND_INACTIVE).draw(this, matrixStack, x, y);
         super.drawButtonInner(matrixStack, mouseX, mouseY);
         if (active) {

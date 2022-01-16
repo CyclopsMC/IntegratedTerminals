@@ -3,14 +3,14 @@ package org.cyclops.integratedterminals.inventory.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
@@ -49,7 +49,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     public static final String BUTTON_SET_DEFAULTS = "button_set_defaults";
 
-    private final World world;
+    private final Level world;
     private final Map<String, ITerminalStorageTabClient<?>> tabsClient;
     private final Map<String, ITerminalStorageTabServer> tabsServer;
     private final Map<String, ITerminalStorageTabCommon> tabsCommon;
@@ -65,11 +65,11 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     private final List<String> channelStrings;
     private String channelAllLabel;
 
-    public ContainerTerminalStorageBase(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
+    public ContainerTerminalStorageBase(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                         Optional<ContainerTerminalStorageBase.InitTabData> initTabData,
                                         TerminalStorageState terminalStorageState, Optional<INetwork> network,
                                         Optional<ITerminalStorageTabCommon.IVariableInventory> variableInventory) {
-        super(type, id, playerInventory, new Inventory());
+        super(type, id, playerInventory, new SimpleContainer());
 
         this.world = player.getCommandSenderWorld();
         this.tabsClient = Maps.newLinkedHashMap();
@@ -84,7 +84,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         this.selectedChannelValueId = getNextValueId();
         this.serverTabsInitialized = false;
 
-        addPlayerInventory(player.inventory, 31, 143);
+        addPlayerInventory(player.getInventory(), 31, 143);
 
         this.channelAllLabel = "All";
         this.channelStrings = Lists.newArrayList(this.channelAllLabel);
@@ -162,7 +162,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     }
 
-    public World getWorld() {
+    public Level getWorld() {
         return world;
     }
 
@@ -214,12 +214,12 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     }
 
     @Override
-    public void slotsChanged(IInventory inventoryIn) {
+    public void slotsChanged(Container inventoryIn) {
         // Do nothing, we handle this manually using dirty listeners
     }
 
     @Override
-    public void removed(PlayerEntity playerIn) {
+    public void removed(Player playerIn) {
         super.removed(playerIn);
         if (!getWorld().isClientSide() && serverTabsInitialized) {
             for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
@@ -230,7 +230,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     @Override
     protected int getSizeInventory() {
-        return slots.size() - player.inventory.items.size();
+        return slots.size() - player.getInventory().items.size();
     }
 
     public List<Triple<Slot, Integer, Integer>> getTabSlots(String tabName) {
@@ -372,12 +372,12 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
             return channel;
         }
 
-        public void writeToPacketBuffer(PacketBuffer packetBuffer) {
+        public void writeToPacketBuffer(FriendlyByteBuf packetBuffer) {
             packetBuffer.writeUtf(tabName);
             packetBuffer.writeInt(channel);
         }
 
-        public static InitTabData readFromPacketBuffer(PacketBuffer packetBuffer) {
+        public static InitTabData readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
             return new InitTabData(packetBuffer.readUtf(32767), packetBuffer.readInt());
         }
 

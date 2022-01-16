@@ -1,7 +1,8 @@
 package org.cyclops.integratedterminals;
 
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.CapabilityToken;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
 
 /**
@@ -9,6 +10,5 @@ import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientCompo
  * @author rubensworks
  */
 public class Capabilities {
-    @CapabilityInject(IIngredientComponentValueHandler.class)
-    public static Capability<IIngredientComponentValueHandler> INGREDIENTCOMPONENT_VALUEHANDLER = null;
+    public static Capability<IIngredientComponentValueHandler> INGREDIENTCOMPONENT_VALUEHANDLER = CapabilityManager.get(new CapabilityToken<>(){});
 }

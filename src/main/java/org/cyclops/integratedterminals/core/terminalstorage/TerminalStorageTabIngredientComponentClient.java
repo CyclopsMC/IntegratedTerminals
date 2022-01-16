@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import it.unimi.dsi.fastutil.ints.Int2LongMap;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -11,17 +11,17 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -195,9 +195,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public List<ITextComponent> getTooltip() {
-        return Lists.newArrayList(new TranslationTextComponent("gui.integratedterminals.terminal_storage.storage_name",
-                new TranslationTextComponent(this.ingredientComponent.getTranslationKey())));
+    public List<Component> getTooltip() {
+        return Lists.newArrayList(new TranslatableComponent("gui.integratedterminals.terminal_storage.storage_name",
+                new TranslatableComponent(this.ingredientComponent.getTranslationKey())));
     }
 
     @Override
@@ -525,7 +525,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public boolean handleClick(Container container, int channel, int hoveringStorageSlot, int mouseButton,
+    public boolean handleClick(AbstractContainerMenu container, int channel, int hoveringStorageSlot, int mouseButton,
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
         this.activeChannel = channel;
 
@@ -538,14 +538,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         boolean shift = MinecraftHelpers.isShifted();
         boolean transferFullSelection = true;
 
-        PlayerEntity player = Minecraft.getInstance().player;
+        Player player = Minecraft.getInstance().player;
         boolean initiateCraftingOption = false;
         if (mouseButton == 0 || mouseButton == 1 || mouseButton == 2) {
             TerminalClickType clickType = null;
             long moveQuantity = this.activeSlotQuantity;
             long movePlayerQuantity = 0;
             boolean reset = false; // So that a reset occurs after the packet is sent
-            if (validHoveringStorageSlot && player.inventory.getCarried().isEmpty() && activeSlotId < 0) {
+            if (validHoveringStorageSlot && container.getCarried().isEmpty() && activeSlotId < 0) {
                 if (isCraftingOption) {
                     // Craft
                     initiateCraftingOption = true;
@@ -569,17 +569,17 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getItem().isEmpty() && shift) {
                 // Quick move max quantity from player to storage
                 clickType = mouseButton == 2 ? TerminalClickType.PLAYER_QUICK_MOVE_INCREMENTAL : TerminalClickType.PLAYER_QUICK_MOVE;
-            } else if (hasClickedInStorage && !player.inventory.getCarried().isEmpty()) {
+            } else if (hasClickedInStorage && !container.getCarried().isEmpty()) {
                 // Move into storage
                 clickType = TerminalClickType.PLAYER_PLACE_STORAGE;
                 if (mouseButton == 0) {
-                    movePlayerQuantity = viewHandler.getActivePlayerStackQuantity(player.inventory);
+                    movePlayerQuantity = viewHandler.getActivePlayerStackQuantity(player.getInventory(), container);
                 } else if (mouseButton == 1) {
                     movePlayerQuantity = viewHandler.getIncrementalInstanceMovementQuantity();
                 } else {
-                    movePlayerQuantity = (int) Math.ceil((double) viewHandler.getActivePlayerStackQuantity(player.inventory) / 2);
+                    movePlayerQuantity = (int) Math.ceil((double) viewHandler.getActivePlayerStackQuantity(player.getInventory(), container) / 2);
                 }
-                viewHandler.drainActivePlayerStackQuantity(player.inventory, movePlayerQuantity);
+                viewHandler.drainActivePlayerStackQuantity(player.getInventory(), container, movePlayerQuantity);
                 resetActiveSlot();
             } else if (activeSlotId >= 0) {
                 // We have a storage slot selected
@@ -657,7 +657,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public boolean handleScroll(Container container, int channel, int hoveringStorageSlot, double delta,
+    public boolean handleScroll(AbstractContainerMenu container, int channel, int hoveringStorageSlot, double delta,
                                 boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
         this.activeChannel = channel;
 
@@ -747,12 +747,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public void onCommonSlotRender(ContainerScreen gui, MatrixStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
+    public void onCommonSlotRender(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                                    int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         TerminalStorageTabIngredientComponentCommon tab = (TerminalStorageTabIngredientComponentCommon) tabCommon;
 
         if (slot >= tab.getVariableSlotNumberStart() && slot < tab.getVariableSlotNumberEnd()) {
-            List<ITextComponent> errors = Lists.newArrayList();
+            List<Component> errors = Lists.newArrayList();
             errors.addAll(tab.getGlobalErrors());
             errors.addAll(tab.getLocalErrors(slot));
 
@@ -761,12 +761,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     Images.ERROR.draw(gui, matrixStack, x + 2, y + 2);
                 } else {
                     if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
-                        GuiHelpers.drawTooltip(gui, errors.stream()
-                                .map(ITextComponent::getString)
+                        GuiHelpers.drawTooltip(gui, matrixStack, errors.stream()
+                                .map(Component::getString)
                                 .map(s -> StringHelpers.splitLines(s, L10NHelpers.MAX_TOOLTIP_LINE_LENGTH,
-                                        TextFormatting.RED.toString()))
+                                        ChatFormatting.RED.toString()))
                                 .flatMap(List::stream)
-                                .map(StringTextComponent::new)
+                                .map(TextComponent::new)
                                 .collect(Collectors.toList()), x - gui.getGuiLeft() + 10, y - gui.getGuiTop());
                     }
                 }
@@ -805,7 +805,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         int instanceQuantity = 0;
         switch (dragMode) {
             case 0:
-                instanceQuantity = MathHelper.floor((float)quantity / (float)dragSlots.size());
+                instanceQuantity = Mth.floor((float)quantity / (float)dragSlots.size());
                 break;
             case 1:
                 instanceQuantity = getViewHandler().getIncrementalInstanceMovementQuantity();
@@ -818,7 +818,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public int dragIntoSlot(Container container, int channel, Slot slot, int quantity, boolean simulate) {
+    public int dragIntoSlot(AbstractContainerMenu container, int channel, Slot slot, int quantity, boolean simulate) {
         if (!simulate) {
             // We temporarily set the activeSlotQuantity to a fixed value, and reset the old value afterwards.
             int oldActiveSlotId = this.activeSlotId;

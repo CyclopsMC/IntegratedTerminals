@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.util.LazyOptional;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -42,21 +42,21 @@ public class TerminalStorageTabIngredientComponentItemStackCrafting implements I
     }
 
     @Override
-    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorageBase container, PlayerEntity player) {
+    public ITerminalStorageTabClient<?> createClientTab(ContainerTerminalStorageBase container, Player player) {
         return new TerminalStorageTabIngredientComponentItemStackCraftingClient(container, getName(), ingredientComponent);
     }
 
     @Override
-    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorageBase container, PlayerEntity player, INetwork network) {
+    public ITerminalStorageTabServer createServerTab(ContainerTerminalStorageBase container, Player player, INetwork network) {
         IPositionedAddonsNetworkIngredients<ItemStack, Integer> ingredientNetwork = NetworkHelpers.getIngredientNetwork(LazyOptional.of(() -> network), ingredientComponent)
                 .orElseThrow(() -> new IllegalStateException("Could not find an ingredient network"));
         return new TerminalStorageTabIngredientComponentItemStackCraftingServer(getName(), network, ingredientComponent,
-                ingredientNetwork, (ServerPlayerEntity) player);
+                ingredientNetwork, (ServerPlayer) player);
     }
 
     @Nullable
     @Override
-    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorageBase container, PlayerEntity player) {
+    public ITerminalStorageTabCommon createCommonTab(ContainerTerminalStorageBase container, Player player) {
         return new TerminalStorageTabIngredientComponentItemStackCraftingCommon(container, getName(), IngredientComponents.ITEMSTACK);
     }
 }

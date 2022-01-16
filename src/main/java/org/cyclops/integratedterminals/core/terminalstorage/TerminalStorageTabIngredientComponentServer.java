@@ -4,12 +4,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.network.play.server.SSetSlotPacket;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -72,7 +72,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final INetwork network;
     private final IngredientComponent<T, M> ingredientComponent;
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
-    private final ServerPlayerEntity player;
+    private final ServerPlayer player;
     private final IIngredientComponentValueHandler<?, ?, T, M> valueHandler;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
@@ -87,7 +87,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
                                                        IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
-                                                       ServerPlayerEntity player) {
+                                                       ServerPlayer player) {
         this.name = name;
         this.network = network;
         this.ingredientComponent = ingredientComponent;
@@ -209,9 +209,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                                     ValueHelpers.validatePredicateOutput(predicate, result);
                                     return ((ValueTypeBoolean.ValueBoolean) result).getRawValue();
                                 } else {
-                                    ITextComponent current = ValueTypeOperator.getSignature(predicate);
-                                    ITextComponent expected = ValueTypeOperator.getSignature(new IValueType[]{inputValueType}, ValueTypes.BOOLEAN);
-                                    throw new EvaluationException(new TranslationTextComponent(
+                                    Component current = ValueTypeOperator.getSignature(predicate);
+                                    Component expected = ValueTypeOperator.getSignature(new IValueType[]{inputValueType}, ValueTypes.BOOLEAN);
+                                    throw new EvaluationException(new TranslatableComponent(
                                             L10NValues.ASPECT_ERROR_INVALIDTYPE, expected, current));
                                 }
                             } catch (EvaluationException e) {
@@ -225,7 +225,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                         return false;
                     });
                 } else {
-                    throw new EvaluationException(new TranslationTextComponent(
+                    throw new EvaluationException(new TranslatableComponent(
                             L10NValues.ASPECT_ERROR_INVALIDTYPE, ValueTypes.OPERATOR, variable.getType()));
                 }
             }
@@ -369,7 +369,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     @Nullable
-    public void handleStorageSlotClick(Container container, ServerPlayerEntity player, TerminalClickType clickType,
+    public void handleStorageSlotClick(AbstractContainerMenu container, ServerPlayer player, TerminalClickType clickType,
                                        int channel, T hoveringStorageInstance, int hoveredContainerSlot,
                                        long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
@@ -400,20 +400,20 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                                 this.ingredientComponent, channel, remainingInstance), player);
                 break;
             case PLAYER_PLACE_STORAGE:
-                viewHandler.extractActiveStackFromPlayerInventory(storage, player.inventory, moveQuantityPlayerSlot);
+                viewHandler.extractActiveStackFromPlayerInventory(storage, container, player.getInventory(), moveQuantityPlayerSlot);
                 updateActivePlayerStack = true;
                 break;
             case PLAYER_QUICK_MOVE:
-                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.inventory, -1);
+                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.getInventory(), -1);
                 break;
             case PLAYER_QUICK_MOVE_INCREMENTAL:
-                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.inventory, viewHandler.getIncrementalInstanceMovementQuantity());
+                viewHandler.extractMaxFromContainerSlot(storage, container, hoveredContainerSlot, player.getInventory(), viewHandler.getIncrementalInstanceMovementQuantity());
                 break;
         }
 
         // Notify the client that the currently hovering player stack has changed.
         if (updateActivePlayerStack) {
-            player.connection.send(new SSetSlotPacket(-1, 0, player.inventory.getCarried()));
+            player.connection.send(new ClientboundContainerSetSlotPacket(-1, 0, 0, container.getCarried()));
         }
     }
 }

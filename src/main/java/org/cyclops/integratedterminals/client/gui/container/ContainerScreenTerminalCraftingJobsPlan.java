@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -28,12 +28,12 @@ import javax.annotation.Nullable;
  */
 public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExtended<ContainerTerminalCraftingJobsPlan> {
 
-    private final PlayerEntity player;
+    private final Player player;
 
     @Nullable
     private GuiCraftingPlan guiCraftingPlan;
 
-    public ContainerScreenTerminalCraftingJobsPlan(ContainerTerminalCraftingJobsPlan container, PlayerInventory inventory, ITextComponent title) {
+    public ContainerScreenTerminalCraftingJobsPlan(ContainerTerminalCraftingJobsPlan container, Inventory inventory, Component title) {
         super(container, inventory, title);
 
         this.player = inventory.player;
@@ -58,8 +58,8 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     public void init() {
         super.init();
 
-        this.buttons.clear();
-        this.children.clear();
+        this.renderables.clear();
+        this.children().clear();
 
         ITerminalCraftingPlan craftingPlan = getMenu().getCraftingPlan().orElse(null);
         if (craftingPlan != null) {
@@ -68,11 +68,11 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
             if (previousGuiCraftingPlan != null) {
                 this.guiCraftingPlan.inheritVisualizationState(previousGuiCraftingPlan);
             }
-            this.children.add(this.guiCraftingPlan);
+            addRenderableWidget(this.guiCraftingPlan);
 
-            addButton(new ButtonText(leftPos + 70, topPos + 198, 100, 20,
-                    new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
-                    new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
+            addRenderableWidget(new ButtonText(leftPos + 70, topPos + 198, 100, 20,
+                    new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
+                    new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     (b) -> cancelCraftingJob(),
                     true)
             );
@@ -106,8 +106,8 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        // super.renderBg(matrixStack, partialTicks, mouseX, mouseY); // TODO: restore
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
         } else {
@@ -117,7 +117,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    protected void drawCurrentScreen(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    protected void drawCurrentScreen(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.drawCurrentScreen(matrixStack, mouseX, mouseY, partialTicks);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.render(matrixStack, mouseX, mouseY, partialTicks);
@@ -125,7 +125,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
@@ -149,7 +149,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    public void onUpdate(int valueId, CompoundNBT value) {
+    public void onUpdate(int valueId, CompoundTag value) {
         super.onUpdate(valueId, value);
 
         if (getMenu().getCraftingPlanNotifierId() == valueId) {

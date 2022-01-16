@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.Hand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.InteractionHand;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.inventory.container.ItemInventoryContainer;
 import org.cyclops.integratedterminals.RegistryEntries;
@@ -14,27 +14,27 @@ import javax.annotation.Nullable;
 /**
  * @author rubensworks
  */
-public class ContainerTerminalStorageCraftingOptionAmountItem extends ContainerTerminalStorageCraftingOptionAmountBase<Pair<Hand, Integer>> {
+public class ContainerTerminalStorageCraftingOptionAmountItem extends ContainerTerminalStorageCraftingOptionAmountBase<Pair<InteractionHand, Integer>> {
 
     // Based on ItemInventoryContainer
 
     private final int itemIndex;
-    private final Hand hand;
+    private final InteractionHand hand;
 
-    public ContainerTerminalStorageCraftingOptionAmountItem(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+    public ContainerTerminalStorageCraftingOptionAmountItem(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, ItemInventoryContainer.readItemIndex(packetBuffer),
                 ItemInventoryContainer.readHand(packetBuffer),
                 CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
     }
 
-    public ContainerTerminalStorageCraftingOptionAmountItem(int id, PlayerInventory playerInventory,
-                                                            int itemIndex, Hand hand, CraftingOptionGuiData craftingOptionGuiData) {
+    public ContainerTerminalStorageCraftingOptionAmountItem(int id, Inventory playerInventory,
+                                                            int itemIndex, InteractionHand hand, CraftingOptionGuiData craftingOptionGuiData) {
         this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_OPTION_AMOUNT_ITEM, id, playerInventory,
                 itemIndex, hand, craftingOptionGuiData);
     }
 
-    public ContainerTerminalStorageCraftingOptionAmountItem(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
-                                                            int itemIndex, Hand hand,
+    public ContainerTerminalStorageCraftingOptionAmountItem(@Nullable MenuType<?> type, int id, Inventory playerInventory,
+                                                            int itemIndex, InteractionHand hand,
                                                             CraftingOptionGuiData craftingOptionGuiData) {
         super(type, id, playerInventory, craftingOptionGuiData);
         this.itemIndex = itemIndex;

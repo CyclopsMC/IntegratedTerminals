@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 
 /**
@@ -20,7 +20,7 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M, L> ex
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
         CraftingOptionGuiData<T, M, L> craftingJobGuiData = getCraftingOptionData();
         craftingJobGuiData.getLocation().openContainerCraftingOptionAmount(craftingJobGuiData, world, player);
     }

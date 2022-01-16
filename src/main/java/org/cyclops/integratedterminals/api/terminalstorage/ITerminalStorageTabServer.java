@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * A server-side terminal storage tab.

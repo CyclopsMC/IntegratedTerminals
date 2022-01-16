@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
 import com.google.common.collect.Maps;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandlerRegistry;
 

@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -80,5 +80,5 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param lines The tooltip lines.
      */
     @OnlyIn(Dist.CLIENT)
-    public void getTooltip(PlayerEntity player, ITooltipFlag tooltipFlag, List<ITextComponent> lines);
+    public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines);
 }

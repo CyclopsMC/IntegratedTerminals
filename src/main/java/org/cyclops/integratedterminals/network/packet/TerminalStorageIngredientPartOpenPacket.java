@@ -1,18 +1,18 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraftforge.network.NetworkHooks;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -64,16 +64,16 @@ public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void actionClient(World world, PlayerEntity player) {
+	public void actionClient(Level world, Player player) {
 
 	}
 
 	@Override
-	public void actionServer(World world, ServerPlayerEntity player) {
+	public void actionServer(Level world, ServerPlayer player) {
 		openServer(world, pos, side, player, tabName, channel);
 	}
 
-	public static void openServer(World world, BlockPos pos, Direction side, ServerPlayerEntity player, String tabName, int channel) {
+	public static void openServer(Level world, BlockPos pos, Direction side, ServerPlayer player, String tabName, int channel) {
 		// Create common data
 		ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
 		PartPos partPos = PartPos.of(world, pos, side);
@@ -83,14 +83,14 @@ public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
 		TerminalStorageState terminalStorageState = state.getPlayerStorageState(player);
 
 		// Create temporary container provider
-		INamedContainerProvider containerProvider = new INamedContainerProvider() {
+		MenuProvider containerProvider = new MenuProvider() {
 			@Override
-			public ITextComponent getDisplayName() {
-				return new StringTextComponent("");
+			public Component getDisplayName() {
+				return new TextComponent("");
 			}
 
 			@Override
-			public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+			public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
 				return new ContainerTerminalStoragePart(id, playerInventory,
 						data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
 						Optional.of(initData), terminalStorageState);

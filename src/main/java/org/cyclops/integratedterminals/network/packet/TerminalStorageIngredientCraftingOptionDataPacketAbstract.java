@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -34,11 +34,11 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     @CodecField
     private int channel;
     @CodecField
-    private CompoundNBT craftingOption;
+    private CompoundTag craftingOption;
     @CodecField
     private int amount;
     @CodecField
-    private CompoundNBT craftingPlan;
+    private CompoundTag craftingPlan;
 
     public TerminalStorageIngredientCraftingOptionDataPacketAbstract() {
 
@@ -52,22 +52,22 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         this.channel = craftingOptionData.getChannel();
         this.craftingOption = craftingOptionData.getCraftingOption() != null
                 ? HandlerWrappedTerminalCraftingOption.serialize(craftingOptionData.getCraftingOption())
-                : new CompoundNBT();
+                : new CompoundTag();
         this.amount = craftingOptionData.getAmount();
         this.craftingPlan = craftingOptionData.getCraftingPlan() != null
                 ? HandlerWrappedTerminalCraftingPlan.serialize(craftingOptionData.getCraftingPlan())
-                : new CompoundNBT();
+                : new CompoundTag();
     }
 
     @Override
-    public void encode(PacketBuffer output) {
+    public void encode(FriendlyByteBuf output) {
         super.encode(output);
         output.writeResourceLocation(location.getName());
         location.writeToPacketBuffer(output, locationInstance);
     }
 
     @Override
-    public void decode(PacketBuffer input) {
+    public void decode(FriendlyByteBuf input) {
         super.decode(input);
         this.location = (ITerminalStorageLocation<L>) TerminalStorageLocations.REGISTRY.getLocation(input.readResourceLocation());
         this.locationInstance = this.location.readFromPacketBuffer(input);
@@ -80,7 +80,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
 
     }
 

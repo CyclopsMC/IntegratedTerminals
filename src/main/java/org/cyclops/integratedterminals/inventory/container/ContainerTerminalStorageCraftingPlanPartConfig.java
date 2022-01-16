@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.client.gui.IHasContainer;
-import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.util.text.ITextComponent;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.ScreenFactorySafe;
@@ -29,11 +29,11 @@ public class ContainerTerminalStorageCraftingPlanPartConfig extends GuiConfig<Co
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public <U extends Screen & IHasContainer<ContainerTerminalStorageCraftingPlanPart>> ScreenManager.IScreenFactory<ContainerTerminalStorageCraftingPlanPart, U> getScreenFactory() {
+    public <U extends Screen & MenuAccess<ContainerTerminalStorageCraftingPlanPart>> MenuScreens.ScreenConstructor<ContainerTerminalStorageCraftingPlanPart, U> getScreenFactory() {
         // Does not compile when simplified with lambdas
-        return new ScreenFactorySafe<>(new ScreenManager.IScreenFactory<ContainerTerminalStorageCraftingPlanPart, ContainerScreenTerminalStorageCraftingPlan<PartPos, ContainerTerminalStorageCraftingPlanPart>>() {
+        return new ScreenFactorySafe<>(new MenuScreens.ScreenConstructor<ContainerTerminalStorageCraftingPlanPart, ContainerScreenTerminalStorageCraftingPlan<PartPos, ContainerTerminalStorageCraftingPlanPart>>() {
             @Override
-            public ContainerScreenTerminalStorageCraftingPlan<PartPos, ContainerTerminalStorageCraftingPlanPart> create(ContainerTerminalStorageCraftingPlanPart p_create_1_, PlayerInventory p_create_2_, ITextComponent p_create_3_) {
+            public ContainerScreenTerminalStorageCraftingPlan<PartPos, ContainerTerminalStorageCraftingPlanPart> create(ContainerTerminalStorageCraftingPlanPart p_create_1_, Inventory p_create_2_, Component p_create_3_) {
                 return new ContainerScreenTerminalStorageCraftingPlan<>(p_create_1_, p_create_2_, p_create_3_);
             }
         });

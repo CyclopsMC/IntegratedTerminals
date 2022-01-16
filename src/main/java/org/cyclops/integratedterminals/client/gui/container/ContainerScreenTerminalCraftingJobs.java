@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
@@ -43,12 +43,12 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     public static int LINE_WIDTH = 221;
 
-    private final PlayerEntity player;
+    private final Player player;
 
     private WidgetScrollBar scrollBar;
     private int firstRow;
 
-    public ContainerScreenTerminalCraftingJobs(ContainerTerminalCraftingJobs container, PlayerInventory inventory, ITextComponent title) {
+    public ContainerScreenTerminalCraftingJobs(ContainerTerminalCraftingJobs container, Inventory inventory, Component title) {
         super(container, inventory, title);
         this.player = inventory.player;
     }
@@ -58,13 +58,13 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         super.init();
 
         scrollBar = new WidgetScrollBar(leftPos + 236, topPos + 18, 178,
-                new TranslationTextComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 10);
-        this.children.add(this.scrollBar);
+                new TranslatableComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 10);
+        this.renderables.add(this.scrollBar);
         scrollBar.setTotalRows(getMenu().getCraftingJobs().size() - 1);
 
-        addButton(new ButtonText(leftPos + 70, topPos + 198, 120, 20,
-                new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
-                new TranslationTextComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
+        addRenderableWidget(new ButtonText(leftPos + 70, topPos + 198, 120, 20,
+                new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
+                new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
                 (b) -> cancelCraftingJobs(), true));
     }
 
@@ -84,8 +84,8 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    protected void renderBg(MatrixStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        // super.renderBg(matrixStack, partialTicks, mouseX, mouseY); // TODO: restore
+    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
         RenderHelpers.bindTexture(this.texture);
         drawCraftingPlans(matrixStack, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
@@ -97,7 +97,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    protected void renderLabels(MatrixStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         drawCraftingPlans(matrixStack, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
     }
@@ -107,7 +107,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                 .subList(firstRow, Math.min(this.getMenu().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
     }
 
-    protected void drawCraftingPlans(MatrixStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
+    protected void drawCraftingPlans(PoseStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
         for (HandlerWrappedTerminalCraftingPlan craftingPlan : getVisiblePlans()) {
             drawCraftingPlan(matrixStack, craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
@@ -115,7 +115,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         }
     }
 
-    protected void drawCraftingPlan(MatrixStack matrixStack, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
+    protected void drawCraftingPlan(PoseStack matrixStack, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
                                     ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int xOriginal = x;
         ITerminalCraftingPlan<?> plan = craftingPlan.getCraftingPlan();
@@ -221,7 +221,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    public void onUpdate(int valueId, CompoundNBT value) {
+    public void onUpdate(int valueId, CompoundTag value) {
         super.onUpdate(valueId, value);
 
         if (valueId == this.getMenu().getValueIdCraftingJobs()) {

@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage.location;
 
 import com.google.common.collect.Maps;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocationRegistry;
 

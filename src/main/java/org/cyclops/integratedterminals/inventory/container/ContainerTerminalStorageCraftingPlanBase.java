@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.world.World;
-import org.cyclops.cyclopscore.helper.TileHelpers;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.Level;
+import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -31,14 +31,14 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     private final CraftingOptionGuiData craftingOptionGuiData;
     private final int craftingPlanNotifierId;
-    private final World world;
+    private final Level world;
 
     private boolean calculatedCraftingPlan;
     private ITerminalCraftingPlan craftingPlan;
 
-    public ContainerTerminalStorageCraftingPlanBase(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
+    public ContainerTerminalStorageCraftingPlanBase(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                                     CraftingOptionGuiData craftingOptionGuiData) {
-        super(type, id, playerInventory, new Inventory());
+        super(type, id, playerInventory, new SimpleContainer());
 
         this.craftingOptionGuiData = craftingOptionGuiData;
         this.craftingPlanNotifierId = getNextValueId();
@@ -49,7 +49,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     public abstract Optional<INetwork> getNetwork();
 
-    public World getWorld() {
+    public Level getWorld() {
         return world;
     }
 
@@ -77,9 +77,9 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         getNetwork().ifPresent(network -> {
             if (GeneralConfig.craftingPlannerEnableMultithreading) {
                 WORKER_POOL.execute(() -> {
-                    TileHelpers.UNSAFE_TILE_ENTITY_GETTER = true;
+                    BlockEntityHelpers.UNSAFE_BLOCK_ENTITY_GETTER = true;
                     this.updateCraftingPlanJob(craftingOptionWrapper, network);
-                    TileHelpers.UNSAFE_TILE_ENTITY_GETTER = false;
+                    BlockEntityHelpers.UNSAFE_BLOCK_ENTITY_GETTER = false;
                 });
             } else {
                 this.updateCraftingPlanJob(craftingOptionWrapper, network);
@@ -103,7 +103,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         return true;
     }
 
@@ -114,11 +114,11 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
                 getNetwork().ifPresent(network -> {
                     try {
                         craftingOptionGuiData.getCraftingOption().getHandler()
-                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayerEntity) player);
+                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayer) player);
 
                         // Re-open terminal gui
                         craftingOptionGuiData.getLocation()
-                                .openContainerFromServer(craftingOptionGuiData, getWorld(), (ServerPlayerEntity) player);
+                                .openContainerFromServer(craftingOptionGuiData, getWorld(), (ServerPlayer) player);
                     } catch (CraftingJobStartException e) {
                         // If the job could not be started, display the error in the plan
                         craftingPlan.setError(e.getUnlocalizedError());

@@ -1,18 +1,18 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -48,7 +48,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
     @CodecField
     private String craftingPlanHandler;
     @CodecField
-    private CompoundNBT craftingJobId;
+    private CompoundTag craftingJobId;
 
     public OpenCraftingJobsPlanGuiPacket() {
 
@@ -59,7 +59,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
         this.side = craftingPlanGuiData.getSide();
         this.channel = craftingPlanGuiData.getChannel();
         this.craftingPlanHandler = craftingPlanGuiData.getHandler().getId().toString();
-        this.craftingJobId = new CompoundNBT();
+        this.craftingJobId = new CompoundTag();
         this.craftingJobId.put("id", craftingPlanGuiData.getHandler().serializeCraftingJobId(craftingPlanGuiData.getCraftingJob()));
     }
 
@@ -69,12 +69,12 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
     }
 
     @Override
-    public void actionClient(World world, PlayerEntity player) {
+    public void actionClient(Level world, Player player) {
 
     }
 
     @Override
-    public void actionServer(World world, ServerPlayerEntity player) {
+    public void actionServer(Level world, ServerPlayer player) {
         // Create common data holder
         ITerminalStorageTabIngredientCraftingHandler handler = getHandler();
         CraftingJobGuiData craftingJobGuiData = new CraftingJobGuiData(
@@ -87,14 +87,14 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
         PartPos partPos = PartPos.of(world, pos, side);
 
         // Create temporary container provider
-        INamedContainerProvider containerProvider = new INamedContainerProvider() {
+        MenuProvider containerProvider = new MenuProvider() {
             @Override
-            public ITextComponent getDisplayName() {
-                return new StringTextComponent("");
+            public Component getDisplayName() {
+                return new TextComponent("");
             }
 
             @Override
-            public Container createMenu(int id, PlayerInventory playerInventory, PlayerEntity playerEntity) {
+            public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
                 Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
                 return new ContainerTerminalCraftingJobsPlan(id, playerInventory,
                         data.getRight(), Optional.of(data.getLeft()), (PartTypeTerminalCraftingJob) data.getMiddle(),

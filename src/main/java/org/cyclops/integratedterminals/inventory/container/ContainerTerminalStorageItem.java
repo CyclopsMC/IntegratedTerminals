@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.Hand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.InteractionHand;
 import net.minecraftforge.common.util.LazyOptional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.helper.InventoryHelpers;
@@ -30,14 +30,14 @@ import java.util.Optional;
 /**
  * @author rubensworks
  */
-public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<Pair<Hand, Integer>> {
+public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<Pair<InteractionHand, Integer>> {
 
     // Based on ItemInventoryContainer
 
     private final int itemIndex;
-    private final Hand hand;
+    private final InteractionHand hand;
 
-    public ContainerTerminalStorageItem(int id, PlayerInventory playerInventory, PacketBuffer packetBuffer) {
+    public ContainerTerminalStorageItem(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, ItemInventoryContainer.readItemIndex(packetBuffer),
                 ItemInventoryContainer.readHand(packetBuffer),
                 packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty(),
@@ -45,14 +45,14 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
         getGuiState().setDirtyMarkListener(this::sendGuiStateToServer);
     }
 
-    public ContainerTerminalStorageItem(int id, PlayerInventory playerInventory, int itemIndex, Hand hand,
+    public ContainerTerminalStorageItem(int id, Inventory playerInventory, int itemIndex, InteractionHand hand,
                                         Optional<InitTabData> initTabData, TerminalStorageState terminalStorageState) {
         this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_ITEM, id, playerInventory,
                 itemIndex, hand, initTabData, terminalStorageState);
     }
 
-    public ContainerTerminalStorageItem(@Nullable ContainerType<?> type, int id, PlayerInventory playerInventory,
-                                        int itemIndex, Hand hand,
+    public ContainerTerminalStorageItem(@Nullable MenuType<?> type, int id, Inventory playerInventory,
+                                        int itemIndex, InteractionHand hand,
                                         Optional<InitTabData> initTabData,
                                         TerminalStorageState terminalStorageState) {
         super(type, id, playerInventory, initTabData, terminalStorageState,
@@ -83,23 +83,23 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
         return Optional.of(ItemTerminalStoragePortable.getVariableInventory(itemStack));
     }
 
-    public ItemStack getItemStack(PlayerEntity player) {
+    public ItemStack getItemStack(Player player) {
         return InventoryHelpers.getItemFromIndex(player, itemIndex, hand);
     }
 
     @Override
-    public boolean stillValid(PlayerEntity playerIn) {
+    public boolean stillValid(Player playerIn) {
         ItemStack item = getItemStack(player);
         return item != null && item.getItem() == RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE;
     }
 
     @Override
-    public ITerminalStorageLocation<Pair<Hand, Integer>> getLocation() {
+    public ITerminalStorageLocation<Pair<InteractionHand, Integer>> getLocation() {
         return TerminalStorageLocations.ITEM;
     }
 
     @Override
-    public Pair<Hand, Integer> getLocationInstance() {
+    public Pair<InteractionHand, Integer> getLocationInstance() {
         return Pair.of(hand, itemIndex);
     }
 
@@ -109,10 +109,10 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
     }
 
     @Override
-    protected Slot createNewSlot(IInventory inventory, int index, int x, int y) {
+    protected Slot createNewSlot(Container inventory, int index, int x, int y) {
         return new Slot(inventory, index, x, y) {
             @Override
-            public boolean mayPickup(PlayerEntity playerIn) {
+            public boolean mayPickup(Player playerIn) {
                 return super.mayPickup(playerIn) && itemIndex != index;
             }
         };

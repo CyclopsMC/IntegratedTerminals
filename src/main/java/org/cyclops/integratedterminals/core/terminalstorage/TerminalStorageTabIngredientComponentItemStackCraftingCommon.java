@@ -1,19 +1,19 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.CraftResultInventory;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.CraftingResultSlot;
-import net.minecraft.inventory.container.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.ICraftingRecipe;
-import net.minecraft.item.crafting.IRecipeType;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ResultSlot;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.GameRules;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.CraftingHelpers;
@@ -38,9 +38,9 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCo
 public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         extends TerminalStorageTabIngredientComponentCommon<ItemStack, Integer> {
 
-    private CraftingInventory inventoryCrafting;
-    private CraftResultInventory inventoryCraftResult;
-    private CraftingResultSlot slotCrafting;
+    private CraftingContainer inventoryCrafting;
+    private ResultContainer inventoryCraftResult;
+    private ResultSlot slotCrafting;
     private List<Slot> slots;
     private TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.STORAGE;
 
@@ -50,7 +50,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         super(containerTerminalStorage, name, ingredientComponent);
     }
 
-    public static int getCraftingResultSlotIndex(Container container, ResourceLocation name) {
+    public static int getCraftingResultSlotIndex(AbstractContainerMenu container, ResourceLocation name) {
         ITerminalStorageTabCommon tabCommon = ((ContainerTerminalStorageBase) container).getTabCommon(name.toString());
         TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
                 (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
@@ -58,7 +58,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
     }
 
     @Override
-    public List<Slot> loadSlots(Container container, int startIndex, PlayerEntity player,
+    public List<Slot> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
                                 Optional<IVariableInventory> variableInventoryOptional) {
         IVariableInventory variableInventory = variableInventoryOptional.get();
         slots = Lists.newArrayListWithCapacity(10);
@@ -66,7 +66,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         // Reload the recipe when the input slots are updated
         IDirtyMarkListener dirtyListener = () -> updateCraftingResult(player, container, variableInventory);
 
-        this.inventoryCraftResult = new CraftResultInventory() {
+        this.inventoryCraftResult = new ResultContainer() {
             @Override
             public void setChanged() {
                 dirtyListener.onDirty();
@@ -105,15 +105,15 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         return returnSlots;
     }
 
-    public CraftingInventory getInventoryCrafting() {
+    public CraftingContainer getInventoryCrafting() {
         return inventoryCrafting;
     }
 
-    public CraftResultInventory getInventoryCraftResult() {
+    public ResultContainer getInventoryCraftResult() {
         return inventoryCraftResult;
     }
 
-    public CraftingResultSlot getSlotCrafting() {
+    public ResultSlot getSlotCrafting() {
         return slotCrafting;
     }
 
@@ -125,12 +125,12 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         this.autoRefill = autoRefill;
     }
 
-    public void updateCraftingResult(PlayerEntity player, Container container,
+    public void updateCraftingResult(Player player, AbstractContainerMenu container,
                                      ITerminalStorageTabCommon.IVariableInventory variableInventory) {
         if (!player.level.isClientSide) {
-            ServerPlayerEntity entityplayermp = (ServerPlayerEntity)player;
+            ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.level).orElse(null);
+            CraftingRecipe recipe = CraftingHelpers.findServerRecipe(RecipeType.CRAFTING, inventoryCrafting, player.level).orElse(null);
 
             if (recipe != null && (recipe.isSpecial()
                     || !player.level.getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
@@ -142,7 +142,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
             inventoryCraftResult.setItem(0, itemstack);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientItemStackCraftingGridSetResult(getName().toString(), itemstack),
-                    (ServerPlayerEntity) player);
+                    (ServerPlayer) player);
         }
 
         // Save changes into the part state

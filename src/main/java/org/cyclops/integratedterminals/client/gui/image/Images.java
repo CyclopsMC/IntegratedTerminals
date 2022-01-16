@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.image;
 
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.cyclops.cyclopscore.client.gui.image.Image;
 import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;

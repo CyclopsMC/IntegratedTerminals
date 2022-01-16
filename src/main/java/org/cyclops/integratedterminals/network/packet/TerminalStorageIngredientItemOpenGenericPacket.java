@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,7 +29,7 @@ public class TerminalStorageIngredientItemOpenGenericPacket extends PacketCodec 
 
     }
 
-	public TerminalStorageIngredientItemOpenGenericPacket(Pair<Hand, Integer> location) {
+	public TerminalStorageIngredientItemOpenGenericPacket(Pair<InteractionHand, Integer> location) {
     	this.slot = location.getRight();
     	this.handName = location.getLeft().name();
 	}
@@ -41,21 +41,21 @@ public class TerminalStorageIngredientItemOpenGenericPacket extends PacketCodec 
 
 	@Override
 	@OnlyIn(Dist.CLIENT)
-	public void actionClient(World world, PlayerEntity player) {
+	public void actionClient(Level world, Player player) {
 
 	}
 
 	@Override
-	public void actionServer(World world, ServerPlayerEntity player) {
-		openServer(world, Pair.of(Hand.valueOf(handName), slot), player);
+	public void actionServer(Level world, ServerPlayer player) {
+		openServer(world, Pair.of(InteractionHand.valueOf(handName), slot), player);
 	}
 
-	public static void openServer(World world, Pair<Hand, Integer> location, ServerPlayerEntity player) {
+	public static void openServer(Level world, Pair<InteractionHand, Integer> location, ServerPlayer player) {
 		((ItemTerminalStoragePortable) RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE)
 				.openGuiForItemIndex(world, player, location.getRight(), location.getLeft());
 	}
 
-	public static void send(Pair<Hand, Integer> location) {
+	public static void send(Pair<InteractionHand, Integer> location) {
 		IntegratedTerminals._instance.getPacketHandler().sendToServer(
 				new TerminalStorageIngredientItemOpenGenericPacket(location));
 	}

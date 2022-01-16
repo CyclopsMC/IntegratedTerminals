@@ -2,12 +2,12 @@ package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.IntNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.Level;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -84,12 +84,12 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public CompoundNBT serializeCraftingOption(TerminalCraftingOptionRecipeDefinition craftingOption) {
+    public CompoundTag serializeCraftingOption(TerminalCraftingOptionRecipeDefinition craftingOption) {
         return IRecipeDefinition.serialize(craftingOption.getRecipe());
     }
 
     @Override
-    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, CompoundNBT tag) throws IllegalArgumentException {
+    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException {
         return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, IRecipeDefinition.deserialize(tag));
     }
 
@@ -225,7 +225,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
 
     @Override
     public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<Integer> craftingPlan,
-                                 ServerPlayerEntity player) throws CraftingJobStartException {
+                                 ServerPlayer player) throws CraftingJobStartException {
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph
                 && craftingPlan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph();
@@ -356,11 +356,10 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         if (uuid != null) {
             try {
                 UUID uuidObject = UUID.fromString(uuid);
-                GameProfile profile = ServerLifecycleHooks.getCurrentServer().getProfileCache()
-                        .get(uuidObject);
-                if (profile != null) {
-                    return profile.getName();
-                }
+                return ServerLifecycleHooks.getCurrentServer().getProfileCache()
+                        .get(uuidObject)
+                        .map(GameProfile::getName)
+                        .orElse(null);
             } catch (IllegalArgumentException e) {}
         }
         return null;
@@ -401,10 +400,10 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public CompoundNBT serializeCraftingPlan(ITerminalCraftingPlan<Integer> craftingPlan) {
-        CompoundNBT tag = TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
+    public CompoundTag serializeCraftingPlan(ITerminalCraftingPlan<Integer> craftingPlan) {
+        CompoundTag tag = TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph) {
-            CompoundNBT serializedGraph = CraftingJobDependencyGraph.serialize(
+            CompoundTag serializedGraph = CraftingJobDependencyGraph.serialize(
                     ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph());
             tag.put("craftingJobDependencyGraph", serializedGraph);
         }
@@ -412,7 +411,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(CompoundNBT tag) throws IllegalArgumentException {
+    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(CompoundTag tag) throws IllegalArgumentException {
         TerminalCraftingPlanStatic<Integer> planStatic = TerminalCraftingPlanStatic.deserialize(tag, this);
         if (tag.contains("craftingJobDependencyGraph")) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = CraftingJobDependencyGraph.deserialize(
@@ -437,12 +436,12 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public INBT serializeCraftingJobId(Integer id) {
-        return IntNBT.valueOf(id);
+    public Tag serializeCraftingJobId(Integer id) {
+        return IntTag.valueOf(id);
     }
 
     @Override
-    public Integer deserializeCraftingJobId(INBT tag) {
-        return ((IntNBT) tag).getAsInt();
+    public Integer deserializeCraftingJobId(Tag tag) {
+        return ((IntTag) tag).getAsInt();
     }
 }
