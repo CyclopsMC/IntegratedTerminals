@@ -70,7 +70,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
-        matrixStack.popPose();
+        matrixStack.pushPose();
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         Lighting.setupForFlatItems();

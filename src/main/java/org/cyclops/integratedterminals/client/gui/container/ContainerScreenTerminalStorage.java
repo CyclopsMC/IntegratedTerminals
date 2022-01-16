@@ -188,14 +188,12 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     @Override
     protected void renderBg(PoseStack matrixStack, float f, int mouseX, int mouseY) {
         super.renderBg(matrixStack, f, mouseX, mouseY);
-        matrixStack.pushPose();
         fieldChannel.render(matrixStack, mouseX, mouseY, f);
         fieldSearch.render(matrixStack, mouseX, mouseY, f);
         drawTabsBackground(matrixStack);
         drawTabContents(matrixStack, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
         scrollBar.drawGuiContainerBackgroundLayer(matrixStack, f, mouseX, mouseY);
-        matrixStack.popPose();
 
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         tabOptional.ifPresent(tab -> {
