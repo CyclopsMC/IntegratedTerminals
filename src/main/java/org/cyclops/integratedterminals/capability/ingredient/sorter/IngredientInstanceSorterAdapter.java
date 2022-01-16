@@ -7,7 +7,6 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 

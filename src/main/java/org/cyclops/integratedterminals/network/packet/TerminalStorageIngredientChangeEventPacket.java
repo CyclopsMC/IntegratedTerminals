@@ -24,63 +24,63 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 
-	@CodecField
-	private String tabId;
+    @CodecField
+    private String tabId;
     @CodecField
     private CompoundTag changeData;
-	@CodecField
-	private int channel;
-	@CodecField
-	private boolean enabled;
+    @CodecField
+    private int channel;
+    @CodecField
+    private boolean enabled;
 
     public TerminalStorageIngredientChangeEventPacket() {
 
     }
 
     public TerminalStorageIngredientChangeEventPacket(String tabId,
-													  IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event,
-													  boolean enabled) {
-    	this.tabId = tabId;
-		IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
-		IIngredientCollection<?, ?> instances = event.getInstances();
-		CompoundTag serialized = IngredientCollections.serialize(instances);
-		serialized.putInt("changeType", changeType.ordinal());
-		this.changeData = serialized;
-		this.channel = event.getChannel();
-		this.enabled = enabled;
+                                                      IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event,
+                                                      boolean enabled) {
+        this.tabId = tabId;
+        IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
+        IIngredientCollection<?, ?> instances = event.getInstances();
+        CompoundTag serialized = IngredientCollections.serialize(instances);
+        serialized.putInt("changeType", changeType.ordinal());
+        this.changeData = serialized;
+        this.channel = event.getChannel();
+        this.enabled = enabled;
     }
 
-	@Override
-	public boolean isAsync() {
-		return false;
-	}
+    @Override
+    public boolean isAsync() {
+        return false;
+    }
 
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void actionClient(Level world, Player player) {
-		if(player.containerMenu instanceof ContainerTerminalStorageBase) {
-			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-			IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
-			IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(Level world, Player player) {
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
+            IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
+            IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
 
-			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
-			tab.onChange(channel, changeType, ingredients, enabled);
+            TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
+            tab.onChange(channel, changeType, ingredients, enabled);
 
-			// Hard-coded crafting tab
-			// TODO: abstract this as "auxiliary" tabs
-			if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
-				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
-						.getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
-				tabCrafting.onChange(channel, changeType, ingredients, enabled);
-			}
+            // Hard-coded crafting tab
+            // TODO: abstract this as "auxiliary" tabs
+            if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
+                TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
+                        .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
+                tabCrafting.onChange(channel, changeType, ingredients, enabled);
+            }
 
-			container.refreshChannelStrings();
-		}
-	}
+            container.refreshChannelStrings();
+        }
+    }
 
-	@Override
-	public void actionServer(Level world, ServerPlayer player) {
+    @Override
+    public void actionServer(Level world, ServerPlayer player) {
 
-	}
-	
+    }
+
 }

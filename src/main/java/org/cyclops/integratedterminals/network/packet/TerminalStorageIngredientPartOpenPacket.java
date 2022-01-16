@@ -37,81 +37,81 @@ import java.util.Optional;
  */
 public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
 
-	@CodecField
-	private BlockPos pos;
-	@CodecField
-	private Direction side;
-	@CodecField
-	private String tabName;
-	@CodecField
-	private int channel;
+    @CodecField
+    private BlockPos pos;
+    @CodecField
+    private Direction side;
+    @CodecField
+    private String tabName;
+    @CodecField
+    private int channel;
 
     public TerminalStorageIngredientPartOpenPacket() {
 
     }
 
-	public TerminalStorageIngredientPartOpenPacket(BlockPos pos, Direction side, String tabName, int channel) {
-    	this.pos = pos;
-    	this.side = side;
-		this.tabName = tabName;
-		this.channel = channel;
-	}
+    public TerminalStorageIngredientPartOpenPacket(BlockPos pos, Direction side, String tabName, int channel) {
+        this.pos = pos;
+        this.side = side;
+        this.tabName = tabName;
+        this.channel = channel;
+    }
 
-	@Override
-	public boolean isAsync() {
-		return false;
-	}
+    @Override
+    public boolean isAsync() {
+        return false;
+    }
 
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void actionClient(Level world, Player player) {
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(Level world, Player player) {
 
-	}
+    }
 
-	@Override
-	public void actionServer(Level world, ServerPlayer player) {
-		openServer(world, pos, side, player, tabName, channel);
-	}
+    @Override
+    public void actionServer(Level world, ServerPlayer player) {
+        openServer(world, pos, side, player, tabName, channel);
+    }
 
-	public static void openServer(Level world, BlockPos pos, Direction side, ServerPlayer player, String tabName, int channel) {
-		// Create common data
-		ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
-		PartPos partPos = PartPos.of(world, pos, side);
-		Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
-		PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) data.getLeft()
-				.getPartState(data.getRight().getCenter().getSide());
-		TerminalStorageState terminalStorageState = state.getPlayerStorageState(player);
+    public static void openServer(Level world, BlockPos pos, Direction side, ServerPlayer player, String tabName, int channel) {
+        // Create common data
+        ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
+        PartPos partPos = PartPos.of(world, pos, side);
+        Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
+        PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) data.getLeft()
+                .getPartState(data.getRight().getCenter().getSide());
+        TerminalStorageState terminalStorageState = state.getPlayerStorageState(player);
 
-		// Create temporary container provider
-		MenuProvider containerProvider = new MenuProvider() {
-			@Override
-			public Component getDisplayName() {
-				return new TextComponent("");
-			}
+        // Create temporary container provider
+        MenuProvider containerProvider = new MenuProvider() {
+            @Override
+            public Component getDisplayName() {
+                return new TextComponent("");
+            }
 
-			@Override
-			public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
-				return new ContainerTerminalStoragePart(id, playerInventory,
-						data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
-						Optional.of(initData), terminalStorageState);
-			}
-		};
+            @Override
+            public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
+                return new ContainerTerminalStoragePart(id, playerInventory,
+                        data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
+                        Optional.of(initData), terminalStorageState);
+            }
+        };
 
-		// Trigger gui opening
-		NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
-			PacketCodec.write(packetBuffer, partPos);
-			packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
+        // Trigger gui opening
+        NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
+            PacketCodec.write(packetBuffer, partPos);
+            packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
 
-			packetBuffer.writeBoolean(true);
-			initData.writeToPacketBuffer(packetBuffer);
+            packetBuffer.writeBoolean(true);
+            initData.writeToPacketBuffer(packetBuffer);
 
-			terminalStorageState.writeToPacketBuffer(packetBuffer);
-		});
-	}
+            terminalStorageState.writeToPacketBuffer(packetBuffer);
+        });
+    }
 
-	public static void send(BlockPos pos, Direction side, String tabName, int channel) {
-		IntegratedTerminals._instance.getPacketHandler().sendToServer(
-				new TerminalStorageIngredientPartOpenPacket(pos, side, tabName, channel));
-	}
-	
+    public static void send(BlockPos pos, Direction side, String tabName, int channel) {
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientPartOpenPacket(pos, side, tabName, channel));
+    }
+
 }

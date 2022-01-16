@@ -20,44 +20,44 @@ import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
  */
 public class TerminalStorageIngredientItemOpenGenericPacket extends PacketCodec {
 
-	@CodecField
-	private int slot;
-	@CodecField
-	private String handName;
+    @CodecField
+    private int slot;
+    @CodecField
+    private String handName;
 
     public TerminalStorageIngredientItemOpenGenericPacket() {
 
     }
 
-	public TerminalStorageIngredientItemOpenGenericPacket(Pair<InteractionHand, Integer> location) {
-    	this.slot = location.getRight();
-    	this.handName = location.getLeft().name();
-	}
+    public TerminalStorageIngredientItemOpenGenericPacket(Pair<InteractionHand, Integer> location) {
+        this.slot = location.getRight();
+        this.handName = location.getLeft().name();
+    }
 
-	@Override
-	public boolean isAsync() {
-		return false;
-	}
+    @Override
+    public boolean isAsync() {
+        return false;
+    }
 
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void actionClient(Level world, Player player) {
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(Level world, Player player) {
 
-	}
+    }
 
-	@Override
-	public void actionServer(Level world, ServerPlayer player) {
-		openServer(world, Pair.of(InteractionHand.valueOf(handName), slot), player);
-	}
+    @Override
+    public void actionServer(Level world, ServerPlayer player) {
+        openServer(world, Pair.of(InteractionHand.valueOf(handName), slot), player);
+    }
 
-	public static void openServer(Level world, Pair<InteractionHand, Integer> location, ServerPlayer player) {
-		((ItemTerminalStoragePortable) RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE)
-				.openGuiForItemIndex(world, player, location.getRight(), location.getLeft());
-	}
+    public static void openServer(Level world, Pair<InteractionHand, Integer> location, ServerPlayer player) {
+        ((ItemTerminalStoragePortable) RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE)
+                .openGuiForItemIndex(world, player, location.getRight(), location.getLeft());
+    }
 
-	public static void send(Pair<InteractionHand, Integer> location) {
-		IntegratedTerminals._instance.getPacketHandler().sendToServer(
-				new TerminalStorageIngredientItemOpenGenericPacket(location));
-	}
-	
+    public static void send(Pair<InteractionHand, Integer> location) {
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientItemOpenGenericPacket(location));
+    }
+
 }

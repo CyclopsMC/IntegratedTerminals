@@ -31,78 +31,78 @@ import java.util.Optional;
  */
 public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
 
-	@CodecField
-	private int slot;
-	@CodecField
-	private String handName;
-	@CodecField
-	private String tabName;
-	@CodecField
-	private int channel;
+    @CodecField
+    private int slot;
+    @CodecField
+    private String handName;
+    @CodecField
+    private String tabName;
+    @CodecField
+    private int channel;
 
     public TerminalStorageIngredientItemOpenPacket() {
 
     }
 
-	public TerminalStorageIngredientItemOpenPacket(Pair<InteractionHand, Integer> location, String tabName, int channel) {
-    	this.slot = location.getRight();
-    	this.handName = location.getLeft().name();
-		this.tabName = tabName;
-		this.channel = channel;
-	}
+    public TerminalStorageIngredientItemOpenPacket(Pair<InteractionHand, Integer> location, String tabName, int channel) {
+        this.slot = location.getRight();
+        this.handName = location.getLeft().name();
+        this.tabName = tabName;
+        this.channel = channel;
+    }
 
-	@Override
-	public boolean isAsync() {
-		return false;
-	}
+    @Override
+    public boolean isAsync() {
+        return false;
+    }
 
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void actionClient(Level world, Player player) {
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(Level world, Player player) {
 
-	}
+    }
 
-	@Override
-	public void actionServer(Level world, ServerPlayer player) {
-		openServer(world, Pair.of(InteractionHand.valueOf(handName), slot), player, tabName, channel);
-	}
+    @Override
+    public void actionServer(Level world, ServerPlayer player) {
+        openServer(world, Pair.of(InteractionHand.valueOf(handName), slot), player, tabName, channel);
+    }
 
-	public static void openServer(Level world, Pair<InteractionHand, Integer> location, ServerPlayer player, String tabName, int channel) {
-		// Create common data
-		ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
-		TerminalStorageState terminalStorageState = ItemTerminalStoragePortable.getTerminalStorageState(InventoryHelpers
-				.getItemFromIndex(player, location.getRight(), location.getLeft()), player, location.getRight(), location.getLeft());
+    public static void openServer(Level world, Pair<InteractionHand, Integer> location, ServerPlayer player, String tabName, int channel) {
+        // Create common data
+        ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
+        TerminalStorageState terminalStorageState = ItemTerminalStoragePortable.getTerminalStorageState(InventoryHelpers
+                .getItemFromIndex(player, location.getRight(), location.getLeft()), player, location.getRight(), location.getLeft());
 
-		// Create temporary container provider
-		MenuProvider containerProvider = new MenuProvider() {
-			@Override
-			public Component getDisplayName() {
-				return new TextComponent("");
-			}
+        // Create temporary container provider
+        MenuProvider containerProvider = new MenuProvider() {
+            @Override
+            public Component getDisplayName() {
+                return new TextComponent("");
+            }
 
-			@Override
-			public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
-				return new ContainerTerminalStorageItem(id, playerInventory,
-						location.getRight(), location.getLeft(),
-						Optional.of(initData), terminalStorageState);
-			}
-		};
+            @Override
+            public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
+                return new ContainerTerminalStorageItem(id, playerInventory,
+                        location.getRight(), location.getLeft(),
+                        Optional.of(initData), terminalStorageState);
+            }
+        };
 
-		// Trigger gui opening
-		NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
-			packetBuffer.writeInt(location.getRight());
-			packetBuffer.writeBoolean(location.getLeft() == InteractionHand.MAIN_HAND);
+        // Trigger gui opening
+        NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
+            packetBuffer.writeInt(location.getRight());
+            packetBuffer.writeBoolean(location.getLeft() == InteractionHand.MAIN_HAND);
 
-			packetBuffer.writeBoolean(true);
-			initData.writeToPacketBuffer(packetBuffer);
+            packetBuffer.writeBoolean(true);
+            initData.writeToPacketBuffer(packetBuffer);
 
-			terminalStorageState.writeToPacketBuffer(packetBuffer);
-		});
-	}
+            terminalStorageState.writeToPacketBuffer(packetBuffer);
+        });
+    }
 
-	public static void send(Pair<InteractionHand, Integer> location, String tabName, int channel) {
-		IntegratedTerminals._instance.getPacketHandler().sendToServer(
-				new TerminalStorageIngredientItemOpenPacket(location, tabName, channel));
-	}
-	
+    public static void send(Pair<InteractionHand, Integer> location, String tabName, int channel) {
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageIngredientItemOpenPacket(location, tabName, channel));
+    }
+
 }

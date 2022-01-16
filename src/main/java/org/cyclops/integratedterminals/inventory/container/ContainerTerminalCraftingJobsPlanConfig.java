@@ -9,7 +9,6 @@ import org.cyclops.cyclopscore.client.gui.ScreenFactorySafe;
 import org.cyclops.cyclopscore.config.extendedconfig.GuiConfig;
 import org.cyclops.cyclopscore.inventory.container.ContainerTypeData;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalCraftingJobs;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalCraftingJobsPlan;
 
 /**

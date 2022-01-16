@@ -12,7 +12,6 @@ import org.cyclops.cyclopscore.config.extendedconfig.GuiConfig;
 import org.cyclops.cyclopscore.inventory.container.ContainerTypeData;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorageCraftingOptionAmount;
 
 /**

@@ -21,57 +21,57 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 
-	@CodecField
-	private String tabId;
-	@CodecField
-	private String ingredientName;
+    @CodecField
+    private String tabId;
+    @CodecField
+    private String ingredientName;
     @CodecField
     private long maxQuantity;
-	@CodecField
-	private int channel;
+    @CodecField
+    private int channel;
 
     public TerminalStorageIngredientMaxQuantityPacket() {
 
     }
 
     public TerminalStorageIngredientMaxQuantityPacket(String tabId, IngredientComponent<?, ?> ingredientComponent,
-													  long maxQuantity, int channel) {
-		this.tabId = tabId;
-    	this.ingredientName = ingredientComponent.getName().toString();
-		this.maxQuantity = maxQuantity;
-		this.channel = channel;
+                                                      long maxQuantity, int channel) {
+        this.tabId = tabId;
+        this.ingredientName = ingredientComponent.getName().toString();
+        this.maxQuantity = maxQuantity;
+        this.channel = channel;
     }
 
-	@Override
-	public boolean isAsync() {
-		return false;
-	}
+    @Override
+    public boolean isAsync() {
+        return false;
+    }
 
-	@Override
-	@OnlyIn(Dist.CLIENT)
-	public void actionClient(Level world, Player player) {
-		if(player.containerMenu instanceof ContainerTerminalStorageBase) {
-			ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-			IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(new ResourceLocation(this.ingredientName));
-			if (ingredientComponent == null) {
-				throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
-			}
-			TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
-			tab.setMaxQuantity(channel, maxQuantity);
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void actionClient(Level world, Player player) {
+        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
+            IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(new ResourceLocation(this.ingredientName));
+            if (ingredientComponent == null) {
+                throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
+            }
+            TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
+            tab.setMaxQuantity(channel, maxQuantity);
 
-			// Hard-coded crafting tab
-			// TODO: abstract this as "auxiliary" tabs
-			if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
-				TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
-						.getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
-				tabCrafting.setMaxQuantity(channel, maxQuantity);
-			}
-		}
-	}
+            // Hard-coded crafting tab
+            // TODO: abstract this as "auxiliary" tabs
+            if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
+                TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
+                        .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
+                tabCrafting.setMaxQuantity(channel, maxQuantity);
+            }
+        }
+    }
 
-	@Override
-	public void actionServer(Level world, ServerPlayer player) {
+    @Override
+    public void actionServer(Level world, ServerPlayer player) {
 
-	}
-	
+    }
+
 }

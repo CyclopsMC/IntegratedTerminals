@@ -6,7 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 
 /**
- * An extended {@link CraftingInventory} that has a {@link IDirtyMarkListener}.
+ * An extended {@link CraftingContainer} that has a {@link IDirtyMarkListener}.
  * @author rubensworks
  */
 public class InventoryCraftingDirtyable extends CraftingContainer {

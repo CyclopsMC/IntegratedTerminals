@@ -14,7 +14,6 @@ import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
-import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 /**
  * Packet for sending a storage slot click event from client to server.

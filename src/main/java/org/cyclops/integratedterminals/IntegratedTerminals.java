@@ -142,7 +142,7 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
     public static void clog(String message) {
         clog(Level.INFO, message);
     }
-    
+
     /**
      * Log a new message of the given level for this mod.
      * @param level The level in which the message must be shown.
@@ -151,5 +151,5 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
     public static void clog(Level level, String message) {
         IntegratedTerminals._instance.getLoggerHelper().log(level, message);
     }
-    
+
 }
