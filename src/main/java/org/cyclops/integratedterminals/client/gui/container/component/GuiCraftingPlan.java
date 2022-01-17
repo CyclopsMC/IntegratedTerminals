@@ -197,17 +197,17 @@ public class GuiCraftingPlan extends AbstractWidget {
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw counters
             if (element.getStorageQuantity() > 0) {
-                renderItem(matrixStack, new ItemStack(Blocks.CHEST), x, y, 0.45F);
+                renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CHEST), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getCraftQuantity() > 0) {
-                renderItem(matrixStack, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
+                renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
             }
             if (element.getMissingQuantity() > 0) {
-                renderItem(matrixStack, new ItemStack(Blocks.BARRIER), x, y, 0.45F);
+                renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.BARRIER), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215);
             }
             RenderSystem.setShaderColor(1, 1, 1, 1);
@@ -227,20 +227,20 @@ public class GuiCraftingPlan extends AbstractWidget {
         poseStack.pushPose();
         poseStack.translate(x, y, 0);
         poseStack.scale(scale, scale, scale);
+        RenderSystem.applyModelViewMatrix();
 
         RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
-        poseStack.pushPose();
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        Lighting.setupForFlatItems();
+        Lighting.setupFor3DItems();
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         renderItem.renderAndDecorateItem(itemStack, 0, 0);
         renderItem.renderGuiItemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
-        Lighting.setupFor3DItems();
-        poseStack.popPose();
+        Lighting.setupForFlatItems();
 
         poseStack.popPose();
+        RenderSystem.applyModelViewMatrix();
     }
 
     public static String getDurationString(long tickDuration) {

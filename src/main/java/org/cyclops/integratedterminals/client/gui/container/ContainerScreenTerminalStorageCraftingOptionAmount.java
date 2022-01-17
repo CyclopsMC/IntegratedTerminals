@@ -96,7 +96,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         scrollBar = new WidgetScrollBar(leftPos + 153, topPos + 15, 54,
                 new TranslatableComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 3);
         scrollBar.setTotalRows(outputs.size() - 1);
-        renderables.add(scrollBar);
+        addWidget(scrollBar);
 
         addRenderableWidget(new ButtonChangeQuantity(leftPos + 5, topPos + 10, +10, this::buttonChangeQuantity));
         addRenderableWidget(new ButtonChangeQuantity(leftPos + 5, topPos + 55, -10, this::buttonChangeQuantity));

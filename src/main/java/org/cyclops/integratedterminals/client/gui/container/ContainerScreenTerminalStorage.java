@@ -142,7 +142,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 return getSlotVisibleRows();
             }
         };
-        this.renderables.add(this.scrollBar);
+        addWidget(this.scrollBar);
 
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().font, leftPos + SEARCH_X,
                 topPos + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, new TranslatableComponent("gui.cyclopscore.search"));
@@ -707,10 +707,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             matrixStack.pushPose();
             GlStateManager._enableBlend();
             GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            Lighting.setupForFlatItems();
+            Lighting.setupFor3DItems();
             GL11.glEnable(GL11.GL_DEPTH_TEST);
             renderItem.renderAndDecorateItem(icon, x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
-            Lighting.setupFor3DItems();
+            Lighting.setupForFlatItems();
             matrixStack.popPose();
             GL11.glDisable(GL11.GL_DEPTH_TEST);
 

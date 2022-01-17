@@ -73,7 +73,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         matrixStack.pushPose();
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        Lighting.setupForFlatItems();
+        Lighting.setupFor3DItems();
         //GlStateManager._enableRescaleNormal();
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
@@ -92,7 +92,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 return lines;
             });
         }
-        Lighting.setupFor3DItems();
+        Lighting.setupForFlatItems();
         matrixStack.popPose();
     }
 
