@@ -216,7 +216,7 @@ jar {
         ])
     }
 }
-jar.finalizedBy('reobfJar')
+jar.finalizedBy('reobfShadowJar')
 
 task signJar(type: SignJar, dependsOn: jar) {
     onlyIf {
