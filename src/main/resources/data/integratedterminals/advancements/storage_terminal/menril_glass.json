@@ -22,7 +22,9 @@
       "conditions": {
         "items": [
           {
-            "item": "integratedterminals:menril_glass"
+            "items": [
+              "integratedterminals:menril_glass"
+            ]
           }
         ]
       }
