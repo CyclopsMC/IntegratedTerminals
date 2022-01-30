@@ -93,8 +93,9 @@ public class SlotCraftingAutoRefill extends ResultSlot {
                                     inventoryCrafting.getItem(i)));
                 }
             }
+        } else {
+            super.onTake(thePlayer, stack);
         }
-        super.onTake(thePlayer, stack);
     }
 
     public static NonNullList<ItemStack> inventoryToList(Container inventory, boolean copy) {
