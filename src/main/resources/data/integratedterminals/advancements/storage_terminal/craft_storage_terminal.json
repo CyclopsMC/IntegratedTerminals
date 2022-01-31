@@ -17,7 +17,9 @@
       "conditions": {
         "items": [
           {
-            "item": "integratedterminals:part_terminal_storage"
+            "items": [
+              "integratedterminals:part_terminal_storage"
+            ]
           }
         ]
       }
