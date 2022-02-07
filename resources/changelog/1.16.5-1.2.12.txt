@@ -1,0 +1,10 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.12.0 or higher.
+
+Changes:
+* Disable multithreaded crafting job planner by default
+  Existing worlds will still have to disable
+  craftingPlannerEnableMultithreading manually.
+  Closes CyclopsMC/IntegratedDynamics#1120
+  This fixes rare race conditions.
+
