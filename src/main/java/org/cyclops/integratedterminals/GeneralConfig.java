@@ -47,7 +47,7 @@ public class GeneralConfig extends DummyConfig {
     public static int craftingPlannerThreads = 2;
 
     @ConfigurableProperty(category = "core", comment = "If the crafting planners can work on separate thread.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
-    public static boolean craftingPlannerEnableMultithreading = true;
+    public static boolean craftingPlannerEnableMultithreading = false;
 
     @ConfigurableProperty(category = "general", comment = "The base energy usage for the crafting terminal.", minimalValue = 0, configLocation = ModConfig.Type.SERVER)
     public static int terminalCraftingBaseConsumption = 1;
