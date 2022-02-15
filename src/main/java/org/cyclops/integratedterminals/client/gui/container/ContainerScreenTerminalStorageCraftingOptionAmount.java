@@ -91,7 +91,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         numberField.setTextColor(16777215);
         numberField.setCanLoseFocus(true);
         numberField.setValue("1");
-        renderables.add(numberField);
+        addRenderableWidget(numberField);
 
         scrollBar = new WidgetScrollBar(leftPos + 153, topPos + 15, 54,
                 new TranslatableComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 3);
