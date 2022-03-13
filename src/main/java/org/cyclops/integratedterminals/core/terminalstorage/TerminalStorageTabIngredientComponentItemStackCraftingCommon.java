@@ -128,7 +128,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.world.isRemote) {
             ServerPlayerEntity entityplayermp = (ServerPlayerEntity)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            ICraftingRecipe recipe = CraftingHelpers.findServerRecipe(IRecipeType.CRAFTING, inventoryCrafting, player.world).orElse(null);
+            ICraftingRecipe recipe = CraftingHelpers.findRecipeCached(IRecipeType.CRAFTING, inventoryCrafting, player.world, false).orElse(null);
 
             if (recipe != null && (recipe.isDynamic()
                     || !player.world.getGameRules().getBoolean(GameRules.DO_LIMITED_CRAFTING)
