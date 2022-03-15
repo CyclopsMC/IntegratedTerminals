@@ -1,0 +1,6 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.13.0 or higher.
+
+Fixes:
+* Compress crafting job messages as ints instead of strings, Closes #80
+* Fix lag when shift-crafting in terminal, Closes CyclopsMC/IntegratedTerminals#78
