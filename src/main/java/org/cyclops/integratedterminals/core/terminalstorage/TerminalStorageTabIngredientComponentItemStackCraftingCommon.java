@@ -130,7 +130,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.level.isClientSide) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            CraftingRecipe recipe = CraftingHelpers.findServerRecipe(RecipeType.CRAFTING, inventoryCrafting, player.level).orElse(null);
+            CraftingRecipe recipe = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting, player.level, false).orElse(null);
 
             if (recipe != null && (recipe.isSpecial()
                     || !player.level.getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)

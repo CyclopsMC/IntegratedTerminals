@@ -128,7 +128,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     craftingJob.getAmount(),
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     Collections.emptyList(),
-                    "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
+                    TerminalCraftingPlanStatic.Label.VALID,
                     -1,
                     craftingJob.getChannel(),
                     null,
@@ -142,7 +142,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     craftingJob.getAmount(),
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     Collections.emptyList(),
-                    "gui.integratedterminals.terminal_storage.craftingplan.label.valid",
+                    TerminalCraftingPlanStatic.Label.VALID,
                     -1,
                     craftingJob.getChannel(),
                     null);
@@ -170,7 +170,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 exception.getQuantityMissing(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 Collections.emptyList(),
-                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
+                TerminalCraftingPlanStatic.Label.INCOMPLETE,
                 -1,
                 -1,
                 null);
@@ -198,7 +198,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 exception.getQuantityMissing(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getIngredientsStorage()),
                 Collections.emptyList(),
-                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete",
+                TerminalCraftingPlanStatic.Label.INCOMPLETE,
                 -1,
                 -1,
                 null);
@@ -217,7 +217,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 0,
                 Collections.emptyList(),
                 Collections.emptyList(),
-                "gui.integratedterminals.terminal_storage.craftingplan.label.failed.recursion",
+                TerminalCraftingPlanStatic.Label.RECURSION,
                 -1,
                 -1,
                 null);
@@ -248,7 +248,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 0,
                 Collections.emptyList(),
                 Collections.emptyList(),
-                "ERROR",
+                TerminalCraftingPlanStatic.Label.ERROR,
                 -1,
                 -1,
                 null);
@@ -345,7 +345,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 craftingJob.getAmount(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                 lastMissingIngredients,
-                "gui.integratedterminals.terminal_storage.craftingplan.label.running",
+                TerminalCraftingPlanStatic.Label.RUNNING,
                 craftingNetwork.getRunningTicks(craftingJob),
                 craftingJob.getChannel(),
                 uuidToName(craftingJob.getInitiatorUuid()));
@@ -416,7 +416,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         if (tag.contains("craftingJobDependencyGraph")) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = CraftingJobDependencyGraph.deserialize(
                     tag.getCompound("craftingJobDependencyGraph"));
-            return new TerminalCraftingPlanCraftingJobDependencyGraph(
+            TerminalCraftingPlanCraftingJobDependencyGraph graph = new TerminalCraftingPlanCraftingJobDependencyGraph(
                     planStatic.getId(),
                     planStatic.getDependencies(),
                     planStatic.getOutputs(),
@@ -424,12 +424,16 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     planStatic.getCraftingQuantity(),
                     planStatic.getStorageIngredients(),
                     planStatic.getLastMissingIngredients(),
-                    planStatic.getUnlocalizedLabel(),
+                    planStatic.getLabel(),
                     planStatic.getTickDuration(),
                     planStatic.getChannel(),
                     planStatic.getInitiatorName(),
                     craftingJobDependencyGraph
             );
+            if (planStatic.getUnlocalizedLabelOverride() != null) {
+                graph.setUnlocalizedLabelOverride(planStatic.getUnlocalizedLabelOverride());
+            }
+            return graph;
         } else {
             return planStatic;
         }
