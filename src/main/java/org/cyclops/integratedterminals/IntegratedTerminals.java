@@ -3,10 +3,11 @@ package org.cyclops.integratedterminals;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.NewRegistryEvent;
 import org.apache.logging.log4j.Level;
 import org.cyclops.cyclopscore.config.ConfigHandler;
 import org.cyclops.cyclopscore.infobook.IInfoBookRegistry;
@@ -63,12 +64,13 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
         getRegistryManager().addRegistry(ITerminalStorageLocationRegistry.class, new TerminalStorageLocationRegistry());
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onRegistriesCreate);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::afterSetup);
         TerminalStorageTabs.load();
         TerminalStorageTabIngredientCraftingHandlers.load();
         TerminalStorageLocations.load();
     }
 
-    public void onRegistriesCreate(RegistryEvent.NewRegistry event) {
+    public void onRegistriesCreate(NewRegistryEvent event) {
         PartTypes.load();
         TerminalIngredientComponentCapabilities.load();
     }
@@ -84,7 +86,9 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
     @Override
     protected void setup(FMLCommonSetupEvent event) {
         super.setup(event);
+    }
 
+    protected void afterSetup(FMLLoadCompleteEvent event) {
         // Initialize info book
         IntegratedDynamics._instance.getRegistryManager().getRegistry(IInfoBookRegistry.class)
                 .registerSection(this,

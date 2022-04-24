@@ -10,7 +10,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.tags.FluidTags;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -19,6 +18,7 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
@@ -40,7 +40,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -229,21 +228,17 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     @OnlyIn(Dist.CLIENT)
     public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
-        switch (searchMode) {
-            case MOD:
-                return i -> i.getFluid().getRegistryName().getNamespace()
-                        .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
-            case TOOLTIP:
-                return i -> false; // Fluids have no tooltip
-            case TAG:
-                return i -> FluidTags.getAllTags().getMatchingTags(i.getFluid()).stream()
-                        .filter(id -> id.toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                        .map(r -> FluidTags.getAllTags().getTag(r))
-                        .anyMatch(Objects::nonNull);
-            case DEFAULT:
-                return i -> i != null && i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
-        }
-        return null;
+        return switch (searchMode) {
+            case MOD -> i -> i.getFluid().getRegistryName().getNamespace()
+                    .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case TOOLTIP -> i -> false; // Fluids have no tooltip
+            case TAG -> i -> ForgeRegistries.FLUIDS.tags().getReverseTag(i.getFluid())
+                    .map(reverseTag -> reverseTag.getTagKeys()
+                            .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                            .anyMatch(tag -> !ForgeRegistries.FLUIDS.tags().getTag(tag).isEmpty()))
+                    .orElse(false);
+            case DEFAULT -> i -> i != null && i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+        };
     }
 
     @Override

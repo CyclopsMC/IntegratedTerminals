@@ -13,11 +13,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -38,7 +38,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -236,23 +235,19 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     @OnlyIn(Dist.CLIENT)
     public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
-        switch (searchMode) {
-            case MOD:
-                return i -> Optional.ofNullable(i.getItem().getCreatorModId(i))
-                        .orElse("minecraft").toLowerCase(Locale.ENGLISH)
-                        .matches(".*" + query + ".*");
-            case TOOLTIP:
-                return i -> i.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
-                        .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
-            case TAG:
-                return i -> ItemTags.getAllTags().getMatchingTags(i.getItem()).stream()
-                        .filter(id -> id.toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                        .map(r -> ItemTags.getAllTags().getTag(r))
-                        .anyMatch(Objects::nonNull);
-            case DEFAULT:
-                return i -> i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
-        }
-        return null;
+        return switch (searchMode) {
+            case MOD -> i -> Optional.ofNullable(i.getItem().getCreatorModId(i))
+                    .orElse("minecraft").toLowerCase(Locale.ENGLISH)
+                    .matches(".*" + query + ".*");
+            case TOOLTIP -> i -> i.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
+                    .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
+            case TAG -> i -> ForgeRegistries.ITEMS.tags().getReverseTag(i.getItem())
+                    .map(reverseTag -> reverseTag.getTagKeys()
+                            .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                            .anyMatch(tag -> !ForgeRegistries.ITEMS.tags().getTag(tag).isEmpty()))
+                    .orElse(false);
+            case DEFAULT -> i -> i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+        };
     }
 
     @Override
