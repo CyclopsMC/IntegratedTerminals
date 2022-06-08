@@ -1,14 +1,13 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cyclops.cyclopscore.helper.InventoryHelpers;
-import org.cyclops.cyclopscore.inventory.container.ItemInventoryContainer;
+import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
@@ -23,31 +22,28 @@ public class ContainerTerminalStorageCraftingPlanItem extends ContainerTerminalS
 
     // Based on ItemInventoryContainer
 
-    private final int itemIndex;
-    private final InteractionHand hand;
+    private final ItemLocation itemLocation;
 
     public ContainerTerminalStorageCraftingPlanItem(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
-        this(id, playerInventory, ItemInventoryContainer.readItemIndex(packetBuffer),
-                ItemInventoryContainer.readHand(packetBuffer),
+        this(id, playerInventory, ItemLocation.readFromPacketBuffer(packetBuffer),
                 CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
     }
 
     public ContainerTerminalStorageCraftingPlanItem(int id, Inventory playerInventory,
-                                                    int itemIndex, InteractionHand hand, CraftingOptionGuiData craftingOptionGuiData) {
+                                                    ItemLocation itemLocation, CraftingOptionGuiData craftingOptionGuiData) {
         this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_PLAN_ITEM, id, playerInventory,
-                itemIndex, hand, craftingOptionGuiData);
+                itemLocation, craftingOptionGuiData);
     }
 
     public ContainerTerminalStorageCraftingPlanItem(@Nullable MenuType<?> type, int id, Inventory playerInventory,
-                                                    int itemIndex, InteractionHand hand,
+                                                    ItemLocation itemLocation,
                                                     CraftingOptionGuiData craftingOptionGuiData) {
         super(type, id, playerInventory, craftingOptionGuiData);
-        this.itemIndex = itemIndex;
-        this.hand = hand;
+        this.itemLocation = itemLocation;
     }
 
     public ItemStack getItemStack(Player player) {
-        return InventoryHelpers.getItemFromIndex(player, itemIndex, hand);
+        return this.itemLocation.getItemStack(player);
     }
 
     @Override

@@ -4,15 +4,13 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.client.key.IKeyRegistry;
 import org.cyclops.cyclopscore.init.ModBase;
-import org.cyclops.cyclopscore.inventory.PlayerInventoryIterator;
+import org.cyclops.cyclopscore.inventory.ItemLocation;
+import org.cyclops.cyclopscore.inventory.PlayerExtendedInventoryIterator;
 import org.cyclops.cyclopscore.proxy.ClientProxyComponent;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
@@ -75,17 +73,12 @@ public class ClientProxy extends ClientProxyComponent {
 
         keyRegistry.addKeyHandler(TERMINAL_STORAGE_PORTABLE_OPEN, (kb) -> {
             LocalPlayer player = Minecraft.getInstance().player;
-            Pair<InteractionHand, Integer> found = null;
-            PlayerInventoryIterator it = new PlayerInventoryIterator(player);
+            ItemLocation found = null;
+            PlayerExtendedInventoryIterator it = new PlayerExtendedInventoryIterator(player);
             while (it.hasNext() && found == null) {
-                Pair<Integer, ItemStack> pair = it.nextIndexed();
-                if (pair.getRight() != null && pair.getRight().getItem() instanceof ItemTerminalStoragePortable) {
-                    found = Pair.of(InteractionHand.MAIN_HAND, pair.getLeft());
-                }
-            }
-            if(found == null) {
-                if (player.getOffhandItem().getItem() instanceof ItemTerminalStoragePortable) {
-                    found = Pair.of(InteractionHand.OFF_HAND, 0);
+                ItemLocation pair = it.nextIndexed();
+                if (pair.getItemStack(player).getItem() instanceof ItemTerminalStoragePortable) {
+                    found = pair;
                 }
             }
             if(found != null) {

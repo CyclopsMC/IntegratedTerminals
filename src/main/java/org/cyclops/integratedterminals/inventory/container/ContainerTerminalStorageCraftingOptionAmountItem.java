@@ -1,11 +1,11 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.MenuType;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cyclops.cyclopscore.inventory.container.ItemInventoryContainer;
+import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 
@@ -18,27 +18,24 @@ public class ContainerTerminalStorageCraftingOptionAmountItem extends ContainerT
 
     // Based on ItemInventoryContainer
 
-    private final int itemIndex;
-    private final InteractionHand hand;
+    private final ItemLocation location;
 
     public ContainerTerminalStorageCraftingOptionAmountItem(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
-        this(id, playerInventory, ItemInventoryContainer.readItemIndex(packetBuffer),
-                ItemInventoryContainer.readHand(packetBuffer),
+        this(id, playerInventory, ItemLocation.readFromPacketBuffer(packetBuffer),
                 CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
     }
 
     public ContainerTerminalStorageCraftingOptionAmountItem(int id, Inventory playerInventory,
-                                                            int itemIndex, InteractionHand hand, CraftingOptionGuiData craftingOptionGuiData) {
+                                                            ItemLocation location, CraftingOptionGuiData craftingOptionGuiData) {
         this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_OPTION_AMOUNT_ITEM, id, playerInventory,
-                itemIndex, hand, craftingOptionGuiData);
+                location, craftingOptionGuiData);
     }
 
     public ContainerTerminalStorageCraftingOptionAmountItem(@Nullable MenuType<?> type, int id, Inventory playerInventory,
-                                                            int itemIndex, InteractionHand hand,
+                                                            ItemLocation location,
                                                             CraftingOptionGuiData craftingOptionGuiData) {
         super(type, id, playerInventory, craftingOptionGuiData);
-        this.itemIndex = itemIndex;
-        this.hand = hand;
+        this.location = location;
     }
 
 }

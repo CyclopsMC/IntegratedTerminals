@@ -8,7 +8,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +17,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.datastructure.Wrapper;
-import org.cyclops.cyclopscore.helper.InventoryHelpers;
+import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.cyclopscore.inventory.container.NamedContainerProviderItem;
 import org.cyclops.cyclopscore.item.ItemGui;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
@@ -52,16 +51,16 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     @Override
-    public void openGuiForItemIndex(Level world, ServerPlayer player, int itemIndex, InteractionHand hand) {
+    public void openGuiForItemIndex(Level world, ServerPlayer player, ItemLocation itemLocation) {
         if (world.isClientSide()) {
-            super.openGuiForItemIndex(world, player, itemIndex, hand);
+            super.openGuiForItemIndex(world, player, itemLocation);
         } else {
-            ItemStack itemStack = InventoryHelpers.getItemFromIndex(player, itemIndex, hand);
+            ItemStack itemStack = itemLocation.getItemStack(player);
             int groupId = getGroupId(itemStack);
             if (groupId >= 0) {
                 Optional<INetwork> network = ContainerTerminalStorageItem.getNetworkFromItem(itemStack);
                 if (network.isPresent()) {
-                    super.openGuiForItemIndex(world, player, itemIndex, hand);
+                    super.openGuiForItemIndex(world, player, itemLocation);
                 } else {
                     player.displayClientMessage(new TranslatableComponent("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
                 }
@@ -88,10 +87,10 @@ public class ItemTerminalStoragePortable extends ItemGui {
 
     @Nullable
     @Override
-    public MenuProvider getContainer(Level world, Player playerEntity, int itemIndex, InteractionHand hand, ItemStack itemStack) {
-        return new NamedContainerProviderItem(itemIndex, hand, itemStack.getHoverName(),
-                (id, playerInventory, slot, hand1) -> new ContainerTerminalStorageItem(id, playerInventory, slot, hand1, Optional.empty(),
-                        getTerminalStorageState(InventoryHelpers.getItemFromIndex(playerEntity, itemIndex, hand), playerEntity, itemIndex, hand)));
+    public MenuProvider getContainer(Level world, Player playerEntity, ItemLocation itemLocation) {
+        return new NamedContainerProviderItem(itemLocation, itemLocation.getItemStack(playerEntity).getHoverName(),
+                (id, playerInventory, itemLocation1) -> new ContainerTerminalStorageItem(id, playerInventory, itemLocation1, Optional.empty(),
+                        getTerminalStorageState(itemLocation.getItemStack(playerEntity), playerEntity, itemLocation1)));
     }
 
     @Override
@@ -100,10 +99,10 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     @Override
-    public void writeExtraGuiData(FriendlyByteBuf packetBuffer, Level world, ServerPlayer player, int itemIndex, InteractionHand hand) {
-        super.writeExtraGuiData(packetBuffer, world, player, itemIndex, hand);
+    public void writeExtraGuiData(FriendlyByteBuf packetBuffer, Level world, ServerPlayer player, ItemLocation itemLocation) {
+        super.writeExtraGuiData(packetBuffer, world, player, itemLocation);
         packetBuffer.writeBoolean(false);
-        getTerminalStorageState(InventoryHelpers.getItemFromIndex(player, itemIndex, hand), player, itemIndex, hand).writeToPacketBuffer(packetBuffer);
+        getTerminalStorageState(itemLocation.getItemStack(player), player, itemLocation).writeToPacketBuffer(packetBuffer);
     }
 
     @Override
@@ -162,7 +161,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
         };
     }
 
-    public static TerminalStorageState getTerminalStorageState(ItemStack itemStack, Player player, int slot, InteractionHand hand) {
+    public static TerminalStorageState getTerminalStorageState(ItemStack itemStack, Player player, ItemLocation itemLocation) {
         // Navigate to relevant tag in item
         CompoundTag tagRoot = itemStack.getOrCreateTag();
         if (!tagRoot.contains(NBT_KEY_STATES, Tag.TAG_COMPOUND)) {

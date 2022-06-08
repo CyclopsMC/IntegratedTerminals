@@ -1,18 +1,16 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.InteractionHand;
 import net.minecraftforge.common.util.LazyOptional;
-import org.apache.commons.lang3.tuple.Pair;
-import org.cyclops.cyclopscore.helper.InventoryHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
-import org.cyclops.cyclopscore.inventory.container.ItemInventoryContainer;
+import org.cyclops.cyclopscore.inventory.InventoryLocationPlayer;
+import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.PartPos;
@@ -30,36 +28,33 @@ import java.util.Optional;
 /**
  * @author rubensworks
  */
-public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<Pair<InteractionHand, Integer>> {
+public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<ItemLocation> {
 
     // Based on ItemInventoryContainer
 
-    private final int itemIndex;
-    private final InteractionHand hand;
+    private final ItemLocation itemLocation;
 
     public ContainerTerminalStorageItem(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
-        this(id, playerInventory, ItemInventoryContainer.readItemIndex(packetBuffer),
-                ItemInventoryContainer.readHand(packetBuffer),
+        this(id, playerInventory, ItemLocation.readFromPacketBuffer(packetBuffer),
                 packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty(),
                 TerminalStorageState.readFromPacketBuffer(packetBuffer));
         getGuiState().setDirtyMarkListener(this::sendGuiStateToServer);
     }
 
-    public ContainerTerminalStorageItem(int id, Inventory playerInventory, int itemIndex, InteractionHand hand,
+    public ContainerTerminalStorageItem(int id, Inventory playerInventory, ItemLocation itemLocation,
                                         Optional<InitTabData> initTabData, TerminalStorageState terminalStorageState) {
         this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_ITEM, id, playerInventory,
-                itemIndex, hand, initTabData, terminalStorageState);
+                itemLocation, initTabData, terminalStorageState);
     }
 
     public ContainerTerminalStorageItem(@Nullable MenuType<?> type, int id, Inventory playerInventory,
-                                        int itemIndex, InteractionHand hand,
+                                        ItemLocation itemLocation,
                                         Optional<InitTabData> initTabData,
                                         TerminalStorageState terminalStorageState) {
         super(type, id, playerInventory, initTabData, terminalStorageState,
-                getNetworkFromItem(InventoryHelpers.getItemFromIndex(playerInventory.player, itemIndex, hand)),
-                getVariableInventoryFromItem(InventoryHelpers.getItemFromIndex(playerInventory.player, itemIndex, hand)));
-        this.itemIndex = itemIndex;
-        this.hand = hand;
+                getNetworkFromItem(itemLocation.getItemStack(playerInventory.player)),
+                getVariableInventoryFromItem(itemLocation.getItemStack(playerInventory.player)));
+        this.itemLocation = itemLocation;
     }
 
     public static Optional<INetwork> getNetworkFromItem(ItemStack itemStack) {
@@ -84,7 +79,7 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
     }
 
     public ItemStack getItemStack(Player player) {
-        return InventoryHelpers.getItemFromIndex(player, itemIndex, hand);
+        return this.itemLocation.getItemStack(player);
     }
 
     @Override
@@ -94,13 +89,13 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
     }
 
     @Override
-    public ITerminalStorageLocation<Pair<InteractionHand, Integer>> getLocation() {
+    public ITerminalStorageLocation<ItemLocation> getLocation() {
         return TerminalStorageLocations.ITEM;
     }
 
     @Override
-    public Pair<InteractionHand, Integer> getLocationInstance() {
-        return Pair.of(hand, itemIndex);
+    public ItemLocation getLocationInstance() {
+        return this.itemLocation;
     }
 
     @Override
@@ -113,7 +108,7 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<P
         return new Slot(inventory, index, x, y) {
             @Override
             public boolean mayPickup(Player playerIn) {
-                return super.mayPickup(playerIn) && itemIndex != index;
+                return super.mayPickup(playerIn) && (itemLocation.inventoryLocation() != InventoryLocationPlayer.getInstance() || itemLocation.slot() != index);
             }
         };
     }
