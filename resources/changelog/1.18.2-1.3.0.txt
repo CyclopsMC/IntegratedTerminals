@@ -1,0 +1,9 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.15.0 or higher.
+
+Additions:
+* Add Curios support for Portable Storage Terminal
+  Closes CyclopsMC/IntegratedTerminals#79
+* Add Korean Localization
+
+
