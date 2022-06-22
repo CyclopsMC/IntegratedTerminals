@@ -11,7 +11,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.energy.CapabilityEnergy;
@@ -95,7 +94,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                 GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> {
                             List<Component> lines = Lists.newArrayList();
-                            lines.add(new TranslatableComponent("gui.integratedterminals.terminal_storage.tooltip.energy"));
+                            lines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.energy"));
                             addQuantityTooltip(lines, instance);
                             if (additionalTooltipLines != null) {
                                 lines.addAll(additionalTooltipLines);

@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.part;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -7,7 +8,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.config.extendedconfig.BlockConfig;
 import org.cyclops.cyclopscore.init.ModBase;
@@ -30,7 +30,7 @@ public abstract class PartTypeTerminal<P extends PartTypeTerminal<P, S>, S exten
     @Override
     public InteractionResult onPartActivated(S partState, BlockPos pos, Level world, Player player, InteractionHand hand, ItemStack heldItem, BlockHitResult hit) {
         if (isUpdate(partState) && !partState.isEnabled()) {
-            player.displayClientMessage(new TranslatableComponent(L10NValues.PART_ERROR_LOWENERGY), true);
+            player.displayClientMessage(Component.translatable(L10NValues.PART_ERROR_LOWENERGY), true);
             return InteractionResult.FAIL;
         }
         return super.onPartActivated(partState, pos, world, player, hand, heldItem, hit);

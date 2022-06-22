@@ -10,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 import org.apache.commons.lang3.tuple.Triple;
@@ -90,7 +89,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
         MenuProvider containerProvider = new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return new TextComponent("");
+                return Component.literal("");
             }
 
             @Override

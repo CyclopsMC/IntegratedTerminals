@@ -6,8 +6,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -57,14 +55,14 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
 
     protected List<Component> getTooltipLines() {
         List<Component> tooltipLines = Lists.newArrayList();
-        tooltipLines.add(new TranslatableComponent("gui.integratedterminals.terminal_storage.tooltip.requirements")
+        tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
                 .withStyle(ChatFormatting.YELLOW));
         ITerminalCraftingOption<T> option = getCraftingOption().getCraftingOption();
         for (IngredientComponent<?, ?> inputComponent : option.getInputComponents()) {
             IIngredientMatcher matcher = inputComponent.getMatcher();
             for (Object inputInstance : option.getInputs(inputComponent)) {
                 if (!matcher.isEmpty(inputInstance)) {
-                    tooltipLines.add(new TextComponent(String.format("%s- %s (%s)",
+                    tooltipLines.add(Component.literal(String.format("%s- %s (%s)",
                             ChatFormatting.GRAY, matcher.localize(inputInstance), matcher.getQuantity(inputInstance))));
                 }
             }

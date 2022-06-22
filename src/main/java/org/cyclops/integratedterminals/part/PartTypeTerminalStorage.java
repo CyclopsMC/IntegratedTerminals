@@ -14,7 +14,6 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -61,7 +60,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
             @Override
             public Component getDisplayName() {
-                return new TranslatableComponent(getTranslationKey());
+                return Component.translatable(getTranslationKey());
             }
 
             @Override

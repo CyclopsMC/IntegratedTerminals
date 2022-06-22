@@ -7,7 +7,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -65,8 +64,8 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
         ButtonText button;
         addRenderableWidget(button = new ButtonText(leftPos + 95, topPos + 198, 50, 20,
-                        new TranslatableComponent("gui.integratedterminals.terminal_storage.step.craft"),
-                        new TranslatableComponent("gui.integratedterminals.terminal_storage.step.craft").withStyle(ChatFormatting.YELLOW),
+                        Component.translatable("gui.integratedterminals.terminal_storage.step.craft"),
+                        Component.translatable("gui.integratedterminals.terminal_storage.step.craft").withStyle(ChatFormatting.YELLOW),
                         createServerPressable(ContainerTerminalStorageCraftingPlanBase.BUTTON_START, (b) -> {}),
                         true));
         button.active = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();

@@ -19,9 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -64,6 +62,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -196,8 +195,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public List<Component> getTooltip() {
-        return Lists.newArrayList(new TranslatableComponent("gui.integratedterminals.terminal_storage.storage_name",
-                new TranslatableComponent(this.ingredientComponent.getTranslationKey())));
+        return Lists.newArrayList(Component.translatable("gui.integratedterminals.terminal_storage.storage_name",
+                Component.translatable(this.ingredientComponent.getTranslationKey())));
     }
 
     @Override
@@ -766,7 +765,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                                 .map(s -> StringHelpers.splitLines(s, L10NHelpers.MAX_TOOLTIP_LINE_LENGTH,
                                         ChatFormatting.RED.toString()))
                                 .flatMap(List::stream)
-                                .map(TextComponent::new)
+                                .map(Component::literal)
                                 .collect(Collectors.toList()), x - gui.getGuiLeft() + 10, y - gui.getGuiTop());
                     }
                 }

@@ -8,7 +8,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.init.ModBase;
@@ -65,8 +64,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
 
     @Override
     public List<Component> getTooltip() {
-        return Lists.newArrayList(new TranslatableComponent("gui.integratedterminals.terminal_storage.crafting_name",
-                new TranslatableComponent(this.ingredientComponent.getTranslationKey())));
+        return Lists.newArrayList(Component.translatable("gui.integratedterminals.terminal_storage.crafting_name",
+                Component.translatable(this.ingredientComponent.getTranslationKey())));
     }
 
     @Override

@@ -3,7 +3,6 @@ package org.cyclops.integratedterminals.capability.ingredient.sorter;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
@@ -39,6 +38,6 @@ public abstract class IngredientInstanceSorterAdapter<T> implements IIngredientI
     @Override
     @OnlyIn(Dist.CLIENT)
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
-        lines.add(new TranslatableComponent(this.unlocalizedName + ".info"));
+        lines.add(Component.translatable(this.unlocalizedName + ".info"));
     }
 }

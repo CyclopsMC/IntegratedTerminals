@@ -5,7 +5,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionResult;
@@ -62,10 +61,10 @@ public class ItemTerminalStoragePortable extends ItemGui {
                 if (network.isPresent()) {
                     super.openGuiForItemIndex(world, player, itemLocation);
                 } else {
-                    player.displayClientMessage(new TranslatableComponent("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
+                    player.displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
                 }
             } else {
-                player.displayClientMessage(new TranslatableComponent("item.integratedterminals.terminal_storage_portable.status.no_network"), true);
+                player.displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.no_network"), true);
             }
         }
     }
@@ -78,7 +77,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
             if (partStateHolder != null && partStateHolder.getPart() == PartTypes.CONNECTOR_OMNI) {
                 PartTypeConnectorOmniDirectional.State state = (PartTypeConnectorOmniDirectional.State) partStateHolder.getState();
                 setGroupId(stack, state.getGroupId());
-                context.getPlayer().displayClientMessage(new TranslatableComponent("item.integratedterminals.terminal_storage_portable.status.linked"), true);
+                context.getPlayer().displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.linked"), true);
                 return InteractionResult.SUCCESS;
             }
         }
@@ -115,7 +114,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
         super.appendHoverText(stack, worldIn, tooltip, flagIn);
         int groupId = getGroupId(stack);
         if (groupId >= 0) {
-            tooltip.add(new TranslatableComponent(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
+            tooltip.add(Component.translatable(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
         }
     }
 

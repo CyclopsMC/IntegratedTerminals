@@ -8,7 +8,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -65,7 +64,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param instance An instance.
      */
     public default void addQuantityTooltip(List<Component> lines, T instance) {
-        Component line = new TranslatableComponent(
+        Component line = Component.translatable(
                 "gui.integratedterminals.terminal_storage.tooltip.quantity",
                 formatQuantity(instance))
                 .withStyle(ChatFormatting.DARK_GRAY);

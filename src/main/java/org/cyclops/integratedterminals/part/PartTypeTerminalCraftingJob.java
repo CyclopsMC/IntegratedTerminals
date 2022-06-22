@@ -9,7 +9,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -57,7 +56,7 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
 
             @Override
             public Component getDisplayName() {
-                return new TranslatableComponent(getTranslationKey());
+                return Component.translatable(getTranslationKey());
             }
 
             @Override
@@ -79,7 +78,7 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
     public void loadTooltip(ItemStack itemStack, List<Component> lines) {
         super.loadTooltip(itemStack, lines);
         if (TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
-            lines.add(new TranslatableComponent(
+            lines.add(Component.translatable(
                     "parttype.integratedterminals.terminal_crafting_job.tooltip.nohandlers")
                     .withStyle(ChatFormatting.GOLD));
         }

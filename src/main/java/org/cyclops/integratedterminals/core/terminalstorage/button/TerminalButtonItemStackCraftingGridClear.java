@@ -4,7 +4,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
@@ -51,7 +50,7 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     @OnlyIn(Dist.CLIENT)
     public ButtonImage createButton(int x, int y) {
         return new ButtonImage(x, y,
-                new TranslatableComponent("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
+                Component.translatable("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
                 (b) -> {},
                 Images.BUTTON_SMALL_BACKGROUND_INACTIVE,
                 Images.BUTTON_SMALL_OVERLAY_CROSS);
@@ -74,7 +73,7 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     @Override
     @OnlyIn(Dist.CLIENT)
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
-        lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.clear.info"));
+        lines.add(Component.translatable("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.clear.info"));
     }
 
     public static void clearGrid(TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab,

@@ -5,7 +5,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.integratedterminals.Reference;
@@ -63,7 +62,7 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     @Override
     @OnlyIn(Dist.CLIENT)
     public ButtonSort createButton(int x, int y) {
-        return new ButtonSort(x, y, new TranslatableComponent("gui.integratedterminals.terminal_storage.sort"), (b) -> {}, instanceSorter.getIcon(), active, descending);
+        return new ButtonSort(x, y, Component.translatable("gui.integratedterminals.terminal_storage.sort"), (b) -> {}, instanceSorter.getIcon(), active, descending);
     }
 
     @Override
@@ -117,13 +116,13 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
         instanceSorter.getTooltip(player, tooltipFlag, lines);
         if (active) {
-            lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.sort.order.label",
-                    new TranslatableComponent(descending
+            lines.add(Component.translatable("gui." + Reference.MOD_ID + ".terminal_storage.sort.order.label",
+                    Component.translatable(descending
                             ? "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.descending"
                             : "gui." + Reference.MOD_ID + ".terminal_storage.sort.order.ascending"))
                     .withStyle(ChatFormatting.ITALIC));
         } else {
-            lines.add(new TranslatableComponent("general.cyclopscore.info.disabled")
+            lines.add(Component.translatable("general.cyclopscore.info.disabled")
                     .withStyle(ChatFormatting.ITALIC));
         }
     }

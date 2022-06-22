@@ -7,9 +7,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
@@ -82,7 +80,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
         numberField = new WidgetNumberField(Minecraft.getInstance().font,
                 leftPos + 25, topPos + 36, 53, 14, true,
-                new TranslatableComponent("gui.integratedterminals.amount"), true);
+                Component.translatable("gui.integratedterminals.amount"), true);
         numberField.setPositiveOnly(true);
         numberField.setMaxLength(5);
         numberField.setMaxValue(10000);
@@ -94,7 +92,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         addRenderableWidget(numberField);
 
         scrollBar = new WidgetScrollBar(leftPos + 153, topPos + 15, 54,
-                new TranslatableComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 3);
+                Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, 3);
         scrollBar.setTotalRows(outputs.size() - 1);
         addWidget(scrollBar);
 
@@ -108,8 +106,8 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         addRenderableWidget(new ButtonChangeQuantity(leftPos + 91, topPos + 55, -1000, this::buttonChangeQuantity));
 
         addRenderableWidget(nextButton = new ButtonText(leftPos + 81, topPos + 33, 50, 20,
-                new TranslatableComponent("gui.integratedterminals.terminal_storage.step.next"),
-                new TranslatableComponent("gui.integratedterminals.terminal_storage.step.next").withStyle(ChatFormatting.YELLOW),
+                Component.translatable("gui.integratedterminals.terminal_storage.step.next"),
+                Component.translatable("gui.integratedterminals.terminal_storage.step.next").withStyle(ChatFormatting.YELLOW),
                 (bb) -> calculateCraftingJob(),
                 true));
     }
@@ -207,7 +205,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         private final int diff;
 
         public ButtonChangeQuantity(int x, int y, int diff, OnPress pressCallback) {
-            super(x, y, 40, 20, new TextComponent((diff < 0 ? "- " : "+ ") + Integer.toString(Math.abs(diff))), pressCallback, true);
+            super(x, y, 40, 20, Component.literal((diff < 0 ? "- " : "+ ") + Integer.toString(Math.abs(diff))), pressCallback, true);
             this.diff = diff;
         }
 

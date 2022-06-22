@@ -1,11 +1,11 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.RegisterEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.capability.network.PositionedAddonsNetworkIngredientsHandlerConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -24,8 +24,8 @@ public class TerminalStorageTabs {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void afterIngredientComponentsRegistration(RegistryEvent.Register event) {
-        if (event.getRegistry() == IngredientComponent.REGISTRY) {
+    public static void afterIngredientComponentsRegistration(RegisterEvent event) {
+        if (event.getRegistryKey() == IngredientComponent.REGISTRY.getRegistryKey()) {
             // Create tabs for all ingredient component types
             for (IngredientComponent<?, ?> ingredientComponent : IngredientComponent.REGISTRY.getValues()) {
                 if (ingredientComponent.getCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY).isPresent()) {

@@ -2,7 +2,6 @@ package org.cyclops.integratedterminals.core.terminalstorage.location;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
@@ -65,7 +64,7 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
         MenuProvider containerProvider = new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return new TextComponent("");
+                return Component.literal("");
             }
 
             @Override
@@ -91,7 +90,7 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
         MenuProvider containerProvider = new MenuProvider() {
             @Override
             public Component getDisplayName() {
-                return new TextComponent("");
+                return Component.literal("");
             }
 
             @Override

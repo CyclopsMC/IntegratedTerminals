@@ -19,28 +19,28 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class RegistryEntries {
 
-    @ObjectHolder("integratedterminals:part_terminal_storage")
+    @ObjectHolder(registryName = "item", value = "integratedterminals:part_terminal_storage")
     public static final Item ITEM_PART_TERMINAL_STORAGE = null;
-    @ObjectHolder("integrateddynamics:energy_battery")
+    @ObjectHolder(registryName = "item", value = "integrateddynamics:energy_battery")
     public static final ItemBlockEnergyContainer ITEM_ENERGY_BATTERY = null;
-    @ObjectHolder("integratedterminals:terminal_storage_portable")
+    @ObjectHolder(registryName = "item", value = "integratedterminals:terminal_storage_portable")
     public static final Item ITEM_TERMINAL_STORAGE_PORTABLE = null;
 
-    @ObjectHolder("integratedterminals:part_terminal_crafting_jobs")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_crafting_jobs")
     public static final MenuType<ContainerTerminalCraftingJobs> CONTAINER_PART_TERMINAL_CRAFTING_JOBS = null;
-    @ObjectHolder("integratedterminals:part_terminal_crafting_jobs_plan")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_crafting_jobs_plan")
     public static final MenuType<ContainerTerminalCraftingJobsPlan> CONTAINER_PART_TERMINAL_CRAFTING_JOBS_PLAN = null;
-    @ObjectHolder("integratedterminals:part_terminal_storage_part")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_storage_part")
     public static final MenuType<ContainerTerminalStoragePart> CONTAINER_PART_TERMINAL_STORAGE_PART = null;
-    @ObjectHolder("integratedterminals:part_terminal_storage_crafting_option_amount_part")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_storage_crafting_option_amount_part")
     public static final MenuType<ContainerTerminalStorageCraftingOptionAmountPart> CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_OPTION_AMOUNT_PART = null;
-    @ObjectHolder("integratedterminals:part_terminal_storage_crafting_plan_part")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_storage_crafting_plan_part")
     public static final MenuType<ContainerTerminalStorageCraftingPlanPart> CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_PLAN_PART = null;
-    @ObjectHolder("integratedterminals:part_terminal_storage_item")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_storage_item")
     public static final MenuType<ContainerTerminalStorageItem> CONTAINER_PART_TERMINAL_STORAGE_ITEM = null;
-    @ObjectHolder("integratedterminals:part_terminal_storage_crafting_option_amount_item")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_storage_crafting_option_amount_item")
     public static final MenuType<ContainerTerminalStorageCraftingOptionAmountItem> CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_OPTION_AMOUNT_ITEM = null;
-    @ObjectHolder("integratedterminals:part_terminal_storage_crafting_plan_item")
+    @ObjectHolder(registryName = "menu", value = "integratedterminals:part_terminal_storage_crafting_plan_item")
     public static final MenuType<ContainerTerminalStorageCraftingPlanItem> CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_PLAN_ITEM = null;
 
 }

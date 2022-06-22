@@ -3,24 +3,23 @@ package org.cyclops.integratedterminals.client.gui.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import com.mojang.blaze3d.platform.Lighting;
-import net.minecraft.world.item.TooltipFlag;
-import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.item.TooltipFlag;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
@@ -111,7 +110,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
         fieldChannel = new WidgetArrowedListField<String>(Minecraft.getInstance().font, leftPos + CHANNEL_X,
                 topPos + CHANNEL_Y, CHANNEL_WIDTH, CHANNEL_HEIGHT, true,
-                new TranslatableComponent("gui.integratedterminals.channel"), true,
+                Component.translatable("gui.integratedterminals.channel"), true,
                 getMenu().getChannelStrings());
         fieldChannel.setMaxLength(15);
         fieldChannel.setVisible(true);
@@ -124,7 +123,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         scrollBar = new WidgetScrollBar(leftPos + SCROLL_X, topPos + SCROLL_Y, SCROLL_HEIGHT,
-                new TranslatableComponent("gui.cyclopscore.scrollbar"),
+                Component.translatable("gui.cyclopscore.scrollbar"),
                 firstRow -> this.firstRow = firstRow, 0) {
             @Override
             public int getTotalRows() {
@@ -145,7 +144,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         addWidget(this.scrollBar);
 
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().font, leftPos + SEARCH_X,
-                topPos + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, new TranslatableComponent("gui.cyclopscore.search"));
+                topPos + SEARCH_Y, SEARCH_WIDTH, SEARCH_HEIGHT, Component.translatable("gui.cyclopscore.search"));
         fieldSearch.setMaxLength(50);
         fieldSearch.setVisible(true);
         fieldSearch.setTextColor(16777215);
@@ -154,7 +153,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         fieldSearch.setBordered(false);
 
         buttonSetDefaults = addRenderableWidget(new ButtonImage(this.leftPos + 202, this.topPos + 193, 15, 15,
-                new TranslatableComponent("gui.integratedterminals.terminal_storage.setdefaults"),
+                Component.translatable("gui.integratedterminals.terminal_storage.setdefaults"),
                 createServerPressable(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, b -> {}), true,
                 Images.ANVIL, -2, -3));
     }
@@ -236,7 +235,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 if (isHovering(button.getX(0, BUTTONS_OFFSET_X), button.getY(0, BUTTONS_OFFSET_Y + offset),
                         guiButton.getWidth(), guiButton.getHeight(), mouseX, mouseY)) {
                     List<Component> lines = Lists.newArrayList();
-                    lines.add(new TranslatableComponent(button.getTranslationKey()));
+                    lines.add(Component.translatable(button.getTranslationKey()));
                     button.getTooltip(getMinecraft().player, TooltipFlag.Default.NORMAL, lines);
                     drawTooltip(lines, matrixStack, mouseX - leftPos, mouseY - topPos);
                 }
@@ -258,8 +257,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         // Draw save defaults button
         if (buttonSetDefaults.isHoveredOrFocused()) {
             List<Component> lines = Lists.newArrayList();
-            lines.add(new TranslatableComponent("gui.integratedterminals.terminal_storage.setdefaults"));
-            lines.add(new TranslatableComponent("gui.integratedterminals.terminal_storage.setdefaults.info")
+            lines.add(Component.translatable("gui.integratedterminals.terminal_storage.setdefaults"));
+            lines.add(Component.translatable("gui.integratedterminals.terminal_storage.setdefaults.info")
                 .withStyle(ChatFormatting.GRAY));
             drawTooltip(lines, matrixStack, mouseX - leftPos, mouseY - topPos);
         }

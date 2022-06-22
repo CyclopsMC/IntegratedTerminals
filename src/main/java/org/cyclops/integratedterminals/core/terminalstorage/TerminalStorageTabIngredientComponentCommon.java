@@ -8,7 +8,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.inventory.SimpleInventory;
 import org.cyclops.cyclopscore.persist.nbt.NBTClassType;
@@ -123,7 +122,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
             clearGlobalErrors();
             this.variables.clear();
             if (network == null) {
-                addError(new TranslatableComponent(L10NValues.GENERAL_ERROR_NONETWORK));
+                addError(Component.translatable(L10NValues.GENERAL_ERROR_NONETWORK));
             } else {
                 for (int i = 0; i < inventory.getContainerSize(); i++) {
                     InventoryVariableEvaluator<ValueTypeOperator.ValueOperator> evaluator = variableEvaluators.get(i);

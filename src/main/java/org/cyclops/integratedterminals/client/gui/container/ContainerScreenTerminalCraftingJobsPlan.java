@@ -6,7 +6,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
@@ -71,8 +70,8 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
             addRenderableWidget(this.guiCraftingPlan);
 
             addRenderableWidget(new ButtonText(leftPos + 70, topPos + 198, 100, 20,
-                    new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
-                    new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
+                    Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
+                    Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     (b) -> cancelCraftingJob(),
                     true)
             );

@@ -81,7 +81,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                 GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<Component> lines = Lists.newArrayList();
                     lines.add(((MutableComponent) instance.getDisplayName())
-                            .withStyle(instance.getFluid().getAttributes().getRarity().color));
+                            .withStyle(instance.getFluid().getFluidType().getRarity().color));
                     addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
                         lines.addAll(additionalTooltipLines);
@@ -229,7 +229,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @OnlyIn(Dist.CLIENT)
     public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         return switch (searchMode) {
-            case MOD -> i -> i.getFluid().getRegistryName().getNamespace()
+            case MOD -> i -> ForgeRegistries.FLUIDS.getKey(i.getFluid()).getNamespace()
                     .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
             case TOOLTIP -> i -> false; // Fluids have no tooltip
             case TAG -> i -> ForgeRegistries.FLUIDS.tags().getReverseTag(i.getFluid())

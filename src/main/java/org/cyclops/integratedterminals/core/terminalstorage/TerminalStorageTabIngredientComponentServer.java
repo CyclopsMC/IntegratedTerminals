@@ -9,7 +9,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -211,7 +210,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                                 } else {
                                     Component current = ValueTypeOperator.getSignature(predicate);
                                     Component expected = ValueTypeOperator.getSignature(new IValueType[]{inputValueType}, ValueTypes.BOOLEAN);
-                                    throw new EvaluationException(new TranslatableComponent(
+                                    throw new EvaluationException(Component.translatable(
                                             L10NValues.ASPECT_ERROR_INVALIDTYPE, expected, current));
                                 }
                             } catch (EvaluationException e) {
@@ -225,7 +224,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                         return false;
                     });
                 } else {
-                    throw new EvaluationException(new TranslatableComponent(
+                    throw new EvaluationException(Component.translatable(
                             L10NValues.ASPECT_ERROR_INVALIDTYPE, ValueTypes.OPERATOR, variable.getType()));
                 }
             }

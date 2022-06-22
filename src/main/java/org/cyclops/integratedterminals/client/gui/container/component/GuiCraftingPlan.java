@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -15,8 +16,6 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
@@ -82,14 +81,14 @@ public class GuiCraftingPlan extends AbstractWidget {
     private int firstRow;
 
     public GuiCraftingPlan(AbstractContainerScreen parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
-        super(x, y, 0, 0, new TextComponent(""));
+        super(x, y, 0, 0, Component.literal(""));
         this.parentGui = parentGui;
         this.guiLeft = guiLeft;
         this.guiTop = guiTop;
         this.elements = getElements(craftingPlan);
         this.visibleElements = Lists.newArrayList(this.elements);
         this.valid = craftingPlan.getStatus().isValid();
-        this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, new TranslatableComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
+        this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size());
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
@@ -216,8 +215,8 @@ public class GuiCraftingPlan extends AbstractWidget {
             GuiHelpers.renderTooltipOptional(this.parentGui, matrixStack, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
                 String unlocalizedName = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH);
                 return Optional.of(Lists.newArrayList(
-                        new TranslatableComponent(unlocalizedName),
-                        new TranslatableComponent(unlocalizedName + ".desc")
+                        Component.translatable(unlocalizedName),
+                        Component.translatable(unlocalizedName + ".desc")
                 ));
             });
         }
