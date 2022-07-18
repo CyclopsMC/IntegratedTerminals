@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.client.settings.KeyModifier;
 import org.cyclops.cyclopscore.client.key.IKeyRegistry;
@@ -63,13 +63,13 @@ public class ClientProxy extends ClientProxyComponent {
     }
 
     @Override
-    public void registerKeyBindings(IKeyRegistry keyRegistry) {
-        ClientRegistry.registerKeyBinding(TERMINAL_TAB_NEXT);
-        ClientRegistry.registerKeyBinding(TERMINAL_TAB_PREVIOUS);
-        ClientRegistry.registerKeyBinding(TERMINAL_CRAFTINGGRID_CLEARPLAYER);
-        ClientRegistry.registerKeyBinding(TERMINAL_CRAFTINGGRID_CLEARSTORAGE);
-        ClientRegistry.registerKeyBinding(TERMINAL_CRAFTINGGRID_BALANCE);
-        ClientRegistry.registerKeyBinding(TERMINAL_STORAGE_PORTABLE_OPEN);
+    public void registerKeyBindings(IKeyRegistry keyRegistry, RegisterKeyMappingsEvent event) {
+        event.register(TERMINAL_TAB_NEXT);
+        event.register(TERMINAL_TAB_PREVIOUS);
+        event.register(TERMINAL_CRAFTINGGRID_CLEARPLAYER);
+        event.register(TERMINAL_CRAFTINGGRID_CLEARSTORAGE);
+        event.register(TERMINAL_CRAFTINGGRID_BALANCE);
+        event.register(TERMINAL_STORAGE_PORTABLE_OPEN);
 
         keyRegistry.addKeyHandler(TERMINAL_STORAGE_PORTABLE_OPEN, (kb) -> {
             LocalPlayer player = Minecraft.getInstance().player;

@@ -66,7 +66,7 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
         };
 
         // Trigger gui opening
-        NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
+        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
             ItemLocation.writeToPacketBuffer(packetBuffer, location);
 
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);
@@ -92,7 +92,7 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
         };
 
         // Trigger gui opening
-        NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
+        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
             ItemLocation.writeToPacketBuffer(packetBuffer, location);
 
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);

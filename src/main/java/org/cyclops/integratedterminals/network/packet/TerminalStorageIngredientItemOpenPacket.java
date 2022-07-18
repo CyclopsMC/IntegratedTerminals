@@ -81,7 +81,7 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
         };
 
         // Trigger gui opening
-        NetworkHooks.openGui(player, containerProvider, packetBuffer -> {
+        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
             ItemLocation.writeToPacketBuffer(packetBuffer, itemLocation);
 
             packetBuffer.writeBoolean(true);

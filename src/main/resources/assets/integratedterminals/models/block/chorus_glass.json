@@ -1,5 +1,6 @@
 {
   "parent": "block/cube_all",
+  "render_type": "minecraft:translucent",
   "textures": {
     "all": "integratedterminals:block/chorus_glass"
   }
