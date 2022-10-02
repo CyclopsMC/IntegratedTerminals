@@ -1,7 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -30,6 +29,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     private GuiCraftingPlan guiCraftingPlan;
 
     private ITerminalCraftingPlan craftingPlan;
+    private ButtonText buttonConfirm;
 
     public ContainerScreenTerminalStorageCraftingPlan(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
@@ -63,20 +63,19 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
             this.guiCraftingPlan = null;
         }
 
-        ButtonText button;
-        addRenderableWidget(button = new ButtonText(leftPos + 95, topPos + 198, 50, 20,
+        addRenderableWidget(buttonConfirm = new ButtonText(leftPos + 95, topPos + 198, 50, 20,
                         new TranslatableComponent("gui.integratedterminals.terminal_storage.step.craft"),
                         new TranslatableComponent("gui.integratedterminals.terminal_storage.step.craft").withStyle(ChatFormatting.YELLOW),
                         createServerPressable(ContainerTerminalStorageCraftingPlanBase.BUTTON_START, (b) -> {}),
                         true));
-        button.active = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
+        buttonConfirm.active = this.guiCraftingPlan != null && this.guiCraftingPlan.isValid();
     }
 
     @Override
     public boolean keyPressed(int typedChar, int keyCode, int modifiers) {
         if (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()
                 && (typedChar == GLFW.GLFW_KEY_ENTER || typedChar == GLFW.GLFW_KEY_KP_ENTER)) {
-            ((Button) this.children().get(0)).onPress();
+            buttonConfirm.onPress();
             return true;
         }
         return super.keyPressed(typedChar, keyCode, modifiers);
