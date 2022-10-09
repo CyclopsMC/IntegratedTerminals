@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -67,14 +68,28 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                 new TranslatableComponent(this.ingredientComponent.getTranslationKey())));
     }
 
+    protected boolean isCraftingGridCenter() {
+        return Minecraft.getInstance().screen.width < 374 ||
+                getRowColumnProvider().getRowsAndColumns().columns() < 17 ||
+                GeneralConfig.guiStorageForceCraftingGridCenter;
+    }
+
     @Override
     public int getSlotVisibleRows() {
-        return Math.max(1, super.getSlotVisibleRows() - 4);
+        if (isCraftingGridCenter()) {
+            return Math.max(2, super.getSlotVisibleRows() - 4);
+        }
+        return super.getSlotVisibleRows();
+    }
+
+    @Override
+    public int getPlayerInventoryOffsetX() {
+        return super.getPlayerInventoryOffsetX() + (isCraftingGridCenter() ? 0 : 60);
     }
 
     @Override
     public int getPlayerInventoryOffsetY() {
-        return super.getPlayerInventoryOffsetY() + 68;
+        return super.getPlayerInventoryOffsetY() + (isCraftingGridCenter() ? 68 : 0);
     }
 
     @Override
@@ -102,7 +117,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         super.onTabBackgroundRender(screen, matrixStack, f, mouseX, mouseY);
 
         // Render crafting grid
-        screen.blit(matrixStack, screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 22 + 29, screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68);
+        screen.blit(matrixStack, screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68);
     }
 
     @Override

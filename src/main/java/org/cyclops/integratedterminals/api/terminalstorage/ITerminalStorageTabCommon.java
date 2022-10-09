@@ -62,6 +62,6 @@ public interface ITerminalStorageTabCommon {
         public Pair<Integer, Integer> getSlotPosition(SlotPositionFactors factors);
     }
 
-    public static record SlotPositionFactors(int offsetX, int offsetY, int gridXSize, int gridYSize, int playerInventoryOffsetY) {}
+    public static record SlotPositionFactors(int offsetX, int offsetY, int gridXSize, int gridYSize, int playerInventoryOffsetX, int playerInventoryOffsetY) {}
 
 }

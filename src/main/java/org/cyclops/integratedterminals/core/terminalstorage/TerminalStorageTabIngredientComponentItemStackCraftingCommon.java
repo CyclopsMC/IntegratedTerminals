@@ -80,8 +80,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
                         ((ContainerTerminalStorageBase) container).getTabServer(getName().toString()),
                         (ContainerTerminalStorageBase) container),
                 factors -> Pair.of(
-                        factors.offsetX() + (factors.gridXSize() / 2) + 62,
-                        factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 10
+                        factors.offsetX() + (factors.gridXSize() / 2) - factors.playerInventoryOffsetX() + 62 - (factors.playerInventoryOffsetX() > 0 ? 47 : 0),
+                        factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 10 + (factors.playerInventoryOffsetX() > 0 ? 68 : 0)
                 )
         ));
         for (int i = 0; i < 3; ++i) {
@@ -91,8 +91,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 slots.add(Pair.of(
                         new Slot(this.inventoryCrafting, j + i * 3, 31 + j * 18 + 28, 58 + i * 18 + 7),
                         factors -> Pair.of(
-                                factors.offsetX() + (factors.gridXSize() / 2) + finalJ * GuiHelpers.SLOT_SIZE - 22,
-                                factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + finalI * GuiHelpers.SLOT_SIZE -8
+                                factors.offsetX() + (factors.gridXSize() / 2) - factors.playerInventoryOffsetX() + finalJ * GuiHelpers.SLOT_SIZE - 22 - (factors.playerInventoryOffsetX() > 0 ? 47 : 0),
+                                factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + finalI * GuiHelpers.SLOT_SIZE - 8 + (factors.playerInventoryOffsetX() > 0 ? 68 : 0)
                         )
                 ));
             }

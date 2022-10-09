@@ -27,9 +27,11 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param offset X offset.
      * @param gridXSize The X size of the grid.
      * @param gridYSize The Y size of the grid.
+     * @param playerInventoryOffsetX The X offset of the player inventory.
+     * @param playerInventoryOffsetY The Y offset of the player inventory.
      * @return The final X position.
      */
-    public default int getX(int guiLeft, int offset, int gridXSize, int gridYSize) {
+    public default int getX(int guiLeft, int offset, int gridXSize, int gridYSize, int playerInventoryOffsetX, int playerInventoryOffsetY) {
         return guiLeft + offset;
     }
 
@@ -39,9 +41,11 @@ public interface ITerminalButton<C extends ITerminalStorageTabClient,
      * @param offset Y offset.
      * @param gridXSize The X size of the grid.
      * @param gridYSize The Y size of the grid.
+     * @param playerInventoryOffsetX The X offset of the player inventory.
+     * @param playerInventoryOffsetY The Y offset of the player inventory.
      * @return The final Y position.
      */
-    public default int getY(int guiTop, int offset, int gridXSize, int gridYSize) {
+    public default int getY(int guiTop, int offset, int gridXSize, int gridYSize, int playerInventoryOffsetX, int playerInventoryOffsetY) {
         return guiTop + offset;
     }
 

@@ -32,12 +32,12 @@ public class TerminalButtonItemStackCraftingGridBalance<T>
     }
 
     @Override
-    public int getX(int guiLeft, int offset, int gridXSize, int gridYSize) {
-        return guiLeft + (gridXSize / 2) + 32;
+    public int getX(int guiLeft, int offset, int gridXSize, int gridYSize, int playerInventoryOffsetX, int playerInventoryOffsetY) {
+        return guiLeft + (gridXSize / 2) + 32 - (playerInventoryOffsetX > 0 ? 107 : 0);
     }
 
     @Override
-    public int getY(int guiTop, int offset, int gridXSize, int gridYSize) {
+    public int getY(int guiTop, int offset, int gridXSize, int gridYSize, int playerInventoryOffsetX, int playerInventoryOffsetY) {
         return guiTop + gridYSize + 69;
     }
 

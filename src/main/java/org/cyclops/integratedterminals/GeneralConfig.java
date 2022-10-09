@@ -80,6 +80,8 @@ public class GeneralConfig extends DummyConfig {
     public static int guiStorageScaleMaxRows = 20;
     @ConfigurableProperty(category = "general", comment = "The maximum number of columns in when scaling the storage terminal.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static int guiStorageScaleMaxColumns = 32;
+    @ConfigurableProperty(category = "general", comment = "If the crafting grid should always be shown centrally, and not be responsive based on screen size.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean guiStorageForceCraftingGridCenter = false;
 
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");
