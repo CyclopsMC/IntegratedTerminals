@@ -4,17 +4,23 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
@@ -87,6 +93,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         this.serverTabsInitialized = false;
 
         addPlayerInventory(player.getInventory(), 31, 143);
+        addInventoryAndOffHand(player.getInventory());
 
         this.channelAllLabel = "All";
         this.channelStrings = Lists.newArrayList(this.channelAllLabel);
@@ -143,6 +150,38 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         putButtonAction(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, (s, containerExtended) -> {
             if (!playerInventory.player.level.isClientSide()) {
                 TerminalStorageState.setPlayerDefault(playerInventory.player, getGuiState());
+            }
+        });
+    }
+
+    protected void addInventoryAndOffHand(Inventory inventory) {
+        EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+        ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET};
+
+        for(int k = 0; k < 4; ++k) {
+            final EquipmentSlot equipmentslot = SLOT_IDS[k];
+            this.addSlot(new Slot(inventory, 39 - k, -7 + (k % 2) * GuiHelpers.SLOT_SIZE, 152 + ((int) Math.floor(k / 2)) * GuiHelpers.SLOT_SIZE) {
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                public boolean mayPlace(ItemStack p_39746_) {
+                    return p_39746_.canEquip(equipmentslot, player);
+                }
+
+                public boolean mayPickup(Player p_39744_) {
+                    ItemStack itemstack = this.getItem();
+                    return !itemstack.isEmpty() && !p_39744_.isCreative() && EnchantmentHelper.hasBindingCurse(itemstack) ? false : super.mayPickup(p_39744_);
+                }
+
+                public com.mojang.datafixers.util.Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                    return com.mojang.datafixers.util.Pair.of(InventoryMenu.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslot.getIndex()]);
+                }
+            });
+        }
+        this.addSlot(new Slot(inventory, 40, 2, 201) {
+            public com.mojang.datafixers.util.Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return com.mojang.datafixers.util.Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
             }
         });
     }

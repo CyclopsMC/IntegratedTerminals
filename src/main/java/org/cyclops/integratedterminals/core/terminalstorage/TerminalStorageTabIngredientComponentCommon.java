@@ -92,21 +92,21 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         slots.add(Pair.of(
                 new SlotVariable(inventory, 0, 0, 0),
                 factors -> Pair.of(
-                        factors.offsetX() + (factors.gridXSize() / 2) + 120,
+                        factors.offsetX() + (factors.gridXSize() / 2) + 139,
                         factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 63
                 )
         ));
         slots.add(Pair.of(
                 new SlotVariable(inventory, 1, 0, 0),
                 factors -> Pair.of(
-                        factors.offsetX() + (factors.gridXSize() / 2) + 120,
+                        factors.offsetX() + (factors.gridXSize() / 2) + 139,
                         factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 81
                 )
         ));
         slots.add(Pair.of(
                 new SlotVariable(inventory, 2, 0, 0),
                 factors -> Pair.of(
-                        factors.offsetX() + (factors.gridXSize() / 2) + 120,
+                        factors.offsetX() + (factors.gridXSize() / 2) + 139,
                         factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 99
                 )
         ));

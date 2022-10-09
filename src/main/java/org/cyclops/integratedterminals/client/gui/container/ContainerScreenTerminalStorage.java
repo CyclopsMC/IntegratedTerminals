@@ -155,7 +155,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         fieldSearch.setEditable(true);
         fieldSearch.setBordered(false);
 
-        buttonSetDefaults = addRenderableWidget(new ButtonImage(this.leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + 8, this.topPos + getGridYSize() + getPlayerInventoryOffsetY() + 120, 15, 15,
+        buttonSetDefaults = addRenderableWidget(new ButtonImage(this.leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + 27, this.topPos + getGridYSize() + getPlayerInventoryOffsetY() + 120, 15, 15,
                 new TranslatableComponent("gui.integratedterminals.terminal_storage.setdefaults"),
                 createServerPressable(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, b -> {}), true,
                 Images.ANVIL, -2, -3));
@@ -173,17 +173,29 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         for (int y = 0; y < 1; y++) {
             for (int x = 0; x < 9; x++) {
                 Slot slot = this.container.getSlot(x + y * 9 + 0);
-                ContainerExtended.setSlotPosX(slot, offsetX + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X - 1 + (gridXSize / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + x * GuiHelpers.SLOT_SIZE);
+                ContainerExtended.setSlotPosX(slot, offsetX + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X - 1 + (gridXSize / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 19 + x * GuiHelpers.SLOT_SIZE);
                 ContainerExtended.setSlotPosY(slot, offsetY + 58 + 63 + gridYSize + playerInventoryOffsetY + y * GuiHelpers.SLOT_SIZE);
             }
         }
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 9; x++) {
                 Slot slot = this.container.getSlot(x + y * 9 + 9);
-                ContainerExtended.setSlotPosX(slot, offsetX + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X - 1 + (gridXSize / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + x * GuiHelpers.SLOT_SIZE);
+                ContainerExtended.setSlotPosX(slot, offsetX + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X - 1 + (gridXSize / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 19 + x * GuiHelpers.SLOT_SIZE);
                 ContainerExtended.setSlotPosY(slot, offsetY + 63 + gridYSize + playerInventoryOffsetY + y * GuiHelpers.SLOT_SIZE);
             }
         }
+        for (int y = 0; y < 4; y++) {
+            Slot slot = this.container.getSlot(36 + y);
+            ContainerExtended.setSlotPosX(slot, offsetX + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X - 1 + (gridXSize / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) - 19 + (y % 2) * GuiHelpers.SLOT_SIZE);
+            ContainerExtended.setSlotPosY(slot, offsetY + 63 + gridYSize + playerInventoryOffsetY + 9 + ((int) Math.floor(y / 2)) * GuiHelpers.SLOT_SIZE);
+        }
+        {
+            Slot slot = this.container.getSlot(40);
+            ContainerExtended.setSlotPosX(slot, offsetX + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X - 1 + (gridXSize / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) - 10);
+            ContainerExtended.setSlotPosY(slot, offsetY + 63 + gridYSize + playerInventoryOffsetY + 9 + 49);
+        }
+
+
 
         // Reposition tab slots
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
@@ -318,7 +330,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int renderRows = Math.min(3, rows - j); // Try rendering multiple rows for optimizing efficiency (if possible)
             for (int i = 0; i < columns; i++) {
                 int renderColumns = Math.min(9, columns - i); // Try rendering multiple columns for optimizing efficiency (if possible)
-                blit(matrixStack, leftPos + offset + 10 + i * GuiHelpers.SLOT_SIZE, topPos + offset + 18 + j * GuiHelpers.SLOT_SIZE, 42, 34, GuiHelpers.SLOT_SIZE * renderColumns, GuiHelpers.SLOT_SIZE * renderRows);
+                blit(matrixStack, leftPos + offset + 10 + i * GuiHelpers.SLOT_SIZE, topPos + offset + 18 + j * GuiHelpers.SLOT_SIZE, 80, 34, GuiHelpers.SLOT_SIZE * renderColumns, GuiHelpers.SLOT_SIZE * renderRows);
                 i += renderColumns - 1;
             }
             j += renderRows - 1;
@@ -344,10 +356,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     protected void renderBgPlayerInventory(PoseStack matrixStack, float f, int mouseX, int mouseY) {
         // Render player inventory
-        blit(matrixStack, leftPos + (getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 22, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 178, 93);
+        blit(matrixStack, leftPos + (getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 3, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 216, 93);
 
         // Auxiliary slots
-        blit(matrixStack, leftPos + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + 38, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57);
+        blit(matrixStack, leftPos + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + 57, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57);
     }
 
     @Override
