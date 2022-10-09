@@ -10,18 +10,18 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -44,6 +44,7 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
@@ -54,6 +55,7 @@ import org.cyclops.integratedterminals.capability.ingredient.IngredientComponent
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonFilterCrafting;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonScaleGui;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
@@ -162,6 +164,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         if (!TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
             buttons.add(new TerminalButtonFilterCrafting<>(container.getGuiState(), this));
         }
+
+        // Add other buttons
+        buttons.add(new TerminalButtonScaleGui<>(container.getGuiState(), this));
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
@@ -356,6 +361,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      */
     public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType,
                                       IngredientArrayList<T, M> ingredients, boolean enabled) {
+        boolean wasEnabled = this.enabled;
         this.enabled = enabled || this.craftingOptions.containsKey(channel);
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             this.channels.add(channel);
@@ -405,6 +411,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
         updateActiveInstance(lastInstance, channel);
+
+        // Re-init screen if the tab was not yet enabled
+        if (!wasEnabled && enabled) {
+            this.container.screen.init();
+        }
     }
 
     protected void updateActiveInstance(Optional<T> lastInstance, int channel) {
@@ -428,6 +439,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             addCraftingOptions(IPositionedAddonsNetwork.WILDCARD_CHANNEL, craftingOptions, reset && firstChannel, firstChannel);
         }
 
+        boolean wasEnabled = this.enabled;
         this.enabled = true;
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             this.channels.add(channel);
@@ -445,6 +457,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
         updateActiveInstance(lastInstance, channel);
+
+        // Re-init screen if the tab was not yet enabled
+        if (!wasEnabled && enabled) {
+            this.container.screen.init();
+        }
     }
 
     protected int findActiveSlotId(int channel, T instance) {
@@ -747,6 +764,16 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
+    public ITerminalRowColumnProvider getRowColumnProvider() {
+        for (ITerminalButton<?, ?, ?> button : this.buttons) {
+            if (button instanceof TerminalButtonScaleGui) {
+                return ((TerminalButtonScaleGui<?>) button).getRowColumnProvider();
+            }
+        }
+        throw new IllegalStateException("Could not find a TerminalButtonScaleGui registered on storage tab " + this.getName());
+    }
+
+    @Override
     public void onCommonSlotRender(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                                    int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         TerminalStorageTabIngredientComponentCommon tab = (TerminalStorageTabIngredientComponentCommon) tabCommon;
@@ -839,6 +866,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         int maxQuantity = Helpers.castSafe(viewHandler.getMaxQuantity(stack));
         int freeQuantity = maxQuantity - instanceQuantity;
         return Math.min(Math.max(0, quantity), freeQuantity);
+    }
+
+    public void resetScale() {
+        // Re-init screen to enforce new scale
+        container.screen.init();
     }
 
     public static class InstanceWithMetadata<T> {

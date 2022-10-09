@@ -1,9 +1,10 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
@@ -31,13 +32,13 @@ public class TerminalButtonItemStackCraftingGridBalance<T>
     }
 
     @Override
-    public int getX(int guiLeft, int offset) {
-        return guiLeft + 85;
+    public int getX(int guiLeft, int offset, int gridXSize, int gridYSize) {
+        return guiLeft + (gridXSize / 2) + 32;
     }
 
     @Override
-    public int getY(int guiTop, int offset) {
-        return guiTop + 67;
+    public int getY(int guiTop, int offset, int gridXSize, int gridYSize) {
+        return guiTop + gridYSize + 69;
     }
 
     @Override
@@ -72,6 +73,6 @@ public class TerminalButtonItemStackCraftingGridBalance<T>
     @Override
     @OnlyIn(Dist.CLIENT)
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
-        lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.balance.info"));
+        lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.balance.info").withStyle(ChatFormatting.GRAY));
     }
 }

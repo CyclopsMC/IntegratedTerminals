@@ -1,12 +1,13 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import org.apache.commons.lang3.tuple.Pair;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -24,7 +25,7 @@ public interface ITerminalStorageTabCommon {
      */
     public ResourceLocation getName();
 
-    public default List<Slot> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
+    public default List<Pair<Slot, ISlotPositionCallback>> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
                                         Optional<IVariableInventory> variableInventory) {
         return Collections.emptyList();
     }
@@ -56,5 +57,11 @@ public interface ITerminalStorageTabCommon {
         public NonNullList<ItemStack> getNamedInventory(String name);
         public void setNamedInventory(String name, NonNullList<ItemStack> inventory);
     }
+
+    public static interface ISlotPositionCallback {
+        public Pair<Integer, Integer> getSlotPosition(SlotPositionFactors factors);
+    }
+
+    public static record SlotPositionFactors(int offsetX, int offsetY, int gridXSize, int gridYSize, int playerInventoryOffsetY) {}
 
 }

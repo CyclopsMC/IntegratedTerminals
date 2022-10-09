@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
@@ -85,7 +86,7 @@ public class TerminalButtonFilterCrafting<T>
     @Override
     @OnlyIn(Dist.CLIENT)
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
-        lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.crafting.filter.info"));
+        lines.add(new TranslatableComponent("gui." + Reference.MOD_ID + ".terminal_storage.crafting.filter.info").withStyle(ChatFormatting.GRAY));
         lines.add(new TranslatableComponent(active.getLabel()));
     }
 
