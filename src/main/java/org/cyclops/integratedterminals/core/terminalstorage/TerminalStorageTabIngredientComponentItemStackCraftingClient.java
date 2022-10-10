@@ -2,7 +2,6 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -18,6 +17,7 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
+import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageScreenSizeEvent;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridBalance;
@@ -68,8 +68,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                 new TranslatableComponent(this.ingredientComponent.getTranslationKey())));
     }
 
-    protected boolean isCraftingGridCenter() {
-        return Minecraft.getInstance().screen.width < 374 ||
+    protected boolean isCraftingGridCenter() {;
+        return TerminalStorageScreenSizeEvent.getWidthHeight().getLeft() < 374 ||
                 getRowColumnProvider().getRowsAndColumns().columns() < 17 ||
                 GeneralConfig.guiStorageForceCraftingGridCenter;
     }

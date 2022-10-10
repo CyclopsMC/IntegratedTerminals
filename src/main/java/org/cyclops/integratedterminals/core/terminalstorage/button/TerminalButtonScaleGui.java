@@ -1,12 +1,12 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.TooltipFlag;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
@@ -14,6 +14,7 @@ import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageScreenSizeEvent;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentCommon;
@@ -91,19 +92,22 @@ public class TerminalButtonScaleGui<T>
 
     public static enum GuiScale {
         SCALE_XY(Images.BUTTON_MIDDLE_SCALE_XY,
-                "gui.integratedterminals.terminal_storage.scale.scalexy", () -> new ITerminalRowColumnProvider.RowsAndColumns(
-                (int) Math.min(Math.max(1, Math.ceil((Minecraft.getInstance().screen.height - 146) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxRows),
-                (int) Math.min(Math.max(1, Math.ceil((Minecraft.getInstance().screen.width - 56) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxColumns)
-        )),
+                "gui.integratedterminals.terminal_storage.scale.scalexy", () -> {
+            Pair<Integer, Integer> widthHeight = TerminalStorageScreenSizeEvent.getWidthHeight();
+            return new ITerminalRowColumnProvider.RowsAndColumns(
+                    (int) Math.min(Math.max(1, Math.ceil((widthHeight.getRight() - 146) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxRows),
+                    (int) Math.min(Math.max(1, Math.ceil((widthHeight.getLeft() - 56) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxColumns)
+            );
+        }),
         SCALE_Y(Images.BUTTON_MIDDLE_SCALE_Y,
                 "gui.integratedterminals.terminal_storage.scale.scaley", () -> new ITerminalRowColumnProvider.RowsAndColumns(
-                (int) Math.min(Math.max(1, Math.ceil((Minecraft.getInstance().screen.height - 146) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxRows),
+                (int) Math.min(Math.max(1, Math.ceil((TerminalStorageScreenSizeEvent.getWidthHeight().getRight() - 146) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxRows),
                 GeneralConfig.guiStorageScaleHeightColumns
         )),
         SCALE_X(Images.BUTTON_MIDDLE_SCALE_X,
                 "gui.integratedterminals.terminal_storage.scale.scalex", () -> new ITerminalRowColumnProvider.RowsAndColumns(
                 GeneralConfig.guiStorageScaleWidthRows,
-                (int) Math.min(Math.max(1, Math.ceil((Minecraft.getInstance().screen.width - 56) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxColumns)
+                (int) Math.min(Math.max(1, Math.ceil((TerminalStorageScreenSizeEvent.getWidthHeight().getLeft() - 56) / GuiHelpers.SLOT_SIZE)), GeneralConfig.guiStorageScaleMaxColumns)
         )),
         SMALL(Images.BUTTON_MIDDLE_SCALE_SMALL,
                 "gui.integratedterminals.terminal_storage.scale.small", () -> new ITerminalRowColumnProvider.RowsAndColumns(GeneralConfig.guiStorageScaleSmallRows, GeneralConfig.guiStorageScaleSmallColumns)),
