@@ -3,16 +3,24 @@ package org.cyclops.integratedterminals.inventory.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
-import org.apache.commons.lang3.tuple.Triple;
+import org.apache.commons.lang3.tuple.Pair;
+import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
@@ -26,6 +34,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCo
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabCommonLoadSlotsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
+import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageChangeGuiState;
@@ -37,7 +46,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author rubensworks
@@ -50,7 +58,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     private final Map<String, ITerminalStorageTabClient<?>> tabsClient;
     private final Map<String, ITerminalStorageTabServer> tabsServer;
     private final Map<String, ITerminalStorageTabCommon> tabsCommon;
-    private final Map<String, List<Triple<Slot, Integer, Integer>>> tabSlots;
+    private final Map<String, List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>>> tabSlots;
     private final TerminalStorageState terminalStorageState;
     private final Optional<INetwork> network;
     private final Optional<ITerminalStorageTabCommon.IVariableInventory> variableInventory;
@@ -61,6 +69,9 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     private final List<String> channelStrings;
     private String channelAllLabel;
+
+    @OnlyIn(Dist.CLIENT)
+    public ContainerScreenTerminalStorage screen;
 
     public ContainerTerminalStorageBase(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                         Optional<ContainerTerminalStorageBase.InitTabData> initTabData,
@@ -82,6 +93,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         this.serverTabsInitialized = false;
 
         addPlayerInventory(player.getInventory(), 31, 143);
+        addInventoryAndOffHand(player.getInventory());
 
         this.channelAllLabel = "All";
         this.channelStrings = Lists.newArrayList(this.channelAllLabel);
@@ -99,16 +111,15 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                 this.tabsCommon.put(tabId, commonTab);
 
                 int slotStartIndex = this.slots.size();
-                List<Slot> slots = commonTab.loadSlots(this, slotStartIndex, player, getVariableInventory());
+                List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = commonTab.loadSlots(this, slotStartIndex, player, getVariableInventory());
                 TerminalStorageTabCommonLoadSlotsEvent loadSlotsEvent = new TerminalStorageTabCommonLoadSlotsEvent(
                         commonTab, this, slots);
                 MinecraftForge.EVENT_BUS.post(loadSlotsEvent);
                 slots = loadSlotsEvent.getSlots();
-                this.tabSlots.put(tabId, slots.stream()
-                        .map(slot -> Triple.of(slot, slot.x, slot.y)).collect(Collectors.toList()));
-                for (Slot slot : slots) {
-                    if (slot.index == 0) {
-                        this.addSlot(slot);
+                this.tabSlots.put(tabId, slots);
+                for (Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback> slot : slots) {
+                    if (slot.getLeft().index == 0) {
+                        this.addSlot(slot.getLeft());
                     }
                 }
             }
@@ -139,6 +150,38 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         putButtonAction(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, (s, containerExtended) -> {
             if (!playerInventory.player.level.isClientSide()) {
                 TerminalStorageState.setPlayerDefault(playerInventory.player, getGuiState());
+            }
+        });
+    }
+
+    protected void addInventoryAndOffHand(Inventory inventory) {
+        EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+        ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET};
+
+        for(int k = 0; k < 4; ++k) {
+            final EquipmentSlot equipmentslot = SLOT_IDS[k];
+            this.addSlot(new Slot(inventory, 39 - k, -7 + (k % 2) * GuiHelpers.SLOT_SIZE, 152 + ((int) Math.floor(k / 2)) * GuiHelpers.SLOT_SIZE) {
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                public boolean mayPlace(ItemStack p_39746_) {
+                    return p_39746_.canEquip(equipmentslot, player);
+                }
+
+                public boolean mayPickup(Player p_39744_) {
+                    ItemStack itemstack = this.getItem();
+                    return !itemstack.isEmpty() && !p_39744_.isCreative() && EnchantmentHelper.hasBindingCurse(itemstack) ? false : super.mayPickup(p_39744_);
+                }
+
+                public com.mojang.datafixers.util.Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                    return com.mojang.datafixers.util.Pair.of(InventoryMenu.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslot.getIndex()]);
+                }
+            });
+        }
+        this.addSlot(new Slot(inventory, 40, 2, 201) {
+            public com.mojang.datafixers.util.Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return com.mojang.datafixers.util.Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
             }
         });
     }
@@ -230,8 +273,8 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         return slots.size() - player.getInventory().items.size();
     }
 
-    public List<Triple<Slot, Integer, Integer>> getTabSlots(String tabName) {
-        List<Triple<Slot, Integer, Integer>> slots = this.tabSlots.get(tabName);
+    public List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> getTabSlots(String tabName) {
+        List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = this.tabSlots.get(tabName);
         if (slots == null) {
             return Collections.emptyList();
         }
@@ -239,19 +282,13 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     }
 
     protected void enableSlots(String tabName) {
-        List<Triple<Slot, Integer, Integer>> slots = getTabSlots(tabName);
-        if (slots != null) {
-            for (Triple<Slot, Integer, Integer> slot : slots) {
-                setSlotPosX(slot.getLeft(), slot.getMiddle());
-                setSlotPosY(slot.getLeft(), slot.getRight());
-            }
-        }
+        // Do nothing, they will be placed on the correct location client-side upon init
     }
 
     protected void disableSlots(String tabName) {
-        List<Triple<Slot, Integer, Integer>> slots = getTabSlots(tabName);
+        List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = getTabSlots(tabName);
         if (slots != null) {
-            for (Triple<Slot, Integer, Integer> slot : slots) {
+            for (Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback> slot : slots) {
                 setSlotPosX(slot.getLeft(), Integer.MIN_VALUE);
                 setSlotPosY(slot.getLeft(), Integer.MIN_VALUE);
             }

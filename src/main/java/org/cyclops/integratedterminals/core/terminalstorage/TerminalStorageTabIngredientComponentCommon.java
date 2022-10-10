@@ -1,13 +1,14 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Component;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.inventory.SimpleInventory;
 import org.cyclops.cyclopscore.persist.nbt.NBTClassType;
@@ -24,8 +25,6 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 
 import java.util.List;
 import java.util.Optional;
-
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon.IVariableInventory;
 
 /**
  * A common storage terminal ingredient tab.
@@ -65,10 +64,10 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     @Override
-    public List<Slot> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
-                                Optional<IVariableInventory> variableInventoryOptional) {
+    public List<Pair<Slot, ISlotPositionCallback>> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
+                                                             Optional<IVariableInventory> variableInventoryOptional) {
         IVariableInventory variableInventory = variableInventoryOptional.get();
-        List<Slot> slots = Lists.newArrayList();
+        List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = Lists.newArrayList();
 
         variableSlotNumberStart = startIndex;
         inventory = new SimpleInventory(3, 1);
@@ -89,9 +88,27 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
 
         inventory.addDirtyMarkListener(() -> dirtyInv = true);
 
-        slots.add(new SlotVariable(inventory, 0, 201, 136));
-        slots.add(new SlotVariable(inventory, 1, 201, 154));
-        slots.add(new SlotVariable(inventory, 2, 201, 172));
+        slots.add(Pair.of(
+                new SlotVariable(inventory, 0, 0, 0),
+                factors -> Pair.of(
+                        factors.offsetX() + (factors.gridXSize() / 2) + factors.playerInventoryOffsetX() + 139,
+                        factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 63
+                )
+        ));
+        slots.add(Pair.of(
+                new SlotVariable(inventory, 1, 0, 0),
+                factors -> Pair.of(
+                        factors.offsetX() + (factors.gridXSize() / 2) + factors.playerInventoryOffsetX() + 139,
+                        factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 81
+                )
+        ));
+        slots.add(Pair.of(
+                new SlotVariable(inventory, 2, 0, 0),
+                factors -> Pair.of(
+                        factors.offsetX() + (factors.gridXSize() / 2) + factors.playerInventoryOffsetX() + 139,
+                        factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + 99
+                )
+        ));
 
         dirtyInv = true;
 

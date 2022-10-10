@@ -32,6 +32,12 @@ public class Images {
     public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_ALL = new Image(ICONS, 162, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_STORAGE = new Image(ICONS, 180, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_CRAFTABLE = new Image(ICONS, 198, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_SCALE_XY = new Image(ICONS, 18, 36, 18, 18);
+    public static final Image BUTTON_MIDDLE_SCALE_Y = new Image(ICONS, 36, 36, 18, 18);
+    public static final Image BUTTON_MIDDLE_SCALE_X = new Image(ICONS, 54, 36, 18, 18);
+    public static final Image BUTTON_MIDDLE_SCALE_SMALL = new Image(ICONS, 72, 36, 18, 18);
+    public static final Image BUTTON_MIDDLE_SCALE_MEDIUM = new Image(ICONS, 90, 36, 18, 18);
+    public static final Image BUTTON_MIDDLE_SCALE_LARGE = new Image(ICONS, 108, 36, 18, 18);
 
     public static final Image BUTTON_SMALL_BACKGROUND_INACTIVE = new Image(ICONS, 0, 36, 8, 8);
 

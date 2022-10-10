@@ -4,6 +4,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraftforge.eventbus.api.Event;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
@@ -21,11 +22,11 @@ public class TerminalStorageTabCommonLoadSlotsEvent extends Event {
     private final ITerminalStorageTabCommon commonTab;
     private final ContainerTerminalStorageBase container;
 
-    private List<Slot> slots;
+    private List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots;
 
     public TerminalStorageTabCommonLoadSlotsEvent(ITerminalStorageTabCommon commonTab,
                                                   ContainerTerminalStorageBase container,
-                                                  List<Slot> slots) {
+                                                  List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots) {
         this.commonTab = commonTab;
         this.container = container;
 
@@ -41,11 +42,11 @@ public class TerminalStorageTabCommonLoadSlotsEvent extends Event {
         return container;
     }
 
-    public List<Slot> getSlots() {
+    public List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> getSlots() {
         return slots;
     }
 
-    public void setSlots(List<Slot> slots) {
+    public void setSlots(List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots) {
         this.slots = slots;
     }
 }

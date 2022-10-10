@@ -2,11 +2,11 @@ package org.cyclops.integratedterminals.api.terminalstorage;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
@@ -22,8 +22,8 @@ import java.util.Set;
  */
 public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
 
-    public static final int DEFAULT_SLOT_OFFSET_X = 31;
-    public static final int DEFAULT_SLOT_OFFSET_Y = 39;
+    public static final int DEFAULT_SLOT_OFFSET_X = 32;
+    public static final int DEFAULT_SLOT_OFFSET_Y = 40;
     public static final int DEFAULT_SLOT_VISIBLE_ROWS = 5;
     public static final int DEFAULT_SLOT_ROW_LENGTH = 9;
 
@@ -85,6 +85,11 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      */
     @OnlyIn(Dist.CLIENT)
     public List<S> getSlots(int channel, int offset, int limit);
+
+    /**
+     * @return The current provider of row and column count.
+     */
+    public ITerminalRowColumnProvider getRowColumnProvider();
 
     /**
      * @return If this tab is enabled.
@@ -174,11 +179,19 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     }
 
     public default int getSlotVisibleRows() {
-        return DEFAULT_SLOT_VISIBLE_ROWS;
+        return getRowColumnProvider().getRowsAndColumns().rows();
     }
 
     public default int getSlotRowLength() {
-        return DEFAULT_SLOT_ROW_LENGTH;
+        return getRowColumnProvider().getRowsAndColumns().columns();
+    }
+
+    public default int getPlayerInventoryOffsetX() {
+        return 0;
+    }
+
+    public default int getPlayerInventoryOffsetY() {
+        return 0;
     }
 
     /**
@@ -187,6 +200,10 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     @Nullable
     public default ResourceLocation getBackgroundTexture() {
         return null;
+    }
+
+    public default void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, PoseStack matrixStack, float f, int mouseX, int mouseY) {
+
     }
 
     public default void onCommonSlotRender(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,

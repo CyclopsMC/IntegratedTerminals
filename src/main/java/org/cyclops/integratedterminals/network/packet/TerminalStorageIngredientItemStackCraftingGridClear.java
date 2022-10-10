@@ -78,6 +78,7 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
                 } else {
                     // To player inventory
                     player.getInventory().placeItemBackInInventory(itemStack, true);
+                    inventoryCrafting.setItem(i, ItemStack.EMPTY);
                 }
             }
         }

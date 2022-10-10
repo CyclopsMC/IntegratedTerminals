@@ -2,21 +2,21 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.block.Blocks;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
-import org.cyclops.cyclopscore.init.ModBase;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
+import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageScreenSizeEvent;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridBalance;
@@ -24,7 +24,6 @@ import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButto
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridShiftClickOutput;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -68,21 +67,28 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                 Component.translatable(this.ingredientComponent.getTranslationKey())));
     }
 
-    @Override
-    public int getSlotOffsetX() {
-        return ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + 108;
+    protected boolean isCraftingGridCenter() {;
+        return TerminalStorageScreenSizeEvent.getWidthHeight().getLeft() < 374 ||
+                getRowColumnProvider().getRowsAndColumns().columns() < 17 ||
+                GeneralConfig.guiStorageForceCraftingGridCenter;
     }
 
     @Override
-    public int getSlotRowLength() {
-        return 3;
+    public int getSlotVisibleRows() {
+        if (isCraftingGridCenter()) {
+            return Math.max(2, super.getSlotVisibleRows() - 4);
+        }
+        return super.getSlotVisibleRows();
     }
 
-    @Nullable
     @Override
-    public ResourceLocation getBackgroundTexture() {
-        return new ResourceLocation(Reference.MOD_ID, IntegratedTerminals._instance
-                .getReferenceValue(ModBase.REFKEY_TEXTURE_PATH_GUI) + "part_terminal_storage_crafting.png");
+    public int getPlayerInventoryOffsetX() {
+        return super.getPlayerInventoryOffsetX() + (isCraftingGridCenter() ? 0 : 60);
+    }
+
+    @Override
+    public int getPlayerInventoryOffsetY() {
+        return super.getPlayerInventoryOffsetY() + (isCraftingGridCenter() ? 68 : 0);
     }
 
     @Override
@@ -103,6 +109,14 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         }
         return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside,
                 hasClickedInStorage, hoveredContainerSlot);
+    }
+
+    @Override
+    public void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, PoseStack matrixStack, float f, int mouseX, int mouseY) {
+        super.onTabBackgroundRender(screen, matrixStack, f, mouseX, mouseY);
+
+        // Render crafting grid
+        screen.blit(matrixStack, screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68);
     }
 
     @Override
