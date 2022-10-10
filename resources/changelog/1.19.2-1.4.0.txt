@@ -1,0 +1,12 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.17.0 or higher.
+
+Additions:
+* Add responsive terminal scaling modes
+  By default, the full width and height of the screen will be taken up.
+  Different modes with configuration options are available as well.
+  Closes #21
+* Show armor and offhand slots in terminal ui
+
+Fixes:
+* Fix item dupe when shift-clearing grid, Closes #89
