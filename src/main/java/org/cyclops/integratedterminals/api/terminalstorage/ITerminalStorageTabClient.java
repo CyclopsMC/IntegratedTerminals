@@ -26,6 +26,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     public static final int DEFAULT_SLOT_OFFSET_Y = 40;
     public static final int DEFAULT_SLOT_VISIBLE_ROWS = 5;
     public static final int DEFAULT_SLOT_ROW_LENGTH = 9;
+    Boolean DEFAULT_AUTO_FOCUS_BEHAVIOUR = false;
 
     /**
      * When this tab is selected by the player.
@@ -240,5 +241,11 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @return The quantity that was inserted.
      */
     int dragIntoSlot(AbstractContainerMenu container, int channel, Slot slot, int quantity, boolean simulate);
+
+    /**
+     * Check if the search bar should be autofocused
+     * @return If we should autofocus the search bar upon display
+     */
+    boolean getSearchBarAutoFocus();
 
 }

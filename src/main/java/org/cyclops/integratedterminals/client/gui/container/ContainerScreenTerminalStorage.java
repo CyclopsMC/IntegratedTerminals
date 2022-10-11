@@ -152,6 +152,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         fieldSearch.setCanLoseFocus(true);
         fieldSearch.setEditable(true);
         fieldSearch.setBordered(false);
+        fieldSearch.setFocus(getSearchBarAutoFocus());
+
 
         buttonSetDefaults = addRenderableWidget(new ButtonImage(this.leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (getGridXSize() / 2) + getPlayerInventoryOffsetX() + (9 * GuiHelpers.SLOT_SIZE / 2) + 27, this.topPos + getGridYSize() + getPlayerInventoryOffsetY() + 120, 15, 15,
                 Component.translatable("gui.integratedterminals.terminal_storage.setdefaults"),
@@ -909,6 +911,12 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     protected int getSelectedFirstRow() {
         return firstRow;
+    }
+
+    protected boolean getSearchBarAutoFocus() {
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::getSearchBarAutoFocus)
+                .orElse(ITerminalStorageTabClient.DEFAULT_AUTO_FOCUS_BEHAVIOUR);
     }
 
     protected void drawTabContents(PoseStack matrixStack, String tabId, int channel, DrawLayer layer,

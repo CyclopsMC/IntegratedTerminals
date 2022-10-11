@@ -52,6 +52,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorage
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
+import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonAutoFocus;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonFilterCrafting;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonScaleGui;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
@@ -165,6 +166,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Add other buttons
         buttons.add(new TerminalButtonScaleGui<>(container.getGuiState(), this));
+        buttons.add(new TerminalButtonAutoFocus<>(container.getGuiState(), this));
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
@@ -864,6 +866,16 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         int maxQuantity = Helpers.castSafe(viewHandler.getMaxQuantity(stack));
         int freeQuantity = maxQuantity - instanceQuantity;
         return Math.min(Math.max(0, quantity), freeQuantity);
+    }
+
+    @Override
+    public boolean getSearchBarAutoFocus() {
+        for (ITerminalButton<?, ?, ?> button : this.buttons) {
+            if (button instanceof TerminalButtonAutoFocus) {
+                return ((TerminalButtonAutoFocus<?>) button).isActive();
+            }
+        }
+        throw new IllegalStateException("Could not find a TerminalButtonAutoFocus registered on storage tab " + this.getName());
     }
 
     public void resetScale() {

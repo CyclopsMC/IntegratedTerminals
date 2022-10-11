@@ -44,4 +44,7 @@ public class Images {
     public static final Image BUTTON_SMALL_OVERLAY_CROSS = new Image(ICONS, 0, 44, 8, 8);
     public static final Image BUTTON_SMALL_OVERLAY_SQUARE = new Image(ICONS, 8, 44, 8, 8);
 
+    public static final Image BUTTON_AUTO_FOCUS_ACTIVE = new Image(ICONS, 126, 36, 18, 18);
+
+    public static final Image BUTTON_AUTO_FOCUS_INACTIVE = new Image(ICONS, 144, 36, 18, 18);
 }

@@ -69,6 +69,8 @@
     "gui.integratedterminals.terminal_storage.scale.large": "§aLarge",
     "gui.integratedterminals.terminal_storage.setdefaults": "Mark as default settings",
     "gui.integratedterminals.terminal_storage.setdefaults.info": "Use current settings for new terminals.",
+    "gui.integratedterminals.terminal_storage.auto_focus": "Autofocus",
+    "gui.integratedterminals.terminal_storage.auto_focus.info": "Configure whether to auto focus the search bar",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies": "Size: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.cancel": "Cancel Job",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all": "Cancel All Jobs",
