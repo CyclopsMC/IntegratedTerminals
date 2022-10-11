@@ -5,6 +5,7 @@ doc/info.txt
 /run
 
 # Ignore project specific files
+.idea/
 .classpath
 .project
 .settings
