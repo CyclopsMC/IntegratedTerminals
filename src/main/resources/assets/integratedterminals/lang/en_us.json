@@ -69,7 +69,7 @@
     "gui.integratedterminals.terminal_storage.scale.large": "§aLarge",
     "gui.integratedterminals.terminal_storage.setdefaults": "Mark as default settings",
     "gui.integratedterminals.terminal_storage.setdefaults.info": "Use current settings for new terminals.",
-    "gui.integratedterminals.terminal_storage.auto_focus": "Autofocus",
+    "gui.integratedterminals.terminal_storage.auto_focus": "Autofocus Search",
     "gui.integratedterminals.terminal_storage.auto_focus.info": "If the search bar should always be focused when opening the terminal.",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies": "Size: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.cancel": "Cancel Job",
