@@ -20,7 +20,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
@@ -160,7 +159,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
         for(int k = 0; k < 4; ++k) {
             final EquipmentSlot equipmentslot = SLOT_IDS[k];
-            this.addSlot(new Slot(inventory, 39 - k, -7 + (k % 2) * GuiHelpers.SLOT_SIZE, 152 + ((int) Math.floor(k / 2)) * GuiHelpers.SLOT_SIZE) {
+            this.addSlot(new Slot(inventory, 39 - k, -7 + (k % 2) * 18, 152 + ((int) Math.floor(k / 2)) * 18) {
                 public int getMaxStackSize() {
                     return 1;
                 }

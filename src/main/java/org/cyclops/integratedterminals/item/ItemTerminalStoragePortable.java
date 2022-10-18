@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.item;
 
+import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -15,13 +16,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import org.cyclops.cyclopscore.datastructure.Wrapper;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.cyclopscore.inventory.container.NamedContainerProviderItem;
 import org.cyclops.cyclopscore.item.ItemGui;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
+import org.cyclops.integrateddynamics.RegistryEntries;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integrateddynamics.block.BlockCable;
+import org.cyclops.integrateddynamics.core.block.BlockRayTraceResultComponent;
 import org.cyclops.integrateddynamics.core.helper.L10NValues;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartTypes;
@@ -71,14 +77,22 @@ public class ItemTerminalStoragePortable extends ItemGui {
 
     @Override
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
-        if (!context.getLevel().isClientSide()) {
-            PartPos partPos = PartPos.of(context.getLevel(), context.getClickedPos(), context.getClickedFace());
-            PartHelpers.PartStateHolder<?, ?> partStateHolder = PartHelpers.getPart(partPos);
-            if (partStateHolder != null && partStateHolder.getPart() == PartTypes.CONNECTOR_OMNI) {
-                PartTypeConnectorOmniDirectional.State state = (PartTypeConnectorOmniDirectional.State) partStateHolder.getState();
-                setGroupId(stack, state.getGroupId());
-                context.getPlayer().displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.linked"), true);
-                return InteractionResult.SUCCESS;
+        if (!context.getLevel().isClientSide() && context.getPlayer() != null) {
+            BlockState blockState = context.getLevel().getBlockState(context.getClickedPos());
+            if (blockState.getBlock() == RegistryEntries.BLOCK_CABLE) {
+                BlockRayTraceResultComponent rayTraceResult = ((BlockCable) blockState.getBlock()).getSelectedShape(blockState, context.getLevel(), context.getClickedPos(), CollisionContext.of(context.getPlayer()))
+                        .rayTrace(context.getClickedPos(), context.getPlayer());
+                if(rayTraceResult != null) {
+                    Direction partDirection = rayTraceResult.getComponent().getRaytraceDirection();
+                    PartPos partPos = PartPos.of(context.getLevel(), context.getClickedPos(), partDirection);
+                    PartHelpers.PartStateHolder<?, ?> partStateHolder = PartHelpers.getPart(partPos);
+                    if (partStateHolder != null && partStateHolder.getPart() == PartTypes.CONNECTOR_OMNI) {
+                        PartTypeConnectorOmniDirectional.State state = (PartTypeConnectorOmniDirectional.State) partStateHolder.getState();
+                        setGroupId(stack, state.getGroupId());
+                        context.getPlayer().displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.linked"), true);
+                        return InteractionResult.SUCCESS;
+                    }
+                }
             }
         }
         return InteractionResult.PASS;
