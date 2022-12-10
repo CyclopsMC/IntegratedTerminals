@@ -61,7 +61,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                 new TranslatableComponent("gui.cyclopscore.scrollbar"), this::setFirstRow, 10);
         scrollBar.setTotalRows(getMenu().getCraftingJobs().size() - 1);
 
-        addWidget(new ButtonText(leftPos + 70, topPos + 198, 120, 20,
+        addRenderableWidget(new ButtonText(leftPos + 70, topPos + 198, 120, 20,
                 new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
                 new TranslatableComponent("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel_all"),
                 (b) -> cancelCraftingJobs(), true));
