@@ -14,8 +14,7 @@ public class ItemTerminalStoragePortableConfig extends ItemConfig {
         super(
                 IntegratedTerminals._instance,
                 "terminal_storage_portable",
-                eConfig -> new ItemTerminalStoragePortable(new Item.Properties()
-                        .tab(IntegratedTerminals._instance.getDefaultItemGroup()))
+                eConfig -> new ItemTerminalStoragePortable(new Item.Properties())
         );
     }
 

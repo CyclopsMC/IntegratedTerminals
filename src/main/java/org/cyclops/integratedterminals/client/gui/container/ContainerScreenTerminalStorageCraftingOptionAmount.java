@@ -217,7 +217,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
             } else if (this.isHovered) {
                 color = 16777120;
             }
-            this.drawCenteredString(matrixStack, minecraft.font, this.getMessage(), this.x + this.width / 2, this.y + (this.height - 8) / 2, color);
+            this.drawCenteredString(matrixStack, minecraft.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
         }
 
         public int getDiff() {

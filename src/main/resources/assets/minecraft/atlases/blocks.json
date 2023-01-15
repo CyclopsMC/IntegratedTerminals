@@ -1,0 +1,8 @@
+{ "sources": [
+  { "type": "minecraft:single", "resource": "integratedterminals:item/terminal_storage_portable" },
+  { "type": "minecraft:single", "resource": "integratedterminals:part/terminal_back" },
+  { "type": "minecraft:single", "resource": "integratedterminals:part/terminal_storage" },
+  { "type": "minecraft:single", "resource": "integratedterminals:part/terminal_crafting_job" },
+  { "type": "minecraft:single", "resource": "integratedterminals:block/chorus_glass" },
+  { "type": "minecraft:single", "resource": "integratedterminals:block/menril_glass" }
+]}

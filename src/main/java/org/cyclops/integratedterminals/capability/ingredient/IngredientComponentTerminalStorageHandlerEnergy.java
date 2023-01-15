@@ -1,19 +1,19 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import com.mojang.blaze3d.platform.Lighting;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -113,12 +113,12 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public boolean isInstance(ItemStack itemStack) {
-        return itemStack.getCapability(CapabilityEnergy.ENERGY).isPresent();
+        return itemStack.getCapability(ForgeCapabilities.ENERGY).isPresent();
     }
 
     @Override
     public Long getInstance(ItemStack itemStack) {
-        return itemStack.getCapability(CapabilityEnergy.ENERGY)
+        return itemStack.getCapability(ForgeCapabilities.ENERGY)
                 .map(IEnergyStorage::getEnergyStored)
                 .orElse(0)
                 .longValue();
@@ -126,7 +126,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public long getMaxQuantity(ItemStack itemStack) {
-        return itemStack.getCapability(CapabilityEnergy.ENERGY)
+        return itemStack.getCapability(ForgeCapabilities.ENERGY)
                 .map(IEnergyStorage::getMaxEnergyStored)
                 .orElse(0);
     }
@@ -150,7 +150,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     protected IIngredientComponentStorage<Long, Boolean> getEnergyStorage(IngredientComponent<Long, Boolean> component,
                                                                              IEnergyStorage energyStorage) {
         return component
-                .getStorageWrapperHandler(CapabilityEnergy.ENERGY)
+                .getStorageWrapperHandler(ForgeCapabilities.ENERGY)
                 .wrapComponentStorage(energyStorage);
     }
 
@@ -160,7 +160,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                                        @Nullable Player player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getItem();
 
-        return stack.getCapability(CapabilityEnergy.ENERGY)
+        return stack.getCapability(ForgeCapabilities.ENERGY)
                 .map(energyStorage -> {
                     IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
                     Long ret = 0L;
@@ -179,7 +179,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<Long, Boolean> storage,
                                                       AbstractContainerMenu container, Inventory playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = container.getCarried();
-        playerStack.getCapability(CapabilityEnergy.ENERGY)
+        playerStack.getCapability(ForgeCapabilities.ENERGY)
                 .ifPresent(energyStorage -> {
                     IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
                     try {
@@ -196,7 +196,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         Slot slot = container.getSlot(containerSlot);
         if (slot.mayPickup(playerInventory.player)) {
             ItemStack toMoveStack = slot.getItem();
-            toMoveStack.getCapability(CapabilityEnergy.ENERGY)
+            toMoveStack.getCapability(ForgeCapabilities.ENERGY)
                     .ifPresent(energyStorage -> {
                         IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
                         try {
@@ -211,7 +211,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public long getActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container) {
         ItemStack toMoveStack = container.getCarried();
-        return toMoveStack.getCapability(CapabilityEnergy.ENERGY)
+        return toMoveStack.getCapability(ForgeCapabilities.ENERGY)
                 .map(IEnergyStorage::getEnergyStored)
                 .orElse(0);
     }
@@ -219,7 +219,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantityIn) {
         ItemStack toMoveStack = container.getCarried();
-        toMoveStack.getCapability(CapabilityEnergy.ENERGY)
+        toMoveStack.getCapability(ForgeCapabilities.ENERGY)
                 .ifPresent(energyStorage -> {
                     // Drain
                     long quantity = quantityIn;

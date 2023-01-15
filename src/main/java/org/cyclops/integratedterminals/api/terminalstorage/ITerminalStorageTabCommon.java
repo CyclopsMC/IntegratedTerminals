@@ -8,6 +8,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -26,7 +27,7 @@ public interface ITerminalStorageTabCommon {
     public ResourceLocation getName();
 
     public default List<Pair<Slot, ISlotPositionCallback>> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
-                                        Optional<IVariableInventory> variableInventory) {
+                                                                     Optional<IVariableInventory> variableInventory, ValueDeseralizationContext valueDeseralizationContext) {
         return Collections.emptyList();
     }
 

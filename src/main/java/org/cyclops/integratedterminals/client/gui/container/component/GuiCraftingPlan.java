@@ -153,7 +153,7 @@ public class GuiCraftingPlan extends AbstractWidget {
     public void drawGuiContainerLayer(PoseStack matrixStack, int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
-            drawElement(matrixStack, element,  getAbsoluteElementIndent(element), guiLeft + x, guiTop + y + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
+            drawElement(matrixStack, element,  getAbsoluteElementIndent(element), guiLeft + getX(), guiTop + getY() + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
             offsetY += ELEMENT_HEIGHT_TOTAL;
         }
     }
@@ -252,24 +252,24 @@ public class GuiCraftingPlan extends AbstractWidget {
         Font fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
-        drawCenteredString(matrixStack, Minecraft.getInstance().font, this.label, guiLeft + x + ELEMENT_WIDTH / 2 + 8, guiTop + y - 13, 16777215);
+        drawCenteredString(matrixStack, Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {
             String durationString = getDurationString(tickDuration);
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, durationString, guiLeft + x + 200, guiTop + y - 14, 0.5f, 16777215);
+            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, 16777215);
         }
 
         // Draw channel
         if (channel != -1) {
             String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, channelString, guiLeft + x + 200, guiTop + y - 8, 0.5f, 16777215);
+            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, 16777215);
         }
 
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, initiatorString, guiLeft + x - 4, guiTop + y - 14, 0.5f, 16777215);
+            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215);
         }
 
         drawGuiContainerLayer(matrixStack, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
@@ -294,8 +294,8 @@ public class GuiCraftingPlan extends AbstractWidget {
     public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
-            int x = this.guiLeft + this.x + getAbsoluteElementIndent(element);
-            int y = this.guiTop + this.y + offsetY;
+            int x = this.guiLeft + this.getX() + getAbsoluteElementIndent(element);
+            int y = this.guiTop + this.getY() + offsetY;
             offsetY += ELEMENT_HEIGHT_TOTAL;
             if (RenderHelpers.isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point((int) mouseX, (int) mouseY))) {
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -368,7 +368,7 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     @Override
-    public void updateNarration(NarrationElementOutput p_169152_) {
+    protected void updateWidgetNarration(NarrationElementOutput p_259858_) {
 
     }
 

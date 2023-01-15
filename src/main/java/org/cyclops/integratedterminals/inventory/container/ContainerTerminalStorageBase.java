@@ -24,6 +24,7 @@ import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
+import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -110,7 +111,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                 this.tabsCommon.put(tabId, commonTab);
 
                 int slotStartIndex = this.slots.size();
-                List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = commonTab.loadSlots(this, slotStartIndex, player, getVariableInventory());
+                List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = commonTab.loadSlots(this, slotStartIndex, player, getVariableInventory(), ValueDeseralizationContext.of(this.getWorld()));
                 TerminalStorageTabCommonLoadSlotsEvent loadSlotsEvent = new TerminalStorageTabCommonLoadSlotsEvent(
                         commonTab, this, slots);
                 MinecraftForge.EVENT_BUS.post(loadSlotsEvent);

@@ -4,18 +4,18 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -100,19 +100,19 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public boolean isInstance(ItemStack itemStack) {
-        return itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY).isPresent();
+        return itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent();
     }
 
     @Override
     public FluidStack getInstance(ItemStack itemStack) {
-        return itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+        return itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0) : FluidStack.EMPTY)
                 .orElse(FluidStack.EMPTY);
     }
 
     @Override
     public long getMaxQuantity(ItemStack itemStack) {
-        return itemStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+        return itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getTankCapacity(0) : 0)
                 .orElse(0);
     }
@@ -138,7 +138,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                                           AbstractContainerMenu container, int containerSlot, FluidStack maxInstance,
                                           @Nullable Player player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getItem();
-        return stack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
                 .map(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                     FluidStack moved = FluidStack.EMPTY;
@@ -159,7 +159,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     protected IIngredientComponentStorage<FluidStack, Integer> getFluidStorage(IngredientComponent<FluidStack, Integer> component,
                                                                                IFluidHandlerItem fluidHandler) {
         return component
-                .getStorageWrapperHandler(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+                .getStorageWrapperHandler(ForgeCapabilities.FLUID_HANDLER_ITEM)
                 .wrapComponentStorage(fluidHandler);
     }
 
@@ -167,7 +167,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
                                                       AbstractContainerMenu container, Inventory playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = container.getCarried();
-        playerStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+        playerStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
                 .ifPresent(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                     try {
@@ -185,7 +185,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         Slot slot = container.getSlot(containerSlot);
         if (slot.mayPickup(playerInventory.player)) {
             ItemStack toMoveStack = slot.getItem();
-            toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+            toMoveStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
                     .ifPresent(fluidHandler -> {
                         IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                         try {
@@ -203,7 +203,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     public long getActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container) {
         ItemStack toMoveStack = container.getCarried();
-        return toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+        return toMoveStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0).getAmount() : 0)
                 .orElse(0);
     }
@@ -211,7 +211,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantityIn) {
         ItemStack toMoveStack = container.getCarried();
-        toMoveStack.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY)
+        toMoveStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
                 .ifPresent(fluidHandler -> {
                     long quantity = quantityIn;
                     while (quantity > 0) {

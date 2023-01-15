@@ -19,6 +19,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.CraftingHelpers;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
+import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
@@ -58,7 +59,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
 
     @Override
     public List<Pair<Slot, ISlotPositionCallback>> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
-                                                             Optional<IVariableInventory> variableInventoryOptional) {
+                                                             Optional<IVariableInventory> variableInventoryOptional, ValueDeseralizationContext valueDeseralizationContext) {
         IVariableInventory variableInventory = variableInventoryOptional.get();
         slots = Lists.newArrayListWithCapacity(10);
 

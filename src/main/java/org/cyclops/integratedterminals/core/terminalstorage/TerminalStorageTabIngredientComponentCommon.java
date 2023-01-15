@@ -13,6 +13,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.inventory.SimpleInventory;
 import org.cyclops.cyclopscore.persist.nbt.NBTClassType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
+import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.core.evaluate.InventoryVariableEvaluator;
@@ -65,7 +66,8 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
 
     @Override
     public List<Pair<Slot, ISlotPositionCallback>> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
-                                                             Optional<IVariableInventory> variableInventoryOptional) {
+                                                             Optional<IVariableInventory> variableInventoryOptional,
+                                                             ValueDeseralizationContext valueDeseralizationContext) {
         IVariableInventory variableInventory = variableInventoryOptional.get();
         List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = Lists.newArrayList();
 
@@ -76,7 +78,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             int slot = i;
             variableEvaluators.add(new InventoryVariableEvaluator<ValueTypeOperator.ValueOperator>(inventory,
-                    slot, ValueTypes.OPERATOR) {
+                    slot, valueDeseralizationContext, ValueTypes.OPERATOR) {
                 @Override
                 public void onErrorsChanged() {
                     super.onErrorsChanged();
