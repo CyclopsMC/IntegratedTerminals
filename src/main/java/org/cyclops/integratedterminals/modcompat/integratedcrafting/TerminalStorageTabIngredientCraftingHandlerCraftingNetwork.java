@@ -40,7 +40,9 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -305,12 +307,40 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
             // and we are waiting for the outputs of this single
 
             // Determine pending ingredients
-            for (List<IPrototypedIngredient<?, ?>> value : craftingInterface.getPendingCraftingJobOutputs(craftingJobId).values()) {
-                auxiliaryPendingOutputs.addAll(value);
+            List<Map<IngredientComponent<?, ?>, List<IPrototypedIngredient<?, ?>>>> pendingOutputEntries = craftingInterface.getPendingCraftingJobOutputs(craftingJobId);
+            for (Map<IngredientComponent<?, ?>, List<IPrototypedIngredient<?, ?>>> map : craftingInterface.getPendingCraftingJobOutputs(craftingJobId)) {
+                for (List<IPrototypedIngredient<?, ?>> values : map.values()) {
+                    for (IPrototypedIngredient<?, ?> value : values) {
+                        // Add by stacking with identical prototypes
+                        boolean stacked = false;
+                        Iterator<IPrototypedIngredient<?, ?>> it = auxiliaryPendingOutputs.iterator();
+                        while (it.hasNext()) {
+                            IPrototypedIngredient<?, ?> existingOutput = it.next();
+                            IIngredientMatcher matcher = existingOutput.getComponent().getMatcher();
+                            if (existingOutput.getComponent() == value.getComponent()
+                                && existingOutput.getCondition().equals(value.getCondition())
+                                && matcher.matches(existingOutput.getPrototype(), value.getPrototype(), matcher.getExactMatchNoQuantityCondition())) {
+                                stacked = true;
+                                it.remove();
+                                auxiliaryPendingOutputs.add(new PrototypedIngredient(
+                                        existingOutput.getComponent(),
+                                        matcher.withQuantity(existingOutput.getPrototype(),
+                                                matcher.getQuantity(existingOutput.getPrototype()) + matcher.getQuantity(value.getPrototype())),
+                                        existingOutput.getCondition()
+                                ));
+                                break;
+                            }
+                        }
+
+                        if (!stacked) {
+                            auxiliaryPendingOutputs.add(value);
+                        }
+                    }
+                }
             }
 
-            // Reduce the amount by one, as we consider this separately.
-            recipeOutputAmount--;
+            // Reduce the amount by the amount of running entries, as we consider this separately.
+            recipeOutputAmount -= pendingOutputEntries.size();
         }
 
         List<IPrototypedIngredient<?, ?>> pendingOutputs = recipeOutputAmount == 0
