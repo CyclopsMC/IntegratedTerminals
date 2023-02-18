@@ -108,6 +108,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private int activeSlotId;
     private int activeSlotQuantity;
     private int activeChannel;
+    private int lastChangeId;
 
     @SubscribeEvent
     public static void onToolTip(ItemTooltipEvent event) {
@@ -149,6 +150,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.enabled = false;
         this.channels = new IntOpenHashSet();
         resetActiveSlot();
+
+        this.lastChangeId = 0;
 
     }
 
@@ -359,6 +362,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      */
     public synchronized void onChange(int channel, IIngredientComponentStorageObservable.Change changeType,
                                       IngredientArrayList<T, M> ingredients, boolean enabled) {
+        this.lastChangeId++;
+
         boolean wasEnabled = this.enabled;
         this.enabled = enabled || this.craftingOptions.containsKey(channel);
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
@@ -869,6 +874,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     public void resetScale() {
         // Re-init screen to enforce new scale
         container.screen.init();
+    }
+
+    public int getLastChangeId() {
+        return lastChangeId;
     }
 
     public static class InstanceWithMetadata<T> {
