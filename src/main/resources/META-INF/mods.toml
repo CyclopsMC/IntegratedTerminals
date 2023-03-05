@@ -16,13 +16,13 @@ Terminals for managing and overviewing Integrated Dynamics networks.
 [[dependencies.integratedterminals]]
     modId="cyclopscore"
     mandatory=true
-    versionRange="[1.17.3,)"
+    versionRange="[1.18.0,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
     modId="integrateddynamics"
     mandatory=true
-    versionRange="[1.15.0,)"
+    versionRange="[1.15.2,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
