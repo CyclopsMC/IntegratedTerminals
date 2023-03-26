@@ -84,7 +84,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     @Override
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-        scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
+        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
         RenderHelpers.bindTexture(this.texture);
         drawCraftingPlans(matrixStack, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
 

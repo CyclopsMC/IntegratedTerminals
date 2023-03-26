@@ -21,7 +21,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetArrowedListField;
@@ -276,7 +275,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         drawTabsBackground(matrixStack);
         drawTabContents(matrixStack, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
-        scrollBar.drawGuiContainerBackgroundLayer(matrixStack, f, mouseX, mouseY);
+        scrollBar.render(matrixStack, mouseX, mouseY, f);
 
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         tabOptional.ifPresent(tab -> {
@@ -357,7 +356,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     public static void blitRescalable(PoseStack p_93144_, int p_93145_, int p_93146_, int p_93147_, float p_93148_, float p_93149_, int p_93150_, int p_93151_, int p_93152_, int p_93153_, int realWidth, int realHeight) {
-        innerBlit(p_93144_, p_93145_, p_93145_ + realWidth, p_93146_, p_93146_ + realHeight, p_93147_, p_93150_, p_93151_, p_93148_, p_93149_, p_93152_, p_93153_);
+        blit(p_93144_, p_93145_, p_93145_ + realWidth, p_93146_, p_93146_ + realHeight, p_93147_, p_93150_, p_93151_, p_93148_, p_93149_, p_93152_, p_93153_);
     }
 
     protected void renderBgPlayerInventory(PoseStack matrixStack, float f, int mouseX, int mouseY) {
@@ -374,9 +373,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         drawTabsForeground(matrixStack, mouseX, mouseY);
         drawTabContents(matrixStack, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
-        RenderItemExtendedSlotCount.getInstance().blitOffset = 150.0F;
         drawActiveStorageSlotItem(matrixStack, mouseX, mouseY);
-        RenderItemExtendedSlotCount.getInstance().blitOffset = 0F;
 
         // Draw button tooltips
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
@@ -734,7 +731,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     protected boolean handleKeyCodeFirst(int keyCode, int scanCode) {
         InputConstants.Key inputCode = InputConstants.getKey(keyCode, scanCode);
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(inputCode)) {
-            fieldSearch.changeFocus(true);
+            fieldSearch.setFocused(true);
             return true;
         } else if (ClientProxy.TERMINAL_TAB_NEXT.isActiveAndMatches(inputCode)) {
             if (getMenu().getTabsClientCount() > 0) {
@@ -874,7 +871,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             Lighting.setupFor3DItems();
             GL11.glEnable(GL11.GL_DEPTH_TEST);
-            renderItem.renderAndDecorateItem(icon, x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
+            renderItem.renderAndDecorateItem(matrixStack, icon, x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
             Lighting.setupForFlatItems();
             matrixStack.popPose();
             GL11.glDisable(GL11.GL_DEPTH_TEST);

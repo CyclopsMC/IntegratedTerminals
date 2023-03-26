@@ -142,6 +142,11 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     }
 
+    @Override
+    public void renderWidget(PoseStack p_268228_, int p_268034_, int p_268009_, float p_268085_) {
+
+    }
+
     protected List<Element> getVisibleElements() {
         return this.visibleElements.subList(firstRow, Math.min(this.visibleElements.size(), firstRow + scrollBar.getVisibleRows()));
     }
@@ -234,8 +239,8 @@ public class GuiCraftingPlan extends AbstractWidget {
         Lighting.setupFor3DItems();
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        renderItem.renderAndDecorateItem(itemStack, 0, 0);
-        renderItem.renderGuiItemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
+        renderItem.renderAndDecorateItem(poseStack, itemStack, 0, 0);
+        renderItem.renderGuiItemDecorations(poseStack, Minecraft.getInstance().font, itemStack, 0, 0, "");
         Lighting.setupForFlatItems();
 
         poseStack.popPose();
@@ -273,7 +278,7 @@ public class GuiCraftingPlan extends AbstractWidget {
         }
 
         drawGuiContainerLayer(matrixStack, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
-        scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
+        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 
     public void drawGuiContainerForegroundLayer(PoseStack matrixStack, int mouseX, int mouseY) {

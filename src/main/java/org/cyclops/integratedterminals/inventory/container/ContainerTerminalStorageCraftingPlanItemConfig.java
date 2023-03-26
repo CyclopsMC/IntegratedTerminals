@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.tuple.Pair;
@@ -24,7 +25,7 @@ public class ContainerTerminalStorageCraftingPlanItemConfig extends GuiConfig<Co
     public ContainerTerminalStorageCraftingPlanItemConfig() {
         super(IntegratedTerminals._instance,
                 "part_terminal_storage_crafting_plan_item",
-                eConfig -> new ContainerTypeData<>(ContainerTerminalStorageCraftingPlanItem::new));
+                eConfig -> new ContainerTypeData<>(ContainerTerminalStorageCraftingPlanItem::new, FeatureFlags.VANILLA_SET));
     }
 
     @OnlyIn(Dist.CLIENT)

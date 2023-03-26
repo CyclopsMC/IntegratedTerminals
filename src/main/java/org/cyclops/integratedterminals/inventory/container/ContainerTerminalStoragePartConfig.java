@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.ScreenFactorySafe;
@@ -23,7 +24,7 @@ public class ContainerTerminalStoragePartConfig extends GuiConfig<ContainerTermi
     public ContainerTerminalStoragePartConfig() {
         super(IntegratedTerminals._instance,
                 "part_terminal_storage_part",
-                eConfig -> new ContainerTypeData<>(ContainerTerminalStoragePart::new));
+                eConfig -> new ContainerTypeData<>(ContainerTerminalStoragePart::new, FeatureFlags.VANILLA_SET));
     }
 
     @OnlyIn(Dist.CLIENT)

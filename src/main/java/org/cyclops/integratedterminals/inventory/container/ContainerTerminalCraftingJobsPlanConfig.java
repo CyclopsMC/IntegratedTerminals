@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.inventory.container;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.ScreenFactorySafe;
@@ -20,7 +21,7 @@ public class ContainerTerminalCraftingJobsPlanConfig extends GuiConfig<Container
     public ContainerTerminalCraftingJobsPlanConfig() {
         super(IntegratedTerminals._instance,
                 "part_terminal_crafting_jobs_plan",
-                eConfig -> new ContainerTypeData<>(ContainerTerminalCraftingJobsPlan::new));
+                eConfig -> new ContainerTypeData<>(ContainerTerminalCraftingJobsPlan::new, FeatureFlags.VANILLA_SET));
     }
 
     @OnlyIn(Dist.CLIENT)

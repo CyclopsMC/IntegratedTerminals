@@ -77,8 +77,8 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(instance, x, y);
-            renderItem.renderGuiItemDecorations(Minecraft.getInstance().font, instance, x, y, label);
+            Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(matrixStack, instance, x, y);
+            renderItem.renderGuiItemDecorations(matrixStack, Minecraft.getInstance().font, instance, x, y, label);
         } else {
             GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                 List<Component> lines = instance.getTooltipLines(

@@ -177,8 +177,8 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     @Override
     protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-        numberField.renderButton(matrixStack, mouseX - leftPos, mouseY - topPos, partialTicks);
-        scrollBar.drawGuiContainerBackgroundLayer(matrixStack, partialTicks, mouseX, mouseY);
+        numberField.render(matrixStack, mouseX - leftPos, mouseY - topPos, partialTicks);
+        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
 
         RenderHelpers.bindTexture(this.texture);
         drawOutputSlots(matrixStack, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
