@@ -21,6 +21,8 @@ public class GeneralConfig extends DummyConfig {
 
     @ConfigurableProperty(category = "core", comment = "The maximum number of terminal storage instances that can be sent in a single packet. Reduce this when you have packet overflows.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static int terminalStoragePacketMaxInstances = 1024;
+    @ConfigurableProperty(category = "core", comment = "The maximum number of terminal storage crafting recipes that can be sent in a single packet. Reduce this when you have packet overflows.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
+    public static int terminalStoragePacketMaxRecipes = 128;
 
     @ConfigurableProperty(category = "machine", comment = "The number of items that should be selected when clicking on an item in the storage terminal.", isCommandable = true)
     public static int guiStorageItemInitialQuantity = 64;
