@@ -334,21 +334,21 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private void sendCraftingOptionsToClient(int channel, List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions,
                                              boolean reset, boolean firstChannel) {
         // Only allow collection of a max given size to be sent in a packet
-        if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
+        if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxRecipes) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel), player);
         } else {
-            List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
+            List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
 
             for (HandlerWrappedTerminalCraftingOption<T> instance : channeledCraftingOptions) {
                 buffer.add(instance);
 
                 // If our buffer reaches its capacity,
                 // flush it, and create a new buffer
-                if (buffer.size() == GeneralConfig.terminalStoragePacketMaxInstances) {
+                if (buffer.size() == GeneralConfig.terminalStoragePacketMaxRecipes) {
                     sendCraftingOptionsToClient(channel, buffer, reset, firstChannel);
                     reset = false; // Only reset in first packet
-                    buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxInstances);
+                    buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
                 }
             }
 
