@@ -31,7 +31,6 @@ import org.cyclops.cyclopscore.client.gui.image.Images;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.inventory.container.ContainerExtended;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
@@ -597,11 +596,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
-        if (!MinecraftHelpers.isShifted()) {
-            return super.mouseClicked(mouseX, mouseY, mouseButton);
-        }
-
-        return false;
+        return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Nullable
@@ -696,12 +691,15 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
                 Slot playerSlot = getSlotUnderMouse();
 
-                // Handle clicks on storage slots
+                // Handle clicks on storage slots or container slots when storage has an active slot (item on cursor)
                 boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, mouseButton);
                 boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
-                if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
-                        hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1)) {
-                    return true;
+                boolean hasActiveSlot = tabOptional.get().getActiveSlotId() >= 0;
+                if(hasClickedInStorage || hasActiveSlot) {
+                    if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
+                            hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1)) {
+                        return true;
+                    }
                 }
             }
         }

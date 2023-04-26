@@ -5,6 +5,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
@@ -18,6 +19,7 @@ import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipart;
 import org.cyclops.integrateddynamics.core.part.event.PartVariableDrivenVariableContentsUpdatedEvent;
 import org.cyclops.integratedterminals.RegistryEntries;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
@@ -90,6 +92,21 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     public boolean stillValid(Player playerIn) {
         return PartHelpers.canInteractWith(getPartTarget(), player, this.partContainer.get());
     }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int slotID) {
+        // Handle any (modded) client-side quick move controls
+        if(player.getLevel().isClientSide) {
+            Optional<ITerminalStorageTabClient<?>> tabOptional = this.screen.getSelectedClientTab();
+            if(tabOptional.isPresent()) {
+                tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
+                        false, false, slotID);
+            }
+        }
+        // Always return empty stack because the tab's #handleClick already does the quick move
+        return ItemStack.EMPTY;
+    }
+
 
     @Override
     public ITerminalStorageLocation<PartPos> getLocation() {
