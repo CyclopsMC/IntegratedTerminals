@@ -28,10 +28,7 @@ import org.cyclops.cyclopscore.client.gui.component.input.WidgetArrowedListField
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetTextFieldExtended;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.client.gui.image.Images;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.Helpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.*;
 import org.cyclops.cyclopscore.inventory.container.ContainerExtended;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -596,6 +593,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
+        // Prevent quick move stack actions from applying to the crafting result slot
+        if(MinecraftHelpers.isShifted() && isSlotUnderMouseCraftingResult()) {
+            return true;
+        }
+
         return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
@@ -608,6 +610,18 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             return null;
         }
         return slot;
+    }
+
+    public boolean isSlotUnderMouseCraftingResult() {
+        // If the player is hovering the crafting result slot of a terminal
+        boolean isCraftingResultSlot = false;
+        Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
+        Slot playerSlot = getSlotUnderMouse();
+        if(tabOptional.isPresent() && playerSlot != null) {
+            int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon.getCraftingResultSlotIndex(getMenu(), tabOptional.get().getName());
+            isCraftingResultSlot = craftingResultSlotIndex >= 0 && playerSlot.index == craftingResultSlotIndex;
+        }
+        return isCraftingResultSlot;
     }
 
     @Override
@@ -688,16 +702,17 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             this.clicked = false;
             Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
             if (tabOptional.isPresent()) {
+                ITerminalStorageTabClient tab = tabOptional.get();
                 int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
                 Slot playerSlot = getSlotUnderMouse();
 
-                // Handle clicks on storage slots or container slots when storage has an active slot (item on cursor)
+                // Handle clicks on storage slots or container slots when storage has an active slot (item on cursor) or the crafting result slot
                 boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, mouseButton);
                 boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
-                boolean hasActiveSlot = tabOptional.get().getActiveSlotId() >= 0;
-                if(hasClickedInStorage || hasActiveSlot) {
-                    if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
-                            hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1)) {
+                boolean hasActiveSlot = tab.getActiveSlotId() >= 0;
+                if(hasClickedInStorage || hasActiveSlot || isSlotUnderMouseCraftingResult()) {
+                    if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
+                            hasClickedOutside, hasClickedInStorage, playerSlot == null ? -1 : playerSlot.index)) {
                         return true;
                     }
                 }
