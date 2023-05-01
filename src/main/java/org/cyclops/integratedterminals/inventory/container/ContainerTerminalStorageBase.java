@@ -287,7 +287,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
             Optional<ITerminalStorageTabClient<?>> tabOptional = this.screen.getSelectedClientTab();
             if(tabOptional.isPresent()) {
                 tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
-                        false, false, slotID);
+                        false, false, slotID, true);
             }
         }
         // Always return empty stack because the tab's #handleClick already does the quick move

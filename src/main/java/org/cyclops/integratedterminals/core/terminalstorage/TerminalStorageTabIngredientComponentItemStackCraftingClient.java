@@ -10,7 +10,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -93,11 +92,11 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
 
     @Override
     public boolean handleClick(AbstractContainerMenu container, int channel, int hoveringStorageSlot, int mouseButton,
-                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
+                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot,
+                               boolean isQuickMove) {
         int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 .getCraftingResultSlotIndex(container, getName());
-        boolean shift = MinecraftHelpers.isShifted();
-        if (hoveredContainerSlot == craftingResultSlotIndex && shift) {
+        if (hoveredContainerSlot == craftingResultSlotIndex && isQuickMove) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
                     new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getName().toString(), channel,
                             GeneralConfig.shiftClickCraftingResultLimit));
@@ -108,7 +107,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
             return false;
         }
         return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside,
-                hasClickedInStorage, hoveredContainerSlot);
+                hasClickedInStorage, hoveredContainerSlot, isQuickMove);
     }
 
     @Override

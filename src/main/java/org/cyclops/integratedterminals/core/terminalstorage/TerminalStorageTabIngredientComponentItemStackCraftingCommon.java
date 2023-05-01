@@ -51,13 +51,9 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
 
     public static int getCraftingResultSlotIndex(AbstractContainerMenu container, ResourceLocation name) {
         ITerminalStorageTabCommon tabCommon = ((ContainerTerminalStorageBase) container).getTabCommon(name.toString());
-        if(tabCommon instanceof TerminalStorageTabIngredientComponentItemStackCraftingCommon) {
-            TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
-                    (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
-            return tabCommonCrafting.getSlotCrafting().index;
-        } else {
-            return -1;
-        }
+        TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
+                (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
+        return tabCommonCrafting.getSlotCrafting().index;
     }
 
     @Override
