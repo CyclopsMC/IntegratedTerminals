@@ -563,7 +563,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                     return true;
                 }
             }
-            if(MinecraftHelpers.isShifted() && tab.isQuickMovePrevented(playerSlot)) {
+            if(MinecraftHelpers.isShifted() && playerSlot != null && tab.isQuickMovePrevented(playerSlot)) {
                 return true;
             }
         } else if (getSlotUnderMouse() != null) {
