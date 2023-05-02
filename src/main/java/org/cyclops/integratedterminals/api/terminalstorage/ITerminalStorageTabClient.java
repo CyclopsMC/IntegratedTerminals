@@ -162,6 +162,22 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     public int getActiveSlotQuantity();
 
     /**
+     * Dictates if a slot can have {@link #handleClick} called on it by
+     * {@link org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase#quickMoveStack}
+     * @param slotIndex The index of the slot in question
+     * @return If vanilla quick move actions should apply to the given slot
+     */
+    default public boolean isQuickMovePrevented(int slotIndex) {return false;};
+
+    /**
+     * Dictates if a slot can have {@link #handleClick} called on it by
+     * {@link org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase#quickMoveStack}
+     * @param slot The slot in question
+     * @return If vanilla quick move actions should apply to the given slot
+     */
+    default public boolean isQuickMovePrevented(Slot slot) {return isQuickMovePrevented(slot.index);}
+
+    /**
      * Set the active quantity.
      * @param quantity A quantity to set.
      */

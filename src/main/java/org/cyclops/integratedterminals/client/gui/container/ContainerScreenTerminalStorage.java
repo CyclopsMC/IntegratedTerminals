@@ -563,6 +563,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                     return true;
                 }
             }
+            if(MinecraftHelpers.isShifted() && tab.isQuickMovePrevented(playerSlot)) {
+                return true;
+            }
         } else if (getSlotUnderMouse() != null) {
             // Don't allow shift clicking items into container when no tab has been selected
             return false;

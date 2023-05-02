@@ -285,7 +285,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         // Handle any (modded) client-side quick move controls
         if(player.getLevel().isClientSide) {
             Optional<ITerminalStorageTabClient<?>> tabOptional = this.screen.getSelectedClientTab();
-            if(tabOptional.isPresent()) {
+            if(tabOptional.isPresent() && !tabOptional.get().isQuickMovePrevented(slotID)) {
                 tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
                         false, false, slotID, true);
             }

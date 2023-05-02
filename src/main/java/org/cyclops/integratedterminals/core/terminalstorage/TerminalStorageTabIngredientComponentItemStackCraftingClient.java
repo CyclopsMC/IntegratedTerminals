@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -96,7 +97,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                                boolean isQuickMove) {
         int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 .getCraftingResultSlotIndex(container, getName());
-        if (hoveredContainerSlot == craftingResultSlotIndex && isQuickMove) {
+        boolean shift = MinecraftHelpers.isShifted();
+        if (hoveredContainerSlot == craftingResultSlotIndex && shift) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
                     new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getName().toString(), channel,
                             GeneralConfig.shiftClickCraftingResultLimit));
@@ -125,5 +127,14 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);
         tabCommon = container.getTabCommon(name);
         tabClient.onCommonSlotRender(gui, matrixStack, layer, partialTick, x, y, mouseX, mouseY, slot, tabCommon);
+    }
+
+    @Override
+    public boolean isQuickMovePrevented(int slotIndex) {
+        // Prevent quick move on the crafting result slot to stop accidental mass crafting due to inventory mods
+        // spamming quick moves
+        int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
+                .getCraftingResultSlotIndex(container, getName());
+        return slotIndex == craftingResultSlotIndex;
     }
 }
