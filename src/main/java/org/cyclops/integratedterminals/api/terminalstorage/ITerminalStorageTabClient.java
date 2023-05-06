@@ -129,10 +129,12 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @param hasClickedInStorage If the player has clicked inside the storage space.
      *                            This can be true even if the storage slot is -1.
      * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
+     * @param isQuickMove If the click comes from a quickMoveStack action
      * @return If further click processing should stop.
      */
     public boolean handleClick(AbstractContainerMenu container, int channel, int hoveringStorageSlot, int mouseButton,
-                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot);
+                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot,
+                               boolean isQuickMove);
 
     /**
      * Called when a mouse scroll happens in a gui.
@@ -158,6 +160,22 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @return The active storage slot quantity.
      */
     public int getActiveSlotQuantity();
+
+    /**
+     * Dictates if a slot can have {@link #handleClick} called on it by
+     * {@link org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase#quickMoveStack}
+     * @param slotIndex The index of the slot in question
+     * @return If vanilla quick move actions should apply to the given slot
+     */
+    default public boolean isQuickMovePrevented(int slotIndex) {return false;};
+
+    /**
+     * Dictates if a slot can have {@link #handleClick} called on it by
+     * {@link org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase#quickMoveStack}
+     * @param slot The slot in question
+     * @return If vanilla quick move actions should apply to the given slot
+     */
+    default public boolean isQuickMovePrevented(Slot slot) {return isQuickMovePrevented(slot.index);}
 
     /**
      * Set the active quantity.

@@ -280,6 +280,20 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         return slots;
     }
 
+    @Override
+    public ItemStack quickMoveStack(Player player, int slotID) {
+        // Handle any (modded) client-side quick move controls
+        if(player.getLevel().isClientSide) {
+            Optional<ITerminalStorageTabClient<?>> tabOptional = this.screen.getSelectedClientTab();
+            if(tabOptional.isPresent() && !tabOptional.get().isQuickMovePrevented(slotID)) {
+                tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
+                        false, false, slotID, true);
+            }
+        }
+        // Always return empty stack because the tab's #handleClick already does the quick move
+        return ItemStack.EMPTY;
+    }
+
     protected void enableSlots(String tabName) {
         // Do nothing, they will be placed on the correct location client-side upon init
     }

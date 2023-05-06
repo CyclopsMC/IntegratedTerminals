@@ -28,11 +28,7 @@ import org.cyclops.cyclopscore.client.gui.component.input.WidgetArrowedListField
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetTextFieldExtended;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.client.gui.image.Images;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.Helpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.*;
 import org.cyclops.cyclopscore.inventory.container.ContainerExtended;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -567,6 +563,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                     return true;
                 }
             }
+            if(MinecraftHelpers.isShifted() && playerSlot != null && tab.isQuickMovePrevented(playerSlot)) {
+                return true;
+            }
         } else if (getSlotUnderMouse() != null) {
             // Don't allow shift clicking items into container when no tab has been selected
             return false;
@@ -597,11 +596,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
-        if (!MinecraftHelpers.isShifted()) {
-            return super.mouseClicked(mouseX, mouseY, mouseButton);
-        }
-
-        return false;
+        return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Nullable
@@ -700,7 +695,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, mouseButton);
                 boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
                 if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
-                        hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1)) {
+                        hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1, false)) {
                     return true;
                 }
             }
