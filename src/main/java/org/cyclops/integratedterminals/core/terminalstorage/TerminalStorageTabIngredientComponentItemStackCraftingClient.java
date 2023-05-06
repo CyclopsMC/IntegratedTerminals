@@ -94,7 +94,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
 
     @Override
     public boolean handleClick(AbstractContainerMenu container, int channel, int hoveringStorageSlot, int mouseButton,
-                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
+                               boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot,
+                               boolean isQuickMove) {
         int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 .getCraftingResultSlotIndex(container, getName());
         boolean shift = MinecraftHelpers.isShifted();
@@ -109,7 +110,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
             return false;
         }
         return super.handleClick(container, channel, hoveringStorageSlot, mouseButton, hasClickedOutside,
-                hasClickedInStorage, hoveredContainerSlot);
+                hasClickedInStorage, hoveredContainerSlot, isQuickMove);
     }
 
     @Override
@@ -127,5 +128,14 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);
         tabCommon = container.getTabCommon(name);
         tabClient.onCommonSlotRender(gui, matrixStack, layer, partialTick, x, y, mouseX, mouseY, slot, tabCommon);
+    }
+
+    @Override
+    public boolean isQuickMovePrevented(int slotIndex) {
+        // Prevent quick move on the crafting result slot to stop accidental mass crafting due to inventory mods
+        // spamming quick moves
+        int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
+                .getCraftingResultSlotIndex(container, getName());
+        return slotIndex == craftingResultSlotIndex;
     }
 }
