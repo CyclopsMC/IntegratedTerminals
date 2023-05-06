@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -27,11 +28,7 @@ import org.cyclops.cyclopscore.client.gui.component.input.WidgetArrowedListField
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetTextFieldExtended;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.client.gui.image.Images;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.Helpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.*;
 import org.cyclops.cyclopscore.inventory.container.ContainerExtended;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -564,6 +561,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                     return true;
                 }
             }
+            if(MinecraftHelpers.isShifted() && playerSlot != null && tab.isQuickMovePrevented(playerSlot)) {
+                return true;
+            }
         } else if (getSlotUnderMouse() != null) {
             // Don't allow shift clicking items into container when no tab has been selected
             return false;
@@ -594,11 +594,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
-        if (!MinecraftHelpers.isShifted()) {
-            return super.mouseClicked(mouseX, mouseY, mouseButton);
-        }
-
-        return false;
+        return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Nullable
@@ -697,7 +693,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, mouseButton);
                 boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
                 if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
-                        hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1)) {
+                        hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1, false)) {
                     return true;
                 }
             }
@@ -841,6 +837,29 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         return -1;
+    }
+
+    /**
+     * Returns the rectangle that a storage slot occupies even if the slot is not visible.
+     * Use {@link ContainerScreenTerminalStorage#getStorageSlotIndexAtPosition(double, double)} to get a currently visible slot.
+     * @param slotIndex
+     * @return {@link Rect2i} of the slot.
+     */
+    public Rect2i getStorageSlotRect(int slotIndex) {
+        int rowLength = getSlotRowLength();
+        int offset = getSelectedFirstRow() * rowLength;
+        // Skip slots that are not visible due to scroll bar
+        int visibleIndex = slotIndex - offset;
+
+        int xIndex = visibleIndex % rowLength;
+        int yIndex = visibleIndex / rowLength;
+        // +1 because slots have a 1 pixel border
+        int x = getGuiLeftTotal() + getSlotsOffsetX() + xIndex * GuiHelpers.SLOT_SIZE + 1;
+        int y = getGuiTopTotal() + getSlotsOffsetY() + yIndex * GuiHelpers.SLOT_SIZE + 1;
+
+        Rect2i slotRect = new Rect2i(x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
+
+        return slotRect;
     }
 
     protected void drawTabsBackground(PoseStack matrixStack) {
