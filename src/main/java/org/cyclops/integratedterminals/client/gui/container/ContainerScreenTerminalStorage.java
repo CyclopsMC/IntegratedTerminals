@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -839,6 +840,29 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         return -1;
+    }
+
+    /**
+     * Returns the rectangle that a storage slot occupies even if the slot is not visible.
+     * Use {@link ContainerScreenTerminalStorage#getStorageSlotIndexAtPosition(double, double)} to get a currently visible slot.
+     * @param slotIndex
+     * @return {@link Rect2i} of the slot.
+     */
+    public Rect2i getStorageSlotRect(int slotIndex) {
+        int rowLength = getSlotRowLength();
+        int offset = getSelectedFirstRow() * rowLength;
+        // Skip slots that are not visible due to scroll bar
+        int visibleIndex = slotIndex - offset;
+
+        int xIndex = visibleIndex % rowLength;
+        int yIndex = visibleIndex / rowLength;
+        // +1 because slots have a 1 pixel border
+        int x = getGuiLeftTotal() + getSlotsOffsetX() + xIndex * GuiHelpers.SLOT_SIZE + 1;
+        int y = getGuiTopTotal() + getSlotsOffsetY() + yIndex * GuiHelpers.SLOT_SIZE + 1;
+
+        Rect2i slotRect = new Rect2i(x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
+
+        return slotRect;
     }
 
     protected void drawTabsBackground(PoseStack matrixStack) {
