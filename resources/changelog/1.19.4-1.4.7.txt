@@ -1,0 +1,8 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.18.2 or higher.
+
+Changes:
+* Improve quick move stack actions in the storage terminal
+  This allows double-clicking on items to store all of them in the terminal.
+  This also improves support for mods such as MouseTweaks.
+  Closes #18.
