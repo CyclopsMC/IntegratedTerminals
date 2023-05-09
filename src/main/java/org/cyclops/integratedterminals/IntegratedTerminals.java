@@ -6,7 +6,6 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.NewRegistryEvent;
 import org.apache.logging.log4j.Level;
@@ -17,6 +16,7 @@ import org.cyclops.cyclopscore.modcompat.ModCompatLoader;
 import org.cyclops.cyclopscore.proxy.IClientProxy;
 import org.cyclops.cyclopscore.proxy.ICommonProxy;
 import org.cyclops.integrateddynamics.IntegratedDynamics;
+import org.cyclops.integrateddynamics.core.event.IntegratedDynamicsSetupEvent;
 import org.cyclops.integrateddynamics.infobook.OnTheDynamicsOfIntegrationBook;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandlerRegistry;
@@ -64,7 +64,7 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
         getRegistryManager().addRegistry(ITerminalStorageLocationRegistry.class, new TerminalStorageLocationRegistry());
 
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onRegistriesCreate);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::afterSetup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onSetup);
         TerminalStorageTabs.load();
         TerminalStorageTabIngredientCraftingHandlers.load();
         TerminalStorageLocations.load();
@@ -88,7 +88,7 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
         super.setup(event);
     }
 
-    protected void afterSetup(FMLLoadCompleteEvent event) {
+    protected void onSetup(IntegratedDynamicsSetupEvent event) {
         // Initialize info book
         IntegratedDynamics._instance.getRegistryManager().getRegistry(IInfoBookRegistry.class)
                 .registerSection(this,
