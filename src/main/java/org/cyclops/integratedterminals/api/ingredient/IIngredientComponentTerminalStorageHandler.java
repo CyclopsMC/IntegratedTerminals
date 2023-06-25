@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
@@ -41,7 +41,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
 
     /**
      * Draw the given instance in the given gui.
-     * @param matrixStack The matrix stack.
+     * @param guiGraphics The matrix stack.
      * @param instance An instance.
      * @param maxQuantity The maximum allowed quantity of the given instance.
      * @param label An optional label that should be rendered instead of the quantity.
@@ -55,7 +55,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param additionalTooltipLines The additional tooltip lines to add.
      */
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(PoseStack matrixStack, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+    public void drawInstance(GuiGraphics guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines);
 
     /**

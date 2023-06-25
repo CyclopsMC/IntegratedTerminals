@@ -128,7 +128,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     @Override
     public void onUpdate(AbstractContainerMenu container, Player player,
                          Optional<IVariableInventory> variableInventory) {
-        if (this.dirtyInv && !player.level.isClientSide) {
+        if (this.dirtyInv && !player.level().isClientSide) {
             this.dirtyInv = false;
 
             ContainerTerminalStorageBase<?> containerTerminalStorage = (ContainerTerminalStorageBase) container;

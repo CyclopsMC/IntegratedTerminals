@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.slot;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -30,11 +30,11 @@ public class TerminalStorageSlotIngredient<T, M> implements ITerminalStorageSlot
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawGuiContainerLayer(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,
+    public void drawGuiContainerLayer(AbstractContainerScreen gui, GuiGraphics guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer,
                                       float partialTick, int x, int y, int mouseX, int mouseY,
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-        ingredientComponentViewHandler.drawInstance(matrixStack, instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, null);
+        ingredientComponentViewHandler.drawInstance(guiGraphics, instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, null);
     }
 
     public IIngredientComponentTerminalStorageHandler<T, M> getIngredientComponentViewHandler() {

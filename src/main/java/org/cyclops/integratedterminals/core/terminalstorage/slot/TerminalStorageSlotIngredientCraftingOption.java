@@ -1,16 +1,16 @@
 package org.cyclops.integratedterminals.core.terminalstorage.slot;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
+import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
@@ -39,17 +39,17 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawGuiContainerLayer(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,
+    public void drawGuiContainerLayer(AbstractContainerScreen gui, GuiGraphics guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer,
                                       float partialTick, int x, int y, int mouseX, int mouseY,
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getIngredientComponentViewHandler();
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-            viewHandler.drawInstance(matrixStack, getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
-            drawCraftLabel(x, y);
+            viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
+            drawCraftLabel(guiGraphics, x, y);
         } else {
             long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-            getIngredientComponentViewHandler().drawInstance(matrixStack, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, getTooltipLines());
+            getIngredientComponentViewHandler().drawInstance(guiGraphics, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, getTooltipLines());
         }
     }
 
@@ -74,8 +74,8 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         return craftingOption;
     }
 
-    private void drawCraftLabel(int x, int y) {
-        RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new PoseStack(),
+    private void drawCraftLabel(GuiGraphics guiGraphics, int x, int y) {
+        new GuiGraphicsExtended(guiGraphics).drawSlotText(Minecraft.getInstance().font,
                 ChatFormatting.GOLD + L10NHelpers.localize("gui.integratedterminals.terminal_storage.craft"), x, y - 11);
     }
 

@@ -139,16 +139,16 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
 
     public void updateCraftingResult(Player player, AbstractContainerMenu container,
                                      ITerminalStorageTabCommon.IVariableInventory variableInventory) {
-        if (!player.level.isClientSide) {
+        if (!player.level().isClientSide) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            CraftingRecipe recipe = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting, player.level, false).orElse(null);
+            CraftingRecipe recipe = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting, player.level(), false).orElse(null);
 
             if (recipe != null && (recipe.isSpecial()
-                    || !player.level.getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
+                    || !player.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
                     || entityplayermp.getRecipeBook().contains(recipe))) {
                 inventoryCraftResult.setRecipeUsed(recipe);
-                itemstack = recipe.assemble(inventoryCrafting, player.level.registryAccess());
+                itemstack = recipe.assemble(inventoryCrafting, player.level().registryAccess());
             }
 
             inventoryCraftResult.setItem(0, itemstack);

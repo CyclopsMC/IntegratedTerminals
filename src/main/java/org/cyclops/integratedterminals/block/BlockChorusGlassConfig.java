@@ -6,7 +6,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.GlassBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -24,7 +23,7 @@ public class BlockChorusGlassConfig extends BlockConfig {
         super(
                 IntegratedTerminals._instance,
                 "chorus_glass",
-                eConfig -> new GlassBlock(Block.Properties.of(Material.GLASS)
+                eConfig -> new GlassBlock(Block.Properties.of()
                         .strength(0.3F)
                         .sound(SoundType.GLASS)
                         .noOcclusion()) {

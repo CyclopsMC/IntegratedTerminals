@@ -1,19 +1,19 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import com.mojang.blaze3d.platform.Lighting;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -22,7 +22,7 @@ import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
+import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -65,11 +65,10 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(PoseStack matrixStack, ItemStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
+    public void drawInstance(GuiGraphics guiGraphics, ItemStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
-        RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
-        matrixStack.pushPose();
+        GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         Lighting.setupFor3DItems();
@@ -77,10 +76,10 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            Minecraft.getInstance().getItemRenderer().renderAndDecorateItem(matrixStack, instance, x, y);
-            renderItem.renderGuiItemDecorations(matrixStack, Minecraft.getInstance().font, instance, x, y, label);
+            guiGraphics.renderItem(instance, x, y);
+            renderItem.renderItemDecorations(Minecraft.getInstance().font, instance, x, y, label);
         } else {
-            GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
+            GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                 List<Component> lines = instance.getTooltipLines(
                         Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
                                 ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
@@ -92,7 +91,6 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             });
         }
         Lighting.setupForFlatItems();
-        matrixStack.popPose();
     }
 
     @Override

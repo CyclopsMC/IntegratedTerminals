@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -220,11 +220,11 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
         return null;
     }
 
-    public default void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, PoseStack matrixStack, float f, int mouseX, int mouseY) {
+    public default void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
 
     }
 
-    public default void onCommonSlotRender(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer,
+    public default void onCommonSlotRender(AbstractContainerScreen gui, GuiGraphics guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer,
                                            float partialTick, int x, int y, int mouseX, int mouseY,
                                            int slot, ITerminalStorageTabCommon tabCommon) {
 

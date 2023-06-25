@@ -131,7 +131,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         }
 
         // Load gui state
-        if (player.level.isClientSide()) {
+        if (player.level().isClientSide()) {
             TerminalStorageState state = getGuiState();
             setSelectedTab(state.hasTab() ? state.getTab() : getTabsClient().size() > 0
                     ? Iterables.getFirst(getTabsClient().values(), null).getName().toString() : null);
@@ -148,7 +148,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
         // Update player's default state
         putButtonAction(ContainerTerminalStorageBase.BUTTON_SET_DEFAULTS, (s, containerExtended) -> {
-            if (!playerInventory.player.level.isClientSide()) {
+            if (!playerInventory.player.level().isClientSide()) {
                 TerminalStorageState.setPlayerDefault(playerInventory.player, getGuiState());
             }
         });
@@ -211,7 +211,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     }
 
     public void sendGuiStateToServer() {
-        if (player.level.isClientSide()) {
+        if (player.level().isClientSide()) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageChangeGuiState(getGuiState()));
         }
     }
@@ -284,7 +284,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     @Override
     public ItemStack quickMoveStack(Player player, int slotID) {
         // Handle any (modded) client-side quick move controls
-        if(player.getLevel().isClientSide) {
+        if(player.level().isClientSide) {
             Optional<ITerminalStorageTabClient<?>> tabOptional = this.screen.getSelectedClientTab();
             if(tabOptional.isPresent() && !tabOptional.get().isQuickMovePrevented(slotID)) {
                 tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
@@ -312,7 +312,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     public void setSelectedTab(@Nullable String selectedTab) {
         disableSlots(getSelectedTab());
 
-        if (player.level.isClientSide) {
+        if (player.level().isClientSide) {
             ITerminalStorageTabClient previousTab = getTabClient(getSelectedTab());
             if (previousTab != null) {
                 previousTab.onDeselect(getSelectedChannel());

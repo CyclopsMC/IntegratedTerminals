@@ -1,7 +1,8 @@
 package org.cyclops.integratedterminals.inventory;
 
-import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.CraftingContainer;
+import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 
@@ -9,7 +10,7 @@ import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
  * An extended {@link CraftingContainer} that has a {@link IDirtyMarkListener}.
  * @author rubensworks
  */
-public class InventoryCraftingDirtyable extends CraftingContainer {
+public class InventoryCraftingDirtyable extends TransientCraftingContainer {
 
     private final IDirtyMarkListener dirtyMarkListener;
 

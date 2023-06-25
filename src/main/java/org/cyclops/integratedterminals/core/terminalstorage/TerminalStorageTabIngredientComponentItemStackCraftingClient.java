@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -113,20 +113,20 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, PoseStack matrixStack, float f, int mouseX, int mouseY) {
-        super.onTabBackgroundRender(screen, matrixStack, f, mouseX, mouseY);
+    public void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
+        super.onTabBackgroundRender(screen, guiGraphics, f, mouseX, mouseY);
 
         // Render crafting grid
-        screen.blit(matrixStack, screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68);
+        guiGraphics.blit(screen.getGuiTexture(), screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68);
     }
 
     @Override
-    public void onCommonSlotRender(AbstractContainerScreen gui, PoseStack matrixStack, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
+    public void onCommonSlotRender(AbstractContainerScreen gui, GuiGraphics guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         // Delegate to regular itemstack tab
         String name = ingredientComponent.getName().toString();
         ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);
         tabCommon = container.getTabCommon(name);
-        tabClient.onCommonSlotRender(gui, matrixStack, layer, partialTick, x, y, mouseX, mouseY, slot, tabCommon);
+        tabClient.onCommonSlotRender(gui, guiGraphics, layer, partialTick, x, y, mouseX, mouseY, slot, tabCommon);
     }
 
     @Override

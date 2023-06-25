@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
@@ -28,8 +28,6 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientO
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
-
-import net.minecraft.client.gui.components.Button.OnPress;
 
 /**
  * A gui for setting the amount for a given crafting option.
@@ -147,11 +145,11 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
                 new TerminalStorageIngredientOpenCraftingPlanGuiPacket(craftingOptionData));
     }
 
-    protected <T, M> void drawInstance(PoseStack matrixStack, IngredientComponent<T, M> ingredientComponent, T instance, int x, int y, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    protected <T, M> void drawInstance(GuiGraphics guiGraphics, IngredientComponent<T, M> ingredientComponent, T instance, int x, int y, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         long quantity = ingredientComponent.getMatcher().getQuantity(instance) * getAmount();
         ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
                 .orElseThrow(() -> new IllegalStateException("Could not find ingredient terminal storage handler"))
-                .drawInstance(matrixStack, ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null);
+                .drawInstance(guiGraphics, ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null);
     }
 
     private int getAmount() {
@@ -166,29 +164,29 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         this.numberField.setValue(Integer.toString(this.numberField.validateNumber(amount)));
     }
 
-    protected void drawOutputSlots(PoseStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
+    protected void drawOutputSlots(GuiGraphics guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
         for (IPrototypedIngredient output : this.outputs.subList(firstRow, Math.min(this.outputs.size(), firstRow + scrollBar.getVisibleRows()))) {
-            drawInstance(matrixStack, output.getComponent(), output.getPrototype(), x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
+            drawInstance(guiGraphics, output.getComponent(), output.getPrototype(), x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
             offsetY += GuiHelpers.SLOT_SIZE;
         }
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-        numberField.render(matrixStack, mouseX - leftPos, mouseY - topPos, partialTicks);
-        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+        numberField.render(guiGraphics, mouseX - leftPos, mouseY - topPos, partialTicks);
+        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
 
         RenderHelpers.bindTexture(this.texture);
-        drawOutputSlots(matrixStack, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
+        drawOutputSlots(guiGraphics, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
 
-        drawOutputSlots(matrixStack, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
+        drawOutputSlots(guiGraphics, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
     }
 
     @Override
@@ -210,14 +208,14 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         }
 
         @Override
-        protected void drawButtonInner(PoseStack matrixStack, int i, int j) {
+        protected void drawButtonInner(GuiGraphics guiGraphics, int i, int j) {
             int color = 14737632;
             if (!this.active) {
                 color = 10526880;
             } else if (this.isHovered) {
                 color = 16777120;
             }
-            this.drawCenteredString(matrixStack, minecraft.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
+            guiGraphics.drawCenteredString(minecraft.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
         }
 
         public int getDiff() {

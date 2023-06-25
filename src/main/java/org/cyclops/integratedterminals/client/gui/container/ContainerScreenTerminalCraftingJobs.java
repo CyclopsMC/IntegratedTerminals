@@ -1,12 +1,13 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
@@ -82,22 +83,22 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(matrixStack, partialTicks, mouseX, mouseY);
-        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
         RenderHelpers.bindTexture(this.texture);
-        drawCraftingPlans(matrixStack, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
+        drawCraftingPlans(guiGraphics, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
 
         // Draw plan label
-        drawString(matrixStack, Minecraft.getInstance().font,
+        guiGraphics.drawString(Minecraft.getInstance().font,
                 L10NHelpers.localize("parttype.integratedterminals.terminal_crafting_job"),
                 leftPos + 8, topPos + 5, 16777215);
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
-        drawCraftingPlans(matrixStack, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
+        drawCraftingPlans(guiGraphics, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
     }
 
     protected List<HandlerWrappedTerminalCraftingPlan> getVisiblePlans() {
@@ -105,15 +106,15 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                 .subList(firstRow, Math.min(this.getMenu().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
     }
 
-    protected void drawCraftingPlans(PoseStack matrixStack, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
+    protected void drawCraftingPlans(GuiGraphics guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
         for (HandlerWrappedTerminalCraftingPlan craftingPlan : getVisiblePlans()) {
-            drawCraftingPlan(matrixStack, craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
+            drawCraftingPlan(guiGraphics, craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
             offsetY += GuiHelpers.SLOT_SIZE;
         }
     }
 
-    protected void drawCraftingPlan(PoseStack matrixStack, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
+    protected void drawCraftingPlan(GuiGraphics guiGraphics, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
                                     ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int xOriginal = x;
         ITerminalCraftingPlan<?> plan = craftingPlan.getCraftingPlan();
@@ -121,7 +122,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         // Draw background color if hovering
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND
                 && RenderHelpers.isPointInRegion(x - leftPos, y - topPos, LINE_WIDTH, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
-            fill(matrixStack, x + 1, y + 1, x + LINE_WIDTH + 1, y + GuiHelpers.SLOT_SIZE, -2130706433);
+            guiGraphics.fill(x + 1, y + 1, x + LINE_WIDTH + 1, y + GuiHelpers.SLOT_SIZE, -2130706433);
         }
 
 
@@ -132,7 +133,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
             int finalX = x;
             ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
-                    .ifPresent(h -> h.drawInstance(matrixStack, output.getPrototype(), quantity,
+                    .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity,
                             GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null));
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
@@ -141,21 +142,21 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             String statusString = L10NHelpers.localize("gui.integratedterminals.craftingplan.status",
                     L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
 
             int dependencies = getDependencies(plan);
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
 
             if (plan.getChannel() != -1) {
                 String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", plan.getChannel());
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, 16777215);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
 
             long tickDuration = plan.getTickDuration();
             if (tickDuration >= 0) {
                 String durationString = GuiCraftingPlan.getDurationString(tickDuration);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
         }
     }

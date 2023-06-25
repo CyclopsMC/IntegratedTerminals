@@ -1,27 +1,27 @@
 package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.platform.GlStateManager;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.components.AbstractWidget;
 import com.mojang.blaze3d.platform.Lighting;
-import net.minecraft.world.item.ItemStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
-import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
+import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.client.gui.image.Image;
 import org.cyclops.cyclopscore.client.gui.image.Images;
@@ -49,9 +49,9 @@ import java.util.stream.Collectors;
  * A gui component for visualizing {@link CraftingOptionGuiData}.
  *
  * The using gui must call the following methods from its respective method:
- * * {@link #render(PoseStack, int, int, float)}}
- * * {@link #drawGuiContainerBackgroundLayer(PoseStack, float, int, int)}
- * * {@link #drawGuiContainerForegroundLayer(PoseStack, int, int)}
+ * * {@link #render(GuiGraphics, int, int, float)}
+ * * {@link #drawGuiContainerBackgroundLayer(GuiGraphics, float, int, int)}
+ * * {@link #drawGuiContainerForegroundLayer(GuiGraphics, int, int)}
  * * {@link #mouseScrolled(double, double, double)}}
  * * {@link #mouseDragged(double, double, int, double, double)}}
  *
@@ -138,12 +138,12 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     @Override
-    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 
     }
 
     @Override
-    public void renderWidget(PoseStack p_268228_, int p_268034_, int p_268009_, float p_268085_) {
+    public void renderWidget(GuiGraphics guiGraphics, int p_268034_, int p_268009_, float p_268085_) {
 
     }
 
@@ -155,10 +155,10 @@ public class GuiCraftingPlan extends AbstractWidget {
         return element.getIndent() * 8;
     }
 
-    public void drawGuiContainerLayer(PoseStack matrixStack, int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    public void drawGuiContainerLayer(GuiGraphics guiGraphics, int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
-            drawElement(matrixStack, element,  getAbsoluteElementIndent(element), guiLeft + getX(), guiTop + getY() + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
+            drawElement(guiGraphics, element,  getAbsoluteElementIndent(element), guiLeft + getX(), guiTop + getY() + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
             offsetY += ELEMENT_HEIGHT_TOTAL;
         }
     }
@@ -167,10 +167,10 @@ public class GuiCraftingPlan extends AbstractWidget {
         return (int) Minecraft.getInstance().level.getGameTime() / TICK_DELAY;
     }
 
-    private void drawElement(PoseStack matrixStack, Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    private void drawElement(GuiGraphics guiGraphics, Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw background
-            fill(matrixStack, x, y, x + width, y + height + 1, element.getColor());
+            guiGraphics.fill(x, y, x + width, y + height + 1, element.getColor());
         }
 
         int xOriginal = x;
@@ -179,7 +179,7 @@ public class GuiCraftingPlan extends AbstractWidget {
         // Draw dropdown arrow
         if (!element.getChildren().isEmpty() && layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             Image image = element.getChildren().get(0).isEnabled() ? Images.ARROW_DOWN : Images.ARROW_RIGHT;
-            image.draw(this, matrixStack, x, y);
+            image.draw(guiGraphics, x, y);
         }
         x += 16;
 
@@ -192,7 +192,7 @@ public class GuiCraftingPlan extends AbstractWidget {
             int finalX = x;
             int finalY = y;
             ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
-                    .ifPresent(h -> h.drawInstance(matrixStack, output.getPrototype(), quantity,
+                    .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity,
                             GuiHelpers.quantityToScaledString(quantity), this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
@@ -201,23 +201,23 @@ public class GuiCraftingPlan extends AbstractWidget {
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw counters
             if (element.getStorageQuantity() > 0) {
-                renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CHEST), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                renderItem(guiGraphics, new ItemStack(Blocks.CHEST), x, y, 0.45F);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
             }
             if (element.getCraftQuantity() > 0) {
-                renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
             }
             if (element.getMissingQuantity() > 0) {
-                renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.BARRIER), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                renderItem(guiGraphics, new ItemStack(Blocks.BARRIER), x, y, 0.45F);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
             }
             RenderSystem.setShaderColor(1, 1, 1, 1);
         } else {
             // Draw tooltip over crafting status
-            GuiHelpers.renderTooltipOptional(this.parentGui, matrixStack, x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
+            GuiHelpers.renderTooltipOptional(this.parentGui, guiGraphics.pose(), x, y, 50, GuiHelpers.SLOT_SIZE, mouseX, mouseY, () -> {
                 String unlocalizedName = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH);
                 return Optional.of(Lists.newArrayList(
                         Component.translatable(unlocalizedName),
@@ -227,23 +227,23 @@ public class GuiCraftingPlan extends AbstractWidget {
         }
     }
 
-    protected static void renderItem(PoseStack poseStack, ItemStack itemStack, int x, int y, float scale) {
-        poseStack.pushPose();
-        poseStack.translate(x, y, 0);
-        poseStack.scale(scale, scale, scale);
+    protected static void renderItem(GuiGraphics guiGraphics, ItemStack itemStack, int x, int y, float scale) {
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(x, y, 0);
+        guiGraphics.pose().scale(scale, scale, scale);
         RenderSystem.applyModelViewMatrix();
 
-        RenderItemExtendedSlotCount renderItem = RenderItemExtendedSlotCount.getInstance();
+        GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         Lighting.setupFor3DItems();
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        renderItem.renderAndDecorateItem(poseStack, itemStack, 0, 0);
-        renderItem.renderGuiItemDecorations(poseStack, Minecraft.getInstance().font, itemStack, 0, 0, "");
+        guiGraphics.renderItem(itemStack, 0, 0);
+        renderItem.renderItemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
         Lighting.setupForFlatItems();
 
-        poseStack.popPose();
+        guiGraphics.pose().popPose();
         RenderSystem.applyModelViewMatrix();
     }
 
@@ -253,36 +253,36 @@ public class GuiCraftingPlan extends AbstractWidget {
                 DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
     }
 
-    public void drawGuiContainerBackgroundLayer(PoseStack matrixStack, float partialTicks, int mouseX, int mouseY) {
+    public void drawGuiContainerBackgroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         Font fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
-        drawCenteredString(matrixStack, Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {
             String durationString = getDurationString(tickDuration);
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, 16777215);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw channel
         if (channel != -1) {
             String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, 16777215);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledStringWithShadow(matrixStack, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
-        drawGuiContainerLayer(matrixStack, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
-        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
+        drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
+        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
-    public void drawGuiContainerForegroundLayer(PoseStack matrixStack, int mouseX, int mouseY) {
-        drawGuiContainerLayer(matrixStack, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
+    public void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
     }
 
     @Override

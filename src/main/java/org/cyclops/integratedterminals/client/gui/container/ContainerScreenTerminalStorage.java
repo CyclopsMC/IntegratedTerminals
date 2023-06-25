@@ -7,12 +7,12 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +28,11 @@ import org.cyclops.cyclopscore.client.gui.component.input.WidgetArrowedListField
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetTextFieldExtended;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.client.gui.image.Images;
-import org.cyclops.cyclopscore.helper.*;
+import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.Helpers;
+import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.MinecraftHelpers;
+import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.inventory.container.ContainerExtended;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -261,18 +265,18 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected void renderBg(PoseStack matrixStack, float f, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         //super.renderBg(matrixStack, f, mouseX, mouseY);
         RenderHelpers.bindTexture(texture);
-        this.renderBgTab(matrixStack, f, mouseX, mouseY);
-        this.renderBgPlayerInventory(matrixStack, f, mouseX, mouseY);
+        this.renderBgTab(guiGraphics, f, mouseX, mouseY);
+        this.renderBgPlayerInventory(guiGraphics, f, mouseX, mouseY);
 
-        fieldChannel.render(matrixStack, mouseX, mouseY, f);
-        fieldSearch.render(matrixStack, mouseX, mouseY, f);
-        drawTabsBackground(matrixStack);
-        drawTabContents(matrixStack, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
+        fieldChannel.render(guiGraphics, mouseX, mouseY, f);
+        fieldSearch.render(guiGraphics, mouseX, mouseY, f);
+        drawTabsBackground(guiGraphics);
+        drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
-        scrollBar.render(matrixStack, mouseX, mouseY, f);
+        scrollBar.render(guiGraphics, mouseX, mouseY, f);
 
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         tabOptional.ifPresent(tab -> {
@@ -284,7 +288,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             ITerminalStorageTabCommon.SlotPositionFactors factors = new ITerminalStorageTabCommon.SlotPositionFactors(offsetX, offsetY, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY);
             for (ITerminalButton button : tab.getButtons()) {
                 Button guiButton = button.createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
-                guiButton.render(matrixStack, mouseX, mouseY, f);
+                guiButton.render(guiGraphics, mouseX, mouseY, f);
                 if (button.isInLeftColumn()) {
                     offset += BUTTONS_OFFSET + guiButton.getHeight();
                 }
@@ -295,14 +299,14 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             tabCommonOptional.ifPresent(tabCommon -> {
                 for (Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback> slot : getMenu().getTabSlots(tabName)) {
                     Pair<Integer, Integer> slotPos = slot.getRight().getSlotPosition(factors);
-                    tab.onCommonSlotRender(this, matrixStack, DrawLayer.BACKGROUND,
+                    tab.onCommonSlotRender(this, guiGraphics, DrawLayer.BACKGROUND,
                             0, leftPos + slotPos.getLeft(), topPos + slotPos.getRight(), mouseX, mouseY, slot.getLeft().index, tabCommon);
                 }
             });
         });
     }
 
-    protected void renderBgTab(PoseStack matrixStack, float f, int mouseX, int mouseY) {
+    protected void renderBgTab(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         int tabWidth = getGridXSize() + 29;
         int tabHeight = getGridYSize() + 40;
         int offset = 21;
@@ -313,64 +317,64 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
         // Corners
         //blit(matrixStack, leftPos + offsetX, topPos + offsetY, 0, 0, imageWidth - 2 * offsetX, imageHeight - 2 * offsetY); // top-left
-        blit(matrixStack, leftPos + offset, topPos + offset, cornerSize, 0, cornerSize, cornerSize); // top-left
-        blit(matrixStack, leftPos + offset + tabWidth - cornerSize, topPos + offset, 0, 0, cornerSize, cornerSize); // top-right
-        blit(matrixStack, leftPos + offset + tabWidth - cornerSize, topPos + offset + tabHeight - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize); // bottom-right
-        blit(matrixStack, leftPos + offset, topPos + offset + tabHeight - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize); // bottom-left
+        guiGraphics.blit(this.texture, leftPos + offset, topPos + offset, cornerSize, 0, cornerSize, cornerSize); // top-left
+        guiGraphics.blit(this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset, 0, 0, cornerSize, cornerSize); // top-right
+        guiGraphics.blit(this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset + tabHeight - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize); // bottom-right
+        guiGraphics.blit(this.texture, leftPos + offset, topPos + offset + tabHeight - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize); // bottom-left
 
         // Sides
-        blitRescalable(matrixStack, leftPos + offset + cornerSize, topPos + offset, blitOffset, cornerSize + 4, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // top
-        blitRescalable(matrixStack, leftPos + offset + tabWidth - cornerSize, topPos + offset + cornerSize, blitOffset, 0, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // right
-        blitRescalable(matrixStack, leftPos + offset + cornerSize, topPos + offset + tabHeight - cornerSize, blitOffset, 25, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // bottom
-        blitRescalable(matrixStack, leftPos + offset, topPos + offset + cornerSize, blitOffset, cornerSize, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // left
+        blitRescalable(guiGraphics, this.texture, leftPos + offset + cornerSize, topPos + offset, blitOffset, cornerSize + 4, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // top
+        blitRescalable(guiGraphics, this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset + cornerSize, blitOffset, 0, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // right
+        blitRescalable(guiGraphics, this.texture, leftPos + offset + cornerSize, topPos + offset + tabHeight - cornerSize, blitOffset, 25, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // bottom
+        blitRescalable(guiGraphics, this.texture, leftPos + offset, topPos + offset + cornerSize, blitOffset, cornerSize, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // left
 
         // Background
-        blitRescalable(matrixStack, leftPos + offset + cornerSize, topPos + offset + cornerSize, blitOffset, 0, 3, 1, 1, 256, 256, tabWidth - cornerSize * 2, tabHeight - cornerSize * 2);
+        blitRescalable(guiGraphics, this.texture, leftPos + offset + cornerSize, topPos + offset + cornerSize, blitOffset, 0, 3, 1, 1, 256, 256, tabWidth - cornerSize * 2, tabHeight - cornerSize * 2);
 
         // Slots
         for (int j = 0; j < rows; j++) {
             int renderRows = Math.min(3, rows - j); // Try rendering multiple rows for optimizing efficiency (if possible)
             for (int i = 0; i < columns; i++) {
                 int renderColumns = Math.min(9, columns - i); // Try rendering multiple columns for optimizing efficiency (if possible)
-                blit(matrixStack, leftPos + offset + 10 + i * GuiHelpers.SLOT_SIZE, topPos + offset + 18 + j * GuiHelpers.SLOT_SIZE, 80, 34, GuiHelpers.SLOT_SIZE * renderColumns, GuiHelpers.SLOT_SIZE * renderRows);
+                guiGraphics.blit(this.texture, leftPos + offset + 10 + i * GuiHelpers.SLOT_SIZE, topPos + offset + 18 + j * GuiHelpers.SLOT_SIZE, 80, 34, GuiHelpers.SLOT_SIZE * renderColumns, GuiHelpers.SLOT_SIZE * renderRows);
                 i += renderColumns - 1;
             }
             j += renderRows - 1;
         }
 
         // Scrollbar background
-        blit(matrixStack, leftPos + getGridXSize() + 32, topPos + SCROLL_Y - 1, 20, 12, 14, 1); // top
-        blitRescalable(matrixStack, leftPos + getGridXSize() + 32, topPos + SCROLL_Y, blitOffset, 20, 13, 14, 1, 256, 256, 14, getScrollHeight() - 2); // middle
-        blit(matrixStack, leftPos + getGridXSize() + 32, topPos + SCROLL_Y + getScrollHeight() - 2, 20, 101, 14, 1); // bottom
+        guiGraphics.blit(this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y - 1, 20, 12, 14, 1); // top
+        blitRescalable(guiGraphics, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y, blitOffset, 20, 13, 14, 1, 256, 256, 14, getScrollHeight() - 2); // middle
+        guiGraphics.blit(this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y + getScrollHeight() - 2, 20, 101, 14, 1); // bottom
 
         // Textbox background
-        blit(matrixStack, leftPos + SEARCH_X - 1, topPos + SEARCH_Y - 2, 28, 0, 1, SEARCH_HEIGHT - 8); // left
-        blitRescalable(matrixStack, leftPos + SEARCH_X, topPos + SEARCH_Y - 2, blitOffset, 29, 0, 1, SEARCH_HEIGHT - 8, 256, 256, getSearchWidth(), SEARCH_HEIGHT - 8); // middle
-        blit(matrixStack, leftPos + SEARCH_X + getSearchWidth() - 1, topPos + SEARCH_Y - 2, 117, 0, 1, SEARCH_HEIGHT - 8); // right
+        guiGraphics.blit(this.texture, leftPos + SEARCH_X - 1, topPos + SEARCH_Y - 2, 28, 0, 1, SEARCH_HEIGHT - 8); // left
+        blitRescalable(guiGraphics, this.texture, leftPos + SEARCH_X, topPos + SEARCH_Y - 2, blitOffset, 29, 0, 1, SEARCH_HEIGHT - 8, 256, 256, getSearchWidth(), SEARCH_HEIGHT - 8); // middle
+        guiGraphics.blit(this.texture, leftPos + SEARCH_X + getSearchWidth() - 1, topPos + SEARCH_Y - 2, 117, 0, 1, SEARCH_HEIGHT - 8); // right
 
         // Render tab-specific things
-        getSelectedClientTab().ifPresent(tab -> tab.onTabBackgroundRender(this, matrixStack, f, mouseX, mouseY));
+        getSelectedClientTab().ifPresent(tab -> tab.onTabBackgroundRender(this, guiGraphics, f, mouseX, mouseY));
     }
 
-    public static void blitRescalable(PoseStack p_93144_, int p_93145_, int p_93146_, int p_93147_, float p_93148_, float p_93149_, int p_93150_, int p_93151_, int p_93152_, int p_93153_, int realWidth, int realHeight) {
-        blit(p_93144_, p_93145_, p_93145_ + realWidth, p_93146_, p_93146_ + realHeight, p_93147_, p_93150_, p_93151_, p_93148_, p_93149_, p_93152_, p_93153_);
+    public static void blitRescalable(GuiGraphics guiGraphics, ResourceLocation texture, int p_93145_, int p_93146_, int p_93147_, float p_93148_, float p_93149_, int p_93150_, int p_93151_, int p_93152_, int p_93153_, int realWidth, int realHeight) {
+        guiGraphics.blit(texture, p_93145_, p_93145_ + realWidth, p_93146_, p_93146_ + realHeight, p_93147_, p_93150_, p_93151_, p_93148_, p_93149_, p_93152_, p_93153_);
     }
 
-    protected void renderBgPlayerInventory(PoseStack matrixStack, float f, int mouseX, int mouseY) {
+    protected void renderBgPlayerInventory(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         // Render player inventory
-        blit(matrixStack, leftPos + (getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + getPlayerInventoryOffsetX() + 3, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 216, 93);
+        guiGraphics.blit(this.texture, leftPos + (getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + getPlayerInventoryOffsetX() + 3, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 216, 93);
 
         // Auxiliary slots
-        blit(matrixStack, leftPos + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + getPlayerInventoryOffsetX() + 57, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57);
+        guiGraphics.blit(this.texture, leftPos + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + getPlayerInventoryOffsetX() + 57, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57);
     }
 
     @Override
-    protected void renderLabels(PoseStack matrixStack, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
-        drawTabsForeground(matrixStack, mouseX, mouseY);
-        drawTabContents(matrixStack, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
+        drawTabsForeground(guiGraphics, mouseX, mouseY);
+        drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
-        drawActiveStorageSlotItem(matrixStack, mouseX, mouseY);
+        drawActiveStorageSlotItem(guiGraphics, mouseX, mouseY);
 
         // Draw button tooltips
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
@@ -388,7 +392,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                     List<Component> lines = Lists.newArrayList();
                     lines.add(Component.translatable(button.getTranslationKey()));
                     button.getTooltip(getMinecraft().player, TooltipFlag.Default.NORMAL, lines);
-                    drawTooltip(lines, matrixStack, mouseX - leftPos, mouseY - topPos);
+                    drawTooltip(lines, guiGraphics.pose(), mouseX - leftPos, mouseY - topPos);
                 }
                 if (button.isInLeftColumn()) {
                     offset += BUTTONS_OFFSET + guiButton.getHeight();
@@ -400,7 +404,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             tabCommonOptional.ifPresent(tabCommon -> {
                 for (Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback> slot : getMenu().getTabSlots(tabName)) {
                     Pair<Integer, Integer> slotPos = slot.getRight().getSlotPosition(factors);
-                    tab.onCommonSlotRender(this, matrixStack, DrawLayer.FOREGROUND,
+                    tab.onCommonSlotRender(this, guiGraphics, DrawLayer.FOREGROUND,
                             0, leftPos + slotPos.getLeft(), topPos + slotPos.getRight(), mouseX, mouseY, slot.getLeft().index, tabCommon);
                 }
             });
@@ -412,13 +416,13 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.setdefaults"));
             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.setdefaults.info")
                 .withStyle(ChatFormatting.GRAY));
-            drawTooltip(lines, matrixStack, mouseX - leftPos, mouseY - topPos);
+            drawTooltip(lines, guiGraphics.pose(), mouseX - leftPos, mouseY - topPos);
         }
     }
 
     @Override
-    protected void drawCurrentScreen(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        scrollBar.render(matrixStack, mouseX, mouseY, partialTicks);
+    protected void drawCurrentScreen(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
 
         ResourceLocation oldTexture = this.texture;
         getSelectedClientTab().ifPresent(tab -> {
@@ -428,7 +432,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
-        super.drawCurrentScreen(matrixStack, mouseX, mouseY, partialTicks);
+        super.drawCurrentScreen(guiGraphics, mouseX, mouseY, partialTicks);
 
         // Draw slots
         GlStateManager._disableDepthTest();
@@ -437,7 +441,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             Slot slot = getMenu().slots.get(i1);
 
             if (slot.isActive()) {
-                this.drawSlotOverlay(matrixStack, slot);
+                this.drawSlotOverlay(guiGraphics, slot);
             }
         }
         //this.zLevel = 0F;
@@ -445,7 +449,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         this.texture = oldTexture;
     }
 
-    private void drawSlotOverlay(PoseStack matrixStack, Slot slot) {
+        private void drawSlotOverlay(GuiGraphics guiGraphics, Slot slot) {
         getSelectedClientTab().ifPresent(tab -> {
             if (this.terminalDragSplitting && this.terminalDragSplittingSlots.contains(slot)) {
                 if (tab.isSlotValidForDraggingInto(getMenu().getSelectedChannel(), slot)) {
@@ -456,7 +460,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                     int dragQuantity = tab.computeDraggingQuantity(this.terminalDragSplittingSlots, this.terminalDragMode, slot.getItem(), tab.getActiveSlotQuantity());
                     if (dragQuantity > 0) {
                         String dragString = "+" + GuiHelpers.quantityToScaledString(dragQuantity);
-                        RenderHelpers.drawScaledStringWithShadow(matrixStack, font, dragString, leftPos + slot.x, topPos + slot.y, 0.5F, 16777045);
+                        RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, dragString, leftPos + slot.x, topPos + slot.y, 0.5F, 16777045, true, Font.DisplayMode.NORMAL);
                     }
                 } else {
                     this.terminalDragSplittingSlots.remove(slot);
@@ -862,11 +866,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return slotRect;
     }
 
-    protected void drawTabsBackground(PoseStack matrixStack) {
+    protected void drawTabsBackground(GuiGraphics guiGraphics) {
         int offsetX = TAB_OFFSET_X;
 
         // Draw channels label
-        drawString(matrixStack, font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
+        guiGraphics.drawString(font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getMenu().getTabsClient().values()) {
@@ -879,20 +883,18 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int textureY = selected ? TAB_SELECTED_TEXTURE_Y : TAB_UNSELECTED_TEXTURE_Y;
 
             // Draw background
-            RenderHelpers.bindTexture(this.texture);
-            this.blit(matrixStack, x, y, textureX, textureY, width, height);
+            guiGraphics.blit(this.texture, x, y, textureX, textureY, width, height);
 
             // Draw icon
             ItemStack icon = tab.getIcon();
-            ItemRenderer renderItem = Minecraft.getInstance().getItemRenderer();
-            matrixStack.pushPose();
+            guiGraphics.pose().pushPose();
             GlStateManager._enableBlend();
             GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             Lighting.setupFor3DItems();
             GL11.glEnable(GL11.GL_DEPTH_TEST);
-            renderItem.renderAndDecorateItem(matrixStack, icon, x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
+            guiGraphics.renderItem(icon, x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
             Lighting.setupForFlatItems();
-            matrixStack.popPose();
+            guiGraphics.pose().popPose();
             GL11.glDisable(GL11.GL_DEPTH_TEST);
 
             offsetX += width;
@@ -927,14 +929,14 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return firstRow;
     }
 
-    protected void drawTabContents(PoseStack matrixStack, String tabId, int channel, DrawLayer layer,
+    protected void drawTabContents(GuiGraphics guiGraphics, String tabId, int channel, DrawLayer layer,
                                    float partialTick, int x, int y, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getClientTab(tabId);
         if (optionalTab.isPresent()) {
             ITerminalStorageTabClient<?> tab = optionalTab.get();
             // Draw status string
             if (layer == DrawLayer.BACKGROUND) {
-                drawCenteredString(matrixStack, font, tab.getStatus(channel), leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (GuiHelpers.SLOT_SIZE * tab.getRowColumnProvider().getRowsAndColumns().columns()) / 2,
+                guiGraphics.drawCenteredString(font, tab.getStatus(channel), leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (GuiHelpers.SLOT_SIZE * tab.getRowColumnProvider().getRowsAndColumns().columns()) / 2,
                         y + 2 + getSlotVisibleRows() * GuiHelpers.SLOT_SIZE, 16777215);
                 RenderSystem.setShaderColor(1, 1, 1, 1);
             }
@@ -950,14 +952,13 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             for (ITerminalStorageSlot slot : slots) {
                 if (layer == DrawLayer.BACKGROUND) {
                     // highlight slot on hover
-                    RenderHelpers.bindTexture(this.texture);
                     if (RenderHelpers.isPointInRegion(slotX, slotY, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY)) {
-                        fill(matrixStack, slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
+                        guiGraphics.fill(slotX, slotY, slotX + GuiHelpers.SLOT_SIZE_INNER, slotY + GuiHelpers.SLOT_SIZE_INNER, -2130706433);
                     }
                 }
 
                 //this.zLevel = 200F;
-                slot.drawGuiContainerLayer(this, matrixStack, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
+                slot.drawGuiContainerLayer(this, guiGraphics, layer, partialTick, slotX, slotY, mouseX, mouseY, tab, channel, null);
                 //this.zLevel = 0F;
 
                 if (++slotI >= rowLength) {
@@ -970,12 +971,12 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         } else {
             RenderSystem.setShaderColor(0.3F, 0.3F, 0.3F, 0.3F);
-            fill(matrixStack, x - 1, y - 1, x - 1 + GuiHelpers.SLOT_SIZE * getSlotRowLength(), y - 1 + GuiHelpers.SLOT_SIZE * getSlotVisibleRows(), Helpers.RGBAToInt(50, 50, 50, 100));
+            guiGraphics.fill(x - 1, y - 1, x - 1 + GuiHelpers.SLOT_SIZE * getSlotRowLength(), y - 1 + GuiHelpers.SLOT_SIZE * getSlotVisibleRows(), Helpers.RGBAToInt(50, 50, 50, 100));
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
     }
 
-    private void drawActiveStorageSlotItem(PoseStack matrixStack, int mouseX, int mouseY) {
+    private void drawActiveStorageSlotItem(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getSelectedClientTab();
         optionalTab.ifPresent(tab -> {
             int slotId = tab.getActiveSlotId();
@@ -996,7 +997,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                         quantityString = ChatFormatting.YELLOW + quantityString;
                     }
 
-                    slot.drawGuiContainerLayer(this, matrixStack, DrawLayer.BACKGROUND,
+                    slot.drawGuiContainerLayer(this, guiGraphics, DrawLayer.BACKGROUND,
                             0, mouseX - this.leftPos - GuiHelpers.SLOT_SIZE_INNER / 4,
                             mouseY - this.topPos - GuiHelpers.SLOT_SIZE_INNER / 4, mouseX, mouseY, tab, getMenu().getSelectedChannel(), quantityString);
                 }
@@ -1030,13 +1031,13 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return -1;
     }
 
-    protected void drawTabsForeground(PoseStack poseStack, int mouseX, int mouseY) {
+    protected void drawTabsForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         if (mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
                 && mouseX > getGuiLeft() + TAB_OFFSET_X
                 && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
             int tabIndex = (mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH;
             getTabByIndex(tabIndex)
-                    .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), poseStack, mouseX - getGuiLeft(), mouseY - getGuiTop()));
+                    .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), guiGraphics.pose(), mouseX - getGuiLeft(), mouseY - getGuiTop()));
         }
     }
 

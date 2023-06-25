@@ -42,7 +42,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
         this.craftingOptionGuiData = craftingOptionGuiData;
         this.craftingPlanNotifierId = getNextValueId();
-        this.world = playerInventory.player.level;
+        this.world = playerInventory.player.level();
 
         putButtonAction(BUTTON_START, (buttonId, container) -> startCraftingJob());
     }
@@ -62,7 +62,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         super.broadcastChanges();
 
         // Calculate crafting plan on server
-        if (!player.level.isClientSide && !calculatedCraftingPlan) {
+        if (!player.level().isClientSide && !calculatedCraftingPlan) {
             this.calculatedCraftingPlan = true;
             updateCraftingPlan();
         }

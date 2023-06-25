@@ -2,8 +2,8 @@ package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -17,10 +17,9 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.cyclopscore.client.gui.RenderItemExtendedSlotCount;
+import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -62,7 +61,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void drawInstance(PoseStack matrixStack, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
+    public void drawInstance(GuiGraphics guiGraphics, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
         if (instance > 0) {
@@ -70,8 +69,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
                 // Draw background
                 Lighting.setupForFlatItems();
-                RenderHelpers.bindTexture(Images.ICONS);
-                gui.blit(matrixStack, x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
+                guiGraphics.blit(Images.ICONS, x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
 
                 // Draw progress
                 int progressScaled;
@@ -83,15 +81,16 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                     progressScaled = (int) (long) (instance >> 16);
                     progressMaxScaled = (int) (maxQuantity >> 16);
                 }
-                GuiHelpers.renderProgressBar(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
+                GuiHelpers.renderProgressBar(guiGraphics, Images.ICONS, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         16, 240, GuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
 
                 // Draw amount
-                RenderItemExtendedSlotCount.getInstance().drawSlotText(Minecraft.getInstance().font, new PoseStack(), label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
+                GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
+                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
 
                 Lighting.setupFor3DItems();
             } else {
-                GuiHelpers.renderTooltip(gui, matrixStack, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
+                GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> {
                             List<Component> lines = Lists.newArrayList();
                             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.energy"));
