@@ -1,0 +1,9 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.17.0 or higher.
+
+Fixes:
+* Fix specific items not being extractable from terminals
+  This could occur for items that mutate their NBT tags
+  during client-side rendering or tooltip creation.
+  Closes #106
+
