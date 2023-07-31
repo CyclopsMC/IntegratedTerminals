@@ -68,6 +68,12 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     public void drawInstance(GuiGraphics guiGraphics, ItemStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
+        // Make a copy of the item to make sure that any changes in the NBT tag that the mod may make during rendering
+        // does not propagate into our client-side index. Otherwise, the client may think it has different items than
+        // the server, which will cause these items not to be extractable by the client from the terminal.
+        // See https://github.com/CyclopsMC/IntegratedTerminals/issues/106
+        final ItemStack instanceCopy = instance.copy();
+
         GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
         GlStateManager._enableBlend();
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -76,17 +82,17 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         GlStateManager._enableDepthTest();
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            guiGraphics.renderItem(instance, x, y);
-            renderItem.renderItemDecorations(Minecraft.getInstance().font, instance, x, y, label);
+            guiGraphics.renderItem(instanceCopy, x, y);
+            renderItem.renderItemDecorations(Minecraft.getInstance().font, instanceCopy, x, y, label);
         } else {
             GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
-                List<Component> lines = instance.getTooltipLines(
+                List<Component> lines = instanceCopy.getTooltipLines(
                         Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
                                 ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
                 if (additionalTooltipLines != null) {
                     lines.addAll(additionalTooltipLines);
                 }
-                addQuantityTooltip(lines, instance);
+                addQuantityTooltip(lines, instanceCopy);
                 return lines;
             });
         }

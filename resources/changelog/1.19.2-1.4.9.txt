@@ -1,0 +1,15 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.18.2 or higher.
+
+Changes:
+* Improve quick move stack actions in the storage terminal
+  This allows double-clicking on items to store all of them in the terminal.
+  This also improves support for mods such as MouseTweaks.
+  Closes #18.
+
+Fixes:
+* Fix specific items not being extractable from terminals
+  This could occur for items that mutate their NBT tags
+  during client-side rendering or tooltip creation.
+  Closes #106
+
