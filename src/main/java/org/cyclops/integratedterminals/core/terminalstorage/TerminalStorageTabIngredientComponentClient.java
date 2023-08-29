@@ -34,8 +34,9 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.helper.StringHelpers;
-import org.cyclops.cyclopscore.ingredient.collection.IIngredientListMutable;
+import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
+import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
@@ -390,11 +391,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Apply diff
         List<InstanceWithMetadata<T>> rawPersistedIngredients = getRawUnfilteredIngredientsView(channel);
-        IIngredientListMutable<T, M> persistedIngredients = new IngredientArrayList<>(ingredientComponent,
-                rawPersistedIngredients
+        IIngredientCollapsedCollectionMutable<T, M> persistedIngredients = new IngredientCollectionPrototypeMap<>(ingredientComponent);
+        rawPersistedIngredients
                 .stream()
                 .map(InstanceWithMetadata::getInstance)
-                .collect(Collectors.toList()));
+                .forEach(persistedIngredients::add);
         IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
                 changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
                 changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
