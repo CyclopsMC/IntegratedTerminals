@@ -20,7 +20,7 @@ public class GeneralConfig extends DummyConfig {
     public static boolean versionChecker = true;
 
     @ConfigurableProperty(category = "core", comment = "The maximum number of terminal storage instances that can be sent in a single packet. Reduce this when you have packet overflows.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
-    public static int terminalStoragePacketMaxInstances = 1024;
+    public static int terminalStoragePacketMaxInstances = 512;
     @ConfigurableProperty(category = "core", comment = "The maximum number of terminal storage crafting recipes that can be sent in a single packet. Reduce this when you have packet overflows.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static int terminalStoragePacketMaxRecipes = 128;
 
