@@ -216,7 +216,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         super.containerTick();
         if (!initialized && getSelectedClientTab().isPresent()) {
             initialized = true;
-            fieldSearch.setValue(getSelectedClientTab().get().getInstanceFilter(getMenu().getSelectedChannel()));
+            String filter = getSelectedClientTab().get().getInstanceFilter(getMenu().getSelectedChannel());
+            if (filter != null && !"".equals(filter)) {
+                fieldSearch.setValue(filter);
+                getSelectedClientTab().get().setInstanceFilter(getMenu().getSelectedChannel(), filter); // Forces event to be sent
+            }
         }
         fieldSearch.tick();
     }
