@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage.event;
 
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.bus.api.Event;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;

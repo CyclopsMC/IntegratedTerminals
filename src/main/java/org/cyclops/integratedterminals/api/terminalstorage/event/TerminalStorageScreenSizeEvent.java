@@ -2,8 +2,8 @@ package org.cyclops.integratedterminals.api.terminalstorage.event;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.eventbus.api.Event;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.bus.api.Event;
 import org.apache.commons.lang3.tuple.Pair;
 
 /**
@@ -39,7 +39,7 @@ public class TerminalStorageScreenSizeEvent extends Event {
     public static Pair<Integer, Integer> getWidthHeight() {
         Screen screen = Minecraft.getInstance().screen;
         TerminalStorageScreenSizeEvent event = new TerminalStorageScreenSizeEvent(screen.width, screen.height);
-        MinecraftForge.EVENT_BUS.post(event);
+        NeoForge.EVENT_BUS.post(event);
         return Pair.of(event.getWidth(), event.getHeight());
     }
 }

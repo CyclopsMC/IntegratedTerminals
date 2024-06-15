@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameRules;
 import org.apache.commons.lang3.tuple.Pair;
@@ -142,13 +143,13 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.level().isClientSide) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            CraftingRecipe recipe = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting, player.level(), false).orElse(null);
+            RecipeHolder<CraftingRecipe> recipeHolder = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting, player.level(), false).orElse(null);
 
-            if (recipe != null && (recipe.isSpecial()
+            if (recipeHolder != null && (recipeHolder.value().isSpecial()
                     || !player.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
-                    || entityplayermp.getRecipeBook().contains(recipe))) {
-                inventoryCraftResult.setRecipeUsed(recipe);
-                itemstack = recipe.assemble(inventoryCrafting, player.level().registryAccess());
+                    || entityplayermp.getRecipeBook().contains(recipeHolder))) {
+                inventoryCraftResult.setRecipeUsed(recipeHolder);
+                itemstack = recipeHolder.value().assemble(inventoryCrafting, player.level().registryAccess());
             }
 
             inventoryCraftResult.setItem(0, itemstack);

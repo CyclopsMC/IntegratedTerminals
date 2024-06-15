@@ -17,13 +17,10 @@
     "criteria_0": {
       "trigger": "integrateddynamics:part_variable_driven",
       "conditions": {
-        "parttype": "integratedterminals:terminal_storage",
+        "part_type": "integratedterminals:terminal_storage",
         "variable": {
-          "type": "integrateddynamics:valuetype",
-          "valuetype": "integrateddynamics:operator",
-          "value": {
-            "operator": "integrateddynamics:itemstack_enchantable"
-          }
+          "type": "operator",
+          "operator": "integrateddynamics:itemstack_enchantable"
         }
       }
     }

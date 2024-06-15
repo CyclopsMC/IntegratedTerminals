@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.Direction;
@@ -11,6 +12,7 @@ import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.part.PartTypes;
 
 /**
@@ -20,16 +22,19 @@ import org.cyclops.integratedterminals.part.PartTypes;
  */
 public class OpenCraftingJobsGuiPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "open_crafting_jobs_gui");
+
     @CodecField
     private BlockPos pos;
     @CodecField
     private Direction side;
 
     public OpenCraftingJobsGuiPacket() {
-
+        super(ID);
     }
 
     public OpenCraftingJobsGuiPacket(BlockPos pos, Direction side) {
+        super(ID);
         this.pos = pos;
         this.side = side;
     }

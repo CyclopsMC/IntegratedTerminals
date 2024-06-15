@@ -10,6 +10,7 @@ import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
@@ -20,6 +21,8 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
  *
  */
 public class CancelCraftingJobPacket extends PacketCodec {
+
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "cancel_crafting_job");
 
     @CodecField
     private BlockPos pos;
@@ -33,10 +36,11 @@ public class CancelCraftingJobPacket extends PacketCodec {
     private CompoundTag craftingJobId;
 
     public CancelCraftingJobPacket() {
-
+        super(ID);
     }
 
     public CancelCraftingJobPacket(CraftingJobGuiData craftingPlanGuiData) {
+        super(ID);
         this.pos = craftingPlanGuiData.getPos();
         this.side = craftingPlanGuiData.getSide();
         this.channel = craftingPlanGuiData.getChannel();

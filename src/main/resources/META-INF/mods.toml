@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[47,)"
+loaderVersion="[2,)"
 issueTrackerURL="https://github.com/CyclopsMC/IntegratedTerminals/issues"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/integrated-terminals"
 license="MIT"
@@ -13,33 +13,35 @@ updateJSONURL="https://raw.githubusercontent.com/CyclopsMC/Versions/master/forge
 description='''
 Terminals for managing and overviewing Integrated Dynamics networks.
 '''
+[[accessTransformers]]
+    file="META-INF/accesstransformer.cfg"
 [[dependencies.integratedterminals]]
     modId="cyclopscore"
-    mandatory=true
-    versionRange="[1.18.4,)"
+    type="required"
+    versionRange="[1.19.0,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
     modId="integrateddynamics"
-    mandatory=true
+    type="required"
     versionRange="[1.16.7,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
     modId="commoncapabilities"
-    mandatory=true
+    type="required"
     versionRange="[2.9.0,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
-    modId="forge"
-    mandatory=true
-    versionRange="[47.0.1,)"
+    modId="neoforge"
+    type="required"
+    versionRange="[20.4,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
     modId="minecraft"
-    mandatory=true
-    versionRange="[1.20.1,]"
+    type="required"
+    versionRange="[1.20.4,]"
     ordering="NONE"
     side="BOTH"

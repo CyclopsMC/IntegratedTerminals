@@ -2,12 +2,12 @@ package org.cyclops.integratedterminals;
 
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.NewRegistryEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.registries.NewRegistryEvent;
 import org.apache.logging.log4j.Level;
 import org.cyclops.cyclopscore.config.ConfigHandler;
 import org.cyclops.cyclopscore.infobook.IInfoBookRegistry;
@@ -23,7 +23,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalSto
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocationRegistry;
 import org.cyclops.integratedterminals.block.BlockChorusGlassConfig;
 import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
-import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
@@ -55,16 +54,16 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
 
     public static IntegratedTerminals _instance;
 
-    public IntegratedTerminals() {
-        super(Reference.MOD_ID, (instance) -> _instance = instance);
+    public IntegratedTerminals(IEventBus modEventBus) {
+        super(Reference.MOD_ID, (instance) -> _instance = instance, modEventBus);
 
         // Registries
         getRegistryManager().addRegistry(ITerminalStorageTabRegistry.class, new TerminalStorageTabRegistry());
         getRegistryManager().addRegistry(ITerminalStorageTabIngredientCraftingHandlerRegistry.class, TerminalStorageTabIngredientCraftingHandlerRegistry.getInstance());
         getRegistryManager().addRegistry(ITerminalStorageLocationRegistry.class, new TerminalStorageLocationRegistry());
 
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onRegistriesCreate);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onSetup);
+        modEventBus.addListener(this::onRegistriesCreate);
+        modEventBus.addListener(this::onSetup);
         TerminalStorageTabs.load();
         TerminalStorageTabIngredientCraftingHandlers.load();
         TerminalStorageLocations.load();
@@ -111,8 +110,6 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
         super.onConfigsRegister(configHandler);
 
         configHandler.addConfigurable(new GeneralConfig());
-
-        configHandler.addConfigurable(new IngredientComponentTerminalStorageHandlerConfig());
 
         configHandler.addConfigurable(new BlockMenrilGlassConfig());
         configHandler.addConfigurable(new BlockChorusGlassConfig());

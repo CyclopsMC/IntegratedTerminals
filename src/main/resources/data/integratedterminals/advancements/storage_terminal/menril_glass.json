@@ -20,13 +20,9 @@
     "criteria_0": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
-        "items": [
-          {
-            "items": [
-              "integratedterminals:menril_glass"
-            ]
-          }
-        ]
+        "item": {
+          "item": "integratedterminals:menril_glass"
+        }
       }
     }
   }

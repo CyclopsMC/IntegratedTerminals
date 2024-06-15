@@ -3,7 +3,6 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.util.LazyOptional;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
@@ -15,6 +14,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabSe
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * Terminal storage tab for ingredient components.
@@ -40,7 +40,7 @@ public class TerminalStorageTabIngredientComponent<T, M> implements ITerminalSto
 
     @Override
     public ITerminalStorageTabServer createServerTab(ContainerTerminalStorageBase container, Player player, INetwork network) {
-        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork = NetworkHelpers.getIngredientNetwork(LazyOptional.of(() -> network), ingredientComponent)
+        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork = NetworkHelpers.getIngredientNetwork(Optional.of(network), ingredientComponent)
                 .orElseThrow(() -> new IllegalStateException("Could not find an ingredient network"));
         return new TerminalStorageTabIngredientComponentServer<>(getName(), network, ingredientComponent,
                 ingredientNetwork, (ServerPlayer) player);

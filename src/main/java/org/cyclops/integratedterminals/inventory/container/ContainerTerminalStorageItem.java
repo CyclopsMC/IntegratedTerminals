@@ -7,7 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.LazyOptional;
+import java.util.Optional;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.inventory.InventoryLocationPlayer;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
@@ -43,7 +43,7 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<I
 
     public ContainerTerminalStorageItem(int id, Inventory playerInventory, ItemLocation itemLocation,
                                         Optional<InitTabData> initTabData, TerminalStorageState terminalStorageState) {
-        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_ITEM, id, playerInventory,
+        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_ITEM.get(), id, playerInventory,
                 itemLocation, initTabData, terminalStorageState);
     }
 
@@ -66,7 +66,7 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<I
             return Optional.empty();
         }
         for (PartPos pos : PartTypeConnectorOmniDirectional.LOADED_GROUPS.getPositions(groupId)) {
-            LazyOptional<INetwork> network = NetworkHelpers.getNetwork(pos);
+            Optional<INetwork> network = NetworkHelpers.getNetwork(pos);
             if (network.isPresent()) {
                 return network.map(a -> a);
             }
@@ -85,7 +85,7 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<I
     @Override
     public boolean stillValid(Player playerIn) {
         ItemStack item = getItemStack(player);
-        return item != null && item.getItem() == RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE;
+        return item != null && item.getItem() == RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE.get();
     }
 
     @Override

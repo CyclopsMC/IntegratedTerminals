@@ -218,7 +218,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             initialized = true;
             fieldSearch.setValue(getSelectedClientTab().get().getInstanceFilter(getMenu().getSelectedChannel()));
         }
-        fieldSearch.tick();
     }
 
     @Override
@@ -707,7 +706,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double mouseZ, double delta) {
         // Handle scrolls
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         if (tabOptional.isPresent()) {
@@ -724,7 +723,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         return this.getChildAt(mouseX, mouseY).filter((listener) -> {
-            return listener.mouseScrolled(mouseX, mouseY, delta);
+            return listener.mouseScrolled(mouseX, mouseY, mouseZ, delta);
         }).isPresent();
     }
 

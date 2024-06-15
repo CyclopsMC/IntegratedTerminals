@@ -15,13 +15,9 @@
     "criteria_0": {
       "trigger": "cyclopscore:item_crafted",
       "conditions": {
-        "items": [
-          {
-            "items": [
-              "integratedterminals:part_terminal_storage"
-            ]
-          }
-        ]
+        "item": {
+          "item": "integratedterminals:part_terminal_storage"
+        }
       }
     }
   }

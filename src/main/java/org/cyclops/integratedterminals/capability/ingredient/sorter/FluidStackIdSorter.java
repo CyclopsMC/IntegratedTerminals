@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.capability.ingredient.sorter;
 
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
 /**
@@ -15,7 +15,7 @@ public class FluidStackIdSorter extends IngredientInstanceSorterAdapter<FluidSta
     }
 
     protected String getFluidStackId(FluidStack fluidStack) {
-        return ForgeRegistries.FLUIDS.getKey(fluidStack.getFluid()).toString();
+        return BuiltInRegistries.FLUID.getKey(fluidStack.getFluid()).toString();
     }
 
     @Override

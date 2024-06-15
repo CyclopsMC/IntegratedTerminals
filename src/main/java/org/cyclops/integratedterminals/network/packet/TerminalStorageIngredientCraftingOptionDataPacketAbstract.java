@@ -5,8 +5,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -40,11 +40,12 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     @CodecField
     private CompoundTag craftingPlan;
 
-    public TerminalStorageIngredientCraftingOptionDataPacketAbstract() {
-
+    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(ResourceLocation id) {
+        super(id);
     }
 
-    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(CraftingOptionGuiData<T, M, L> craftingOptionData) {
+    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(ResourceLocation id, CraftingOptionGuiData<T, M, L> craftingOptionData) {
+        super(id);
         this.ingredientComponent = craftingOptionData.getComponent().getName().toString();
         this.location = craftingOptionData.getLocation();
         this.locationInstance = craftingOptionData.getLocationInstance();
@@ -103,7 +104,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
-        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(ingredientComponent));
+        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.get(new ResourceLocation(ingredientComponent));
         if (component == null) {
             throw new IllegalArgumentException("Could not find the ingredient component type " + ingredientComponent);
         }

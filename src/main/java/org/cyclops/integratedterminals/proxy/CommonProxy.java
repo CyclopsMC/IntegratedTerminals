@@ -24,26 +24,25 @@ public class CommonProxy extends CommonProxyComponent {
         super.registerPacketHandlers(packetHandler);
 
         // Register packets.
-        packetHandler.register(TerminalStorageIngredientPartOpenPacket.class);
-        packetHandler.register(TerminalStorageIngredientItemOpenPacket.class);
-        packetHandler.register(TerminalStorageIngredientItemOpenGenericPacket.class);
-        packetHandler.register(TerminalStorageChangeGuiState.class);
-        packetHandler.register(TerminalStorageIngredientChangeEventPacket.class);
-        packetHandler.register(TerminalStorageIngredientCraftingOptionsPacket.class);
-        packetHandler.register(TerminalStorageIngredientMaxQuantityPacket.class);
-        packetHandler.register(TerminalStorageIngredientSlotClickPacket.class);
-        packetHandler.register(TerminalStorageIngredientOpenCraftingPlanGuiPacket.class);
-        packetHandler.register(TerminalStorageIngredientOpenCraftingJobAmountGuiPacket.class);
-        packetHandler.register(TerminalStorageIngredientOpenCraftingPlanGuiPacket.class);
-        packetHandler.register(TerminalStorageIngredientUpdateActiveStorageIngredientPacket.class);
-        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridClear.class);
-        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridBalance.class);
-        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridSetResult.class);
-        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridShiftClickOutput.class);
-        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridSetAutoRefill.class);
-        packetHandler.register(OpenCraftingJobsPlanGuiPacket.class);
-        packetHandler.register(OpenCraftingJobsGuiPacket.class);
-        packetHandler.register(CancelCraftingJobPacket.class);
+        packetHandler.register(TerminalStorageIngredientPartOpenPacket.ID, TerminalStorageIngredientPartOpenPacket::new);
+        packetHandler.register(TerminalStorageIngredientItemOpenPacket.ID, TerminalStorageIngredientItemOpenPacket::new);
+        packetHandler.register(TerminalStorageIngredientItemOpenGenericPacket.ID, TerminalStorageIngredientItemOpenGenericPacket::new);
+        packetHandler.register(TerminalStorageChangeGuiState.ID, TerminalStorageChangeGuiState::new);
+        packetHandler.register(TerminalStorageIngredientChangeEventPacket.ID, TerminalStorageIngredientChangeEventPacket::new);
+        packetHandler.register(TerminalStorageIngredientCraftingOptionsPacket.ID, TerminalStorageIngredientCraftingOptionsPacket::new);
+        packetHandler.register(TerminalStorageIngredientMaxQuantityPacket.ID, TerminalStorageIngredientMaxQuantityPacket::new);
+        packetHandler.register(TerminalStorageIngredientSlotClickPacket.ID, TerminalStorageIngredientSlotClickPacket::new);
+        packetHandler.register(TerminalStorageIngredientOpenCraftingPlanGuiPacket.ID, TerminalStorageIngredientOpenCraftingPlanGuiPacket::new);
+        packetHandler.register(TerminalStorageIngredientOpenCraftingJobAmountGuiPacket.ID, TerminalStorageIngredientOpenCraftingJobAmountGuiPacket::new);
+        packetHandler.register(TerminalStorageIngredientUpdateActiveStorageIngredientPacket.ID, TerminalStorageIngredientUpdateActiveStorageIngredientPacket::new);
+        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridClear.ID, TerminalStorageIngredientItemStackCraftingGridClear::new);
+        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridBalance.ID, TerminalStorageIngredientItemStackCraftingGridBalance::new);
+        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridSetResult.ID, TerminalStorageIngredientItemStackCraftingGridSetResult::new);
+        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridShiftClickOutput.ID, TerminalStorageIngredientItemStackCraftingGridShiftClickOutput::new);
+        packetHandler.register(TerminalStorageIngredientItemStackCraftingGridSetAutoRefill.ID, TerminalStorageIngredientItemStackCraftingGridSetAutoRefill::new);
+        packetHandler.register(OpenCraftingJobsPlanGuiPacket.ID, OpenCraftingJobsPlanGuiPacket::new);
+        packetHandler.register(OpenCraftingJobsGuiPacket.ID, OpenCraftingJobsGuiPacket::new);
+        packetHandler.register(CancelCraftingJobPacket.ID, CancelCraftingJobPacket::new);
 
         IntegratedDynamics.clog("Registered packet handler.");
     }

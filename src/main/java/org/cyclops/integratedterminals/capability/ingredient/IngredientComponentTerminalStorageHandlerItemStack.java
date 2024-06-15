@@ -6,6 +6,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -14,10 +15,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -245,11 +245,9 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                     .matches(".*" + query + ".*");
             case TOOLTIP -> i -> i.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
                     .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
-            case TAG -> i -> ForgeRegistries.ITEMS.tags().getReverseTag(i.getItem())
-                    .map(reverseTag -> reverseTag.getTagKeys()
-                            .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                            .anyMatch(tag -> !ForgeRegistries.ITEMS.tags().getTag(tag).isEmpty()))
-                    .orElse(false);
+            case TAG -> i -> i.getItem().builtInRegistryHolder().tags()
+                    .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                    .anyMatch(tag -> !BuiltInRegistries.ITEM.getTag(tag).isEmpty());
             case DEFAULT -> i -> i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         };
     }

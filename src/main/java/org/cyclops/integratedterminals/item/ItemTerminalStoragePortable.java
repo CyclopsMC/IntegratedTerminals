@@ -79,7 +79,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
     public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
         if (!context.getLevel().isClientSide() && context.getPlayer() != null) {
             BlockState blockState = context.getLevel().getBlockState(context.getClickedPos());
-            if (blockState.getBlock() == RegistryEntries.BLOCK_CABLE) {
+            if (blockState.getBlock() == RegistryEntries.BLOCK_CABLE.get()) {
                 BlockRayTraceResultComponent rayTraceResult = ((BlockCable) blockState.getBlock()).getSelectedShape(blockState, context.getLevel(), context.getClickedPos(), CollisionContext.of(context.getPlayer()))
                         .rayTrace(context.getClickedPos(), context.getPlayer());
                 if(rayTraceResult != null) {

@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.capability.ingredient.sorter;
 
-import net.minecraftforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
 /**

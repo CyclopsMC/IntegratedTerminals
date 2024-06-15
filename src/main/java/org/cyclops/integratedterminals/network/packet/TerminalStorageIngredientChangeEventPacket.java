@@ -1,11 +1,12 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
@@ -13,6 +14,7 @@ import org.cyclops.cyclopscore.ingredient.collection.IngredientCollections;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
@@ -24,6 +26,8 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_change_event");
+
     @CodecField
     private String tabId;
     @CodecField
@@ -34,12 +38,13 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
     private boolean enabled;
 
     public TerminalStorageIngredientChangeEventPacket() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientChangeEventPacket(String tabId,
                                                       IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event,
                                                       boolean enabled) {
+        super(ID);
         this.tabId = tabId;
         IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
         IIngredientCollection<?, ?> instances = event.getInstances();

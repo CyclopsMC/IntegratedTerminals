@@ -1,14 +1,14 @@
 {
   "type": "integrateddynamics:mechanical_drying_basin",
-  "fluid": {
-    "fluid": "integrateddynamics:menril_resin",
-    "amount": 1000
+  "input_fluid": {
+    "FluidName": "integrateddynamics:menril_resin",
+    "Amount": 1000
   },
-  "item": {
+  "input_item": {
     "tag": "forge:glass/colorless"
   },
   "duration": 20,
-  "result": {
+  "output_item": {
     "item": "integratedterminals:menril_glass"
   }
 }

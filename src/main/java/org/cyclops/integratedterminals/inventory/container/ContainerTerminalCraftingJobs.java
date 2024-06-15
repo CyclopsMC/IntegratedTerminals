@@ -8,7 +8,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.common.util.LazyOptional;
+import java.util.Optional;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -34,7 +34,7 @@ import java.util.Optional;
  */
 public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTerminalCraftingJob, PartStateEmpty<PartTypeTerminalCraftingJob>> {
 
-    private final LazyOptional<INetwork> network;
+    private final Optional<INetwork> network;
     private final int valueIdCraftingJobs;
 
     private long lastUpdate;
@@ -47,18 +47,18 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
     public ContainerTerminalCraftingJobs(int id, Inventory playerInventory,
                                          PartTarget target, Optional<IPartContainer> partContainer,
                                          PartTypeTerminalCraftingJob partType) {
-        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS, id, playerInventory, new SimpleContainer(), Optional.of(target), partContainer, partType);
+        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS.get(), id, playerInventory, new SimpleContainer(), Optional.of(target), partContainer, partType);
 
         this.network = getTarget()
                 .map(t -> NetworkHelpers.getNetwork(t.getCenter()))
-                .orElse(LazyOptional.empty());
+                .orElse(Optional.empty());
 
         this.lastUpdate = 0;
         this.craftingJobs = Lists.newArrayList();
         this.valueIdCraftingJobs = getNextValueId();
     }
 
-    public LazyOptional<INetwork> getNetwork() {
+    public Optional<INetwork> getNetwork() {
         return network;
     }
 

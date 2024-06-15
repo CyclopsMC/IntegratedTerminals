@@ -1,19 +1,20 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageItem;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
@@ -28,6 +29,8 @@ import java.util.Optional;
  */
 public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_item_open");
+
     @CodecField
     private ItemLocation itemLocation;
     @CodecField
@@ -36,10 +39,11 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
     private int channel;
 
     public TerminalStorageIngredientItemOpenPacket() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientItemOpenPacket(ItemLocation itemLocation, String tabName, int channel) {
+        super(ID);
         this.itemLocation = itemLocation;
         this.tabName = tabName;
         this.channel = channel;
@@ -81,7 +85,7 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
         };
 
         // Trigger gui opening
-        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
+        player.openMenu(    containerProvider, packetBuffer -> {
             ItemLocation.writeToPacketBuffer(packetBuffer, itemLocation);
 
             packetBuffer.writeBoolean(true);

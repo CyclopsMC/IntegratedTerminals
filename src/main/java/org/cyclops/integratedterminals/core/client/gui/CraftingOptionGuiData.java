@@ -105,7 +105,7 @@ public class CraftingOptionGuiData<T, M, L> {
     }
 
     public static CraftingOptionGuiData readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
-        IngredientComponent component = IngredientComponent.REGISTRY.getValue(new ResourceLocation(packetBuffer.readUtf(32767)));
+        IngredientComponent component = IngredientComponent.REGISTRY.get(new ResourceLocation(packetBuffer.readUtf(32767)));
         String tabName = packetBuffer.readUtf(32767);
         int channel = packetBuffer.readInt();
         int amount = packetBuffer.readInt();

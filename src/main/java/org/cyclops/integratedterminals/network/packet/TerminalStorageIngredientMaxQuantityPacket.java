@@ -4,12 +4,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
@@ -21,6 +22,8 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_max_quantity");
+
     @CodecField
     private String tabId;
     @CodecField
@@ -31,11 +34,12 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
     private int channel;
 
     public TerminalStorageIngredientMaxQuantityPacket() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientMaxQuantityPacket(String tabId, IngredientComponent<?, ?> ingredientComponent,
                                                       long maxQuantity, int channel) {
+        super(ID);
         this.tabId = tabId;
         this.ingredientName = ingredientComponent.getName().toString();
         this.maxQuantity = maxQuantity;
@@ -52,7 +56,7 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec {
     public void actionClient(Level world, Player player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-            IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(new ResourceLocation(this.ingredientName));
+            IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.get(new ResourceLocation(this.ingredientName));
             if (ingredientComponent == null) {
                 throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
             }

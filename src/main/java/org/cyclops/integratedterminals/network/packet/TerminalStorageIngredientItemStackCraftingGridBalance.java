@@ -1,18 +1,20 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.ItemHandlerHelper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
@@ -26,14 +28,17 @@ import java.util.List;
  */
 public class TerminalStorageIngredientItemStackCraftingGridBalance extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_balance");
+
     @CodecField
     private String tabId;
 
     public TerminalStorageIngredientItemStackCraftingGridBalance() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientItemStackCraftingGridBalance(String tabId) {
+        super(ID);
         this.tabId = tabId;
     }
 

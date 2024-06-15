@@ -132,11 +132,11 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double mouseZ, double delta) {
         if (this.guiCraftingPlan != null) {
-            return guiCraftingPlan.mouseScrolled(mouseX, mouseY, delta);
+            return guiCraftingPlan.mouseScrolled(mouseX, mouseY, mouseZ, delta);
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, mouseZ, delta);
     }
 
     @Override

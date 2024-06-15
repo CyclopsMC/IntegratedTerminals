@@ -33,7 +33,7 @@ public class ContainerTerminalStorageCraftingOptionAmountPart extends ContainerT
     public ContainerTerminalStorageCraftingOptionAmountPart(int id, Inventory playerInventory,
                                                             Optional<PartTarget> target, Optional<IPartContainer> partContainer,
                                                             PartTypeTerminalStorage partType, CraftingOptionGuiData craftingOptionGuiData) {
-        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_OPTION_AMOUNT_PART, id, playerInventory,
+        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_OPTION_AMOUNT_PART.get(), id, playerInventory,
                 target, partContainer, partType, craftingOptionGuiData);
     }
 

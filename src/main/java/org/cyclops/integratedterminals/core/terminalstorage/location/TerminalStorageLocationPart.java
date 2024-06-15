@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
@@ -78,7 +77,7 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
         };
 
         // Trigger gui opening
-        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
+        player.openMenu(containerProvider, packetBuffer -> {
             packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);
         });
@@ -104,7 +103,7 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
         };
 
         // Trigger gui opening
-        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
+        player.openMenu(containerProvider, packetBuffer -> {
             packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);
         });

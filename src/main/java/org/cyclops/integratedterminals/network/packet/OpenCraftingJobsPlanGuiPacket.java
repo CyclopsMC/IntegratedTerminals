@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -21,6 +20,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
@@ -38,6 +38,8 @@ import java.util.Optional;
  */
 public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "open_crafting_jobs_plan_gui");
+
     @CodecField
     private BlockPos pos;
     @CodecField
@@ -50,10 +52,11 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
     private CompoundTag craftingJobId;
 
     public OpenCraftingJobsPlanGuiPacket() {
-
+        super(ID);
     }
 
     public OpenCraftingJobsPlanGuiPacket(CraftingJobGuiData craftingPlanGuiData) {
+        super(ID);
         this.pos = craftingPlanGuiData.getPos();
         this.side = craftingPlanGuiData.getSide();
         this.channel = craftingPlanGuiData.getChannel();
@@ -102,7 +105,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
         };
 
         // Trigger gui opening
-        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
+        player.openMenu(containerProvider, packetBuffer -> {
             PacketCodec.write(packetBuffer, partPos);
             packetBuffer.writeUtf(PartTypes.TERMINAL_CRAFTING_JOB.getUniqueName().toString());
             craftingJobGuiData.writeToPacketBuffer(packetBuffer);

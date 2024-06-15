@@ -20,9 +20,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.image.Images;
@@ -39,6 +39,7 @@ import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDi
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
+import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
@@ -50,7 +51,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientLoadButtonsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientSearchFieldUpdateEvent;
-import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonFilterCrafting;
@@ -88,7 +88,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         implements ITerminalStorageTabClient<TerminalStorageSlotIngredient<T, M>> {
 
     static {
-        MinecraftForge.EVENT_BUS.register(TerminalStorageTabIngredientComponentClient.class);
+        NeoForge.EVENT_BUS.register(TerminalStorageTabIngredientComponentClient.class);
     }
 
     private final ResourceLocation name;
@@ -131,7 +131,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                                                        IngredientComponent<?, ?> ingredientComponent) {
         this.name = name;
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
-        this.ingredientComponentViewHandler = this.ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+        this.ingredientComponentViewHandler = this.ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
         .orElseThrow(() -> new IllegalStateException("Could not find an ingredient terminal storage handler"));
         this.icon = ingredientComponentViewHandler.getIcon();
         this.container = container;
@@ -139,7 +139,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         List<ITerminalButton<?, ?, ?>> buttons = Lists.newArrayList();
         loadButtons(buttons);
         TerminalStorageTabClientLoadButtonsEvent event = new TerminalStorageTabClientLoadButtonsEvent(container, this, buttons);
-        MinecraftForge.EVENT_BUS.post(event);
+        NeoForge.EVENT_BUS.post(event);
         this.buttons = event.getButtons();
 
         this.ingredientsViews = new Int2ObjectOpenHashMap<>();
@@ -232,7 +232,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @Override
     public void setInstanceFilter(int channel, String filter) {
         TerminalStorageTabClientSearchFieldUpdateEvent event = new TerminalStorageTabClientSearchFieldUpdateEvent(this, filter);
-        MinecraftForge.EVENT_BUS.post(event);
+        NeoForge.EVENT_BUS.post(event);
         filter = event.getSearchString();
         resetFilteredIngredientsViews(channel);
         container.getGuiState().setSearch(getTabSettingsName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));

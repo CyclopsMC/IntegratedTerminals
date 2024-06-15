@@ -9,7 +9,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkHooks;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
@@ -66,7 +65,7 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
         };
 
         // Trigger gui opening
-        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
+        player.openMenu(containerProvider, packetBuffer -> {
             ItemLocation.writeToPacketBuffer(packetBuffer, location);
 
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);
@@ -92,7 +91,7 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
         };
 
         // Trigger gui opening
-        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
+        player.openMenu(containerProvider, packetBuffer -> {
             ItemLocation.writeToPacketBuffer(packetBuffer, location);
 
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);

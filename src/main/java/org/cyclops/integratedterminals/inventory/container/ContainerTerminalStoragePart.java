@@ -5,7 +5,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.neoforge.common.NeoForge;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.network.INetwork;
@@ -46,7 +46,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     public ContainerTerminalStoragePart(int id, Inventory playerInventory, PartTarget target,
                                         PartTypeTerminalStorage partType, Optional<ContainerTerminalStorageBase.InitTabData> initTabData,
                                         TerminalStorageState terminalStorageState) {
-        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_PART, id, playerInventory,
+        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_PART.get(), id, playerInventory,
                 target, Optional.of(PartHelpers.getPartContainer(target.getCenter().getPos(), target.getCenter().getSide())
                         .orElseThrow(() -> new IllegalStateException("Could not find part container"))), partType,
                 initTabData, terminalStorageState);
@@ -105,7 +105,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     public void onVariableContentsUpdated(INetwork network, IVariable<?> variable) {
         try {
             IPartNetwork partNetwork = NetworkHelpers.getPartNetworkChecked(network);
-            MinecraftForge.EVENT_BUS.post(new PartVariableDrivenVariableContentsUpdatedEvent<>(network,
+            NeoForge.EVENT_BUS.post(new PartVariableDrivenVariableContentsUpdatedEvent<>(network,
                     partNetwork, getPartTarget(),
                     getPartType(), getPartState().get(), player, variable,
                     variable != null ? variable.getValue() : null));

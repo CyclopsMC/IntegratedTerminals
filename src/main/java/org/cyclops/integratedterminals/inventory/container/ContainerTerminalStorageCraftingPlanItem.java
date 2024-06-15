@@ -31,7 +31,7 @@ public class ContainerTerminalStorageCraftingPlanItem extends ContainerTerminalS
 
     public ContainerTerminalStorageCraftingPlanItem(int id, Inventory playerInventory,
                                                     ItemLocation itemLocation, CraftingOptionGuiData craftingOptionGuiData) {
-        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_PLAN_ITEM, id, playerInventory,
+        this(RegistryEntries.CONTAINER_PART_TERMINAL_STORAGE_CRAFTING_PLAN_ITEM.get(), id, playerInventory,
                 itemLocation, craftingOptionGuiData);
     }
 

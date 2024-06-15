@@ -41,7 +41,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
                                              PartTarget target, Optional<IPartContainer> partContainer,
                                              PartTypeTerminalCraftingJob partType,
                                              CraftingJobGuiData craftingJobGuiData) {
-        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS_PLAN, id, playerInventory, new SimpleContainer(), Optional.of(target), partContainer, partType);
+        super(RegistryEntries.CONTAINER_PART_TERMINAL_CRAFTING_JOBS_PLAN.get(), id, playerInventory, new SimpleContainer(), Optional.of(target), partContainer, partType);
 
         this.craftingJobGuiData = craftingJobGuiData;
         this.craftingPlan = Optional.empty();

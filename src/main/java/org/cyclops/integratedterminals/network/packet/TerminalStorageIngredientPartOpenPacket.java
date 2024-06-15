@@ -3,15 +3,15 @@ package org.cyclops.integratedterminals.network.packet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.NetworkHooks;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -21,6 +21,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePart;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
@@ -36,6 +37,8 @@ import java.util.Optional;
  */
 public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_part_open");
+
     @CodecField
     private BlockPos pos;
     @CodecField
@@ -46,10 +49,11 @@ public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
     private int channel;
 
     public TerminalStorageIngredientPartOpenPacket() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientPartOpenPacket(BlockPos pos, Direction side, String tabName, int channel) {
+        super(ID);
         this.pos = pos;
         this.side = side;
         this.tabName = tabName;
@@ -97,7 +101,7 @@ public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
         };
 
         // Trigger gui opening
-        NetworkHooks.openScreen(player, containerProvider, packetBuffer -> {
+        player.openMenu(containerProvider, packetBuffer -> {
             PacketCodec.write(packetBuffer, partPos);
             packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
 

@@ -1,16 +1,18 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.ItemHandlerHelper;
-import net.minecraftforge.items.wrapper.PlayerMainInvWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
@@ -22,6 +24,8 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_shift_click_output");
+
     @CodecField
     private String tabId;
     @CodecField
@@ -30,10 +34,11 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
     private boolean craftOnce;
 
     public TerminalStorageIngredientItemStackCraftingGridShiftClickOutput() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(String tabId, int channel, boolean craftOnce) {
+        super(ID);
         this.tabId = tabId;
         this.channel = channel;
         this.craftOnce = craftOnce;

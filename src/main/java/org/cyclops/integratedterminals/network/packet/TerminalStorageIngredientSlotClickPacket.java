@@ -5,12 +5,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
@@ -21,6 +22,8 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  *
  */
 public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
+
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_slot_click");
 
     @CodecField
     private String tabId;
@@ -42,7 +45,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
     private boolean transferFullSelection;
 
     public TerminalStorageIngredientSlotClickPacket() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientSlotClickPacket(String tabId, IngredientComponent<T, ?> component,
@@ -50,6 +53,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
                                                     int channel, T hoveringStorageInstance,
                                                     int hoveredContainerSlot, long moveQuantityPlayerSlot,
                                                     T activeStorageInstance, boolean transferFullSelection) {
+        super(ID);
         this.tabId = tabId;
         this.clickType = clickType.ordinal();
         this.ingredientName = component.getName().toString();
@@ -94,7 +98,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec {
     }
 
     public IngredientComponent<T, ?> getComponent() {
-        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.getValue(new ResourceLocation(this.ingredientName));
+        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.get(new ResourceLocation(this.ingredientName));
         if (ingredientComponent == null) {
             throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
         }

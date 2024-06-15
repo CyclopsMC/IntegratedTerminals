@@ -3,8 +3,8 @@ package org.cyclops.integratedterminals.block;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.GlassBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.TintedGlassBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -23,7 +23,7 @@ public class BlockChorusGlassConfig extends BlockConfig {
         super(
                 IntegratedTerminals._instance,
                 "chorus_glass",
-                eConfig -> new GlassBlock(Block.Properties.of()
+                eConfig -> new TintedGlassBlock(Block.Properties.of()
                         .strength(0.3F)
                         .sound(SoundType.GLASS)
                         .noOcclusion()) {

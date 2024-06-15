@@ -1,7 +1,9 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 
 /**
@@ -11,12 +13,14 @@ import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
  */
 public class TerminalStorageIngredientOpenCraftingPlanGuiPacket<T, M, L> extends TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M, L> {
 
-    public TerminalStorageIngredientOpenCraftingPlanGuiPacket() {
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_open_crafting_plan_gui");
 
+    public TerminalStorageIngredientOpenCraftingPlanGuiPacket() {
+        super(ID);
     }
 
     public TerminalStorageIngredientOpenCraftingPlanGuiPacket(CraftingOptionGuiData<T, M, L> craftingOptionData) {
-        super(craftingOptionData);
+        super(ID, craftingOptionData);
     }
 
     @Override

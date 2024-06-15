@@ -29,9 +29,9 @@ import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
-import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.lwjgl.opengl.GL11;
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * * {@link #render(GuiGraphics, int, int, float)}
  * * {@link #drawGuiContainerBackgroundLayer(GuiGraphics, float, int, int)}
  * * {@link #drawGuiContainerForegroundLayer(GuiGraphics, int, int)}
- * * {@link #mouseScrolled(double, double, double)}}
+ * * {@link #mouseScrolled(double, double, double, double)}}
  * * {@link #mouseDragged(double, double, int, double, double)}}
  *
  * @author rubensworks
@@ -138,11 +138,6 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-
-    }
-
-    @Override
     public void renderWidget(GuiGraphics guiGraphics, int p_268034_, int p_268009_, float p_268085_) {
 
     }
@@ -191,7 +186,7 @@ public class GuiCraftingPlan extends AbstractWidget {
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
             int finalX = x;
             int finalY = y;
-            ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+            ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity,
                             GuiHelpers.quantityToScaledString(quantity), this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
             x += GuiHelpers.SLOT_SIZE_INNER;
@@ -286,8 +281,8 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scroll) {
-        return scrollBar.mouseScrolled(mouseX, mouseY, scroll);
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return scrollBar.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

@@ -1,13 +1,15 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
@@ -18,14 +20,17 @@ import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
  */
 public class TerminalStorageChangeGuiState extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_change_gui_state");
+
     @CodecField
     private CompoundTag state;
 
     public TerminalStorageChangeGuiState() {
-
+        super(ID);
     }
 
     public TerminalStorageChangeGuiState(TerminalStorageState state) {
+        super(ID);
         this.state = state.getTag();
     }
 

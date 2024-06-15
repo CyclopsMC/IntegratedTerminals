@@ -1,13 +1,15 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
@@ -18,16 +20,19 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientItemStackCraftingGridSetResult extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_set_result");
+
     @CodecField
     private String tabId;
     @CodecField
     private ItemStack itemStack = ItemStack.EMPTY;
 
     public TerminalStorageIngredientItemStackCraftingGridSetResult() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientItemStackCraftingGridSetResult(String tabId, ItemStack itemStack) {
+        super(ID);
         this.tabId = tabId;
         this.itemStack = itemStack;
     }

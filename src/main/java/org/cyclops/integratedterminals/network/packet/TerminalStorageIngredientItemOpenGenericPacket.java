@@ -1,14 +1,16 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
 
@@ -19,14 +21,17 @@ import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
  */
 public class TerminalStorageIngredientItemOpenGenericPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_item_open_generic");
+
     @CodecField
     private ItemLocation itemLocation;
 
     public TerminalStorageIngredientItemOpenGenericPacket() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientItemOpenGenericPacket(ItemLocation itemLocation) {
+        super(ID);
         this.itemLocation = itemLocation;
     }
 
@@ -47,7 +52,7 @@ public class TerminalStorageIngredientItemOpenGenericPacket extends PacketCodec 
     }
 
     public static void openServer(Level world, ItemLocation itemLocation, ServerPlayer player) {
-        ((ItemTerminalStoragePortable) RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE)
+        ((ItemTerminalStoragePortable) RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE.get())
                 .openGuiForItemIndex(world, player, itemLocation);
     }
 

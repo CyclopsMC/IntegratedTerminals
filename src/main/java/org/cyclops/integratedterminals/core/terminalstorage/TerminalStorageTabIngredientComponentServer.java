@@ -18,6 +18,7 @@ import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionHelpers
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffManager;
+import org.cyclops.integrateddynamics.Capabilities;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.operator.IOperator;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
@@ -34,7 +35,6 @@ import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 import org.cyclops.integrateddynamics.core.helper.L10NValues;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
-import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -42,7 +42,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabSe
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
-import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
@@ -92,7 +91,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientComponent = ingredientComponent;
         this.ingredientNetwork = ingredientNetwork;
         this.player = player;
-        this.valueHandler = ingredientComponent.getCapability(Capabilities.INGREDIENTCOMPONENT_VALUEHANDLER)
+        this.valueHandler = ingredientComponent.getCapability(Capabilities.IngredientComponentValueHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("No value handler was found for " + ingredientComponent.getName()));
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
@@ -136,7 +135,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IIngredientPositionsIndex<T, M> channelInstance = this.ingredientNetwork.getChannelIndex(channel);
         onChange(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
                 IIngredientComponentStorageObservable.Change.ADDITION, false,
-                channelInstance));
+                channelInstance, false));
 
         // Grab crafting options
         // We assume that crafting options don't change that often,
@@ -265,11 +264,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
             if (!initialized || diffOut.hasAdditions()) {
                 this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                        IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
+                        IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions(), false));
             }
             if (diffOut.hasDeletions()) {
                 this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                        IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+                        IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions(), false));
             }
 
             // Filter crafting options and re-send to client
@@ -315,7 +314,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 // flush it, and create a new buffer
                 if (buffer.size() == GeneralConfig.terminalStoragePacketMaxInstances) {
                     sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
-                            event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer
+                            event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer, false
                     ));
                     buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
                             GeneralConfig.terminalStoragePacketMaxInstances);
@@ -325,7 +324,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             // Our buffer can contain some remaining instances, make sure to flush them as well.
             if (!buffer.isEmpty()) {
                 sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
-                        event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer
+                        event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer, false
                 ));
             }
         }
@@ -371,7 +370,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     public void handleStorageSlotClick(AbstractContainerMenu container, ServerPlayer player, TerminalClickType clickType,
                                        int channel, T hoveringStorageInstance, int hoveredContainerSlot,
                                        long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection) {
-        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(org.cyclops.integratedterminals.Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find an ingredient terminal storage handler"));
         IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
 

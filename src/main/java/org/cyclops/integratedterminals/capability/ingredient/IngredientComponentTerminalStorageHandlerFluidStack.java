@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Inventory;
@@ -12,13 +13,12 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -101,19 +102,19 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public boolean isInstance(ItemStack itemStack) {
-        return itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).isPresent();
+        return itemStack.getCapability(Capabilities.FluidHandler.ITEM) != null;
     }
 
     @Override
     public FluidStack getInstance(ItemStack itemStack) {
-        return itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+        return Optional.ofNullable(itemStack.getCapability(Capabilities.FluidHandler.ITEM))
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0) : FluidStack.EMPTY)
                 .orElse(FluidStack.EMPTY);
     }
 
     @Override
     public long getMaxQuantity(ItemStack itemStack) {
-        return itemStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+        return Optional.ofNullable(itemStack.getCapability(Capabilities.FluidHandler.ITEM))
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getTankCapacity(0) : 0)
                 .orElse(0);
     }
@@ -139,7 +140,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                                           AbstractContainerMenu container, int containerSlot, FluidStack maxInstance,
                                           @Nullable Player player, boolean transferFullSelection) {
         ItemStack stack = container.getSlot(containerSlot).getItem();
-        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+        return Optional.ofNullable(stack.getCapability(Capabilities.FluidHandler.ITEM))
                 .map(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                     FluidStack moved = FluidStack.EMPTY;
@@ -160,7 +161,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     protected IIngredientComponentStorage<FluidStack, Integer> getFluidStorage(IngredientComponent<FluidStack, Integer> component,
                                                                                IFluidHandlerItem fluidHandler) {
         return component
-                .getStorageWrapperHandler(ForgeCapabilities.FLUID_HANDLER_ITEM)
+                .getStorageWrapperHandler(Capabilities.FluidHandler.ITEM)
                 .wrapComponentStorage(fluidHandler);
     }
 
@@ -168,7 +169,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
                                                       AbstractContainerMenu container, Inventory playerInventory, long moveQuantityPlayerSlot) {
         ItemStack playerStack = container.getCarried();
-        playerStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+        Optional.ofNullable(playerStack.getCapability(Capabilities.FluidHandler.ITEM))
                 .ifPresent(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                     try {
@@ -186,7 +187,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         Slot slot = container.getSlot(containerSlot);
         if (slot.mayPickup(playerInventory.player)) {
             ItemStack toMoveStack = slot.getItem();
-            toMoveStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+            Optional.ofNullable(toMoveStack.getCapability(Capabilities.FluidHandler.ITEM))
                     .ifPresent(fluidHandler -> {
                         IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                         try {
@@ -204,7 +205,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     public long getActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container) {
         ItemStack toMoveStack = container.getCarried();
-        return toMoveStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+        return Optional.ofNullable(toMoveStack.getCapability(Capabilities.FluidHandler.ITEM))
                 .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0).getAmount() : 0)
                 .orElse(0);
     }
@@ -212,7 +213,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantityIn) {
         ItemStack toMoveStack = container.getCarried();
-        toMoveStack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM)
+        Optional.ofNullable(toMoveStack.getCapability(Capabilities.FluidHandler.ITEM))
                 .ifPresent(fluidHandler -> {
                     long quantity = quantityIn;
                     while (quantity > 0) {
@@ -230,14 +231,12 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @OnlyIn(Dist.CLIENT)
     public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         return switch (searchMode) {
-            case MOD -> i -> ForgeRegistries.FLUIDS.getKey(i.getFluid()).getNamespace()
+            case MOD -> i -> BuiltInRegistries.FLUID.getKey(i.getFluid()).getNamespace()
                     .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
             case TOOLTIP -> i -> false; // Fluids have no tooltip
-            case TAG -> i -> ForgeRegistries.FLUIDS.tags().getReverseTag(i.getFluid())
-                    .map(reverseTag -> reverseTag.getTagKeys()
-                            .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                            .anyMatch(tag -> !ForgeRegistries.FLUIDS.tags().getTag(tag).isEmpty()))
-                    .orElse(false);
+            case TAG -> i -> i.getFluid().builtInRegistryHolder().tags()
+                    .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                    .anyMatch(tag -> !BuiltInRegistries.FLUID.getTag(tag).isEmpty());
             case DEFAULT -> i -> i != null && i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         };
     }

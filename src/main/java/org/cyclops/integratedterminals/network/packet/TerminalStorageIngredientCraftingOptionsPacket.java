@@ -4,15 +4,17 @@ import com.google.common.collect.Lists;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
@@ -27,6 +29,8 @@ import java.util.List;
  */
 public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_crafting_options");
+
     @CodecField
     private String tabId;
     @CodecField
@@ -39,7 +43,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
     private boolean firstChannel;
 
     public TerminalStorageIngredientCraftingOptionsPacket() {
-
+        super(ID);
     }
 
     public <T> TerminalStorageIngredientCraftingOptionsPacket(String tabId,
@@ -47,6 +51,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
                                                               List<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
                                                               boolean reset,
                                                               boolean firstChannel) {
+        super(ID);
         this.tabId = tabId;
         this.channel = channel;
         this.data = new CompoundTag();

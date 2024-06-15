@@ -1,12 +1,14 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonItemStackCraftingGridAutoRefill;
@@ -19,17 +21,20 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientItemStackCraftingGridSetAutoRefill extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_set_auto_refill");
+
     @CodecField
     private String tabId;
     @CodecField
     private int autoRefillType;
 
     public TerminalStorageIngredientItemStackCraftingGridSetAutoRefill() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientItemStackCraftingGridSetAutoRefill(String tabId,
                                                                        TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill) {
+        super(ID);
         this.tabId = tabId;
         this.autoRefillType = autoRefill.ordinal();
     }

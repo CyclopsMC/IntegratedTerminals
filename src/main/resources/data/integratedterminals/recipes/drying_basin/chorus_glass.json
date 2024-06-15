@@ -1,14 +1,14 @@
 {
   "type": "integrateddynamics:drying_basin",
-  "fluid": {
-    "fluid": "integrateddynamics:liquid_chorus",
-    "amount": 1000
+  "input_fluid": {
+    "FluidName": "integrateddynamics:liquid_chorus",
+    "Amount": 1000
   },
-  "item": {
+  "input_item": {
     "tag": "forge:glass/colorless"
   },
   "duration": 200,
-  "result": {
+  "output_item": {
     "item": "integratedterminals:chorus_glass"
   }
 }

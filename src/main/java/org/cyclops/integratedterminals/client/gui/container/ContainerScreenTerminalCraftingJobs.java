@@ -17,10 +17,10 @@ import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
-import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
@@ -132,7 +132,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             IngredientComponent<?, ?> ingredientComponent = output.getComponent();
             long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
             int finalX = x;
-            ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+            ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity,
                             GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null));
             x += GuiHelpers.SLOT_SIZE_INNER;

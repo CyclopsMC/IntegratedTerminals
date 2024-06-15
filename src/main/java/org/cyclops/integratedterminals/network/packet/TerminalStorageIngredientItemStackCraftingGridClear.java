@@ -1,14 +1,16 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCraftingCommon;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
@@ -20,6 +22,8 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketCodec {
 
+    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_clear");
+
     @CodecField
     private String tabId;
     @CodecField
@@ -28,10 +32,11 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
     private boolean toStorage;
 
     public TerminalStorageIngredientItemStackCraftingGridClear() {
-
+        super(ID);
     }
 
     public TerminalStorageIngredientItemStackCraftingGridClear(String tabId, int channel, boolean toStorage) {
+        super(ID);
         this.tabId = tabId;
         this.channel = channel;
         this.toStorage = toStorage;

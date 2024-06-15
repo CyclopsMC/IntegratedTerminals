@@ -16,9 +16,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.MinecraftForge;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.NeoForge;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
@@ -114,7 +114,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                 List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> slots = commonTab.loadSlots(this, slotStartIndex, player, getVariableInventory(), ValueDeseralizationContext.of(this.getWorld()));
                 TerminalStorageTabCommonLoadSlotsEvent loadSlotsEvent = new TerminalStorageTabCommonLoadSlotsEvent(
                         commonTab, this, slots);
-                MinecraftForge.EVENT_BUS.post(loadSlotsEvent);
+                NeoForge.EVENT_BUS.post(loadSlotsEvent);
                 slots = loadSlotsEvent.getSlots();
                 this.tabSlots.put(tabId, slots);
                 for (Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback> slot : slots) {
