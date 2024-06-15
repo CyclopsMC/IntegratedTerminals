@@ -200,9 +200,9 @@ runs {
 }
 
 if (build_number.equals("RELEASE"))
-    version = "${project.minecraft_version}-${project.mod_version}"
+    version = "${project.mod_version}"
 else
-    version = "${project.minecraft_version}-${project.mod_version}-${build_number}"
+    version = "${project.mod_version}-${build_number}"
 
 jar {
     archiveClassifier.set('slim')
