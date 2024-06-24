@@ -293,7 +293,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             // Sort
             Comparator<T> sorter = getInstanceSorter();
             if (sorter != null) {
-                ingredientsView.sort(InstanceWithMetadata.createComparator(sorter));
+                try {
+                    ingredientsView.sort(InstanceWithMetadata.createComparator(sorter));
+                } catch (IllegalArgumentException e) {
+                    // We deliberately ignore comparison violations
+                    // If this would cause issues, we'll need to do a deep-copy of all ingredients, which will impact performance
+                    // See https://github.com/CyclopsMC/IntegratedTerminals/issues/119
+                }
             }
 
             filteredIngredientsViews.put(channel, ingredientsView);
