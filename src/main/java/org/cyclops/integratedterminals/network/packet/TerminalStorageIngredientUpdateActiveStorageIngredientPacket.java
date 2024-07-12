@@ -1,9 +1,11 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -20,9 +22,10 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> extends PacketCodec {
+public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> extends PacketCodec<TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T>> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_update_active_storage_ingredient");
+    public static final Type<TerminalStorageIngredientUpdateActiveStorageIngredientPacket<?>> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_update_active_storage_ingredient"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientUpdateActiveStorageIngredientPacket<?>> CODEC = (StreamCodec) getCodec(TerminalStorageIngredientUpdateActiveStorageIngredientPacket::new);
 
     @CodecField
     private String tabId;
@@ -34,13 +37,13 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
     private CompoundTag activeStorageInstanceData;
 
     public TerminalStorageIngredientUpdateActiveStorageIngredientPacket() {
-        super(ID);
+        super((Type) ID);
     }
 
     public TerminalStorageIngredientUpdateActiveStorageIngredientPacket(String tabId,
                                                                         IngredientComponent<T, ?> component,
                                                                         int channel, T activeStorageInstance) {
-        super(ID);
+        super((Type) ID);
         this.tabId = tabId;
         this.ingredientName = component.getName().toString();
         this.channel = channel;
@@ -73,7 +76,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
     }
 
     public IngredientComponent<T, ?> getComponent() {
-        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.get(new ResourceLocation(this.ingredientName));
+        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.get(ResourceLocation.parse(this.ingredientName));
         if (ingredientComponent == null) {
             throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
         }

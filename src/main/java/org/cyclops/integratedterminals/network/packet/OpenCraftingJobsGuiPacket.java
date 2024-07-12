@@ -1,10 +1,12 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.datastructure.DimPos;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -20,9 +22,10 @@ import org.cyclops.integratedterminals.part.PartTypes;
  * @author rubensworks
  *
  */
-public class OpenCraftingJobsGuiPacket extends PacketCodec {
+public class OpenCraftingJobsGuiPacket extends PacketCodec<OpenCraftingJobsGuiPacket> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "open_crafting_jobs_gui");
+    public static final Type<OpenCraftingJobsGuiPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "open_crafting_jobs_gui"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, OpenCraftingJobsGuiPacket> CODEC = getCodec(OpenCraftingJobsGuiPacket::new);
 
     @CodecField
     private BlockPos pos;

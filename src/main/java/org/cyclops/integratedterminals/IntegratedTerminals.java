@@ -24,6 +24,8 @@ import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalSto
 import org.cyclops.integratedterminals.block.BlockChorusGlassConfig;
 import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
+import org.cyclops.integratedterminals.component.DataComponentTerminalStorageInventoriesConfig;
+import org.cyclops.integratedterminals.component.DataComponentTerminalStorageStateConfig;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlerRegistry;
@@ -124,6 +126,9 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
         configHandler.addConfigurable(new ContainerTerminalStorageItemConfig());
         configHandler.addConfigurable(new ContainerTerminalStorageCraftingOptionAmountItemConfig());
         configHandler.addConfigurable(new ContainerTerminalStorageCraftingPlanItemConfig());
+
+        configHandler.addConfigurable(new DataComponentTerminalStorageInventoriesConfig());
+        configHandler.addConfigurable(new DataComponentTerminalStorageStateConfig());
     }
 
     @Override

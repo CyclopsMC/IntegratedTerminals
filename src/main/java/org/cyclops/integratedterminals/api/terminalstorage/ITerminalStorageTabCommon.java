@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -37,8 +38,8 @@ public interface ITerminalStorageTabCommon {
     }
 
     public static interface IVariableInventory {
-        public default void loadNamedInventory(String name, Container inventory) {
-            NonNullList<ItemStack> tabItems = this.getNamedInventory(name);
+        public default void loadNamedInventory(String name, Container inventory, HolderLookup.Provider holderLookupProvider) {
+            NonNullList<ItemStack> tabItems = this.getNamedInventory(name, holderLookupProvider);
             if (tabItems != null) {
                 for (int i = 0; i < tabItems.size(); i++) {
                     inventory.setItem(i, tabItems.get(i));
@@ -46,17 +47,17 @@ public interface ITerminalStorageTabCommon {
             }
         }
 
-        public default void saveNamedInventory(String name, Container inventory) {
+        public default void saveNamedInventory(String name, Container inventory, HolderLookup.Provider holderLookupProvider) {
             NonNullList<ItemStack> latestItems = NonNullList.create();
             for (int i = 0; i < inventory.getContainerSize(); i++) {
                 latestItems.add(inventory.getItem(i));
             }
-            this.setNamedInventory(name, latestItems);
+            this.setNamedInventory(name, latestItems, holderLookupProvider);
         }
 
         @Nullable
-        public NonNullList<ItemStack> getNamedInventory(String name);
-        public void setNamedInventory(String name, NonNullList<ItemStack> inventory);
+        public NonNullList<ItemStack> getNamedInventory(String name, HolderLookup.Provider holderLookupProvider);
+        public void setNamedInventory(String name, NonNullList<ItemStack> inventory, HolderLookup.Provider holderLookupProvider);
     }
 
     public static interface ISlotPositionCallback {

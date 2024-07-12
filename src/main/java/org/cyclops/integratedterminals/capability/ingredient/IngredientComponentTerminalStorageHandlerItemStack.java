@@ -12,12 +12,12 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -87,6 +87,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
         } else {
             GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                 List<Component> lines = instanceCopy.getTooltipLines(
+                        Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()),
                         Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
                                 ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
                 if (additionalTooltipLines != null) {
@@ -171,7 +172,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 break;
             }
             ItemStack playerStack = containerSlot.getItem();
-            if ((playerStack.isEmpty() || ItemHandlerHelper.canItemStacksStack(extracted, playerStack))
+            if ((playerStack.isEmpty() || ItemStack.isSameItemSameComponents(extracted, playerStack))
                     && containerSlot.mayPlace(extracted)) {
                 int newCount = Math.min(playerStack.getCount() + extracted.getCount(), extracted.getMaxStackSize());
                 int inserted = newCount - playerStack.getCount();
@@ -243,7 +244,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             case MOD -> i -> Optional.ofNullable(i.getItem().getCreatorModId(i))
                     .orElse("minecraft").toLowerCase(Locale.ENGLISH)
                     .matches(".*" + query + ".*");
-            case TOOLTIP -> i -> i.getTooltipLines(Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
+            case TOOLTIP -> i -> i.getTooltipLines(Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()), Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
                     .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
             case TAG -> i -> i.getItem().builtInRegistryHolder().tags()
                     .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))

@@ -55,7 +55,7 @@ import java.util.stream.StreamSupport;
 public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         implements ITerminalStorageTabIngredientCraftingHandler<TerminalCraftingOptionRecipeDefinition<?, ?>, Integer> {
 
-    private static final ResourceLocation ID = new ResourceLocation(Reference.MOD_INTEGRATECRAFTING, "crafting_network");
+    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Reference.MOD_INTEGRATECRAFTING, "crafting_network");
 
     protected IRecipeIndex getRecipeIndex(INetwork network, int channel) {
         ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetworkChecked(network);

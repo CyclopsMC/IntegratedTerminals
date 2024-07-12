@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.network.FriendlyByteBuf;
 import net.neoforged.neoforge.common.NeoForge;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
@@ -36,7 +36,7 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     private final Optional<IPartContainer> partContainer;
     private final PartTypeTerminalStorage partType;
 
-    public ContainerTerminalStoragePart(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
+    public ContainerTerminalStoragePart(int id, Inventory playerInventory, RegistryFriendlyByteBuf packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), PartHelpers.readPart(packetBuffer),
                 packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty(),
                 TerminalStorageState.readFromPacketBuffer(packetBuffer));

@@ -1,5 +1,7 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -11,16 +13,17 @@ import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientOpenCraftingPlanGuiPacket<T, M, L> extends TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M, L> {
+public class TerminalStorageIngredientOpenCraftingPlanGuiPacket<T, M, L> extends TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M, L, TerminalStorageIngredientOpenCraftingPlanGuiPacket<T, M, L>> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_open_crafting_plan_gui");
+    public static final Type<TerminalStorageIngredientOpenCraftingPlanGuiPacket<?, ?, ?>> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_open_crafting_plan_gui"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientOpenCraftingPlanGuiPacket<?, ?, ?>> CODEC = (StreamCodec) getCodec(CancelCraftingJobPacket::new);
 
     public TerminalStorageIngredientOpenCraftingPlanGuiPacket() {
-        super(ID);
+        super((Type) ID);
     }
 
     public TerminalStorageIngredientOpenCraftingPlanGuiPacket(CraftingOptionGuiData<T, M, L> craftingOptionData) {
-        super(ID, craftingOptionData);
+        super((Type) ID, craftingOptionData);
     }
 
     @Override

@@ -40,7 +40,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
 
     @Override
     protected ResourceLocation constructGuiTexture() {
-        return new ResourceLocation(Reference.MOD_ID, "textures/gui/crafting_plan.png");
+        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan.png");
     }
 
     @Override

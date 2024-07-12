@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +24,7 @@ public class ContainerTerminalStorageCraftingPlanItem extends ContainerTerminalS
 
     private final ItemLocation itemLocation;
 
-    public ContainerTerminalStorageCraftingPlanItem(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
+    public ContainerTerminalStorageCraftingPlanItem(int id, Inventory playerInventory, RegistryFriendlyByteBuf packetBuffer) {
         this(id, playerInventory, ItemLocation.readFromPacketBuffer(packetBuffer),
                 CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
     }

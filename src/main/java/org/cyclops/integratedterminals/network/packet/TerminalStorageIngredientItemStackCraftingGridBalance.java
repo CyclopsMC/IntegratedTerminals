@@ -1,15 +1,16 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -26,9 +27,10 @@ import java.util.List;
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientItemStackCraftingGridBalance extends PacketCodec {
+public class TerminalStorageIngredientItemStackCraftingGridBalance extends PacketCodec<TerminalStorageIngredientItemStackCraftingGridBalance> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_balance");
+    public static final Type<TerminalStorageIngredientItemStackCraftingGridBalance> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_balance"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientItemStackCraftingGridBalance> CODEC = getCodec(TerminalStorageIngredientItemStackCraftingGridBalance::new);
 
     @CodecField
     private String tabId;
@@ -81,7 +83,7 @@ public class TerminalStorageIngredientItemStackCraftingGridBalance extends Packe
                     Pair<ItemStack, List<Pair<Integer, Integer>>> pair = bins.get(bin);
                     ItemStack original = pair.getLeft().copy();
                     original.setCount(1);
-                    if(ItemHandlerHelper.canItemStacksStackRelaxed(original, itemStack)) {
+                    if(ItemStack.isSameItemSameComponents(original, itemStack)) {
                         pair.getLeft().grow(amount);
                         pair.getRight().add(new MutablePair<>(slot, 0));
                         addedToBin = true;

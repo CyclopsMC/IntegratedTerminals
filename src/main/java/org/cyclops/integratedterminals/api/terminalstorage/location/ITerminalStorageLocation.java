@@ -1,8 +1,8 @@
 package org.cyclops.integratedterminals.api.terminalstorage.location;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 
@@ -18,7 +18,7 @@ public interface ITerminalStorageLocation<L> {
     public <T, M> void openContainerFromServer(CraftingOptionGuiData<T, M, L> craftingOptionGuiData, Level world, ServerPlayer player);
     public <T, M> void openContainerCraftingPlan(CraftingOptionGuiData<T, M, L> craftingOptionGuiData, Level world, ServerPlayer player);
     public <T, M> void openContainerCraftingOptionAmount(CraftingOptionGuiData<T, M, L> craftingOptionGuiData, Level world, ServerPlayer player);
-    public void writeToPacketBuffer(FriendlyByteBuf packetBuffer, L location);
-    public L readFromPacketBuffer(FriendlyByteBuf packetBuffer);
+    public void writeToPacketBuffer(RegistryFriendlyByteBuf packetBuffer, L location);
+    public L readFromPacketBuffer(RegistryFriendlyByteBuf packetBuffer);
 
 }

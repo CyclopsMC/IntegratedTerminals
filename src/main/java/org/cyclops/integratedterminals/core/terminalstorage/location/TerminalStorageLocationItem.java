@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.location;
 
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,7 +24,7 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
 
     @Override
     public ResourceLocation getName() {
-        return new ResourceLocation(Reference.MOD_ID, "item");
+        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "item");
     }
 
     @Override
@@ -99,12 +99,12 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
     }
 
     @Override
-    public void writeToPacketBuffer(FriendlyByteBuf packetBuffer, ItemLocation location) {
+    public void writeToPacketBuffer(RegistryFriendlyByteBuf packetBuffer, ItemLocation location) {
         ItemLocation.writeToPacketBuffer(packetBuffer, location);
     }
 
     @Override
-    public ItemLocation readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
+    public ItemLocation readFromPacketBuffer(RegistryFriendlyByteBuf packetBuffer) {
         return ItemLocation.readFromPacketBuffer(packetBuffer);
     }
 }

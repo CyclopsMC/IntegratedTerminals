@@ -44,7 +44,7 @@ public class HandlerWrappedTerminalCraftingOption<T> {
         }
         String handlerId = tag.getString("craftingOptionHandler");
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
-                .getHandler(new ResourceLocation(handlerId));
+                .getHandler(ResourceLocation.parse(handlerId));
         ITerminalCraftingOption<T> craftingOption = handler.deserializeCraftingOption(ingredientComponent, tag);
         return new HandlerWrappedTerminalCraftingOption<>(handler, craftingOption);
     }

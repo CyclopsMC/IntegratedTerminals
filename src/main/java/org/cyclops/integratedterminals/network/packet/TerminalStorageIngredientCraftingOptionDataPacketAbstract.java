@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
  * @author rubensworks
  *
  */
-public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M, L> extends PacketCodec {
+public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M, L, P extends TerminalStorageIngredientCraftingOptionDataPacketAbstract<T, M, L, P>> extends PacketCodec<P> {
 
     @CodecField
     private String ingredientComponent;
@@ -40,12 +40,12 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     @CodecField
     private CompoundTag craftingPlan;
 
-    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(ResourceLocation id) {
-        super(id);
+    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(Type<P> type) {
+        super(type);
     }
 
-    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(ResourceLocation id, CraftingOptionGuiData<T, M, L> craftingOptionData) {
-        super(id);
+    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(Type<P> type, CraftingOptionGuiData<T, M, L> craftingOptionData) {
+        super(type);
         this.ingredientComponent = craftingOptionData.getComponent().getName().toString();
         this.location = craftingOptionData.getLocation();
         this.locationInstance = craftingOptionData.getLocationInstance();
@@ -61,14 +61,14 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     @Override
-    public void encode(FriendlyByteBuf output) {
+    public void encode(RegistryFriendlyByteBuf output) {
         super.encode(output);
         output.writeResourceLocation(location.getName());
         location.writeToPacketBuffer(output, locationInstance);
     }
 
     @Override
-    public void decode(FriendlyByteBuf input) {
+    public void decode(RegistryFriendlyByteBuf input) {
         super.decode(input);
         this.location = (ITerminalStorageLocation<L>) TerminalStorageLocations.REGISTRY.getLocation(input.readResourceLocation());
         this.locationInstance = this.location.readFromPacketBuffer(input);
@@ -104,7 +104,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
-        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.get(new ResourceLocation(ingredientComponent));
+        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.get(ResourceLocation.parse(ingredientComponent));
         if (component == null) {
             throw new IllegalArgumentException("Could not find the ingredient component type " + ingredientComponent);
         }

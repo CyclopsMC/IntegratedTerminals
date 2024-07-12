@@ -36,7 +36,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
     @Override
     protected ResourceLocation constructGuiTexture() {
-        return new ResourceLocation(Reference.MOD_ID, "textures/gui/crafting_plan.png");
+        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan.png");
     }
 
     @Override

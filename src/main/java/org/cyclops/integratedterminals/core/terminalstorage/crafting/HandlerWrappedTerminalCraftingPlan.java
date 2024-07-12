@@ -42,7 +42,7 @@ public class HandlerWrappedTerminalCraftingPlan {
         }
         String handlerId = tag.getString("craftingPlanHandler");
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
-                .getHandler(new ResourceLocation(handlerId));
+                .getHandler(ResourceLocation.parse(handlerId));
         ITerminalCraftingPlan craftingPlan = handler.deserializeCraftingPlan(tag);
         return new HandlerWrappedTerminalCraftingPlan(handler, craftingPlan);
     }

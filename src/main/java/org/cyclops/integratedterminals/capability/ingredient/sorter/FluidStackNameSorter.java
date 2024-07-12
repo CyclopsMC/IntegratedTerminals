@@ -15,6 +15,6 @@ public class FluidStackNameSorter extends IngredientInstanceSorterAdapter<FluidS
 
     @Override
     public int compare(FluidStack o1, FluidStack o2) {
-        return o1.getDisplayName().getString().compareTo(o2.getDisplayName().getString());
+        return o1.getHoverName().getString().compareTo(o2.getHoverName().getString());
     }
 }

@@ -1,6 +1,8 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
@@ -27,9 +29,10 @@ import java.util.Optional;
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientItemOpenPacket extends PacketCodec {
+public class TerminalStorageIngredientItemOpenPacket extends PacketCodec<TerminalStorageIngredientItemOpenPacket> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_item_open");
+    public static final Type<TerminalStorageIngredientItemOpenPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_item_open"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientItemOpenPacket> CODEC = getCodec(TerminalStorageIngredientItemOpenPacket::new);
 
     @CodecField
     private ItemLocation itemLocation;

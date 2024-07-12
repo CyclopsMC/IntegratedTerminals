@@ -59,7 +59,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
     @Override
     protected ResourceLocation constructGuiTexture() {
-        return new ResourceLocation(Reference.MOD_ID, "textures/gui/crafting_option_amount.png");
+        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_option_amount.png");
     }
 
     @Override

@@ -63,7 +63,7 @@ public class CraftingJobGuiData {
         Direction side = Direction.values()[packetBuffer.readInt()];
         int channel = packetBuffer.readInt();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
-                new ResourceLocation(packetBuffer.readUtf(32767)));
+                ResourceLocation.parse(packetBuffer.readUtf(32767)));
         Object craftingJob = handler.deserializeCraftingJobId(packetBuffer.readNbt().get("id"));
         return new CraftingJobGuiData(
                 pos,

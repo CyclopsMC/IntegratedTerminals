@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -73,7 +74,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
 
         variableSlotNumberStart = startIndex;
         inventory = new SimpleInventory(3, 1);
-        variableInventory.loadNamedInventory(this.getName().toString(), inventory);
+        variableInventory.loadNamedInventory(this.getName().toString(), inventory, valueDeseralizationContext.holderLookupProvider());
         variableEvaluators.clear();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             int slot = i;
@@ -133,7 +134,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
 
             ContainerTerminalStorageBase<?> containerTerminalStorage = (ContainerTerminalStorageBase) container;
 
-            variableInventory.get().saveNamedInventory(this.getName().toString(), inventory);
+            variableInventory.get().saveNamedInventory(this.getName().toString(), inventory, player.registryAccess());
 
             // Update variable facades
             INetwork network = containerTerminalStorage.getNetwork().get();
@@ -165,6 +166,10 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         }
     }
 
+        protected HolderLookup.Provider getHolderLookupProvider() {
+        return this.containerTerminalStorage.getPlayerIInventory().player.registryAccess();
+    }
+
     @Override
     public void addError(MutableComponent error) {
         List<Component> errors = getGlobalErrors();
@@ -175,7 +180,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         } else {
             tag = tag.copy();
         }
-        NBTClassType.writeNbt(List.class, getName().toString() + ":globalErrors", errors, tag);
+        NBTClassType.writeNbt(List.class, getName().toString() + ":globalErrors", errors, tag, getHolderLookupProvider());
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
@@ -184,7 +189,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         if (tag == null) {
             return Lists.newArrayList();
         } else {
-            return NBTClassType.readNbt(List.class, getName().toString() + ":globalErrors", tag);
+            return NBTClassType.readNbt(List.class, getName().toString() + ":globalErrors", tag, getHolderLookupProvider());
         }
     }
 
@@ -195,7 +200,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         } else {
             tag = tag.copy();
         }
-        NBTClassType.writeNbt(List.class, getName().toString() + ":globalErrors", Lists.newArrayList(), tag);
+        NBTClassType.writeNbt(List.class, getName().toString() + ":globalErrors", Lists.newArrayList(), tag, getHolderLookupProvider());
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
@@ -206,7 +211,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         } else {
             tag = tag.copy();
         }
-        NBTClassType.writeNbt(List.class, getName().toString() + ":localErrors" + slot, errors, tag);
+        NBTClassType.writeNbt(List.class, getName().toString() + ":localErrors" + slot, errors, tag, getHolderLookupProvider());
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
@@ -215,7 +220,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         if (tag == null) {
             return Lists.newArrayList();
         } else {
-            return NBTClassType.readNbt(List.class, getName().toString() + ":localErrors" + slot, tag);
+            return NBTClassType.readNbt(List.class, getName().toString() + ":localErrors" + slot, tag, getHolderLookupProvider());
         }
     }
 

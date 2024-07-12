@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.item;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -12,6 +13,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
@@ -32,13 +34,13 @@ import org.cyclops.integrateddynamics.core.helper.L10NValues;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartTypes;
 import org.cyclops.integrateddynamics.part.PartTypeConnectorOmniDirectional;
-import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageItem;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -46,10 +48,6 @@ import java.util.Optional;
  * @author rubensworks
  */
 public class ItemTerminalStoragePortable extends ItemGui {
-
-    public static String NBT_KEY_GROUP = Reference.MOD_ID + ":groupKey";
-    public static String NBT_KEY_NAMED_INVENTORIES = Reference.MOD_ID + ":namedInventories";
-    public static String NBT_KEY_STATES = Reference.MOD_ID + ":terminalStorageStates";
 
     public ItemTerminalStoragePortable(Properties properties) {
         super(properties);
@@ -124,8 +122,8 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, context, tooltip, flagIn);
         int groupId = getGroupId(stack);
         if (groupId >= 0) {
             tooltip.add(Component.translatable(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
@@ -133,61 +131,61 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     public static int getGroupId(ItemStack itemStack) {
-        CompoundTag tag = itemStack.getTag();
-        if (tag == null || !tag.contains(NBT_KEY_GROUP, Tag.TAG_INT)) {
-            return -1;
-        } else {
-            return tag.getInt(NBT_KEY_GROUP);
-        }
+        return Objects.requireNonNullElse(itemStack.get(RegistryEntries.DATACOMPONENT_OMNIDIRECTIONAL_GROUP), -1);
     }
 
     public static void setGroupId(ItemStack itemStack, int groupId) {
-        CompoundTag tag = itemStack.getOrCreateTag();
-        tag.putInt(NBT_KEY_GROUP, groupId);
+        itemStack.set(RegistryEntries.DATACOMPONENT_OMNIDIRECTIONAL_GROUP, groupId);
     }
 
     public static ITerminalStorageTabCommon.IVariableInventory getVariableInventory(ItemStack itemStack) {
         // Navigate to relevant tag in item
-        CompoundTag tagRoot = itemStack.getOrCreateTag();
-        if (!tagRoot.contains(NBT_KEY_NAMED_INVENTORIES, Tag.TAG_COMPOUND)) {
-            tagRoot.put(NBT_KEY_NAMED_INVENTORIES, new CompoundTag());
+        CompoundTag tagInventories = itemStack.get(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_TERMINAL_STORAGE_INVENTORIES);
+        if (tagInventories == null) {
+            tagInventories = new CompoundTag();
+        } else {
+            tagInventories.copy();
         }
-        CompoundTag tagInventories = tagRoot.getCompound(NBT_KEY_NAMED_INVENTORIES);
 
+        CompoundTag finalTagInventories = tagInventories;
         return new ITerminalStorageTabCommon.IVariableInventory() {
             @Override
-            public NonNullList<ItemStack> getNamedInventory(String name) {
-                CompoundTag tag = tagInventories.getCompound(name);
+            public NonNullList<ItemStack> getNamedInventory(String name, HolderLookup.Provider holderLookupProvider) {
+                CompoundTag tag = finalTagInventories.getCompound(name);
                 NonNullList<ItemStack> list = NonNullList.withSize(tag.getInt("itemCount"), ItemStack.EMPTY);
-                ContainerHelper.loadAllItems(tag, list);
+                ContainerHelper.loadAllItems(tag, list, holderLookupProvider);
                 return list;
             }
 
             @Override
-            public void setNamedInventory(String name, NonNullList<ItemStack> inventory) {
+            public void setNamedInventory(String name, NonNullList<ItemStack> inventory, HolderLookup.Provider holderLookupProvider) {
                 CompoundTag tag = new CompoundTag();
                 tag.putString("tabName", name);
                 tag.putInt("itemCount", inventory.size());
-                ContainerHelper.saveAllItems(tag, inventory);
-                tagInventories.put(name, tag);
+                ContainerHelper.saveAllItems(tag, inventory, holderLookupProvider);
+                finalTagInventories.put(name, tag);
+                itemStack.set(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_TERMINAL_STORAGE_INVENTORIES, finalTagInventories.copy());
             }
         };
     }
 
     public static TerminalStorageState getTerminalStorageState(ItemStack itemStack, Player player, ItemLocation itemLocation) {
         // Navigate to relevant tag in item
-        CompoundTag tagRoot = itemStack.getOrCreateTag();
-        if (!tagRoot.contains(NBT_KEY_STATES, Tag.TAG_COMPOUND)) {
-            tagRoot.put(NBT_KEY_STATES, new CompoundTag());
+        CompoundTag tagStates = itemStack.get(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_TERMINAL_STORAGE_STATE);
+        if (tagStates == null) {
+            tagStates = new CompoundTag();
+        } else {
+            tagStates = tagStates.copy();
         }
-        CompoundTag tagStates = tagRoot.getCompound(NBT_KEY_STATES);
         String playerKey = player.getUUID().toString();
 
         // Construct item dirty mark listener
         Wrapper<TerminalStorageState> stateWrapped = new Wrapper<>();
+        CompoundTag finalTagStates = tagStates;
         IDirtyMarkListener dirtyMarkListener = () -> {
             // The tag may be updated or newly set, so we set it again in the item's tag
-            tagStates.put(playerKey, stateWrapped.get().getTag());
+            finalTagStates.put(playerKey, stateWrapped.get().getTag());
+            itemStack.set(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_TERMINAL_STORAGE_STATE, finalTagStates.copy());
         };
 
         // Instantiate storage state from NBT

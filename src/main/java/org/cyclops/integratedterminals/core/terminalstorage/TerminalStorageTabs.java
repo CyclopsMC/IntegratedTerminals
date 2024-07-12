@@ -33,7 +33,7 @@ public class TerminalStorageTabs {
 
         // Add custom tabs
         IngredientComponent<ItemStack, Integer> ingredientComponentItemStack = (IngredientComponent<ItemStack, Integer>)
-                IngredientComponent.REGISTRY.get(new ResourceLocation("minecraft:itemstack"));
+                IngredientComponent.REGISTRY.get(ResourceLocation.parse("minecraft:itemstack"));
         if (ingredientComponentItemStack != null
                 && ingredientComponentItemStack.getCapability(Capabilities.PositionedAddonsNetworkIngredientsHandler.INGREDIENT).isPresent()) {
             TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponentItemStackCrafting(ingredientComponentItemStack));

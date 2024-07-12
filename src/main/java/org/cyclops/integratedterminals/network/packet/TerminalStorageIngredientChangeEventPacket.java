@@ -1,9 +1,11 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -24,9 +26,10 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientChangeEventPacket extends PacketCodec {
+public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<TerminalStorageIngredientChangeEventPacket> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_change_event");
+    public static final Type<TerminalStorageIngredientChangeEventPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_change_event"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientChangeEventPacket> CODEC = getCodec(TerminalStorageIngredientChangeEventPacket::new);
 
     @CodecField
     private String tabId;

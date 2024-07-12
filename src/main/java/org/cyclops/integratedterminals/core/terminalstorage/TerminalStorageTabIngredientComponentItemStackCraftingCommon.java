@@ -101,7 +101,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         }
 
         // Load the items that were stored in the part state into the crafting grid slots
-        NonNullList<ItemStack> tabItems = variableInventory.getNamedInventory(this.getName().toString());
+        NonNullList<ItemStack> tabItems = variableInventory.getNamedInventory(this.getName().toString(), player.registryAccess());
         if (tabItems != null) {
             int i = 0;
             for (ItemStack tabItem : tabItems) {
@@ -143,13 +143,13 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.level().isClientSide) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            RecipeHolder<CraftingRecipe> recipeHolder = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting, player.level(), false).orElse(null);
+            RecipeHolder<CraftingRecipe> recipeHolder = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting.asCraftInput(), player.level(), false).orElse(null);
 
             if (recipeHolder != null && (recipeHolder.value().isSpecial()
                     || !player.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
                     || entityplayermp.getRecipeBook().contains(recipeHolder))) {
                 inventoryCraftResult.setRecipeUsed(recipeHolder);
-                itemstack = recipeHolder.value().assemble(inventoryCrafting, player.level().registryAccess());
+                itemstack = recipeHolder.value().assemble(inventoryCrafting.asCraftInput(), player.level().registryAccess());
             }
 
             inventoryCraftResult.setItem(0, itemstack);
@@ -163,6 +163,6 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         for (Pair<Slot, ISlotPositionCallback> slot : slots) {
             latestItems.add(slot.getLeft().getItem());
         }
-        variableInventory.setNamedInventory(this.getName().toString(), latestItems);
+        variableInventory.setNamedInventory(this.getName().toString(), latestItems, player.registryAccess());
     }
 }

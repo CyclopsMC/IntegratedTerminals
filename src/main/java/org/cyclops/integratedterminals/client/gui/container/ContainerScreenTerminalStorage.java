@@ -226,7 +226,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     @Override
     protected ResourceLocation constructGuiTexture() {
-        return new ResourceLocation(Reference.MOD_ID, "textures/gui/part_terminal_storage.png");
+        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/part_terminal_storage.png");
     }
 
     public int getGridXSize() {

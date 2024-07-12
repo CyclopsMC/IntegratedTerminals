@@ -1,19 +1,20 @@
 package org.cyclops.integratedterminals.part;
 
 import com.google.common.collect.Maps;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.ContainerHelper;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.NonNullList;
-import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
@@ -78,7 +79,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
     }
 
     @Override
-    public void writeExtraGuiData(FriendlyByteBuf packetBuffer, PartPos pos, ServerPlayer player) {
+    public void writeExtraGuiData(RegistryFriendlyByteBuf packetBuffer, PartPos pos, ServerPlayer player) {
         PacketCodec.write(packetBuffer, pos);
 
         super.writeExtraGuiData(packetBuffer, pos, player);
@@ -132,7 +133,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         }
 
         @Override
-        public void setNamedInventory(String name, NonNullList<ItemStack> inventory) {
+        public void setNamedInventory(String name, NonNullList<ItemStack> inventory, HolderLookup.Provider holderLookupProvider) {
             this.namedInventories.put(name, inventory);
             this.onDirty();
         }
@@ -143,7 +144,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
         @Override
         @Nullable
-        public NonNullList<ItemStack> getNamedInventory(String name) {
+        public NonNullList<ItemStack> getNamedInventory(String name, HolderLookup.Provider holderLookupProvider) {
             return this.namedInventories.get(name);
         }
 
@@ -158,8 +159,8 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         }
 
         @Override
-        public void writeToNBT(CompoundTag tag) {
-            super.writeToNBT(tag);
+        public void writeToNBT(ValueDeseralizationContext valueDeseralizationContext, CompoundTag tag) {
+            super.writeToNBT(valueDeseralizationContext, tag);
 
             // Write namedInventories
             ListTag namedInventoriesList = new ListTag();
@@ -167,7 +168,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
                 CompoundTag listEntry = new CompoundTag();
                 listEntry.putString("tabName", entry.getKey());
                 listEntry.putInt("itemCount", entry.getValue().size());
-                ContainerHelper.saveAllItems(listEntry, entry.getValue());
+                ContainerHelper.saveAllItems(listEntry, entry.getValue(), valueDeseralizationContext.holderLookupProvider());
                 namedInventoriesList.add(listEntry);
             }
             tag.put("namedInventories", namedInventoriesList);
@@ -191,7 +192,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
             for (Tag listEntry : tag.getList("namedInventories", Tag.TAG_COMPOUND)) {
                 NonNullList<ItemStack> list = NonNullList.withSize(((CompoundTag) listEntry).getInt("itemCount"), ItemStack.EMPTY);
                 String tabName = ((CompoundTag) listEntry).getString("tabName");
-                ContainerHelper.loadAllItems((CompoundTag) listEntry, list);
+                ContainerHelper.loadAllItems((CompoundTag) listEntry, list, valueDeseralizationContext.holderLookupProvider());
                 this.namedInventories.put(tabName, list);
             }
 

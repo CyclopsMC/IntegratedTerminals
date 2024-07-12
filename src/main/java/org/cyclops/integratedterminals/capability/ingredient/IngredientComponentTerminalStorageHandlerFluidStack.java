@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -82,8 +83,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             } else {
                 GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<Component> lines = Lists.newArrayList();
-                    lines.add(((MutableComponent) instance.getDisplayName())
-                            .withStyle(instance.getFluid().getFluidType().getRarity().color));
+                    lines.add(((MutableComponent) instance.getHoverName()).withStyle(instance.getFluid().getFluidType().getRarity().getStyleModifier().apply(Style.EMPTY)));
                     addQuantityTooltip(lines, instance);
                     if (additionalTooltipLines != null) {
                         lines.addAll(additionalTooltipLines);
@@ -237,7 +237,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             case TAG -> i -> i.getFluid().builtInRegistryHolder().tags()
                     .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
                     .anyMatch(tag -> !BuiltInRegistries.FLUID.getTag(tag).isEmpty());
-            case DEFAULT -> i -> i != null && i.getDisplayName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case DEFAULT -> i -> i != null && i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         };
     }
 

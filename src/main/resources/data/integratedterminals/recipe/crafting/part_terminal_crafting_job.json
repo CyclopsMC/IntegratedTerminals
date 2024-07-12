@@ -7,7 +7,7 @@
   ],
   "key": {
     "G": {
-      "tag": "forge:dusts/glowstone"
+      "tag": "c:dusts/glowstone"
     },
     "M": {
       "item": "integratedterminals:menril_glass"
@@ -20,6 +20,6 @@
     }
   },
   "result": {
-    "item": "integratedterminals:part_terminal_crafting_job"
+    "id": "integratedterminals:part_terminal_crafting_job"
   }
 }

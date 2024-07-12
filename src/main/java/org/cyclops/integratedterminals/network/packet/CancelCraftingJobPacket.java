@@ -1,11 +1,13 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
@@ -20,9 +22,10 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
  * @author rubensworks
  *
  */
-public class CancelCraftingJobPacket extends PacketCodec {
+public class CancelCraftingJobPacket extends PacketCodec<CancelCraftingJobPacket> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "cancel_crafting_job");
+    public static final Type<CancelCraftingJobPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "cancel_crafting_job"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, CancelCraftingJobPacket> CODEC = getCodec(CancelCraftingJobPacket::new);
 
     @CodecField
     private BlockPos pos;
@@ -71,7 +74,7 @@ public class CancelCraftingJobPacket extends PacketCodec {
 
     protected ITerminalStorageTabIngredientCraftingHandler getHandler() {
         return TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
-                new ResourceLocation(this.craftingPlanHandler));
+                ResourceLocation.parse(this.craftingPlanHandler));
     }
 
 }

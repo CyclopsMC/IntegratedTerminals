@@ -1,15 +1,17 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -36,9 +38,10 @@ import java.util.Optional;
  * @author rubensworks
  *
  */
-public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
+public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsPlanGuiPacket> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "open_crafting_jobs_plan_gui");
+    public static final Type<OpenCraftingJobsPlanGuiPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "open_crafting_jobs_plan_gui"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, OpenCraftingJobsPlanGuiPacket> CODEC = getCodec(OpenCraftingJobsPlanGuiPacket::new);
 
     @CodecField
     private BlockPos pos;
@@ -114,7 +117,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec {
 
     protected ITerminalStorageTabIngredientCraftingHandler getHandler() {
         return TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
-                new ResourceLocation(this.craftingPlanHandler));
+                ResourceLocation.parse(this.craftingPlanHandler));
     }
 
     public static void send(BlockPos pos, Direction side,

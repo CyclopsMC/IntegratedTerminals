@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -32,7 +32,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     private long lastUpdate;
     private Optional<ITerminalCraftingPlan> craftingPlan;
 
-    public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
+    public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory, RegistryFriendlyByteBuf packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer),
                 CraftingJobGuiData.readFromPacketBuffer(packetBuffer));
     }

@@ -1,8 +1,10 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -22,9 +24,10 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  * @author rubensworks
  *
  */
-public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput extends PacketCodec {
+public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput extends PacketCodec<TerminalStorageIngredientItemStackCraftingGridShiftClickOutput> {
 
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_shift_click_output");
+    public static final Type<TerminalStorageIngredientItemStackCraftingGridShiftClickOutput> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_shift_click_output"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientItemStackCraftingGridShiftClickOutput> CODEC = getCodec(TerminalStorageIngredientItemStackCraftingGridShiftClickOutput::new);
 
     @CodecField
     private String tabId;
@@ -78,7 +81,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                     }
 
                     // Break the loop if we are crafting something else
-                    if (!ItemHandlerHelper.canItemStacksStackRelaxed(currentCraftingItem, slotCrafting.getItem())) {
+                    if (!ItemStack.isSameItemSameComponents(currentCraftingItem, slotCrafting.getItem())) {
                         break;
                     }
 
