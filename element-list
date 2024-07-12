@@ -11,6 +11,7 @@ org.cyclops.integratedterminals.client.gui
 org.cyclops.integratedterminals.client.gui.container
 org.cyclops.integratedterminals.client.gui.container.component
 org.cyclops.integratedterminals.client.gui.image
+org.cyclops.integratedterminals.component
 org.cyclops.integratedterminals.core.client.gui
 org.cyclops.integratedterminals.core.part
 org.cyclops.integratedterminals.core.terminalstorage
