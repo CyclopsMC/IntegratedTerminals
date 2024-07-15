@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "integratedterminals:menril_glass"
+      "id": "integratedterminals:menril_glass"
     },
     "title": {
       "translate": "advancement.integratedterminals.menril_glass"

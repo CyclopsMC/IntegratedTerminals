@@ -1,7 +1,7 @@
 {
   "display": {
     "icon": {
-      "item": "integratedterminals:part_terminal_storage"
+      "id": "integratedterminals:part_terminal_storage"
     },
     "title": {
       "translate": "itemGroup.integratedterminals"
