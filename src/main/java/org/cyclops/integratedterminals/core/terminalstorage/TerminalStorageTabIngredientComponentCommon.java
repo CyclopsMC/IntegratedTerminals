@@ -159,7 +159,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
             TerminalStorageTabIngredientComponentServer tabServer = (TerminalStorageTabIngredientComponentServer)
                     containerTerminalStorage.getTabServer(getName().toString());
             tabServer.updateFilter(this.variables, this);
-            tabServer.reApplyFilter();
+            tabServer.reApplyFilter(null);
         }
     }
 

@@ -18,6 +18,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIn
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -44,7 +45,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 
     public <T> TerminalStorageIngredientCraftingOptionsPacket(String tabId,
                                                               int channel,
-                                                              List<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
+                                                              Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
                                                               boolean reset,
                                                               boolean firstChannel) {
         this.tabId = tabId;

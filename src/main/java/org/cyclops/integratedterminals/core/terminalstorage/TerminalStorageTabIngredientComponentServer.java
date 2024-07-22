@@ -75,6 +75,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final IIngredientComponentValueHandler<?, ?, T, M> valueHandler;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
+    @Nullable
     private Predicate<T> ingredientsFilter;
 
     // These collections are needed to perform server-side filtering
@@ -96,7 +97,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 .orElseThrow(() -> new IllegalStateException("No value handler was found for " + ingredientComponent.getName()));
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
-        this.ingredientsFilter = (instance) -> true;
+        this.ingredientsFilter = null;
         this.unfilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.filteredDiffManagers = new Int2ObjectOpenHashMap<>();
 
@@ -189,6 +190,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
     public void updateFilter(List<IVariable<ValueTypeOperator.ValueOperator>> variables,
                              TerminalStorageTabIngredientComponentCommon<?, ?> errorListener) {
+        if (variables.isEmpty()) {
+            this.ingredientsFilter = null;
+            return;
+        }
+
         this.ingredientsFilter = (instance) -> false;
         Predicate<T> newFilter = (instance) -> true;
         try {
@@ -235,6 +241,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientsFilter = newFilter;
     }
 
+    @Nullable
     protected Predicate<T> getIngredientsFilter() {
         return this.ingredientsFilter;
     }
@@ -250,43 +257,70 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diffIn, getUnfilteredIngredientsView(channel));
 
         // Re-filter our complete unfiltered view
-        reApplyFilter();
+        reApplyFilter(event);
     }
 
-    protected void reApplyFilter() {
+    protected void reApplyFilter(@Nullable IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
         boolean firstChannel = true;
         for (int channel : this.unfilteredIngredientsViews.keySet()) {
             Predicate<T> ingredientsFilter = getIngredientsFilter();
-            Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
-                    .stream().filter(ingredientsFilter).iterator();
+            if (ingredientsFilter != null || event == null) {
+                Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
+                        .stream().filter(ingredientsFilter == null ? (instance) -> true : ingredientsFilter).iterator();
 
-            // Send out the diff between the last filtered view
-            IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
-            IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
-            if (!initialized || diffOut.hasAdditions()) {
-                this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                        IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
-            }
-            if (diffOut.hasDeletions()) {
-                this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                        IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+                // Send out the diff between the last filtered view
+                IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
+                IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
+                if (!initialized || diffOut.hasAdditions()) {
+                    this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
+                            IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
+                }
+                if (diffOut.hasDeletions()) {
+                    this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
+                            IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+                }
+            } else {
+                // If the filter is null (=show all ingredients), forward the diff to the client as-is.
+                // This allows us to skip the expensive filteredDiffManager.onChange call.
+                if (!initialized || event.getDiff().hasAdditions()) {
+                    this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
+                            IIngredientComponentStorageObservable.Change.ADDITION, false, event.getDiff().getAdditions()));
+                }
+                if (event.getDiff().hasDeletions()) {
+                    this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
+                            IIngredientComponentStorageObservable.Change.DELETION, event.getDiff().isCompletelyEmpty(), event.getDiff().getDeletions()));
+                }
+
+                // Also apply the diff to our diff manager
+                IngredientCollectionDiffManager<T, M> filteredDiffManager = getFilteredDiffManager(channel);
+                if (event.getDiff().hasAdditions()) {
+                    filteredDiffManager.getInstancesCache().addAll(event.getDiff().getAdditions());
+                }
+                if (event.getDiff().hasDeletions()) {
+                    filteredDiffManager.getInstancesCache().removeAll(event.getDiff().getDeletions());
+                }
             }
 
             // Filter crafting options and re-send to client
             Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions = this.craftingOptions.get(channel);
             if (channeledCraftingOptions != null) {
-                List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptionsFiltered = channeledCraftingOptions
-                        .stream()
-                        .filter(o -> {
-                            Iterator<T> it = o.getCraftingOption().getOutputs();
-                            while (it.hasNext()) {
-                                if (ingredientsFilter.test(it.next())) {
-                                    return true;
+                Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptionsFiltered;
+                if (ingredientsFilter != null) {
+                    channeledCraftingOptionsFiltered = channeledCraftingOptions
+                            .stream()
+                            .filter(o -> {
+                                Iterator<T> it = o.getCraftingOption().getOutputs();
+                                while (it.hasNext()) {
+                                    if (ingredientsFilter.test(it.next())) {
+                                        return true;
+                                    }
                                 }
-                            }
-                            return false;
-                        })
-                        .collect(Collectors.toList());
+                                return false;
+                            })
+                            .collect(Collectors.toList());
+                } else {
+                    channeledCraftingOptionsFiltered = channeledCraftingOptions;
+                }
                 this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true, firstChannel);
             }
 
@@ -331,7 +365,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         }
     }
 
-    private void sendCraftingOptionsToClient(int channel, List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions,
+    private void sendCraftingOptionsToClient(int channel, Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions,
                                              boolean reset, boolean firstChannel) {
         // Only allow collection of a max given size to be sent in a packet
         if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxRecipes) {
