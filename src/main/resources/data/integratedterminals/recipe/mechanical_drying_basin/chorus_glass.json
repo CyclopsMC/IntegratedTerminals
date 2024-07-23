@@ -5,7 +5,7 @@
     "amount": 1000
   },
   "input_item": {
-    "tag": "forge:glass/colorless"
+    "tag": "c:glass_blocks/colorless"
   },
   "duration": 20,
   "output_item": {
