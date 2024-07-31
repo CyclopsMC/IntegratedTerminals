@@ -123,7 +123,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsP
     public static void send(BlockPos pos, Direction side,
                             int channel, HandlerWrappedTerminalCraftingPlan craftingPlan) {
         CraftingJobGuiData data = new CraftingJobGuiData(pos, side, channel, craftingPlan.getHandler(),
-                craftingPlan.getCraftingPlan().getId());
+                craftingPlan.getCraftingPlanFlat().getId());
         IntegratedTerminals._instance.getPacketHandler().sendToServer(new OpenCraftingJobsPlanGuiPacket(data));
     }
 

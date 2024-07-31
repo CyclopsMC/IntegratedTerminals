@@ -4,7 +4,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
+
 
 /**
  * Data holder for {@link ITerminalCraftingPlan} wrapped with its handler.
@@ -13,26 +15,28 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalSto
 public class HandlerWrappedTerminalCraftingPlan {
 
     private final ITerminalStorageTabIngredientCraftingHandler handler;
-    private final ITerminalCraftingPlan craftingPlan;
+    private final ITerminalCraftingPlanFlat craftingPlanFlat;
 
     public HandlerWrappedTerminalCraftingPlan(ITerminalStorageTabIngredientCraftingHandler handler,
-                                              ITerminalCraftingPlan craftingPlan) {
+                                              ITerminalCraftingPlanFlat craftingPlanFlat) {
         this.handler = handler;
-        this.craftingPlan = craftingPlan;
+        this.craftingPlanFlat = craftingPlanFlat;
     }
 
     public ITerminalStorageTabIngredientCraftingHandler getHandler() {
         return handler;
     }
 
-    public ITerminalCraftingPlan getCraftingPlan() {
-        return craftingPlan;
+    public ITerminalCraftingPlanFlat getCraftingPlanFlat() {
+        return craftingPlanFlat;
     }
 
     public static CompoundTag serialize(HandlerWrappedTerminalCraftingPlan craftingPlan) {
         ITerminalStorageTabIngredientCraftingHandler handler = craftingPlan.getHandler();
-        CompoundTag tag = handler.serializeCraftingPlan(craftingPlan.getCraftingPlan());
+        CompoundTag tag = new CompoundTag();
         tag.putString("craftingPlanHandler", handler.getId().toString());
+        tag.put("flatPlan", handler.serializeCraftingPlanFlat(craftingPlan.getCraftingPlanFlat()));
+
         return tag;
     }
 
@@ -43,8 +47,9 @@ public class HandlerWrappedTerminalCraftingPlan {
         String handlerId = tag.getString("craftingPlanHandler");
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
                 .getHandler(ResourceLocation.parse(handlerId));
-        ITerminalCraftingPlan craftingPlan = handler.deserializeCraftingPlan(tag);
-        return new HandlerWrappedTerminalCraftingPlan(handler, craftingPlan);
+        ITerminalCraftingPlanFlat craftingPlanFlat = handler.deserializeCraftingPlanFlat(tag.getCompound("flatPlan"));
+
+        return new HandlerWrappedTerminalCraftingPlan(handler, craftingPlanFlat);
     }
 
 }

@@ -26,7 +26,6 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
 import org.cyclops.integratedterminals.part.PartTypeTerminalCraftingJob;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Container for the crafting jobs overview gui.
@@ -88,7 +87,7 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
                 this.craftingJobs = Lists.newArrayList();
                 for (ITerminalStorageTabIngredientCraftingHandler<?, ?> handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
                     for (ITerminalCraftingPlan craftingJob : handler.getCraftingJobs(network, channel)) {
-                        this.craftingJobs.add(new HandlerWrappedTerminalCraftingPlan(handler, craftingJob));
+                        this.craftingJobs.add(new HandlerWrappedTerminalCraftingPlan(handler, craftingJob.flatten()));
                     }
                 }
 

@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * A job for crafting a given instance.
+ * This is a flattened representation of {@link ITerminalCraftingPlan}.
  *
  * It is possible that a job requires no actual crafting,
  * but can be fetched from storage completely.
@@ -14,7 +15,7 @@ import java.util.List;
  * @param <I> The type of identifier.
  * @author rubensworks
  */
-public interface ITerminalCraftingPlan<I> {
+public interface ITerminalCraftingPlanFlat<I> {
 
     /**
      * @return The unique id of this plan.
@@ -22,12 +23,12 @@ public interface ITerminalCraftingPlan<I> {
     public I getId();
 
     /**
-     * @return The dependencies of this job.
+     * @return The flattened entries that are crafted as part of this plan.
      */
-    public List<ITerminalCraftingPlan<I>> getDependencies();
+    public List<? extends IEntry> getEntries();
 
     /**
-     * @return The output instances of this job.
+     * @return The final output instances of this job.
      */
     public List<IPrototypedIngredient<?, ?>> getOutputs();
 
@@ -35,24 +36,6 @@ public interface ITerminalCraftingPlan<I> {
      * @return The job status.
      */
     public TerminalCraftingJobStatus getStatus();
-
-    /**
-     * @return The number of instances that will be crafted..
-     * (These are expected to become available later on because of a dependency job)
-     */
-    public long getCraftingQuantity();
-
-    /**
-     * @return The ingredients that will be used from storage.
-     */
-    public List<IPrototypedIngredient<?, ?>> getStorageIngredients();
-
-    /**
-     * @return The ingredients that were missing for 1 job amount.
-     *         This should contain something when the status is {@link TerminalCraftingJobStatus#PENDING_INPUTS}.
-     *         The inner list represents alternatives.
-     */
-    public List<List<IPrototypedIngredient<?, ?>>> getLastMissingIngredients();
 
     /**
      * @return A visual label for this plan, such as an error or plan type.
@@ -81,9 +64,33 @@ public interface ITerminalCraftingPlan<I> {
      */
     public void setError(String unlocalizedError);
 
-    /**
-     * @return A flattened copy of this plan.
-     */
-    public ITerminalCraftingPlanFlat<I> flatten();
+    public static interface IEntry {
+
+        /**
+         * @return The entry instance.
+         */
+        public IPrototypedIngredient<?, ?> getInstance();
+
+        /**
+         * @return The number of instances to craft.
+         */
+        public long getQuantityToCraft();
+
+        /**
+         * @return The number of instances to craft.
+         */
+        public long getQuantityCrafting();
+
+        /**
+         * @return The number of instances in storage.
+         */
+        public long getQuantityInStorage();
+
+        /**
+         * @return The number of instances missing from storage.
+         */
+        public long getQuantityMissing();
+
+    }
 
 }

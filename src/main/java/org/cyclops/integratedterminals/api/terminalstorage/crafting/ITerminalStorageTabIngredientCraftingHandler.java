@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
@@ -89,6 +89,25 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      */
     public default ITerminalCraftingPlan<I> deserializeCraftingPlan(CompoundTag tag) throws IllegalArgumentException {
         return TerminalCraftingPlanStatic.deserialize(tag, this);
+    }
+
+    /**
+     * Serialize a flat crafting plan to NBT.
+     * @param craftingPlan A flat crafting plan.
+     * @return An NBT tag.
+     */
+    public default CompoundTag serializeCraftingPlanFlat(ITerminalCraftingPlanFlat<I> craftingPlan) {
+        return TerminalCraftingPlanFlatStatic.serialize((TerminalCraftingPlanFlatStatic) craftingPlan, this);
+    }
+
+    /**
+     * Deserialize a flat crafting plan from NBT.
+     * @param tag An NBT tag representing a flat crafting plan.
+     * @return A crafting option.
+     * @throws IllegalArgumentException If the given tag was invalid.
+     */
+    public default ITerminalCraftingPlanFlat<I> deserializeCraftingPlanFlat(CompoundTag tag) throws IllegalArgumentException {
+        return TerminalCraftingPlanFlatStatic.deserialize(tag, this);
     }
 
     /**
