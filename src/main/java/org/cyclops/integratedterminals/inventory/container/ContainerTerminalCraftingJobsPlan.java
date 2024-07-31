@@ -17,9 +17,9 @@ import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
-import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.part.PartTypeTerminalCraftingJob;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -94,7 +94,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
                     this.craftingJobGuiData.getChannel(), craftingJobGuiData.getCraftingJob()));
             if (this.craftingPlan.isPresent()) {
                 ITerminalCraftingPlan plan = this.craftingPlan.get();
-                if (!HandlerWrappedTerminalCraftingPlan.isPlanTooLarge(plan)) {
+                if (!ContainerTerminalCraftingJobsPlan.isPlanTooLarge(plan)) {
                     setValue(this.craftingPlanNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlan(plan));
                 }
                 setValue(this.craftingPlanFlatNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlanFlat(plan.flatten()));
@@ -131,6 +131,21 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
         }
 
         super.onUpdate(valueId, value);
+    }
+
+    public static boolean isPlanTooLarge(ITerminalCraftingPlan craftingPlan) {
+        return getPlanSize(craftingPlan) > GeneralConfig.terminalStorageMaxTreePlanSize;
+    }
+
+    public static int getPlanSize(ITerminalCraftingPlan craftingPlan) {
+        List<ITerminalCraftingPlan<?>> deps = craftingPlan.getDependencies();
+        if (deps.isEmpty()) {
+            return 1;
+        } else {
+            return deps.stream()
+                    .mapToInt(ContainerTerminalCraftingJobsPlan::getPlanSize)
+                    .sum();
+        }
     }
 
 }

@@ -14,7 +14,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.CraftingJobS
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
-import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -101,7 +100,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     protected void setCraftingPlan(ITerminalCraftingPlan craftingPlan) {
         this.craftingPlan = craftingPlan;
-        if (!HandlerWrappedTerminalCraftingPlan.isPlanTooLarge(this.craftingPlan)) {
+        if (!ContainerTerminalCraftingJobsPlan.isPlanTooLarge(this.craftingPlan)) {
             setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(this.craftingPlan));
         }
         setValue(this.craftingPlanFlatNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlanFlat(this.craftingPlan.flatten()));
