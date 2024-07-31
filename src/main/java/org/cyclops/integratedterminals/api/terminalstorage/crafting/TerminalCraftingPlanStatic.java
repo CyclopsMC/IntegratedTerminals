@@ -225,7 +225,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                     || plan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
                 entry.setQuantityToCraft(entry.getQuantityToCraft() + quantity);
             }
-            if (plan.getStatus() == TerminalCraftingJobStatus.CRAFTING) {
+            if (plan.getStatus() == TerminalCraftingJobStatus.CRAFTING ||
+                    plan.getStatus() == TerminalCraftingJobStatus.FINISHED) {
                 entry.setQuantityCrafting(entry.getQuantityCrafting() + quantity);
             }
         }
