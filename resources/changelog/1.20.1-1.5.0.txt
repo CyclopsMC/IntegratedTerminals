@@ -1,0 +1,26 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Additions:
+* Add compacted crafting plan viewing mode
+
+  This groups all missing and available ingredients per type,
+  which is more convenient to view at a glance what the problems are for
+  large and nested crafting jobs.
+
+  This is shown by default over the old tree-based view, but can be
+  toggled in-game.
+  This default can be changed using the `terminalStorageDefaultToCraftingPlanTree`
+  config option.
+
+  The tree-based view will be unavailable for very large crafting jobs as
+  it causes packets to become too large. The threshold for this can be
+  modified using the `terminalStorageMaxTreePlanSize` config option.
+
+  Closes CyclopsMC/IntegratedTerminals#14
+  Closes CyclopsMC/IntegratedDynamics#1341
+
+Changes:
+* Remove unused crafting plan in HandlerWrappedTerminalCraftingPlan
+
+
