@@ -24,6 +24,7 @@
     "gui.integratedterminals.terminal_storage.step.craft": "Craft",
     "gui.integratedterminals.terminal_storage.step.crafting_plan_calculating": "Calculating crafting plan...",
     "gui.integratedterminals.terminal_storage.stored": "Stored: %s",
+    "gui.integratedterminals.terminal_storage.to_craft": "To Craft: %s",
     "gui.integratedterminals.terminal_storage.crafting": "Crafting: %s",
     "gui.integratedterminals.terminal_storage.missing": "Missing: %s",
     "gui.integratedterminals.terminal_storage.tooltip.quantity": "Quantity: %s",
@@ -76,6 +77,9 @@
     "gui.integratedterminals.terminal_crafting_job.craftingplan.duration": "Duration: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel": "Channel: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.owner": "Owner: %s",
+
+    "gui.integratedterminals.craftingplan.view.flat": "Show compact",
+    "gui.integratedterminals.craftingplan.view.tree": "Show tree",
 
     "gui.integratedterminals.craftingplan.status": "Status: %s",
     "gui.integratedterminals.craftingplan.status.error": "Error",

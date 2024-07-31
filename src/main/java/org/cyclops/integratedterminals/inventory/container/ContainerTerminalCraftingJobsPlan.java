@@ -1,10 +1,10 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -15,7 +15,9 @@ import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.part.PartTypeTerminalCraftingJob;
 
 import java.util.Optional;
@@ -28,9 +30,11 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
 
     private final CraftingJobGuiData craftingJobGuiData;
     private final int craftingPlanNotifierId;
+    private final int craftingPlanFlatNotifierId;
 
     private long lastUpdate;
     private Optional<ITerminalCraftingPlan> craftingPlan;
+    private Optional<ITerminalCraftingPlanFlat> craftingPlanFlat;
 
     public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer),
@@ -45,8 +49,10 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
 
         this.craftingJobGuiData = craftingJobGuiData;
         this.craftingPlan = Optional.empty();
+        this.craftingPlanFlat = Optional.empty();
 
         this.craftingPlanNotifierId = getNextValueId();
+        this.craftingPlanFlatNotifierId = getNextValueId();
     }
 
     public CraftingJobGuiData getCraftingJobGuiData() {
@@ -55,6 +61,10 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
 
     public Optional<ITerminalCraftingPlan> getCraftingPlan() {
         return craftingPlan;
+    }
+
+    public Optional<ITerminalCraftingPlanFlat> getCraftingPlanFlat() {
+        return craftingPlanFlat;
     }
 
     @Override
@@ -73,14 +83,24 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
         return craftingPlanNotifierId;
     }
 
+    public int getCraftingPlanFlatNotifierId() {
+        return craftingPlanFlatNotifierId;
+    }
+
     protected void updateCraftingPlan() {
         getTarget().ifPresent(target -> {
             INetwork network = NetworkHelpers.getNetworkChecked(target.getCenter());
             this.craftingPlan = Optional.ofNullable(craftingJobGuiData.getHandler().getCraftingJob(network,
                     this.craftingJobGuiData.getChannel(), craftingJobGuiData.getCraftingJob()));
-            setValue(this.craftingPlanNotifierId, this.craftingPlan
-                    .map(p -> this.craftingJobGuiData.getHandler().serializeCraftingPlan(p))
-                    .orElse(new CompoundTag()));
+            if (this.craftingPlan.isPresent()) {
+                ITerminalCraftingPlan plan = this.craftingPlan.get();
+                if (!HandlerWrappedTerminalCraftingPlan.isPlanTooLarge(plan)) {
+                    setValue(this.craftingPlanNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlan(plan));
+                }
+                setValue(this.craftingPlanFlatNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlanFlat(plan.flatten()));
+            } else {
+                setValue(this.craftingPlanNotifierId, new CompoundTag());
+            }
         });
     }
 
@@ -101,6 +121,12 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
                 this.craftingPlan = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlan(value));
             } catch (IllegalArgumentException e) {
                 this.craftingPlan = Optional.empty();
+            }
+        } else if (valueId == this.craftingPlanFlatNotifierId) {
+            try {
+                this.craftingPlanFlat = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlanFlat(value));
+            } catch (IllegalArgumentException e) {
+                this.craftingPlanFlat = Optional.empty();
             }
         }
 

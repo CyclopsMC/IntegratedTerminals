@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.inventory.container;
 
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
@@ -14,6 +14,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.CraftingJobS
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -31,6 +32,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     private final CraftingOptionGuiData craftingOptionGuiData;
     private final int craftingPlanNotifierId;
+    private final int craftingPlanFlatNotifierId;
     private final Level world;
 
     private boolean calculatedCraftingPlan;
@@ -42,6 +44,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
         this.craftingOptionGuiData = craftingOptionGuiData;
         this.craftingPlanNotifierId = getNextValueId();
+        this.craftingPlanFlatNotifierId = getNextValueId();
         this.world = playerInventory.player.level;
 
         putButtonAction(BUTTON_START, (buttonId, container) -> startCraftingJob());
@@ -72,6 +75,10 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         return craftingPlanNotifierId;
     }
 
+    public int getCraftingPlanFlatNotifierId() {
+        return craftingPlanFlatNotifierId;
+    }
+
     protected void updateCraftingPlan() {
         HandlerWrappedTerminalCraftingOption craftingOptionWrapper = this.craftingOptionGuiData.getCraftingOption();
         getNetwork().ifPresent(network -> {
@@ -94,7 +101,10 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     protected void setCraftingPlan(ITerminalCraftingPlan craftingPlan) {
         this.craftingPlan = craftingPlan;
-        setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(this.craftingPlan));
+        if (!HandlerWrappedTerminalCraftingPlan.isPlanTooLarge(this.craftingPlan)) {
+            setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(this.craftingPlan));
+        }
+        setValue(this.craftingPlanFlatNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlanFlat(this.craftingPlan.flatten()));
     }
 
     @Override

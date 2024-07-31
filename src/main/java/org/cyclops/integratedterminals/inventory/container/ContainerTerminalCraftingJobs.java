@@ -88,7 +88,7 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
                 this.craftingJobs = Lists.newArrayList();
                 for (ITerminalStorageTabIngredientCraftingHandler<?, ?> handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
                     for (ITerminalCraftingPlan craftingJob : handler.getCraftingJobs(network, channel)) {
-                        this.craftingJobs.add(new HandlerWrappedTerminalCraftingPlan(handler, craftingJob));
+                        this.craftingJobs.add(new HandlerWrappedTerminalCraftingPlan(handler, craftingJob, craftingJob.flatten()));
                     }
                 }
 

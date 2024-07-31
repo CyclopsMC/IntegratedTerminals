@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  */
 public class GuiCraftingPlan extends AbstractWidget {
 
-    private static final int ELEMENT_WIDTH = 221;
+    public static final int ELEMENT_WIDTH = 221;
     private static final int ELEMENT_HEIGHT = 16;
     private static final int ELEMENT_HEIGHT_TOTAL = 18;
 

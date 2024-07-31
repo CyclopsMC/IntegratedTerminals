@@ -2,11 +2,11 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
@@ -18,7 +18,7 @@ import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
@@ -116,7 +116,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     protected void drawCraftingPlan(PoseStack matrixStack, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
                                     ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int xOriginal = x;
-        ITerminalCraftingPlan<?> plan = craftingPlan.getCraftingPlan();
+        ITerminalCraftingPlanFlat<?> plan = craftingPlan.getCraftingPlanFlat();
 
         // Draw background color if hovering
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND
@@ -143,7 +143,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                     L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
             RenderHelpers.drawScaledStringWithShadow(matrixStack, font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215);
 
-            int dependencies = getDependencies(plan);
+            int dependencies = plan.getEntries().size();
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
             RenderHelpers.drawScaledStringWithShadow(matrixStack, font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215);
 
@@ -160,21 +160,13 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         }
     }
 
-    protected static int getDependencies(ITerminalCraftingPlan<?> plan) {
-        int count = 1;
-        for (ITerminalCraftingPlan<?> dependency : plan.getDependencies()) {
-            count += getDependencies(dependency);
-        }
-        return count;
-    }
-
     private void cancelCraftingJobs() {
         // Send packets to cancel crafting jobs
         for (HandlerWrappedTerminalCraftingPlan craftingJob : getMenu().getCraftingJobs()) {
             PartPos center = getMenu().getTarget().get().getCenter();
             CraftingJobGuiData data = new CraftingJobGuiData(center.getPos().getBlockPos(), center.getSide(),
                     getMenu().getChannel(), craftingJob.getHandler(),
-                    craftingJob.getCraftingPlan().getId());
+                    craftingJob.getCraftingPlanFlat().getId());
             IntegratedTerminals._instance.getPacketHandler().sendToServer(new CancelCraftingJobPacket(data));
         }
 
