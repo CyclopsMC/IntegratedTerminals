@@ -1,13 +1,13 @@
 package org.cyclops.integratedterminals.inventory.container;
 
 import com.google.common.collect.Lists;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.util.LazyOptional;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
@@ -88,7 +88,7 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
                 this.craftingJobs = Lists.newArrayList();
                 for (ITerminalStorageTabIngredientCraftingHandler<?, ?> handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
                     for (ITerminalCraftingPlan craftingJob : handler.getCraftingJobs(network, channel)) {
-                        this.craftingJobs.add(new HandlerWrappedTerminalCraftingPlan(handler, craftingJob));
+                        this.craftingJobs.add(new HandlerWrappedTerminalCraftingPlan(handler, craftingJob.flatten()));
                     }
                 }
 
