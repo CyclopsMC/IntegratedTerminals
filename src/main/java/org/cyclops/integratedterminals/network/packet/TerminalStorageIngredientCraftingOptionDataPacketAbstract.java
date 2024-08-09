@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -44,7 +45,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         super(type);
     }
 
-    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(Type<P> type, CraftingOptionGuiData<T, M, L> craftingOptionData) {
+    public TerminalStorageIngredientCraftingOptionDataPacketAbstract(Type<P> type, HolderLookup.Provider lookupProvider, CraftingOptionGuiData<T, M, L> craftingOptionData) {
         super(type);
         this.ingredientComponent = craftingOptionData.getComponent().getName().toString();
         this.location = craftingOptionData.getLocation();
@@ -52,11 +53,11 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         this.tabName = craftingOptionData.getTabName();
         this.channel = craftingOptionData.getChannel();
         this.craftingOption = craftingOptionData.getCraftingOption() != null
-                ? HandlerWrappedTerminalCraftingOption.serialize(craftingOptionData.getCraftingOption())
+                ? HandlerWrappedTerminalCraftingOption.serialize(lookupProvider, craftingOptionData.getCraftingOption())
                 : new CompoundTag();
         this.amount = craftingOptionData.getAmount();
         this.craftingPlan = craftingOptionData.getCraftingPlan() != null
-                ? HandlerWrappedTerminalCraftingPlan.serialize(craftingOptionData.getCraftingPlan())
+                ? HandlerWrappedTerminalCraftingPlan.serialize(lookupProvider, craftingOptionData.getCraftingPlan())
                 : new CompoundTag();
     }
 
@@ -86,18 +87,18 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     @Nullable
-    protected HandlerWrappedTerminalCraftingOption<T> getCraftingOption(IngredientComponent<T, M> ingredientComponent) {
+    protected HandlerWrappedTerminalCraftingOption<T> getCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent) {
         try {
-            return HandlerWrappedTerminalCraftingOption.deserialize(ingredientComponent, this.craftingOption);
+            return HandlerWrappedTerminalCraftingOption.deserialize(lookupProvider, ingredientComponent, this.craftingOption);
         } catch (IllegalArgumentException e) {
             return null;
         }
     }
 
     @Nullable
-    protected HandlerWrappedTerminalCraftingPlan getCraftingPlan() {
+    protected HandlerWrappedTerminalCraftingPlan getCraftingPlan(HolderLookup.Provider lookupProvider) {
         try {
-            return HandlerWrappedTerminalCraftingPlan.deserialize(this.craftingPlan);
+            return HandlerWrappedTerminalCraftingPlan.deserialize(lookupProvider, this.craftingPlan);
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -123,9 +124,9 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         return amount;
     }
 
-    public CraftingOptionGuiData<T, M, L> getCraftingOptionData() {
+    public CraftingOptionGuiData<T, M, L> getCraftingOptionData(HolderLookup.Provider lookupProvider) {
         IngredientComponent<T, M> ingredientComponent = getIngredientComponent();
         return new CraftingOptionGuiData<>(ingredientComponent, tabName, channel,
-                getCraftingOption(ingredientComponent), amount, getCraftingPlan(), location, locationInstance);
+                getCraftingOption(lookupProvider, ingredientComponent), amount, getCraftingPlan(lookupProvider), location, locationInstance);
     }
 }

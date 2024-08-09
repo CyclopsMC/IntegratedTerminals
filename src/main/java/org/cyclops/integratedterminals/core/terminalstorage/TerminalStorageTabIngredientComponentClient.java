@@ -661,9 +661,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         ((TerminalStorageSlotIngredientCraftingOption<T, M>) hoveringStorageSlotObject.get()).getCraftingOption(), 1, null,
                         containerTerminalStorage.getLocation(), containerTerminalStorage.getLocationInstance());
                 if (shift) {
-                    containerTerminalStorage.sendOpenCraftingPlanGuiPacketToServer(craftingOptionData);
+                    containerTerminalStorage.sendOpenCraftingPlanGuiPacketToServer(player.level().registryAccess(), craftingOptionData);
                 } else {
-                    containerTerminalStorage.sendOpenCraftingJobAmountGuiPacketToServer(craftingOptionData);
+                    containerTerminalStorage.sendOpenCraftingJobAmountGuiPacketToServer(player.level().registryAccess(), craftingOptionData);
                 }
             } else if (clickType != null) {
                 T activeInstance = matcher.getEmptyInstance();
@@ -671,6 +671,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), moveQuantity);
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
+                        player.level().registryAccess(),
                         this.getName().toString(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
                         hoveredContainerSlot, movePlayerQuantity, activeInstance, transferFullSelection));

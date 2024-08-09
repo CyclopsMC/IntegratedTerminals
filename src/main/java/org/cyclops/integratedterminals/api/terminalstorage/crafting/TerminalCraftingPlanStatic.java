@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -252,7 +253,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
     }
 
-    public static <I> CompoundTag serialize(TerminalCraftingPlanStatic<I> plan,
+    public static <I> CompoundTag serialize(HolderLookup.Provider lookupProvider, TerminalCraftingPlanStatic<I> plan,
                                             ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
         CompoundTag tag = new CompoundTag();
 
@@ -260,13 +261,13 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         ListTag dependencies = new ListTag();
         for (ITerminalCraftingPlan<I> dependency : plan.getDependencies()) {
-            dependencies.add(TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic) dependency, handler));
+            dependencies.add(TerminalCraftingPlanStatic.serialize(lookupProvider, (TerminalCraftingPlanStatic) dependency, handler));
         }
         tag.put("dependencies", dependencies);
 
         ListTag outputs = new ListTag();
         for (IPrototypedIngredient<?, ?> output : plan.getOutputs()) {
-            outputs.add(IPrototypedIngredient.serialize((PrototypedIngredient) output));
+            outputs.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) output));
         }
         tag.put("outputs", outputs);
 
@@ -276,7 +277,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         ListTag storageIngredients = new ListTag();
         for (IPrototypedIngredient<?, ?> storageIngredient : plan.getStorageIngredients()) {
-            storageIngredients.add(IPrototypedIngredient.serialize((PrototypedIngredient) storageIngredient));
+            storageIngredients.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) storageIngredient));
         }
         tag.put("storageIngredients", storageIngredients);
 
@@ -284,7 +285,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : plan.getLastMissingIngredients()) {
             ListTag lastMissingIngredientTag = new ListTag();
             for (IPrototypedIngredient<?, ?> prototypedIngredient : lastMissingIngredient) {
-                lastMissingIngredientTag.add(IPrototypedIngredient.serialize((PrototypedIngredient) prototypedIngredient));
+                lastMissingIngredientTag.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) prototypedIngredient));
             }
             lastMissingIngredients.add(lastMissingIngredientTag);
         }
@@ -306,7 +307,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         return tag;
     }
 
-    public static <I> TerminalCraftingPlanStatic<I> deserialize(CompoundTag tag,
+    public static <I> TerminalCraftingPlanStatic<I> deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag,
                                                                 ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
         if (!tag.contains("id")) {
             throw new IllegalArgumentException("Could not find an id entry in the given tag");
@@ -344,13 +345,13 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         ListTag dependenciesTag = tag.getList("dependencies", Tag.TAG_COMPOUND);
         List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayListWithExpectedSize(dependenciesTag.size());
         for (Tag nbtBase : dependenciesTag) {
-            dependencies.add(TerminalCraftingPlanStatic.deserialize((CompoundTag) nbtBase, handler));
+            dependencies.add(TerminalCraftingPlanStatic.deserialize(lookupProvider, (CompoundTag) nbtBase, handler));
         }
 
         ListTag outputsTag = tag.getList("outputs", Tag.TAG_COMPOUND);
         List<IPrototypedIngredient<?, ?>> outputs = Lists.newArrayListWithExpectedSize(outputsTag.size());
         for (Tag nbtBase : outputsTag) {
-            outputs.add(IPrototypedIngredient.deserialize((CompoundTag) nbtBase));
+            outputs.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) nbtBase));
         }
 
         TerminalCraftingJobStatus status = TerminalCraftingJobStatus.values()[tag.getInt("status")];
@@ -360,7 +361,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         ListTag storageIngredientsTag = tag.getList("storageIngredients", Tag.TAG_COMPOUND);
         List<IPrototypedIngredient<?, ?>> storageIngredients = Lists.newArrayListWithExpectedSize(storageIngredientsTag.size());
         for (Tag nbtBase : storageIngredientsTag) {
-            storageIngredients.add(IPrototypedIngredient.deserialize((CompoundTag) nbtBase));
+            storageIngredients.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) nbtBase));
         }
 
         ListTag lastMissingIngredientsTag = tag.getList("lastMissingIngredients", Tag.TAG_LIST);
@@ -369,7 +370,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             ListTag list = ((ListTag) nbtBase);
             List<IPrototypedIngredient<?, ?>> lastMissingIngredient = Lists.newArrayListWithExpectedSize(list.size());
             for (Tag base : list) {
-                lastMissingIngredient.add(IPrototypedIngredient.deserialize((CompoundTag) base));
+                lastMissingIngredient.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) base));
             }
             lastMissingIngredients.add(lastMissingIngredient);
         }

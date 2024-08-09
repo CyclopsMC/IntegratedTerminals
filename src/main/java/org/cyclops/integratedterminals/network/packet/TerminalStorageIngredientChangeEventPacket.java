@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -44,14 +45,14 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
         super(ID);
     }
 
-    public TerminalStorageIngredientChangeEventPacket(String tabId,
+    public TerminalStorageIngredientChangeEventPacket(HolderLookup.Provider lookupProvider, String tabId,
                                                       IIngredientComponentStorageObservable.StorageChangeEvent<?, ?> event,
                                                       boolean enabled) {
         super(ID);
         this.tabId = tabId;
         IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
         IIngredientCollection<?, ?> instances = event.getInstances();
-        CompoundTag serialized = IngredientCollections.serialize(instances);
+        CompoundTag serialized = IngredientCollections.serialize(lookupProvider, instances);
         serialized.putInt("changeType", changeType.ordinal());
         this.changeData = serialized;
         this.channel = event.getChannel();
@@ -69,7 +70,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
-            IngredientArrayList ingredients = IngredientCollections.deserialize(changeData);
+            IngredientArrayList ingredients = IngredientCollections.deserialize(world.registryAccess(), changeData);
 
             TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
             tab.onChange(channel, changeType, ingredients, enabled);

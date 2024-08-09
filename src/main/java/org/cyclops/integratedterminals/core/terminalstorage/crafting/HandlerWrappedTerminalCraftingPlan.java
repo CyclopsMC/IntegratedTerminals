@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -31,23 +32,23 @@ public class HandlerWrappedTerminalCraftingPlan {
         return craftingPlanFlat;
     }
 
-    public static CompoundTag serialize(HandlerWrappedTerminalCraftingPlan craftingPlan) {
+    public static CompoundTag serialize(HolderLookup.Provider lookupProvider, HandlerWrappedTerminalCraftingPlan craftingPlan) {
         ITerminalStorageTabIngredientCraftingHandler handler = craftingPlan.getHandler();
         CompoundTag tag = new CompoundTag();
         tag.putString("craftingPlanHandler", handler.getId().toString());
-        tag.put("flatPlan", handler.serializeCraftingPlanFlat(craftingPlan.getCraftingPlanFlat()));
+        tag.put("flatPlan", handler.serializeCraftingPlanFlat(lookupProvider, craftingPlan.getCraftingPlanFlat()));
 
         return tag;
     }
 
-    public static HandlerWrappedTerminalCraftingPlan deserialize(CompoundTag tag) {
+    public static HandlerWrappedTerminalCraftingPlan deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag) {
         if (!tag.contains("craftingPlanHandler", Tag.TAG_STRING)) {
             throw new IllegalArgumentException("Could not find a craftingPlanHandler entry in the given tag");
         }
         String handlerId = tag.getString("craftingPlanHandler");
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
                 .getHandler(ResourceLocation.parse(handlerId));
-        ITerminalCraftingPlanFlat craftingPlanFlat = handler.deserializeCraftingPlanFlat(tag.getCompound("flatPlan"));
+        ITerminalCraftingPlanFlat craftingPlanFlat = handler.deserializeCraftingPlanFlat(lookupProvider, tag.getCompound("flatPlan"));
 
         return new HandlerWrappedTerminalCraftingPlan(handler, craftingPlanFlat);
     }

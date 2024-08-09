@@ -5,6 +5,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -106,7 +107,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         addRenderableWidget(nextButton = new ButtonText(leftPos + 81, topPos + 33, 50, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.next"),
                 Component.translatable("gui.integratedterminals.terminal_storage.step.next").withStyle(ChatFormatting.YELLOW),
-                (bb) -> calculateCraftingJob(),
+                (bb) -> calculateCraftingJob(getMenu().getPlayerIInventory().player.registryAccess()),
                 true));
     }
 
@@ -121,7 +122,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
             returnToTerminalStorage();
             return true;
         } else if (typedChar == GLFW.GLFW_KEY_ENTER || typedChar == GLFW.GLFW_KEY_KP_ENTER) {
-            calculateCraftingJob();
+            calculateCraftingJob(getMenu().getPlayerIInventory().player.registryAccess());
             return true;
         }
         return this.numberField.keyPressed(typedChar, keyCode, modifiers) || super.keyPressed(typedChar, keyCode, modifiers);
@@ -139,10 +140,10 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         }
     }
 
-    private void calculateCraftingJob() {
+    private void calculateCraftingJob(HolderLookup.Provider lookupProvider) {
         CraftingOptionGuiData craftingOptionData = getMenu().getCraftingOptionGuiData().copyWithAmount(getAmount());
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientOpenCraftingPlanGuiPacket(craftingOptionData));
+                new TerminalStorageIngredientOpenCraftingPlanGuiPacket(lookupProvider, craftingOptionData));
     }
 
     protected <T, M> void drawInstance(GuiGraphics guiGraphics, IngredientComponent<T, M> ingredientComponent, T instance, int x, int y, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {

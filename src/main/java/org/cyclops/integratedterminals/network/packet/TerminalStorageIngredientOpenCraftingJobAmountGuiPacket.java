@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -22,13 +23,13 @@ public class TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<T, M, L> ex
         super((Type) ID);
     }
 
-    public TerminalStorageIngredientOpenCraftingJobAmountGuiPacket(CraftingOptionGuiData<T, M, L> craftingOptionData) {
-        super((Type) ID, craftingOptionData);
+    public TerminalStorageIngredientOpenCraftingJobAmountGuiPacket(HolderLookup.Provider lookupProvider, CraftingOptionGuiData<T, M, L> craftingOptionData) {
+        super((Type) ID, lookupProvider, craftingOptionData);
     }
 
     @Override
     public void actionServer(Level world, ServerPlayer player) {
-        CraftingOptionGuiData<T, M, L> craftingJobGuiData = getCraftingOptionData();
+        CraftingOptionGuiData<T, M, L> craftingJobGuiData = getCraftingOptionData(world.registryAccess());
         craftingJobGuiData.getLocation().openContainerCraftingOptionAmount(craftingJobGuiData, world, player);
     }
 

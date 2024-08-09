@@ -190,12 +190,12 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
         super.onUpdate(valueId, value);
 
         if (getMenu().getCraftingPlanNotifierId() == valueId) {
-            this.craftingPlan = getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlan(value);
+            this.craftingPlan = getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlan(getMenu().getPlayerIInventory().player.registryAccess(), value);
             this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(null);
             this.init();
         }
         if (getMenu().getCraftingPlanFlatNotifierId() == valueId) {
-            this.craftingPlanFlat = getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlanFlat(value);
+            this.craftingPlanFlat = getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlanFlat(getMenu().getPlayerIInventory().player.registryAccess(), value);
             this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(null);
             this.init();
         }

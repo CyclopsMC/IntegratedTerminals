@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -50,7 +51,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
         super(ID);
     }
 
-    public <T> TerminalStorageIngredientCraftingOptionsPacket(String tabId,
+    public <T> TerminalStorageIngredientCraftingOptionsPacket(HolderLookup.Provider lookupProvider,
+                                                              String tabId,
                                                               int channel,
                                                               Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
                                                               boolean reset,
@@ -61,7 +63,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
         this.data = new CompoundTag();
         ListTag list = new ListTag();
         for (HandlerWrappedTerminalCraftingOption<?> option : craftingOptions) {
-            list.add(HandlerWrappedTerminalCraftingOption.serialize(option));
+            list.add(HandlerWrappedTerminalCraftingOption.serialize(lookupProvider, option));
         }
         this.data.put("craftingOptions", list);
         this.reset = reset;
@@ -87,7 +89,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
             List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
             for (int i = 0; i < list.size(); i++) {
                 HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
-                        .deserialize(ingredientComponent, list.getCompound(i));
+                        .deserialize(world.registryAccess(), ingredientComponent, list.getCompound(i));
                 craftingOptions.add(option);
             }
 

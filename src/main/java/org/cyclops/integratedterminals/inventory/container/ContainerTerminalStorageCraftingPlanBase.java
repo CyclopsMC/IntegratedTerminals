@@ -101,9 +101,9 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
     protected void setCraftingPlan(ITerminalCraftingPlan craftingPlan) {
         this.craftingPlan = craftingPlan;
         if (!ContainerTerminalCraftingJobsPlan.isPlanTooLarge(this.craftingPlan)) {
-            setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(this.craftingPlan));
+            setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(player.level().registryAccess(), this.craftingPlan));
         }
-        setValue(this.craftingPlanFlatNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlanFlat(this.craftingPlan.flatten()));
+        setValue(this.craftingPlanFlatNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlanFlat(player.level().registryAccess(), this.craftingPlan.flatten()));
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.Tag;
@@ -86,13 +87,13 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public CompoundTag serializeCraftingOption(TerminalCraftingOptionRecipeDefinition craftingOption) {
-        return IRecipeDefinition.serialize(craftingOption.getRecipe());
+    public CompoundTag serializeCraftingOption(HolderLookup.Provider lookupProvider, TerminalCraftingOptionRecipeDefinition craftingOption) {
+        return IRecipeDefinition.serialize(lookupProvider, craftingOption.getRecipe());
     }
 
     @Override
-    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException {
-        return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, IRecipeDefinition.deserialize(tag));
+    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException {
+        return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, IRecipeDefinition.deserialize(lookupProvider, tag));
     }
 
     @Override
@@ -430,8 +431,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public CompoundTag serializeCraftingPlan(ITerminalCraftingPlan<Integer> craftingPlan) {
-        CompoundTag tag = TerminalCraftingPlanStatic.serialize((TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
+    public CompoundTag serializeCraftingPlan(HolderLookup.Provider lookupProvider, ITerminalCraftingPlan<Integer> craftingPlan) {
+        CompoundTag tag = TerminalCraftingPlanStatic.serialize(lookupProvider, (TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph) {
             CompoundTag serializedGraph = CraftingJobDependencyGraph.serialize(
                     ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph());
@@ -441,8 +442,8 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(CompoundTag tag) throws IllegalArgumentException {
-        TerminalCraftingPlanStatic<Integer> planStatic = TerminalCraftingPlanStatic.deserialize(tag, this);
+    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(HolderLookup.Provider lookupProvider, CompoundTag tag) throws IllegalArgumentException {
+        TerminalCraftingPlanStatic<Integer> planStatic = TerminalCraftingPlanStatic.deserialize(lookupProvider, tag, this);
         if (tag.contains("craftingJobDependencyGraph")) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = CraftingJobDependencyGraph.deserialize(
                     tag.getCompound("craftingJobDependencyGraph"));

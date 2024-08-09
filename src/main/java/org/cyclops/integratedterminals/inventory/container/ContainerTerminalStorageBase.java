@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.inventory.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
@@ -244,14 +245,14 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         }
     }
 
-    public <T, M, L> void sendOpenCraftingPlanGuiPacketToServer(CraftingOptionGuiData<T, M, L> craftingOptionData) {
+    public <T, M, L> void sendOpenCraftingPlanGuiPacketToServer(HolderLookup.Provider lookupProvider, CraftingOptionGuiData<T, M, L> craftingOptionData) {
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientOpenCraftingPlanGuiPacket<>(craftingOptionData));
+                new TerminalStorageIngredientOpenCraftingPlanGuiPacket<>(lookupProvider, craftingOptionData));
     }
 
-    public <T, M, L> void sendOpenCraftingJobAmountGuiPacketToServer(CraftingOptionGuiData<T, M, L> craftingOptionData) {
+    public <T, M, L> void sendOpenCraftingJobAmountGuiPacketToServer(HolderLookup.Provider lookupProvider, CraftingOptionGuiData<T, M, L> craftingOptionData) {
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
-                new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<>(craftingOptionData));
+                new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket<>(lookupProvider, craftingOptionData));
     }
 
     @Override

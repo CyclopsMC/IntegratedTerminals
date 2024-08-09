@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -51,7 +52,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
         super((Type) ID);
     }
 
-    public TerminalStorageIngredientSlotClickPacket(String tabId, IngredientComponent<T, ?> component,
+    public TerminalStorageIngredientSlotClickPacket(HolderLookup.Provider lookupProvider, String tabId, IngredientComponent<T, ?> component,
                                                     TerminalClickType clickType,
                                                     int channel, T hoveringStorageInstance,
                                                     int hoveredContainerSlot, long moveQuantityPlayerSlot,
@@ -63,11 +64,11 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
         this.channel = channel;
         this.hoveringStorageInstanceData = new CompoundTag();
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-        this.hoveringStorageInstanceData.put("i", serializer.serializeInstance(hoveringStorageInstance));
+        this.hoveringStorageInstanceData.put("i", serializer.serializeInstance(lookupProvider, hoveringStorageInstance));
         this.hoveredContainerSlot = hoveredContainerSlot;
         this.moveQuantityPlayerSlot = moveQuantityPlayerSlot;
         this.activeStorageInstanceData = new CompoundTag();
-        this.activeStorageInstanceData.put("i", serializer.serializeInstance(activeStorageInstance));
+        this.activeStorageInstanceData.put("i", serializer.serializeInstance(lookupProvider, activeStorageInstance));
         this.transferFullSelection = transferFullSelection;
     }
 
@@ -89,8 +90,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
             TerminalStorageTabIngredientComponentServer<T, ?> tab = (TerminalStorageTabIngredientComponentServer<T, ?>)
                     container.getTabServer(tabId);
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-            T hoveringStorageInstance = serializer.deserializeInstance(this.hoveringStorageInstanceData.get("i"));
-            T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.get("i"));
+            T hoveringStorageInstance = serializer.deserializeInstance(world.registryAccess(), this.hoveringStorageInstanceData.get("i"));
+            T activeInstance = serializer.deserializeInstance(world.registryAccess(), this.activeStorageInstanceData.get("i"));
             tab.handleStorageSlotClick(container, player, getClickType(), getChannel(), hoveringStorageInstance,
                     hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection);
         }

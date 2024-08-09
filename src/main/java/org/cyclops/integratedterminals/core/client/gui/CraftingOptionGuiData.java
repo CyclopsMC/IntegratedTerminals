@@ -94,11 +94,11 @@ public class CraftingOptionGuiData<T, M, L> {
         packetBuffer.writeInt(amount);
         packetBuffer.writeBoolean(craftingOption != null);
         if (craftingOption != null) {
-            packetBuffer.writeNbt(HandlerWrappedTerminalCraftingOption.serialize(craftingOption));
+            packetBuffer.writeNbt(HandlerWrappedTerminalCraftingOption.serialize(packetBuffer.registryAccess(), craftingOption));
         }
         packetBuffer.writeBoolean(craftingPlan != null);
         if (craftingPlan != null) {
-            packetBuffer.writeNbt(HandlerWrappedTerminalCraftingPlan.serialize(craftingPlan));
+            packetBuffer.writeNbt(HandlerWrappedTerminalCraftingPlan.serialize(packetBuffer.registryAccess(), craftingPlan));
         }
         packetBuffer.writeResourceLocation(location.getName());
         location.writeToPacketBuffer(packetBuffer, locationInstance);
@@ -111,11 +111,11 @@ public class CraftingOptionGuiData<T, M, L> {
         int amount = packetBuffer.readInt();
         HandlerWrappedTerminalCraftingOption craftingOption = null;
         if (packetBuffer.readBoolean()) {
-            craftingOption = HandlerWrappedTerminalCraftingOption.deserialize(component, packetBuffer.readNbt());
+            craftingOption = HandlerWrappedTerminalCraftingOption.deserialize(packetBuffer.registryAccess(), component, packetBuffer.readNbt());
         }
         HandlerWrappedTerminalCraftingPlan craftingPlan = null;
         if (packetBuffer.readBoolean()) {
-            craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.readNbt());
+            craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.registryAccess(), packetBuffer.readNbt());
         }
         ITerminalStorageLocation<?> location = TerminalStorageLocations.REGISTRY.getLocation(packetBuffer.readResourceLocation());
         Object locationInstance = location.readFromPacketBuffer(packetBuffer);

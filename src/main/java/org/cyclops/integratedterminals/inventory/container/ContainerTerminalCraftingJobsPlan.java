@@ -95,9 +95,9 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
             if (this.craftingPlan.isPresent()) {
                 ITerminalCraftingPlan plan = this.craftingPlan.get();
                 if (!ContainerTerminalCraftingJobsPlan.isPlanTooLarge(plan)) {
-                    setValue(this.craftingPlanNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlan(plan));
+                    setValue(this.craftingPlanNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlan(player.level().registryAccess(), plan));
                 }
-                setValue(this.craftingPlanFlatNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlanFlat(plan.flatten()));
+                setValue(this.craftingPlanFlatNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlanFlat(player.level().registryAccess(), plan.flatten()));
             } else {
                 setValue(this.craftingPlanNotifierId, new CompoundTag());
             }
@@ -118,13 +118,13 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     public void onUpdate(int valueId, CompoundTag value) {
         if (valueId == this.craftingPlanNotifierId) {
             try {
-                this.craftingPlan = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlan(value));
+                this.craftingPlan = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlan(player.level().registryAccess(), value));
             } catch (IllegalArgumentException e) {
                 this.craftingPlan = Optional.empty();
             }
         } else if (valueId == this.craftingPlanFlatNotifierId) {
             try {
-                this.craftingPlanFlat = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlanFlat(value));
+                this.craftingPlanFlat = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlanFlat(player.level().registryAccess(), value));
             } catch (IllegalArgumentException e) {
                 this.craftingPlanFlat = Optional.empty();
             }

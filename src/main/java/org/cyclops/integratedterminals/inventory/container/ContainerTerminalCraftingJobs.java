@@ -94,7 +94,7 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
                 // Send crafting jobs to client
                 ListTag tagList = new ListTag();
                 for (HandlerWrappedTerminalCraftingPlan craftingJob : this.craftingJobs) {
-                    tagList.add(HandlerWrappedTerminalCraftingPlan.serialize(craftingJob));
+                    tagList.add(HandlerWrappedTerminalCraftingPlan.serialize(player.level().registryAccess(), craftingJob));
                 }
                 CompoundTag tag = new CompoundTag();
                 tag.put("craftingJobs", tagList);
@@ -121,7 +121,7 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
             ListTag tagList = value.getList("craftingJobs", Tag.TAG_COMPOUND);
             this.craftingJobs = Lists.newArrayListWithExpectedSize(tagList.size());
             for (int i = 0; i < tagList.size(); i++) {
-                this.craftingJobs.add(HandlerWrappedTerminalCraftingPlan.deserialize(tagList.getCompound(i)));
+                this.craftingJobs.add(HandlerWrappedTerminalCraftingPlan.deserialize(player.level().registryAccess(), tagList.getCompound(i)));
             }
         }
     }

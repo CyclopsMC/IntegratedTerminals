@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -335,7 +336,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         // Only allow ingredient collection of a max given size to be sent in a packet
         if (event.getInstances().size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientChangeEventPacket(this.getName().toString(), event, this.ingredientNetwork.hasPositions()), player);
+                    new TerminalStorageIngredientChangeEventPacket(ServerLifecycleHooks.getCurrentServer().registryAccess(), this.getName().toString(), event, this.ingredientNetwork.hasPositions()), player);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientMaxQuantityPacket(this.getName().toString(), event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
         } else {
@@ -369,7 +370,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         // Only allow collection of a max given size to be sent in a packet
         if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxRecipes) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel), player);
+                    new TerminalStorageIngredientCraftingOptionsPacket(player.level().registryAccess(), this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel), player);
         } else {
             List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
 
@@ -428,7 +429,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 T remainingInstance = matcher.withQuantity(movedInstance,
                         matcher.getQuantity(activeStorageInstance) - matcher.getQuantity(movedInstance));
                 IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                        new TerminalStorageIngredientUpdateActiveStorageIngredientPacket(this.getName().toString(),
+                        new TerminalStorageIngredientUpdateActiveStorageIngredientPacket(player.level().registryAccess(), this.getName().toString(),
                                 this.ingredientComponent, channel, remainingInstance), player);
                 break;
             case PLAYER_PLACE_STORAGE:

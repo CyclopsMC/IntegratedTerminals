@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -40,7 +41,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
         super((Type) ID);
     }
 
-    public TerminalStorageIngredientUpdateActiveStorageIngredientPacket(String tabId,
+    public TerminalStorageIngredientUpdateActiveStorageIngredientPacket(HolderLookup.Provider lookupProvider, String tabId,
                                                                         IngredientComponent<T, ?> component,
                                                                         int channel, T activeStorageInstance) {
         super((Type) ID);
@@ -49,7 +50,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
         this.channel = channel;
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
         this.activeStorageInstanceData = new CompoundTag();
-        this.activeStorageInstanceData.put("i", serializer.serializeInstance(activeStorageInstance));
+        this.activeStorageInstanceData.put("i", serializer.serializeInstance(lookupProvider, activeStorageInstance));
     }
 
     @Override
@@ -65,7 +66,7 @@ public class TerminalStorageIngredientUpdateActiveStorageIngredientPacket<T> ext
             TerminalStorageTabIngredientComponentClient<T, ?> tab = (TerminalStorageTabIngredientComponentClient<T, ?>)
                     container.getTabClient(tabId);
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-            T activeInstance = serializer.deserializeInstance(this.activeStorageInstanceData.get("i"));
+            T activeInstance = serializer.deserializeInstance(world.registryAccess(), this.activeStorageInstanceData.get("i"));
             tab.handleActiveIngredientUpdate(getChannel(), activeInstance);
         }
     }
