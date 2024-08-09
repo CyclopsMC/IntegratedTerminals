@@ -435,6 +435,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         CompoundTag tag = TerminalCraftingPlanStatic.serialize(lookupProvider, (TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph) {
             CompoundTag serializedGraph = CraftingJobDependencyGraph.serialize(
+                    lookupProvider,
                     ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph());
             tag.put("craftingJobDependencyGraph", serializedGraph);
         }
@@ -446,6 +447,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         TerminalCraftingPlanStatic<Integer> planStatic = TerminalCraftingPlanStatic.deserialize(lookupProvider, tag, this);
         if (tag.contains("craftingJobDependencyGraph")) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = CraftingJobDependencyGraph.deserialize(
+                    lookupProvider,
                     tag.getCompound("craftingJobDependencyGraph"));
             TerminalCraftingPlanCraftingJobDependencyGraph graph = new TerminalCraftingPlanCraftingJobDependencyGraph(
                     planStatic.getId(),
