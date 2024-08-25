@@ -52,6 +52,7 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientU
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -262,7 +263,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
     protected void reApplyFilter(@Nullable IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
         boolean firstChannel = true;
-        for (int channel : this.unfilteredIngredientsViews.keySet()) {
+        for (int channel : event == null ? this.unfilteredIngredientsViews.keySet() : Collections.singleton(event.getChannel())) {
             Predicate<T> ingredientsFilter = getIngredientsFilter();
             if (ingredientsFilter != null || event == null) {
                 Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
