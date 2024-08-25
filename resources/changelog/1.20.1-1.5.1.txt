@@ -1,0 +1,8 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Fixes:
+* Fix terminal diffs being applied to incorrect channels
+  This was a regression since fae46e8f049b5a7cc861f5cdb770c01f2fb21bc7
+  Closes #124
+
