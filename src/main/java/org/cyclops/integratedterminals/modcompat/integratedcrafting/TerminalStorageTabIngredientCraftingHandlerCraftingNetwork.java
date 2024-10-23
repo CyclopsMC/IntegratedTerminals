@@ -79,8 +79,14 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     public <T, M> Collection<TerminalCraftingOptionRecipeDefinition<?, ?>> getCraftingOptions(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel) {
         IngredientComponent<T, M> ingredientComponent = tab.getIngredientNetwork().getComponent();
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
+        return getCraftingOptionsWithOutput(tab, channel, matcher.getEmptyInstance(), matcher.getAnyMatchCondition());
+    }
+
+    @Override
+    public <T, M> Collection<TerminalCraftingOptionRecipeDefinition<?, ?>> getCraftingOptionsWithOutput(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel, T instance, M matchCondition) {
+        IngredientComponent<T, M> ingredientComponent = tab.getIngredientNetwork().getComponent();
         IRecipeIndex recipeIndex = getRecipeIndex(tab.getNetwork(), channel);
-        Iterable<IRecipeDefinition> recipes = () -> recipeIndex.getRecipes(ingredientComponent, matcher.getEmptyInstance(), matcher.getAnyMatchCondition());
+        Iterable<IRecipeDefinition> recipes = () -> recipeIndex.getRecipes(ingredientComponent, instance, matchCondition);
         return StreamSupport.stream(recipes.spliterator(), false)
                 .map((recipe) -> new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, recipe))
                 .collect(Collectors.toList());
