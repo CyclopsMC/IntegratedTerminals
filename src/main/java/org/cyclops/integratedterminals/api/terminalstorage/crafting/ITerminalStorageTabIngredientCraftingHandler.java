@@ -44,6 +44,18 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
     public <T, M> Collection<O> getCraftingOptions(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel);
 
     /**
+     * Get all crafting options in the given tab that produce the given output instance.
+     * @param tab An ingredient tab.
+     * @param channel The channel to get the options for.
+     * @param instance The expect output instance.
+     * @param matchCondition The expected output match condition.
+     * @param <T> The instance type.
+     * @param <M> The matching condition parameter.
+     * @return Crafting options.
+     */
+    public <T, M> Collection<O> getCraftingOptionsWithOutput(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel, T instance, M matchCondition);
+
+    /**
      * Serialize a crafting option to NBT.
      * @param craftingOption A crafting option.
      * @return An NBT tag.
