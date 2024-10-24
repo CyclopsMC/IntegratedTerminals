@@ -43,6 +43,10 @@ public class SlotCraftingAutoRefill extends ResultSlot {
 
     @Override
     public void onTake(Player thePlayer, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
+
         TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = tabCommon.getAutoRefill();
         if (!thePlayer.level().isClientSide && autoRefill != TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.DISABLED) {
             NonNullList<ItemStack> beforeCraft = inventoryToList(inventoryCrafting, true);
