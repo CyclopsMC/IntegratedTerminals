@@ -34,7 +34,7 @@ public class TerminalStorageChangeGuiState extends PacketCodec<TerminalStorageCh
 
     public TerminalStorageChangeGuiState(TerminalStorageState state) {
         super(ID);
-        this.state = state.getTag();
+        this.state = state.getTag().copy();
     }
 
     @Override
