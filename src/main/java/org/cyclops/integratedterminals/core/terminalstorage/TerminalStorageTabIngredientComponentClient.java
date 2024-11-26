@@ -34,7 +34,7 @@ import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.cyclopscore.helper.StringHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
-import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionPrototypeMap;
+import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
@@ -98,7 +98,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected final ContainerTerminalStorageBase container;
     private final List<ITerminalButton<?, ?, ?>> buttons;
 
-    private final Int2ObjectMap<List<InstanceWithMetadata<T>>> ingredientsViews;
+    private final Int2ObjectMap<IIngredientCollapsedCollectionMutable<T, M>> ingredientsUnsortedViews;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
@@ -142,7 +142,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         NeoForge.EVENT_BUS.post(event);
         this.buttons = event.getButtons();
 
-        this.ingredientsViews = new Int2ObjectOpenHashMap<>();
+        this.ingredientsUnsortedViews = new Int2ObjectOpenHashMap<>();
         this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
@@ -238,11 +238,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         container.getGuiState().setSearch(getTabSettingsName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
     }
 
-    public List<InstanceWithMetadata<T>> getRawUnfilteredIngredientsView(int channel) {
-        List<InstanceWithMetadata<T>> ingredientsView = ingredientsViews.get(channel);
+    public IIngredientCollapsedCollectionMutable<T, M> getRawUnfilteredIngredientsView(int channel) {
+        IIngredientCollapsedCollectionMutable<T, M> ingredientsView = ingredientsUnsortedViews.get(channel);
         if (ingredientsView == null) {
-            ingredientsView = Lists.newArrayList();
-            ingredientsViews.put(channel, ingredientsView);
+            ingredientsView = IngredientCollectionHelpers.createCollapsedCollection(getIngredientComponent());
+            ingredientsUnsortedViews.put(channel, ingredientsView);
         }
         return ingredientsView;
     }
@@ -252,21 +252,24 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return craftingOptions.get(channel);
     }
 
-    public List<InstanceWithMetadata<T>> getUnfilteredIngredientsView(int channel) {
+    public List<InstanceWithMetadata<T>> getUnfilteredIngredientsView(int channel) { // TODO: rename, and don't use this one anymore in ITerms-Compat
+        // Convert raw ingredients view to list
+        List<InstanceWithMetadata<T>> enrichedIngredients = Lists.newArrayList();
+        for (T persistedIngredient : getRawUnfilteredIngredientsView(channel)) {
+            enrichedIngredients.add(new InstanceWithMetadata<>(persistedIngredient, null));
+        }
+
+        // Add all crafting option outputs
         Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions = getCraftingOptions(channel);
-        if (craftingOptions == null) {
-            return getRawUnfilteredIngredientsView(channel);
-        } else {
-            List<InstanceWithMetadata<T>> enrichedIngredients = Lists.newArrayList();
-            enrichedIngredients.addAll(getRawUnfilteredIngredientsView(channel));
-            // Add all crafting option outputs
+        if (craftingOptions != null) {
             for (HandlerWrappedTerminalCraftingOption<T> craftingOption : craftingOptions) {
                 for (T output : getUniqueCraftingOptionOutputs(craftingOption.getCraftingOption())) {
                     enrichedIngredients.add(new InstanceWithMetadata<>(output, craftingOption));
                 }
             }
-            return enrichedIngredients;
         }
+
+        return enrichedIngredients;
     }
 
     protected Collection<T> getUniqueCraftingOptionOutputs(ITerminalCraftingOption<T> craftingOption) {
@@ -399,21 +402,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         totalQuantities.put(channel, newQuantity);
 
         // Apply diff
-        List<InstanceWithMetadata<T>> rawPersistedIngredients = getRawUnfilteredIngredientsView(channel);
-        IIngredientCollapsedCollectionMutable<T, M> persistedIngredients = new IngredientCollectionPrototypeMap<>(ingredientComponent);
-        rawPersistedIngredients
-                .stream()
-                .map(InstanceWithMetadata::getInstance)
-                .forEach(persistedIngredients::add);
+        IIngredientCollapsedCollectionMutable<T, M> rawPersistedIngredients = getRawUnfilteredIngredientsView(channel);
         IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
                 changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
                 changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
                 false);
-        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, persistedIngredients);
-        rawPersistedIngredients.clear();
-        for (T persistedIngredient : persistedIngredients) {
-            rawPersistedIngredients.add(new InstanceWithMetadata<>(persistedIngredient, null));
-        }
+        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, rawPersistedIngredients);
 
         // Persist changes
         resetFilteredIngredientsViews(channel);
