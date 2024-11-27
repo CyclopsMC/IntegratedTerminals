@@ -1,0 +1,11 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Changes:
+* Improve JEI/REI/EMI performance, CyclopsMC/IntegratedTerminals#139
+* Optimize client performance of large networks with many changes, Closes #139
+
+Fixes:
+* Fix JEI lag caused by non-crafting recipes being considered in terminal
+  Closes CyclopsMC/IntegratedTerminals#141
+* Fix JEI/EMI/REI cache not invalidating when player inv changes
