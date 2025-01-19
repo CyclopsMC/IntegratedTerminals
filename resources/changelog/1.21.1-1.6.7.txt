@@ -1,0 +1,9 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.25.1 or higher.
+
+Additions:
+* Add cs_cz translations
+
+Fixes:
+* Fix EMI render issue when showing button-less recipes
+  Closes CyclopsMC/IntegratedTerminals#150
