@@ -94,7 +94,6 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     }
 
     protected void refreshList() {
-        visibleElements.clear();
         this.scrollBar.setTotalRows(visibleElements.size());
     }
 

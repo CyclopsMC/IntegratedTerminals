@@ -54,6 +54,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
                         this.guiCraftingPlan.inheritVisualizationState(previousGuiCraftingPlan);
                     }
                     addRenderableWidget(this.guiCraftingPlan);
+                    this.guiCraftingPlanFlat = null;
 
                     if (this.getMenu().getCraftingPlanFlat().isPresent()) {
                         addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 80, 20,
@@ -73,6 +74,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
                         this.guiCraftingPlanFlat.inheritVisualizationState(previousGuiCraftingPlan);
                     }
                     addRenderableWidget(this.guiCraftingPlanFlat);
+                    this.guiCraftingPlan = null;
 
                     if (this.getMenu().getCraftingPlan().isPresent()) {
                         addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 80, 20,
@@ -115,8 +117,6 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
         // Reset states
         this.renderables.clear();
         this.children().clear();
-        this.guiCraftingPlan = null;
-        this.guiCraftingPlanFlat = null;
 
         this.guiCraftingPlanToggler.init();
 
