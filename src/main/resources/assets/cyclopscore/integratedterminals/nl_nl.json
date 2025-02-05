@@ -125,6 +125,8 @@
     "parttype.integratedterminals.terminal_crafting_job.tooltip.nohandlers": "WAARSCHUWING: geen vervaardigingsafhandelaren beschikbaar. Dit wordt pas bruikbaar wanneer andere mods zoals Integrated Crafting geïnstalleerd zijn.",
     "info_book.integratedterminals.section.main": "Terminals",
     "info_book.integratedterminals.introduction": "Introductie",
+    "info_book.integratedterminals.introduction.text1": "&lIntegrated Terminals&r is een uitbreiding op &lIntegrated Dynamics&r voor het beheren en overzien van &lIntegrated Dynamics&r netwerken.",
+    "info_book.integratedterminals.introduction.text2": "Bijvoorbeeld, de &lopslagterminal&r maakt interactie mogelijk met je &oopslagnetwerken&r, zoals gekoppelde &oenergiebatterijen&r. Wanneer andere mods geïnstalleerd zijn die opslagmogelijkheden toevoegen, zoals de &ovoorwerp-&r en &ovloeistofmogelijkheden&r van &lIntegrated Tunnels&r, dan zal interactie ook daarmee mogelijk zijn.",
     "info_book.integratedterminals.storage_terminal": "Opslagterminal",
     "info_book.integratedterminals.storage_terminal.introduction": "Opslagterminal introductie",
     "info_book.integratedterminals.storage_terminal.crafting": "Vervaardiging",
