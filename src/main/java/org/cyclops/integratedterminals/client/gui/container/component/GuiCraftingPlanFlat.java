@@ -204,7 +204,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         Font fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + GuiCraftingPlan.ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {
