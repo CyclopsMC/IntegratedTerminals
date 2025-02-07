@@ -86,6 +86,10 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
                                 },
                                 true));
                     }
+                },
+                () -> {
+                    this.guiCraftingPlan = null;
+                    this.guiCraftingPlanFlat = null;
                 }
         );
     }
@@ -213,7 +217,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
 
         if (getMenu().getCraftingPlanNotifierId() == valueId || getMenu().getCraftingPlanFlatNotifierId() == valueId) {
             if (!craftingPlanInitialized || !craftingPlanFlatInitialized) {
-            this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(null);
+                this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(null);
             }
             this.init();
         }
