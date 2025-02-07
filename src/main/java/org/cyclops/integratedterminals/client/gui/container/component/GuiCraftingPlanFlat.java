@@ -145,22 +145,34 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         x = xOriginal + width - 50;
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw counters
+            int moved = 0;
             if (element.getStorageQuantity() > 0) {
                 renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CHEST), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
+                moved++;
             }
             if (element.getToCraftQuantity() > 0) {
                 renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.to_craft", element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
+                moved++;
             }
-            if (element.getCraftingQuantity() > 0) {
+            if (element.getCraftingQuantity() > 0 || element.getToCraftQuantity() > 0) {
+                if (moved == 2) {
+                    y -= 16;
+                    x -= 44;
+                }
                 renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity(), element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
+                moved++;
             }
             if (element.getMissingQuantity() > 0) {
+                if (moved == 2) {
+                    y -= 16;
+                    x -= 44;
+                }
                 renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.BARRIER), x, y, 0.45F);
                 RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215);
             }
