@@ -19,6 +19,7 @@ import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
