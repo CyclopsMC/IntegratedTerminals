@@ -158,13 +158,13 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
                 y += 8;
                 moved++;
             }
-            if (element.getCraftingQuantity() > 0 || element.getToCraftQuantity() > 0) {
+            if (element.getCraftingQuantity() > 0) {
                 if (moved == 2) {
                     y -= 16;
                     x -= 44;
                 }
                 renderItem(RenderSystem.getModelViewStack(), new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity(), element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215);
+                RenderHelpers.drawScaledStringWithShadow(matrixStack, Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity()), x + 9, y + 1, 0.5F, 16777215);
                 y += 8;
                 moved++;
             }
