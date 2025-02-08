@@ -412,7 +412,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         Iterable<CraftingJob> iterable = () -> craftingNetwork.getCraftingJobs(channel);
         CraftingJobDependencyGraph dependencyGraph = craftingNetwork.getCraftingJobDependencyGraph();
         return StreamSupport.stream(iterable.spliterator(), false)
-                .filter(job -> job.getDependentCraftingJobs().isEmpty()) // Only expose root jobs
+                .filter(job -> job.getDependentCraftingJobs().isEmpty() && job.getAmount() > 0) // Only expose root jobs AND non-finalizing jobs (amount > 0)
                 .map(job -> newActiveCraftingJob(craftingNetwork, channel, job, dependencyGraph))
                 .sorted(Comparator.comparingInt(ITerminalCraftingPlan::getId))
                 .collect(Collectors.toList());

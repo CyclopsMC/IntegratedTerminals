@@ -16,14 +16,16 @@ public class GuiCraftingPlanToggler {
     private final Supplier<ITerminalCraftingPlanFlat> craftingPlanFlatSupplier;
     private final Runnable initPlanTree;
     private final Runnable initPlanFlat;
+    private final Runnable deinit;
 
     private CraftingPlanDisplayMode craftingPlanDisplayMode;
 
-    public GuiCraftingPlanToggler(Supplier<ITerminalCraftingPlan> craftingPlanSupplier, Supplier<ITerminalCraftingPlanFlat> craftingPlanFlatSupplier, Runnable initPlanTree, Runnable initPlanFlat) {
+    public GuiCraftingPlanToggler(Supplier<ITerminalCraftingPlan> craftingPlanSupplier, Supplier<ITerminalCraftingPlanFlat> craftingPlanFlatSupplier, Runnable initPlanTree, Runnable initPlanFlat, Runnable deinit) {
         this.craftingPlanSupplier = craftingPlanSupplier;
         this.craftingPlanFlatSupplier = craftingPlanFlatSupplier;
         this.initPlanTree = initPlanTree;
         this.initPlanFlat = initPlanFlat;
+        this.deinit = deinit;
     }
 
     public void init() {
@@ -44,10 +46,16 @@ public class GuiCraftingPlanToggler {
             }
         }
 
+        // Reset display mode if both plan views became empty
+        if (this.craftingPlanFlatSupplier.get() == null && this.craftingPlanSupplier.get() == null) {
+            this.craftingPlanDisplayMode = CraftingPlanDisplayMode.NONE;
+        }
+
         // Prepare gui element for active display mode
         switch (this.craftingPlanDisplayMode) {
             case TREE -> this.initPlanTree.run();
             case FLAT -> this.initPlanFlat.run();
+            case NONE -> this.deinit.run();
         }
     }
 

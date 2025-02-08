@@ -100,6 +100,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
                 setValue(this.craftingPlanFlatNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlanFlat(player.level().registryAccess(), plan.flatten()));
             } else {
                 setValue(this.craftingPlanNotifierId, new CompoundTag());
+                setValue(this.craftingPlanFlatNotifierId, new CompoundTag());
             }
         });
     }
