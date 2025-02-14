@@ -9,9 +9,9 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import org.apache.logging.log4j.Level;
-import org.cyclops.cyclopscore.config.ConfigHandler;
+import org.cyclops.cyclopscore.config.ConfigHandlerCommon;
 import org.cyclops.cyclopscore.infobook.IInfoBookRegistry;
-import org.cyclops.cyclopscore.init.ModBaseVersionable;
+import org.cyclops.cyclopscore.init.ModBaseNeoForge;
 import org.cyclops.cyclopscore.modcompat.ModCompatLoader;
 import org.cyclops.cyclopscore.proxy.IClientProxy;
 import org.cyclops.cyclopscore.proxy.ICommonProxy;
@@ -32,14 +32,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocationRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlanConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountItemConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountPartConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanItemConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanPartConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageItemConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePartConfig;
+import org.cyclops.integratedterminals.inventory.container.*;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortableConfig;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
 import org.cyclops.integratedterminals.part.PartTypes;
@@ -52,7 +45,7 @@ import org.cyclops.integratedterminals.proxy.CommonProxy;
  *
  */
 @Mod(Reference.MOD_ID)
-public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals> {
+public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
 
     public static IntegratedTerminals _instance;
 
@@ -108,7 +101,7 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
     }
 
     @Override
-    public void onConfigsRegister(ConfigHandler configHandler) {
+    public void onConfigsRegister(ConfigHandlerCommon configHandler) {
         super.onConfigsRegister(configHandler);
 
         configHandler.addConfigurable(new GeneralConfig());

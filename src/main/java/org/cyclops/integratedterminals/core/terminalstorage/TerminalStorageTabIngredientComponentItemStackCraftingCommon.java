@@ -3,13 +3,10 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.collect.Lists;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.CraftingContainer;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.ResultSlot;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -17,8 +14,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameRules;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.cyclopscore.helper.CraftingHelpers;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -93,8 +89,8 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 slots.add(Pair.of(
                         new Slot(this.inventoryCrafting, j + i * 3, 31 + j * 18 + 28, 58 + i * 18 + 7),
                         factors -> Pair.of(
-                                factors.offsetX() + (factors.gridXSize() / 2) - factors.playerInventoryOffsetX() + finalJ * GuiHelpers.SLOT_SIZE - 22 - (factors.playerInventoryOffsetX() > 0 ? 47 : 0),
-                                factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + finalI * GuiHelpers.SLOT_SIZE - 8 + (factors.playerInventoryOffsetX() > 0 ? 68 : 0)
+                                factors.offsetX() + (factors.gridXSize() / 2) - factors.playerInventoryOffsetX() + finalJ * IModHelpers.get().getGuiHelpers().getSlotSize() - 22 - (factors.playerInventoryOffsetX() > 0 ? 47 : 0),
+                                factors.offsetY() + factors.gridYSize() + factors.playerInventoryOffsetY() + finalI * IModHelpers.get().getGuiHelpers().getSlotSize() - 8 + (factors.playerInventoryOffsetX() > 0 ? 68 : 0)
                         )
                 ));
             }
@@ -143,11 +139,11 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.level().isClientSide) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            RecipeHolder<CraftingRecipe> recipeHolder = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting.asCraftInput(), player.level(), false).orElse(null);
+            RecipeHolder<CraftingRecipe> recipeHolder = IModHelpers.get().getCraftingHelpers().findRecipeCached(RecipeType.CRAFTING, inventoryCrafting.asCraftInput(), player.level(), false).orElse(null);
 
             if (recipeHolder != null && (recipeHolder.value().isSpecial()
-                    || !player.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
-                    || entityplayermp.getRecipeBook().contains(recipeHolder))) {
+                    || !((ServerLevel) player.level()).getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
+                    || entityplayermp.getRecipeBook().contains(recipeHolder.id()))) {
                 inventoryCraftResult.setRecipeUsed(recipeHolder);
                 itemstack = recipeHolder.value().assemble(inventoryCrafting.asCraftInput(), player.level().registryAccess());
             }

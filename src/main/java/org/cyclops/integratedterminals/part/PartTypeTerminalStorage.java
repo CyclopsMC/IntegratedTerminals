@@ -16,7 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.Triple;
-import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.cyclopscore.network.PacketCodecs;
 import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
@@ -80,7 +80,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
     @Override
     public void writeExtraGuiData(RegistryFriendlyByteBuf packetBuffer, PartPos pos, ServerPlayer player) {
-        PacketCodec.write(packetBuffer, pos);
+        PacketCodecs.write(packetBuffer, pos);
 
         super.writeExtraGuiData(packetBuffer, pos, player);
 

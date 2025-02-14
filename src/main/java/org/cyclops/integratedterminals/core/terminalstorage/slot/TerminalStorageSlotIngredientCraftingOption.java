@@ -11,7 +11,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
@@ -76,7 +76,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
 
     private void drawCraftLabel(GuiGraphics guiGraphics, int x, int y) {
         new GuiGraphicsExtended(guiGraphics).drawSlotText(Minecraft.getInstance().font,
-                ChatFormatting.GOLD + L10NHelpers.localize("gui.integratedterminals.terminal_storage.craft"), x, y - 11);
+                ChatFormatting.GOLD + IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.craft"), x, y - 11);
     }
 
 }

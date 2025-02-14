@@ -1,16 +1,16 @@
 package org.cyclops.integratedterminals.part;
 
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.Triple;
-import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.cyclopscore.network.PacketCodecs;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -70,7 +70,7 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
 
     @Override
     public void writeExtraGuiData(RegistryFriendlyByteBuf packetBuffer, PartPos pos, ServerPlayer player) {
-        PacketCodec.write(packetBuffer, pos);
+        PacketCodecs.write(packetBuffer, pos);
         super.writeExtraGuiData(packetBuffer, pos, player);
     }
 

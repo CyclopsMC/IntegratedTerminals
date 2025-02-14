@@ -18,10 +18,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
-import org.cyclops.cyclopscore.helper.Helpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
@@ -78,7 +75,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         this.valid = craftingPlan.getStatus().isValid();
         this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows((int) Math.ceil(visibleElements.size() / COLUMNS));
-        this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
+        this.label = IModHelpers.get().getL10NHelpers().localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
         this.channel = craftingPlan.getChannel();
         this.initiatorName = craftingPlan.getInitiatorName();
@@ -148,22 +145,22 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
             // Draw counters
             if (element.getStorageQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.CHEST), x, y, 0.45F);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
             }
             if (element.getToCraftQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.to_craft", element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.to_craft", element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
             }
             if (element.getCraftingQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
             }
             if (element.getMissingQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.BARRIER), x, y, 0.45F);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
             }
             RenderSystem.setShaderColor(1, 1, 1, 1);
         }
@@ -173,7 +170,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x, y, 0);
         guiGraphics.pose().scale(scale, scale, scale);
-        RenderSystem.applyModelViewMatrix();
+//        RenderSystem.applyModelViewMatrix();
 
         GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
         GlStateManager._enableBlend();
@@ -186,12 +183,12 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         Lighting.setupForFlatItems();
 
         guiGraphics.pose().popPose();
-        RenderSystem.applyModelViewMatrix();
+//        RenderSystem.applyModelViewMatrix();
     }
 
     public static String getDurationString(long tickDuration) {
-        long durationMs = tickDuration * 1000 / MinecraftHelpers.SECOND_IN_TICKS;
-        return L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
+        long durationMs = tickDuration * 1000 / IModHelpers.get().getMinecraftHelpers().getSecondInTicks();
+        return IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
                 DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
     }
 
@@ -204,19 +201,19 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         // Draw duration
         if (tickDuration >= 0) {
             String durationString = getDurationString(tickDuration);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw channel
         if (channel != -1) {
-            String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            String channelString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw initiator
         if (initiatorName != null) {
-            String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            String initiatorString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
@@ -308,15 +305,15 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
 
         public int getColor() {
             if (getMissingQuantity() > 0) {
-                return Helpers.RGBAToInt(250, 10, 13, 150);
+                return IModHelpers.get().getBaseHelpers().RGBAToInt(250, 10, 13, 150);
             }
             if (getCraftingQuantity() > 0) {
-                return Helpers.RGBAToInt(43, 174, 231, 150);
+                return IModHelpers.get().getBaseHelpers().RGBAToInt(43, 174, 231, 150);
             }
             if (getToCraftQuantity() > 0) {
-                return Helpers.RGBAToInt(243, 245, 150, 150);
+                return IModHelpers.get().getBaseHelpers().RGBAToInt(243, 245, 150, 150);
             }
-            return Helpers.RGBAToInt(43, 231, 47, 150);
+            return IModHelpers.get().getBaseHelpers().RGBAToInt(43, 231, 47, 150);
         }
     }
 

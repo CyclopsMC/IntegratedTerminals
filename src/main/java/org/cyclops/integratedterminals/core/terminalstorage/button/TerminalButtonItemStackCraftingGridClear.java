@@ -8,7 +8,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -62,7 +62,7 @@ public class TerminalButtonItemStackCraftingGridClear<T>
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
                         TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, ButtonImage guiButton,
                         int channel, int mouseButton) {
-        boolean toStorage = !MinecraftHelpers.isShifted();
+        boolean toStorage = !IModHelpers.get().getMinecraftClientHelpers().isShifted();
         TerminalButtonItemStackCraftingGridClear.clearGrid(commomTab, channel, toStorage);
     }
 

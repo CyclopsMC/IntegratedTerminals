@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
@@ -20,9 +21,9 @@ public class ContainerTerminalStorageCraftingOptionAmountItem extends ContainerT
 
     private final ItemLocation location;
 
-    public ContainerTerminalStorageCraftingOptionAmountItem(int id, Inventory playerInventory, RegistryFriendlyByteBuf packetBuffer) {
+    public ContainerTerminalStorageCraftingOptionAmountItem(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, ItemLocation.readFromPacketBuffer(packetBuffer),
-                CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
+                CraftingOptionGuiData.readFromPacketBuffer((RegistryFriendlyByteBuf) packetBuffer));
     }
 
     public ContainerTerminalStorageCraftingOptionAmountItem(int id, Inventory playerInventory,

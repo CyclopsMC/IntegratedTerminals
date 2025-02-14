@@ -3,14 +3,14 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.collect.Lists;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
@@ -97,7 +97,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
                                boolean isQuickMove) {
         int craftingResultSlotIndex = TerminalStorageTabIngredientComponentItemStackCraftingCommon
                 .getCraftingResultSlotIndex(container, getName());
-        boolean shift = MinecraftHelpers.isShifted();
+        boolean shift = IModHelpers.get().getMinecraftClientHelpers().isShifted();
         if (hoveredContainerSlot == craftingResultSlotIndex && shift) {
             IntegratedTerminals._instance.getPacketHandler().sendToServer(
                     new TerminalStorageIngredientItemStackCraftingGridShiftClickOutput(getName().toString(), channel,
@@ -117,7 +117,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         super.onTabBackgroundRender(screen, guiGraphics, f, mouseX, mouseY);
 
         // Render crafting grid
-        guiGraphics.blit(screen.getGuiTexture(), screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68);
+        guiGraphics.blit(RenderType::guiTextured, screen.getGuiTexture(), screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68, 256, 256);
     }
 
     @Override

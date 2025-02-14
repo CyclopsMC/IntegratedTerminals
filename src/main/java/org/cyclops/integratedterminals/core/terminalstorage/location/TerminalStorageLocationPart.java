@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Triple;
-import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.cyclopscore.network.PacketCodecs;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -111,11 +111,11 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
 
     @Override
     public void writeToPacketBuffer(RegistryFriendlyByteBuf packetBuffer, PartPos location) {
-        PacketCodec.getAction(PartPos.class).encode(location, packetBuffer);
+        PacketCodecs.getAction(PartPos.class).encode(location, packetBuffer);
     }
 
     @Override
     public PartPos readFromPacketBuffer(RegistryFriendlyByteBuf packetBuffer) {
-        return (PartPos) PacketCodec.getAction(PartPos.class).decode(packetBuffer);
+        return (PartPos) PacketCodecs.getAction(PartPos.class).decode(packetBuffer);
     }
 }

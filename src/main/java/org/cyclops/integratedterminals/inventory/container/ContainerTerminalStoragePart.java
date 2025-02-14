@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -36,8 +37,8 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
     private final Optional<IPartContainer> partContainer;
     private final PartTypeTerminalStorage partType;
 
-    public ContainerTerminalStoragePart(int id, Inventory playerInventory, RegistryFriendlyByteBuf packetBuffer) {
-        this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), PartHelpers.readPart(packetBuffer),
+    public ContainerTerminalStoragePart(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
+        this(id, playerInventory, PartHelpers.readPartTarget((RegistryFriendlyByteBuf) packetBuffer), PartHelpers.readPart(packetBuffer),
                 packetBuffer.readBoolean() ? Optional.of(InitTabData.readFromPacketBuffer(packetBuffer)) : Optional.empty(),
                 TerminalStorageState.readFromPacketBuffer(packetBuffer));
         getGuiState().setDirtyMarkListener(this::sendGuiStateToServer);

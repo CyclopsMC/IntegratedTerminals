@@ -3,12 +3,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.ints.Int2LongMap;
-import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -26,11 +21,7 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.image.Images;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.Helpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.helper.StringHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
@@ -43,11 +34,7 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
-import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
+import org.cyclops.integratedterminals.api.terminalstorage.*;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientLoadButtonsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientSearchFieldUpdateEvent;
@@ -65,15 +52,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -427,7 +406,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             this.activeSlotId = findActiveSlotId(channel, lastInstance.get());
             Optional<T> slotIngredient = getSlotInstance(channel, this.activeSlotId);
             this.activeSlotQuantity = slotIngredient
-                    .map(t -> Math.min(this.activeSlotQuantity, Helpers.castSafe(this.ingredientComponent.getMatcher().getQuantity(t))))
+                    .map(t -> Math.min(this.activeSlotQuantity, IModHelpers.get().getBaseHelpers().castSafe(this.ingredientComponent.getMatcher().getQuantity(t))))
                     .orElse(0);
         }
     }
@@ -495,7 +474,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             this.activeSlotId = findActiveSlotId(channel, activeInstance);
             Optional<T> slotIngredient = getSlotInstance(channel, this.activeSlotId);
             this.activeSlotQuantity += slotIngredient
-                    .map(t -> Helpers.castSafe(matcher.getQuantity(activeInstance)))
+                    .map(t -> IModHelpers.get().getBaseHelpers().castSafe(matcher.getQuantity(activeInstance)))
                     .orElse(0);
         }
     }
@@ -557,7 +536,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
         boolean isCraftingOption = hoveringStorageSlotObject.isPresent() && hoveringStorageSlotObject.get() instanceof TerminalStorageSlotIngredientCraftingOption;
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = this.getViewHandler();
-        boolean shift = MinecraftHelpers.isShifted();
+        boolean shift = IModHelpers.get().getMinecraftClientHelpers().isShifted();
         boolean transferFullSelection = true;
 
         Player player = Minecraft.getInstance().player;
@@ -689,7 +668,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         boolean validHoveringStorageSlot = hoveringStorageInstance.isPresent();
         boolean isCraftingOption = hoveringStorageSlotObject.isPresent() && hoveringStorageSlotObject.get() instanceof TerminalStorageSlotIngredientCraftingOption;
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = this.getViewHandler();
-        boolean shift = MinecraftHelpers.isShifted();
+        boolean shift = IModHelpers.get().getMinecraftClientHelpers().isShifted();
 
         boolean increment = delta < 0;
         if (hasClickedInStorage && validHoveringStorageSlot && !isCraftingOption) {
@@ -793,10 +772,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                     Images.ERROR.draw(guiGraphics, x + 2, y + 2);
                 } else {
-                    if (RenderHelpers.isPointInRegion(x, y, GuiHelpers.SLOT_SIZE, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
-                        GuiHelpers.drawTooltip(gui, guiGraphics.pose(), errors.stream()
+                    if (IModHelpers.get().getRenderHelpers().isPointInRegion(x, y, IModHelpers.get().getGuiHelpers().getSlotSize(), IModHelpers.get().getGuiHelpers().getSlotSize(), mouseX, mouseY)) {
+                        IModHelpers.get().getGuiHelpers().drawTooltip(gui, guiGraphics.pose(), errors.stream()
                                 .map(Component::getString)
-                                .map(s -> StringHelpers.splitLines(s, L10NHelpers.MAX_TOOLTIP_LINE_LENGTH,
+                                .map(s -> StringHelpers.splitLines(s, IModHelpers.get().getL10NHelpers().getMaxTooltipLineLength(),
                                         ChatFormatting.RED.toString()))
                                 .flatMap(List::stream)
                                 .map(Component::literal)
@@ -844,7 +823,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 instanceQuantity = getViewHandler().getIncrementalInstanceMovementQuantity();
                 break;
             case 2:
-                instanceQuantity = Helpers.castSafe(getViewHandler().getMaxQuantity(stack));
+                instanceQuantity = IModHelpers.get().getBaseHelpers().castSafe(getViewHandler().getMaxQuantity(stack));
         }
 
         return instanceQuantity;
@@ -868,8 +847,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         ItemStack stack = slot.getItem();
         T stackInstance = viewHandler.getInstance(stack);
         IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
-        int instanceQuantity = Helpers.castSafe(matcher.getQuantity(stackInstance));
-        int maxQuantity = Helpers.castSafe(viewHandler.getMaxQuantity(stack));
+        int instanceQuantity = IModHelpers.get().getBaseHelpers().castSafe(matcher.getQuantity(stackInstance));
+        int maxQuantity = IModHelpers.get().getBaseHelpers().castSafe(viewHandler.getMaxQuantity(stack));
         int freeQuantity = maxQuantity - instanceQuantity;
         return Math.min(Math.max(0, quantity), freeQuantity);
     }

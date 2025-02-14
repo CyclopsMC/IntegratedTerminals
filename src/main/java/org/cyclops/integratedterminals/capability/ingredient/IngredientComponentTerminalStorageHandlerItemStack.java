@@ -23,7 +23,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
@@ -85,7 +85,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
             guiGraphics.renderItem(instanceCopy, x, y);
             renderItem.renderItemDecorations(Minecraft.getInstance().font, instanceCopy, x, y, label);
         } else {
-            GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
+            IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics.pose(), x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
                 List<Component> lines = instanceCopy.getTooltipLines(
                         Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()),
                         Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
@@ -241,14 +241,14 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @OnlyIn(Dist.CLIENT)
     public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
         return switch (searchMode) {
-            case MOD -> i -> Optional.ofNullable(i.getItem().getCreatorModId(i))
+            case MOD -> i -> Optional.ofNullable(i.getItem().getCreatorModId(Minecraft.getInstance().getConnection().registryAccess(), i))
                     .orElse("minecraft").toLowerCase(Locale.ENGLISH)
                     .matches(".*" + query + ".*");
             case TOOLTIP -> i -> i.getTooltipLines(Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()), Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
                     .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
             case TAG -> i -> i.getItem().builtInRegistryHolder().tags()
                     .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                    .anyMatch(tag -> !BuiltInRegistries.ITEM.getTag(tag).isEmpty());
+                    .anyMatch(tag -> BuiltInRegistries.ITEM.get(tag).isPresent());
             case DEFAULT -> i -> i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         };
     }

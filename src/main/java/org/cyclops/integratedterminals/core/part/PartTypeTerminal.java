@@ -1,16 +1,17 @@
 package org.cyclops.integratedterminals.core.part;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.Level;
-import org.cyclops.cyclopscore.config.extendedconfig.BlockConfig;
-import org.cyclops.cyclopscore.init.ModBase;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.phys.BlockHitResult;
+import org.cyclops.cyclopscore.config.extendedconfig.BlockConfigCommon;
+import org.cyclops.cyclopscore.init.ModBaseNeoForge;
 import org.cyclops.integrateddynamics.api.part.IPartState;
 import org.cyclops.integrateddynamics.core.block.IgnoredBlock;
 import org.cyclops.integrateddynamics.core.helper.L10NValues;
@@ -37,12 +38,12 @@ public abstract class PartTypeTerminal<P extends PartTypeTerminal<P, S>, S exten
     }
 
     @Override
-    protected Block createBlock(BlockConfig blockConfig) {
-        return new IgnoredBlock();
+    protected Block createBlock(BlockConfigCommon<?> blockConfig, BlockBehaviour.Properties properties) {
+        return new IgnoredBlock(properties);
     }
 
     @Override
-    public ModBase getMod() {
+    public ModBaseNeoForge<IntegratedTerminals> getMod() {
         return IntegratedTerminals._instance;
     }
 

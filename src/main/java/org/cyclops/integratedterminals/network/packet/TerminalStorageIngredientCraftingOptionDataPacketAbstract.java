@@ -105,7 +105,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
-        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.get(ResourceLocation.parse(ingredientComponent));
+        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(ingredientComponent));
         if (component == null) {
             throw new IllegalArgumentException("Could not find the ingredient component type " + ingredientComponent);
         }

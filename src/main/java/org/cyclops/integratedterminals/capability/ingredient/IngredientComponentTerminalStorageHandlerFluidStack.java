@@ -23,9 +23,8 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
-import org.cyclops.cyclopscore.helper.FluidHelpers;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpersNeoForge;
 import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -75,13 +74,13 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         if (instance != null) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
-                GuiHelpers.renderFluidSlot(guiGraphics, instance, x, y);
+                IModHelpersNeoForge.get().getGuiHelpers().renderFluidSlot(guiGraphics, instance, x, y);
 
                 // Draw amount
                 GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
+                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance.getAmount()), x, y);
             } else {
-                GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
+                IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics.pose(), x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
                     List<Component> lines = Lists.newArrayList();
                     lines.add(((MutableComponent) instance.getHoverName()).withStyle(instance.getFluid().getFluidType().getRarity().getStyleModifier().apply(Style.EMPTY)));
                     addQuantityTooltip(lines, instance);
@@ -96,8 +95,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public String formatQuantity(FluidStack instance) {
-        return L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.fluid.amount",
-                String.format(Locale.ROOT, "%,d", FluidHelpers.getAmount(instance)));
+        return IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.tooltip.fluid.amount",
+                String.format(Locale.ROOT, "%,d", IModHelpersNeoForge.get().getFluidHelpers().getAmount(instance)));
     }
 
     @Override
@@ -236,7 +235,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             case TOOLTIP -> i -> false; // Fluids have no tooltip
             case TAG -> i -> i.getFluid().builtInRegistryHolder().tags()
                     .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                    .anyMatch(tag -> !BuiltInRegistries.FLUID.getTag(tag).isEmpty());
+                    .anyMatch(tag -> BuiltInRegistries.FLUID.get(tag).isPresent());
             case DEFAULT -> i -> i != null && i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
         };
     }

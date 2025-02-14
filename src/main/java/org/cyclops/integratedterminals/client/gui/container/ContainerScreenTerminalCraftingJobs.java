@@ -13,9 +13,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -86,12 +84,12 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
         super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
         scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
-        RenderHelpers.bindTexture(this.texture);
+        IModHelpers.get().getRenderHelpers().bindTexture(this.texture);
         drawCraftingPlans(guiGraphics, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
 
         // Draw plan label
         guiGraphics.drawString(Minecraft.getInstance().font,
-                L10NHelpers.localize("parttype.integratedterminals.terminal_crafting_job"),
+                IModHelpers.get().getL10NHelpers().localize("parttype.integratedterminals.terminal_crafting_job"),
                 leftPos + 8, topPos + 5, 16777215);
     }
 
@@ -110,7 +108,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         int offsetY = OUTPUT_SLOT_Y;
         for (HandlerWrappedTerminalCraftingPlan craftingPlan : getVisiblePlans()) {
             drawCraftingPlan(guiGraphics, craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
-            offsetY += GuiHelpers.SLOT_SIZE;
+            offsetY += IModHelpers.get().getGuiHelpers().getSlotSize();
         }
     }
 
@@ -121,8 +119,8 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
         // Draw background color if hovering
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND
-                && RenderHelpers.isPointInRegion(x - leftPos, y - topPos, LINE_WIDTH, GuiHelpers.SLOT_SIZE, mouseX, mouseY)) {
-            guiGraphics.fill(x + 1, y + 1, x + LINE_WIDTH + 1, y + GuiHelpers.SLOT_SIZE, -2130706433);
+                && IModHelpers.get().getRenderHelpers().isPointInRegion(x - leftPos, y - topPos, LINE_WIDTH, IModHelpers.get().getGuiHelpers().getSlotSize(), mouseX, mouseY)) {
+            guiGraphics.fill(x + 1, y + 1, x + LINE_WIDTH + 1, y + IModHelpers.get().getGuiHelpers().getSlotSize(), -2130706433);
         }
 
 
@@ -134,29 +132,29 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             int finalX = x;
             ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity,
-                            GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null));
-            x += GuiHelpers.SLOT_SIZE_INNER;
+                            IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null));
+            x += IModHelpers.get().getGuiHelpers().getSlotSizeInner();
         }
 
         // Draw dependency count
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            String statusString = L10NHelpers.localize("gui.integratedterminals.craftingplan.status",
-                    L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            String statusString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.craftingplan.status",
+                    IModHelpers.get().getL10NHelpers().localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
 
             int dependencies = plan.getEntries().size();
-            String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            String dependenciesString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
 
             if (plan.getChannel() != -1) {
-                String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", plan.getChannel());
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+                String channelString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", plan.getChannel());
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
 
             long tickDuration = plan.getTickDuration();
             if (tickDuration >= 0) {
                 String durationString = GuiCraftingPlan.getDurationString(tickDuration);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
         }
     }
@@ -180,8 +178,8 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         mouseX -= leftPos;
         mouseY -= topPos;
         if (mouseX > OUTPUT_SLOT_X && mouseX < OUTPUT_SLOT_X + LINE_WIDTH
-                && mouseY > OUTPUT_SLOT_Y && mouseY < OUTPUT_SLOT_Y + GuiHelpers.SLOT_SIZE * scrollBar.getVisibleRows()) {
-            int index = (((int) mouseY) - OUTPUT_SLOT_Y) / GuiHelpers.SLOT_SIZE;
+                && mouseY > OUTPUT_SLOT_Y && mouseY < OUTPUT_SLOT_Y + IModHelpers.get().getGuiHelpers().getSlotSize() * scrollBar.getVisibleRows()) {
+            int index = (((int) mouseY) - OUTPUT_SLOT_Y) / IModHelpers.get().getGuiHelpers().getSlotSize();
             List<HandlerWrappedTerminalCraftingPlan> plans = getVisiblePlans();
             if (index >= 0 && index < plans.size()) {
                 return plans.get(index);

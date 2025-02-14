@@ -6,18 +6,10 @@
     "GCG"
   ],
   "key": {
-    "G": {
-      "tag": "c:dusts/glowstone"
-    },
-    "M": {
-      "item": "integratedterminals:menril_glass"
-    },
-    "D": {
-      "item": "integrateddynamics:part_display_panel"
-    },
-    "C": {
-      "item": "minecraft:crafting_table"
-    }
+    "G": "#c:dusts/glowstone",
+    "M": "integratedterminals:menril_glass",
+    "D": "integrateddynamics:part_display_panel",
+    "C": "minecraft:crafting_table"
   },
   "result": {
     "id": "integratedterminals:part_terminal_crafting_job"

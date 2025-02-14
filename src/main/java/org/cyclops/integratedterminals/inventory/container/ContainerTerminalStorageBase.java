@@ -176,14 +176,14 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                     return !itemstack.isEmpty() && !p_39744_.isCreative() && EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE) ? false : super.mayPickup(p_39744_);
                 }
 
-                public com.mojang.datafixers.util.Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                    return com.mojang.datafixers.util.Pair.of(InventoryMenu.BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentslot.getIndex()]);
+                public ResourceLocation getNoItemIcon() {
+                    return TEXTURE_EMPTY_SLOTS[equipmentslot.getIndex()];
                 }
             });
         }
         this.addSlot(new Slot(inventory, 40, 2, 201) {
-            public com.mojang.datafixers.util.Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return com.mojang.datafixers.util.Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
+            public ResourceLocation getNoItemIcon() {
+                return InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD;
             }
         });
     }

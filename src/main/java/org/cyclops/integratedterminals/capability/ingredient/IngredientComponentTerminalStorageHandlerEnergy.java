@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -18,8 +19,8 @@ import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.IGuiHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -31,11 +32,7 @@ import org.cyclops.integratedterminals.client.gui.image.Images;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -70,7 +67,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
                 // Draw background
                 Lighting.setupForFlatItems();
-                guiGraphics.blit(Images.ICONS, x, y, 0, 240, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER);
+                guiGraphics.blit(RenderType::guiTextured, Images.ICONS, x, y, 0, 240, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), 256, 256);
 
                 // Draw progress
                 int progressScaled;
@@ -82,16 +79,16 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                     progressScaled = (int) (long) (instance >> 16);
                     progressMaxScaled = (int) (maxQuantity >> 16);
                 }
-                GuiHelpers.renderProgressBar(guiGraphics, Images.ICONS, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
-                        16, 240, GuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
+                IModHelpers.get().getGuiHelpers().renderProgressBar(guiGraphics, Images.ICONS, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(),
+                        16, 240, IGuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
 
                 // Draw amount
                 GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : GuiHelpers.quantityToScaledString(instance), x, y);
+                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance), x, y);
 
                 Lighting.setupFor3DItems();
             } else {
-                GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
+                IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics.pose(), x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(),
                         mouseX, mouseY, () -> {
                             List<Component> lines = Lists.newArrayList();
                             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.energy"));
@@ -107,7 +104,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
     @Override
     public String formatQuantity(Long instance) {
-        return L10NHelpers.localize("gui.integratedterminals.terminal_storage.tooltip.energy.amount",
+        return IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.tooltip.energy.amount",
                 String.format(Locale.ROOT, "%,d", instance));
     }
 

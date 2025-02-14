@@ -102,7 +102,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
     }
 
     public IngredientComponent<T, ?> getComponent() {
-        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.get(ResourceLocation.parse(this.ingredientName));
+        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(this.ingredientName));
         if (ingredientComponent == null) {
             throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
         }

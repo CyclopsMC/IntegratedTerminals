@@ -59,7 +59,7 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec<Term
     public void actionClient(Level world, Player player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-            IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.get(ResourceLocation.parse(this.ingredientName));
+            IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(this.ingredientName));
             if (ingredientComponent == null) {
                 throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
             }

@@ -11,7 +11,7 @@ public class IntegratedCraftingModCompat implements IModCompat {
 
     @Override
     public String getId() {
-        return Reference.MOD_INTEGRATECRAFTING;
+        return Reference.MOD_INTEGRATEDCRAFTING;
     }
 
     @Override

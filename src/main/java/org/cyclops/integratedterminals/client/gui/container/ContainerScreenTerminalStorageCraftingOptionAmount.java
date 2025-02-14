@@ -17,8 +17,8 @@ import org.cyclops.cyclopscore.client.gui.component.button.ButtonExtended;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetNumberField;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
@@ -150,7 +150,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         long quantity = ingredientComponent.getMatcher().getQuantity(instance) * getAmount();
         ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find ingredient terminal storage handler"))
-                .drawInstance(guiGraphics, ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null);
+                .drawInstance(guiGraphics, ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null);
     }
 
     private int getAmount() {
@@ -169,7 +169,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         int offsetY = OUTPUT_SLOT_Y;
         for (IPrototypedIngredient output : this.outputs.subList(firstRow, Math.min(this.outputs.size(), firstRow + scrollBar.getVisibleRows()))) {
             drawInstance(guiGraphics, output.getComponent(), output.getPrototype(), x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
-            offsetY += GuiHelpers.SLOT_SIZE;
+            offsetY += IModHelpers.get().getGuiHelpers().getSlotSize();
         }
     }
 
@@ -179,7 +179,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         numberField.render(guiGraphics, mouseX - leftPos, mouseY - topPos, partialTicks);
         scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-        RenderHelpers.bindTexture(this.texture);
+        IModHelpers.get().getRenderHelpers().bindTexture(this.texture);
         drawOutputSlots(guiGraphics, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
     }
 

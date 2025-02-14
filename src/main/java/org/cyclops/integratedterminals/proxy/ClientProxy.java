@@ -8,7 +8,7 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
 import org.cyclops.cyclopscore.client.key.IKeyRegistry;
-import org.cyclops.cyclopscore.init.ModBase;
+import org.cyclops.cyclopscore.init.ModBaseNeoForge;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.cyclopscore.inventory.PlayerExtendedInventoryIterator;
 import org.cyclops.cyclopscore.proxy.ClientProxyComponent;
@@ -58,7 +58,7 @@ public class ClientProxy extends ClientProxyComponent {
     }
 
     @Override
-    public ModBase getMod() {
+    public ModBaseNeoForge<IntegratedTerminals> getMod() {
         return IntegratedTerminals._instance;
     }
 

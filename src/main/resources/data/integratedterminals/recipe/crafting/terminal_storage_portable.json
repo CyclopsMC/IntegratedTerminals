@@ -4,12 +4,8 @@
     "CPC"
   ],
   "key": {
-    "P": {
-      "item": "integratedterminals:part_terminal_storage"
-    },
-    "C": {
-      "item": "integrateddynamics:crystalized_menril_chunk"
-    }
+    "P": "integratedterminals:part_terminal_storage",
+    "C": "integrateddynamics:crystalized_menril_chunk"
   },
   "result": {
     "id": "integratedterminals:terminal_storage_portable"

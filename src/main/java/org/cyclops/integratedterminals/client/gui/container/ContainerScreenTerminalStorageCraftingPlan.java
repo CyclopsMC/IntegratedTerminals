@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
@@ -140,7 +140,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
         } else if (this.guiCraftingPlanFlat != null) {
             guiCraftingPlanFlat.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         } else {
-            guiGraphics.drawCenteredString(font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
+            guiGraphics.drawCenteredString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
                     leftPos + getBaseXSize() / 2, topPos + 23, 16777215);
         }
     }

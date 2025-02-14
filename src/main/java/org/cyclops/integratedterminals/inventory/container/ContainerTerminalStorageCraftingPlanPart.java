@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.MenuType;
@@ -27,9 +28,9 @@ public class ContainerTerminalStorageCraftingPlanPart extends ContainerTerminalS
     private final Optional<IPartContainer> partContainer;
     private final PartTypeTerminalStorage partType;
 
-    public ContainerTerminalStorageCraftingPlanPart(int id, Inventory playerInventory, RegistryFriendlyByteBuf packetBuffer) {
+    public ContainerTerminalStorageCraftingPlanPart(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, Optional.empty(), Optional.empty(), PartHelpers.readPart(packetBuffer),
-                CraftingOptionGuiData.readFromPacketBuffer(packetBuffer));
+                CraftingOptionGuiData.readFromPacketBuffer((RegistryFriendlyByteBuf) packetBuffer));
     }
 
     public ContainerTerminalStorageCraftingPlanPart(int id, Inventory playerInventory,

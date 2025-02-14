@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.cyclopscore.network.PacketCodecs;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -109,7 +110,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsP
 
         // Trigger gui opening
         player.openMenu(containerProvider, packetBuffer -> {
-            PacketCodec.write(packetBuffer, partPos);
+            PacketCodecs.write(packetBuffer, partPos);
             packetBuffer.writeUtf(PartTypes.TERMINAL_CRAFTING_JOB.getUniqueName().toString());
             craftingJobGuiData.writeToPacketBuffer(packetBuffer);
         });

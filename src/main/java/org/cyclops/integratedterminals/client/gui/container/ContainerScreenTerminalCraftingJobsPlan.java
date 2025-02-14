@@ -9,7 +9,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
@@ -162,7 +162,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
         } else if (this.guiCraftingPlanFlat != null) {
             guiCraftingPlanFlat.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         } else {
-            guiGraphics.drawCenteredString(font, L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.empty"),
+            guiGraphics.drawCenteredString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.empty"),
                     leftPos + getBaseXSize() / 2, topPos + 23, 16777215);
         }
     }

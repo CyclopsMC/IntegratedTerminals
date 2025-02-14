@@ -4,9 +4,7 @@
     "id": "integrateddynamics:menril_resin",
     "amount": 1000
   },
-  "input_item": {
-    "tag": "c:glass_blocks/colorless"
-  },
+  "input_item": "#c:glass_blocks/colorless",
   "duration": 200,
   "output_item": {
     "id": "integratedterminals:menril_glass"

@@ -2,14 +2,14 @@ package org.cyclops.integratedterminals.block;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.TintedGlassBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.cyclops.cyclopscore.config.extendedconfig.BlockConfig;
+import org.cyclops.cyclopscore.config.extendedconfig.BlockConfigCommon;
+import org.cyclops.cyclopscore.init.IModBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 
 /**
@@ -17,13 +17,13 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
  * @author rubensworks
  *
  */
-public class BlockChorusGlassConfig extends BlockConfig {
+public class BlockChorusGlassConfig extends BlockConfigCommon<IModBase> {
 
     public BlockChorusGlassConfig() {
         super(
                 IntegratedTerminals._instance,
                 "chorus_glass",
-                eConfig -> new TintedGlassBlock(Block.Properties.of()
+                (eConfig, properties) -> new TintedGlassBlock(properties
                         .strength(0.3F)
                         .sound(SoundType.GLASS)
                         .noOcclusion()) {

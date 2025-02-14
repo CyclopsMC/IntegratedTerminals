@@ -8,7 +8,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import java.util.Optional;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.inventory.InventoryLocationPlayer;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
@@ -58,7 +58,7 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<I
     }
 
     public static Optional<INetwork> getNetworkFromItem(ItemStack itemStack) {
-        if (MinecraftHelpers.isClientSideThread()) {
+        if (IModHelpers.get().getMinecraftHelpers().isClientSideThread()) {
             return Optional.empty();
         }
         int groupId = ItemTerminalStoragePortable.getGroupId(itemStack);

@@ -6,21 +6,11 @@
     "G G"
   ],
   "key": {
-    "G": {
-      "tag": "c:dusts/glowstone"
-    },
-    "M": {
-      "item": "integratedterminals:menril_glass"
-    },
-    "V": {
-      "item": "integrateddynamics:variable_transformer_output"
-    },
-    "D": {
-      "item": "integrateddynamics:part_display_panel"
-    },
-    "W": {
-      "item": "integrateddynamics:variable_transformer_input"
-    }
+    "G": "#c:dusts/glowstone",
+    "M": "integratedterminals:menril_glass",
+    "V": "integrateddynamics:variable_transformer_output",
+    "D": "integrateddynamics:part_display_panel",
+    "W": "integrateddynamics:variable_transformer_input"
   },
   "result": {
     "id": "integratedterminals:part_terminal_storage"

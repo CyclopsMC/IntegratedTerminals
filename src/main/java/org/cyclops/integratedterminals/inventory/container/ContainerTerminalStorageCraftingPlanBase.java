@@ -6,7 +6,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
-import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -83,9 +83,9 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         getNetwork().ifPresent(network -> {
             if (GeneralConfig.craftingPlannerEnableMultithreading) {
                 WORKER_POOL.execute(() -> {
-                    BlockEntityHelpers.UNSAFE_BLOCK_ENTITY_GETTER = true;
+                    IModHelpers.get().getBlockEntityHelpers().setUnsafeBlockEntityGetter(true);
                     this.updateCraftingPlanJob(craftingOptionWrapper, network);
-                    BlockEntityHelpers.UNSAFE_BLOCK_ENTITY_GETTER = false;
+                    IModHelpers.get().getBlockEntityHelpers().setUnsafeBlockEntityGetter(false);
                 });
             } else {
                 this.updateCraftingPlanJob(craftingOptionWrapper, network);

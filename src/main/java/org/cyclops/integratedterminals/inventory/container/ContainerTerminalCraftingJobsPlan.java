@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -36,8 +37,8 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     private Optional<ITerminalCraftingPlan> craftingPlan;
     private Optional<ITerminalCraftingPlanFlat> craftingPlanFlat;
 
-    public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory, RegistryFriendlyByteBuf packetBuffer) {
-        this(id, playerInventory, PartHelpers.readPartTarget(packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer),
+    public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
+        this(id, playerInventory, PartHelpers.readPartTarget((RegistryFriendlyByteBuf) packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer),
                 CraftingJobGuiData.readFromPacketBuffer(packetBuffer));
     }
 
