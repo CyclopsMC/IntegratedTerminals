@@ -91,7 +91,6 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     }
 
     protected void refreshList() {
-        visibleElements.clear();
         this.scrollBar.setTotalRows(visibleElements.size());
     }
 
@@ -143,22 +142,34 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         x = xOriginal + width - 50;
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw counters
+            int moved = 0;
             if (element.getStorageQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.CHEST), x, y, 0.45F);
                 IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
+                moved++;
             }
             if (element.getToCraftQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
                 IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.to_craft", element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
+                moved++;
             }
             if (element.getCraftingQuantity() > 0) {
+                if (moved == 2) {
+                    y -= 16;
+                    x -= 44;
+                }
                 renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
                 IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
+                moved++;
             }
             if (element.getMissingQuantity() > 0) {
+                if (moved == 2) {
+                    y -= 16;
+                    x -= 44;
+                }
                 renderItem(guiGraphics, new ItemStack(Blocks.BARRIER), x, y, 0.45F);
                 IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
             }
@@ -196,7 +207,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         Font fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + GuiCraftingPlan.ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
 
         // Draw duration
         if (tickDuration >= 0) {

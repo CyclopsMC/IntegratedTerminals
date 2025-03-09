@@ -73,6 +73,10 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
                                 },
                                 true));
                     }
+                },
+                () -> {
+                    this.guiCraftingPlan = null;
+                    this.guiCraftingPlanFlat = null;
                 }
         );
     }

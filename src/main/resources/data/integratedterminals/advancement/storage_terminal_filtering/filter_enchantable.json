@@ -2,7 +2,15 @@
   "display": {
     "icon": {
       "id": "integrateddynamics:variable",
-      "nbt": "{\"_type\":\"valuetype\",\"_id\":1,\"typeName\":\"valuetype.valuetypes.integrateddynamics.operator.name\",\"value\":\"operator.operators.integrateddynamics.itemstack.enchantable.name\"}"
+      "components": {
+        "integrateddynamics:variable_facade": {
+          "partId": 1,
+          "_id": 1,
+          "_type": "integrateddynamics:operator",
+          "operatorName": "integrateddynamics:itemstack_enchantable",
+          "variableIds": [1]
+        }
+      }
     },
     "title": {
       "translate": "advancement.integratedterminals.filter_enchantable"

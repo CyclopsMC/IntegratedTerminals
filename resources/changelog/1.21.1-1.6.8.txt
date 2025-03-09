@@ -1,0 +1,18 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.25.1 or higher.
+
+Additions:
+* Add tr_tr translations through Crowdin (#153)
+
+Changes:
+* Optimize client performance of large networks with many changes, Closes #139
+* Hide finishing crafting jobs from view, CyclopsMC/IntegratedCrafting#132
+
+Fixes:
+* Fix showing Crafting label when zero
+* Fix plan view not resetting to empty when job is done, CyclopsMC/IntegratedCrafting#132
+* Fix crafting plan title not centered in flat mode, Closes CyclopsMC/IntegratedCrafting#132
+* Fix crafting job entry text overlap, Closes CyclopsMC/IntegratedCrafting#132
+* Fix scroll/toggle state of crafting jobs not being preserved
+  This was a regression since to the recent flat crafting job view.
+  Closes CyclopsMC/IntegratedCrafting#126
