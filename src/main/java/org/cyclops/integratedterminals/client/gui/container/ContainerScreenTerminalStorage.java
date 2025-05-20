@@ -96,6 +96,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     private int terminalDragSplittingButton;
     private int terminalDragSplittingRemnant;
     private boolean clicked;
+    protected boolean swallowNextCharacter = false;
 
     public ContainerScreenTerminalStorage(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
@@ -735,6 +736,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         InputConstants.Key inputCode = InputConstants.getKey(keyCode, scanCode);
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(inputCode)) {
             fieldSearch.setFocused(true);
+            swallowNextCharacter = true;
             return true;
         } else if (ClientProxy.TERMINAL_TAB_NEXT.isActiveAndMatches(inputCode)) {
             if (getMenu().getTabsClientCount() > 0) {
@@ -774,6 +776,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     @Override
     public boolean charTyped(char keyCode, int scanCode) {
+        if (swallowNextCharacter) {
+            swallowNextCharacter = false;
+            return true;
+        }
         if (handleKeyCodeFirst(keyCode, scanCode)) {
             return true;
         }
