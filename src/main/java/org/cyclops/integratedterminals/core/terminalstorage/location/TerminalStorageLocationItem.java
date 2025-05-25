@@ -62,6 +62,11 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
                 return new ContainerTerminalStorageCraftingPlanItem(id, playerInventory,
                         location, craftingOptionGuiData);
             }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
+            }
         };
 
         // Trigger gui opening
@@ -87,6 +92,11 @@ public class TerminalStorageLocationItem implements ITerminalStorageLocation<Ite
             public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player playerEntity) {
                 return new ContainerTerminalStorageCraftingOptionAmountItem(id, playerInventory,
                         location, craftingOptionGuiData);
+            }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
             }
         };
 

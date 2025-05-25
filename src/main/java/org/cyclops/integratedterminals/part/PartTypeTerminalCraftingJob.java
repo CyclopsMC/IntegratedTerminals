@@ -65,6 +65,11 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
                 return new ContainerTerminalCraftingJobs(id, playerInventory,
                         data.getRight(), Optional.of(data.getLeft()), (PartTypeTerminalCraftingJob) data.getMiddle());
             }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
+            }
         });
     }
 

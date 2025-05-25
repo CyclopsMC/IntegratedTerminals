@@ -85,6 +85,11 @@ public class TerminalStorageIngredientItemOpenPacket extends PacketCodec<Termina
                 return new ContainerTerminalStorageItem(id, playerInventory,
                         itemLocation, Optional.of(initData), terminalStorageState);
             }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
+            }
         };
 
         // Trigger gui opening

@@ -74,6 +74,11 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
                         Optional.of(data.getRight()), Optional.of(data.getLeft()), (PartTypeTerminalStorage) data.getMiddle(),
                         craftingOptionGuiData);
             }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
+            }
         };
 
         // Trigger gui opening
@@ -99,6 +104,11 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
                 return new ContainerTerminalStorageCraftingOptionAmountPart(id, playerInventory,
                         Optional.of(data.getRight()), Optional.of(data.getLeft()), (PartTypeTerminalStorage) data.getMiddle(),
                         craftingOptionGuiData);
+            }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
             }
         };
 

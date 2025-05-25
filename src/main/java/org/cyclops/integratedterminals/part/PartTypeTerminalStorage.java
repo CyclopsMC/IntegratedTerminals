@@ -75,6 +75,11 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
                         data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
                         Optional.empty(), terminalStorageState);
             }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
+            }
         });
     }
 
