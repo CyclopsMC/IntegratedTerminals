@@ -101,6 +101,11 @@ public class TerminalStorageIngredientPartOpenPacket extends PacketCodec<Termina
                         data.getRight(), (PartTypeTerminalStorage) data.getMiddle(),
                         Optional.of(initData), terminalStorageState);
             }
+
+            @Override
+            public boolean shouldTriggerClientSideContainerClosingOnOpen() {
+                return false;
+            }
         };
 
         // Trigger gui opening
