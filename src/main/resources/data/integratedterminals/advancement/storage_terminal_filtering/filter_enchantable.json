@@ -27,8 +27,12 @@
       "conditions": {
         "part_type": "integratedterminals:terminal_storage",
         "variable": {
-          "type": "operator",
-          "operator": "integrateddynamics:itemstack_enchantable"
+          "type": "value_type",
+          "value_type": "integrateddynamics:operator",
+          "value": {
+            "type": "operator",
+            "operator": "integrateddynamics:itemstack_enchantable"
+          }
         }
       }
     }
