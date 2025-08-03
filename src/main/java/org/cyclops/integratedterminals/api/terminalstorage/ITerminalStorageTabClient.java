@@ -7,8 +7,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
@@ -83,7 +81,6 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @param limit A slot limit.
      * @return A list of slots, can be empty.
      */
-    @OnlyIn(Dist.CLIENT)
     public List<S> getSlots(int channel, int offset, int limit);
 
     /**

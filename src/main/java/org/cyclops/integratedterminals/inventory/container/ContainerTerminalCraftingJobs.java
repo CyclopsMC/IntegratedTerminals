@@ -3,7 +3,6 @@ package org.cyclops.integratedterminals.inventory.container;
 import com.google.common.collect.Lists;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
@@ -119,10 +118,10 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
         super.onUpdate(valueId, value);
 
         if (valueId == this.valueIdCraftingJobs) {
-            ListTag tagList = value.getList("craftingJobs", Tag.TAG_COMPOUND);
+            ListTag tagList = value.getList("craftingJobs").orElseThrow();
             this.craftingJobs = Lists.newArrayListWithExpectedSize(tagList.size());
             for (int i = 0; i < tagList.size(); i++) {
-                this.craftingJobs.add(HandlerWrappedTerminalCraftingPlan.deserialize(player.level().registryAccess(), tagList.getCompound(i)));
+                this.craftingJobs.add(HandlerWrappedTerminalCraftingPlan.deserialize(player.level().registryAccess(), tagList.getCompound(i).orElseThrow()));
             }
         }
     }

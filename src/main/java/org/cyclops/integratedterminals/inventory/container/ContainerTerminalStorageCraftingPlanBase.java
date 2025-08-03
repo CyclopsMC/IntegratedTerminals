@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -100,10 +101,11 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     protected void setCraftingPlan(ITerminalCraftingPlan craftingPlan) {
         this.craftingPlan = craftingPlan;
+        RegistryAccess lookupProvider = player.level().registryAccess();
         if (!ContainerTerminalCraftingJobsPlan.isPlanTooLarge(this.craftingPlan)) {
-            setValue(this.craftingPlanNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(player.level().registryAccess(), this.craftingPlan));
+            setValue(this.craftingPlanNotifierId, IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlan(o, this.craftingPlan), lookupProvider));
         }
-        setValue(this.craftingPlanFlatNotifierId, this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlanFlat(player.level().registryAccess(), this.craftingPlan.flatten()));
+        setValue(this.craftingPlanFlatNotifierId, IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> this.craftingOptionGuiData.getCraftingOption().getHandler().serializeCraftingPlanFlat(o, this.craftingPlan.flatten()), lookupProvider));
     }
 
     @Override

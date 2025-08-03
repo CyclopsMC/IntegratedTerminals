@@ -8,9 +8,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.IngredientComponents;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollections;
@@ -52,7 +51,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
         this.tabId = tabId;
         IIngredientComponentStorageObservable.Change changeType = event.getChangeType();
         IIngredientCollection<?, ?> instances = event.getInstances();
-        CompoundTag serialized = IngredientCollections.serialize(lookupProvider, instances);
+        CompoundTag serialized = IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o ->IngredientCollections.serialize(o, instances), lookupProvider);
         serialized.putInt("changeType", changeType.ordinal());
         this.changeData = serialized;
         this.channel = event.getChannel();
@@ -65,12 +64,11 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-            IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType")];
-            IngredientArrayList ingredients = IngredientCollections.deserialize(world.registryAccess(), changeData);
+            IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType").orElseThrow()];
+            IngredientArrayList ingredients = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(changeData, world.registryAccess(), IngredientCollections::deserialize);
 
             TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
             tab.onChange(channel, changeType, ingredients, enabled);

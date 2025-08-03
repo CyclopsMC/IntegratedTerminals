@@ -50,11 +50,11 @@ public class TerminalStorageState {
     }
 
     public String getTab() {
-        return tag.getString(SETTING_TAB);
+        return tag.getString(SETTING_TAB).orElseThrow();
     }
 
     public boolean hasTab() {
-        return tag.contains(SETTING_TAB, Tag.TAG_STRING);
+        return tag.contains(SETTING_TAB);
     }
 
     public void setTab(@Nullable String tab) {
@@ -67,11 +67,11 @@ public class TerminalStorageState {
     }
 
     public String getSearch(String tab, int channel) {
-        return tag.getString(SETTING_SEARCH + "_" + tab  + "_" + channel);
+        return tag.getStringOr(SETTING_SEARCH + "_" + tab  + "_" + channel, "");
     }
 
     public boolean hasSearch(String tab, int channel) {
-        return tag.contains(SETTING_SEARCH + "_" + tab  + "_" + channel, Tag.TAG_STRING);
+        return tag.contains(SETTING_SEARCH + "_" + tab  + "_" + channel);
     }
 
     public void setSearch(String tab, int channel, @Nullable String search) {
@@ -114,7 +114,7 @@ public class TerminalStorageState {
 
     public static TerminalStorageState getPlayerDefault(Player playerEntity, IDirtyMarkListener dirtyMarkListener) {
         if (playerEntity.getPersistentData().contains(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY)) {
-            return new TerminalStorageState(playerEntity.getPersistentData().getCompound(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY), dirtyMarkListener);
+            return new TerminalStorageState(playerEntity.getPersistentData().getCompound(TerminalStorageState.PLAYER_TAG_DEFAULT_KEY).get(), dirtyMarkListener);
         }
         return new TerminalStorageState(dirtyMarkListener);
     }

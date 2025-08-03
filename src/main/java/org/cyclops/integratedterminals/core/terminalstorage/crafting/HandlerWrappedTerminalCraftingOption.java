@@ -1,9 +1,8 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
@@ -32,21 +31,17 @@ public class HandlerWrappedTerminalCraftingOption<T> {
         return craftingOption;
     }
 
-    public static <T> CompoundTag serialize(HolderLookup.Provider lookupProvider, HandlerWrappedTerminalCraftingOption<T> craftingOption) {
+    public static <T> void serialize(ValueOutput valueOutput, HandlerWrappedTerminalCraftingOption<T> craftingOption) {
         ITerminalStorageTabIngredientCraftingHandler handler = craftingOption.getHandler();
-        CompoundTag tag = handler.serializeCraftingOption(lookupProvider, craftingOption.getCraftingOption());
-        tag.putString("craftingOptionHandler", handler.getId().toString());
-        return tag;
+        handler.serializeCraftingOption(valueOutput, craftingOption.getCraftingOption());
+        valueOutput.putString("craftingOptionHandler", handler.getId().toString());
     }
 
-    public static <T, M> HandlerWrappedTerminalCraftingOption<T> deserialize(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent, CompoundTag tag) {
-        if (!tag.contains("craftingOptionHandler", Tag.TAG_STRING)) {
-            throw new IllegalArgumentException("Could not find a craftingOptionHandler entry in the given tag");
-        }
-        String handlerId = tag.getString("craftingOptionHandler");
+    public static <T, M> HandlerWrappedTerminalCraftingOption<T> deserialize(ValueInput valueInput, IngredientComponent<T, M> ingredientComponent) {
+        String handlerId = valueInput.getString("craftingOptionHandler").orElseThrow();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
                 .getHandler(ResourceLocation.parse(handlerId));
-        ITerminalCraftingOption<T> craftingOption = handler.deserializeCraftingOption(lookupProvider, ingredientComponent, tag);
+        ITerminalCraftingOption<T> craftingOption = handler.deserializeCraftingOption(valueInput, ingredientComponent);
         return new HandlerWrappedTerminalCraftingOption<>(handler, craftingOption);
     }
 

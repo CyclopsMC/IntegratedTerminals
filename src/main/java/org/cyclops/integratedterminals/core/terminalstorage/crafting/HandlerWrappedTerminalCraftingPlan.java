@@ -2,8 +2,8 @@ package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
@@ -36,19 +36,15 @@ public class HandlerWrappedTerminalCraftingPlan {
         ITerminalStorageTabIngredientCraftingHandler handler = craftingPlan.getHandler();
         CompoundTag tag = new CompoundTag();
         tag.putString("craftingPlanHandler", handler.getId().toString());
-        tag.put("flatPlan", handler.serializeCraftingPlanFlat(lookupProvider, craftingPlan.getCraftingPlanFlat()));
-
+        tag.put("flatPlan", IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> handler.serializeCraftingPlanFlat(o, craftingPlan.getCraftingPlanFlat()), lookupProvider));
         return tag;
     }
 
     public static HandlerWrappedTerminalCraftingPlan deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag) {
-        if (!tag.contains("craftingPlanHandler", Tag.TAG_STRING)) {
-            throw new IllegalArgumentException("Could not find a craftingPlanHandler entry in the given tag");
-        }
-        String handlerId = tag.getString("craftingPlanHandler");
+        String handlerId = tag.getString("craftingPlanHandler").orElseThrow();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
                 .getHandler(ResourceLocation.parse(handlerId));
-        ITerminalCraftingPlanFlat craftingPlanFlat = handler.deserializeCraftingPlanFlat(lookupProvider, tag.getCompound("flatPlan"));
+        ITerminalCraftingPlanFlat craftingPlanFlat = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(tag.getCompound("flatPlan").orElseThrow(), lookupProvider, handler::deserializeCraftingPlanFlat);
 
         return new HandlerWrappedTerminalCraftingPlan(handler, craftingPlanFlat);
     }

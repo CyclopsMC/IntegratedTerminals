@@ -1,13 +1,14 @@
 package org.cyclops.integratedterminals.item;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
@@ -16,9 +17,13 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import org.cyclops.cyclopscore.datastructure.Wrapper;
 import org.cyclops.cyclopscore.inventory.ItemLocation;
@@ -26,6 +31,7 @@ import org.cyclops.cyclopscore.inventory.container.NamedContainerProviderItem;
 import org.cyclops.cyclopscore.item.ItemGui;
 import org.cyclops.cyclopscore.persist.IDirtyMarkListener;
 import org.cyclops.integrateddynamics.RegistryEntries;
+import org.cyclops.integrateddynamics.api.item.TagPathElement;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.block.BlockCable;
@@ -37,17 +43,20 @@ import org.cyclops.integrateddynamics.part.PartTypeConnectorOmniDirectional;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageItem;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * A portable storage terminal.
  * @author rubensworks
  */
 public class ItemTerminalStoragePortable extends ItemGui {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public ItemTerminalStoragePortable(Properties properties) {
         super(properties);
@@ -122,11 +131,11 @@ public class ItemTerminalStoragePortable extends ItemGui {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
-        super.appendHoverText(stack, context, tooltip, flagIn);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay tooltipDisplay, Consumer<Component> tooltip, TooltipFlag flagIn) {
+        super.appendHoverText(stack, context, tooltipDisplay, tooltip, flagIn);
         int groupId = getGroupId(stack);
         if (groupId >= 0) {
-            tooltip.add(Component.translatable(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
+            tooltip.accept(Component.translatable(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
         }
     }
 
@@ -151,20 +160,26 @@ public class ItemTerminalStoragePortable extends ItemGui {
         return new ITerminalStorageTabCommon.IVariableInventory() {
             @Override
             public NonNullList<ItemStack> getNamedInventory(String name, HolderLookup.Provider holderLookupProvider) {
-                CompoundTag tag = finalTagInventories.getCompound(name);
-                NonNullList<ItemStack> list = NonNullList.withSize(tag.getInt("itemCount"), ItemStack.EMPTY);
-                ContainerHelper.loadAllItems(tag, list, holderLookupProvider);
-                return list;
+                CompoundTag tag = finalTagInventories.getCompound(name).orElseThrow();
+                try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(tag), LOGGER)) {
+                    ValueInput input = TagValueInput.create(scopedCollector, holderLookupProvider, tag);
+                    NonNullList<ItemStack> list = NonNullList.withSize(input.getInt("itemCount").orElseThrow(), ItemStack.EMPTY);
+                    ContainerHelper.loadAllItems(input, list);
+                    return list;
+                }
             }
 
             @Override
             public void setNamedInventory(String name, NonNullList<ItemStack> inventory, HolderLookup.Provider holderLookupProvider) {
-                CompoundTag tag = new CompoundTag();
-                tag.putString("tabName", name);
-                tag.putInt("itemCount", inventory.size());
-                ContainerHelper.saveAllItems(tag, inventory, holderLookupProvider);
-                finalTagInventories.put(name, tag);
-                itemStack.set(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_TERMINAL_STORAGE_INVENTORIES, finalTagInventories.copy());
+                try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(new CompoundTag()), LOGGER)) {
+                    TagValueOutput valueOutput = TagValueOutput.createWithContext(scopedCollector, holderLookupProvider);
+                    valueOutput.putString("tabName", name);
+                    valueOutput.putInt("itemCount", inventory.size());
+                    ContainerHelper.saveAllItems(valueOutput, inventory);
+                    CompoundTag tag = valueOutput.buildResult();
+                    finalTagInventories.put(name, tag);
+                    itemStack.set(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_TERMINAL_STORAGE_INVENTORIES, finalTagInventories.copy());
+                }
             }
         };
     }
@@ -189,13 +204,13 @@ public class ItemTerminalStoragePortable extends ItemGui {
         };
 
         // Instantiate storage state from NBT
-        if (!tagStates.contains(playerKey, Tag.TAG_COMPOUND)) {
+        if (!tagStates.contains(playerKey)) {
             TerminalStorageState state = TerminalStorageState.getPlayerDefault(player, dirtyMarkListener);
             stateWrapped.set(state);
             tagStates.put(playerKey, state.getTag());
             return state;
         } else {
-            TerminalStorageState state = new TerminalStorageState(tagStates.getCompound(playerKey), dirtyMarkListener);
+            TerminalStorageState state = new TerminalStorageState(tagStates.getCompound(playerKey).orElseThrow(), dirtyMarkListener);
             stateWrapped.set(state);
             return state;
         }

@@ -8,8 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.Reference;
@@ -51,7 +49,6 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
 
     }

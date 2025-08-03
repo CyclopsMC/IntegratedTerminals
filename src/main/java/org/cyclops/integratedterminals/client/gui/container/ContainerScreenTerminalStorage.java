@@ -3,24 +3,21 @@ package org.cyclops.integratedterminals.client.gui.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
@@ -44,7 +41,6 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -55,7 +51,7 @@ import java.util.Set;
 /**
  * @author rubensworks
  */
-public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorageBase<L>> extends ContainerScreenExtended<C> {
+public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorageBase<L>> extends ContainerScreenExtended<C> implements ContainerTerminalStorageBase.ISelectedClientTabProvider {
 
     private static int TAB_OFFSET_X = 24;
     private static int TAB_WIDTH = 24;
@@ -97,7 +93,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     public ContainerScreenTerminalStorage(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
-        container.screen = this;
+        container.selectedClientTabProvider = this;
     }
 
     @Override
@@ -112,7 +108,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 getMenu().getChannelStrings());
         fieldChannel.setMaxLength(15);
         fieldChannel.setVisible(true);
-        fieldChannel.setTextColor(16777215);
+        fieldChannel.setTextColor(ARGB.opaque(16777215));
         fieldChannel.setCanLoseFocus(true);
         fieldChannel.setEditable(true);
         int activeChannel = getMenu().getSelectedChannel();
@@ -146,7 +142,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 topPos + SEARCH_Y, getSearchWidth() - 10, SEARCH_HEIGHT, Component.translatable("gui.cyclopscore.search"));
         fieldSearch.setMaxLength(50);
         fieldSearch.setVisible(true);
-        fieldSearch.setTextColor(16777215);
+        fieldSearch.setTextColor(ARGB.opaque(16777215));
         fieldSearch.setCanLoseFocus(true);
         fieldSearch.setEditable(true);
         fieldSearch.setBordered(false);
@@ -268,7 +264,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         //super.renderBg(matrixStack, f, mouseX, mouseY);
-        IModHelpers.get().getRenderHelpers().bindTexture(texture);
         this.renderBgTab(guiGraphics, f, mouseX, mouseY);
         this.renderBgPlayerInventory(guiGraphics, f, mouseX, mouseY);
 
@@ -288,7 +283,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int playerInventoryOffsetY = getPlayerInventoryOffsetY();
             ITerminalStorageTabCommon.SlotPositionFactors factors = new ITerminalStorageTabCommon.SlotPositionFactors(offsetX, offsetY, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY);
             for (ITerminalButton button : tab.getButtons()) {
-                Button guiButton = button.createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
+                Button guiButton = button.getClient().createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
                 guiButton.render(guiGraphics, mouseX, mouseY, f);
                 if (button.isInLeftColumn()) {
                     offset += BUTTONS_OFFSET + guiButton.getHeight();
@@ -318,10 +313,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
         // Corners
         //blit(matrixStack, leftPos + offsetX, topPos + offsetY, 0, 0, imageWidth - 2 * offsetX, imageHeight - 2 * offsetY); // top-left
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + offset, topPos + offset, cornerSize, 0, cornerSize, cornerSize, 256, 256); // top-left
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset, 0, 0, cornerSize, cornerSize, 256, 256); // top-right
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset + tabHeight - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize, 256, 256); // bottom-right
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + offset, topPos + offset + tabHeight - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize, 256, 256); // bottom-left
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offset, topPos + offset, cornerSize, 0, cornerSize, cornerSize, 256, 256); // top-left
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset, 0, 0, cornerSize, cornerSize, 256, 256); // top-right
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset + tabHeight - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize, 256, 256); // bottom-right
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offset, topPos + offset + tabHeight - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize, 256, 256); // bottom-left
 
         // Sides
         blitRescalable(guiGraphics, this.texture, leftPos + offset + cornerSize, topPos + offset, cornerSize + 4, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize, -1); // top
@@ -337,21 +332,21 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int renderRows = Math.min(3, rows - j); // Try rendering multiple rows for optimizing efficiency (if possible)
             for (int i = 0; i < columns; i++) {
                 int renderColumns = Math.min(9, columns - i); // Try rendering multiple columns for optimizing efficiency (if possible)
-                guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + offset + 10 + i * IModHelpers.get().getGuiHelpers().getSlotSize(), topPos + offset + 18 + j * IModHelpers.get().getGuiHelpers().getSlotSize(), 80, 34, IModHelpers.get().getGuiHelpers().getSlotSize() * renderColumns, IModHelpers.get().getGuiHelpers().getSlotSize() * renderRows, 256, 256);
+                guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offset + 10 + i * IModHelpers.get().getGuiHelpers().getSlotSize(), topPos + offset + 18 + j * IModHelpers.get().getGuiHelpers().getSlotSize(), 80, 34, IModHelpers.get().getGuiHelpers().getSlotSize() * renderColumns, IModHelpers.get().getGuiHelpers().getSlotSize() * renderRows, 256, 256);
                 i += renderColumns - 1;
             }
             j += renderRows - 1;
         }
 
         // Scrollbar background
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y - 1, 20, 12, 14, 1, 256, 256); // top
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y - 1, 20, 12, 14, 1, 256, 256); // top
         blitRescalable(guiGraphics, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y, 20, 13, 14, 1, 256, 256, 14, getScrollHeight() - 2, -1); // middle
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y + getScrollHeight() - 2, 20, 101, 14, 1, 256, 256); // bottom
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y + getScrollHeight() - 2, 20, 101, 14, 1, 256, 256); // bottom
 
         // Textbox background
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + SEARCH_X - 1, topPos + SEARCH_Y - 2, 28, 0, 1, SEARCH_HEIGHT - 8, 256, 256); // left
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + SEARCH_X - 1, topPos + SEARCH_Y - 2, 28, 0, 1, SEARCH_HEIGHT - 8, 256, 256); // left
         blitRescalable(guiGraphics, this.texture, leftPos + SEARCH_X, topPos + SEARCH_Y - 2, 29, 0, 1, SEARCH_HEIGHT - 8, 256, 256, getSearchWidth(), SEARCH_HEIGHT - 8, -1); // middle
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + SEARCH_X + getSearchWidth() - 1, topPos + SEARCH_Y - 2, 117, 0, 1, SEARCH_HEIGHT - 8, 256, 256); // right
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + SEARCH_X + getSearchWidth() - 1, topPos + SEARCH_Y - 2, 117, 0, 1, SEARCH_HEIGHT - 8, 256, 256); // right
 
         // Render tab-specific things
         getSelectedClientTab().ifPresent(tab -> tab.onTabBackgroundRender(this, guiGraphics, f, mouseX, mouseY));
@@ -359,7 +354,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     public static void blitRescalable(GuiGraphics guiGraphics, ResourceLocation texture, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight, int realWidth, int realHeight, int color) {
         guiGraphics.innerBlit(
-                RenderType::guiTextured,
+                RenderPipelines.GUI_TEXTURED,
                 texture,
                 x,
                 x + realWidth,
@@ -375,10 +370,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     protected void renderBgPlayerInventory(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         // Render player inventory
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + (getGridXSize() / 2) - (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + getPlayerInventoryOffsetX() + 3, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 216, 93, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + (getGridXSize() / 2) - (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + getPlayerInventoryOffsetX() + 3, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 216, 93, 256, 256);
 
         // Auxiliary slots
-        guiGraphics.blit(RenderType::guiTextured, this.texture, leftPos + (getGridXSize() / 2) + (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + getPlayerInventoryOffsetX() + 57, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + (getGridXSize() / 2) + (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + getPlayerInventoryOffsetX() + 57, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57, 256, 256);
     }
 
     @Override
@@ -399,13 +394,13 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int playerInventoryOffsetY = getPlayerInventoryOffsetY();
             ITerminalStorageTabCommon.SlotPositionFactors factors = new ITerminalStorageTabCommon.SlotPositionFactors(offsetX, offsetY, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY);
             for (ITerminalButton button : tab.getButtons()) {
-                Button guiButton = button.createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
+                Button guiButton = button.getClient().createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
                 if (isHovering(button.getX(0, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(0, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY),
                         guiButton.getWidth(), guiButton.getHeight(), mouseX, mouseY)) {
                     List<Component> lines = Lists.newArrayList();
                     lines.add(Component.translatable(button.getTranslationKey()));
                     button.getTooltip(getMinecraft().player, TooltipFlag.Default.NORMAL, lines);
-                    drawTooltip(lines, guiGraphics.pose(), mouseX - leftPos, mouseY - topPos);
+                    drawTooltip(lines, guiGraphics, mouseX, mouseY);
                 }
                 if (button.isInLeftColumn()) {
                     offset += BUTTONS_OFFSET + guiButton.getHeight();
@@ -429,7 +424,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.setdefaults"));
             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.setdefaults.info")
                 .withStyle(ChatFormatting.GRAY));
-            drawTooltip(lines, guiGraphics.pose(), mouseX - leftPos, mouseY - topPos);
+            drawTooltip(lines, guiGraphics, mouseX, mouseY);
         }
     }
 
@@ -448,8 +443,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         super.drawCurrentScreen(guiGraphics, mouseX, mouseY, partialTicks);
 
         // Draw slots
-        GlStateManager._disableDepthTest();
-        //this.zLevel = 0F;
         for (int i1 = 0; i1 < getMenu().slots.size(); ++i1) {
             Slot slot = getMenu().slots.get(i1);
 
@@ -457,7 +450,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 this.drawSlotOverlay(guiGraphics, slot);
             }
         }
-        //this.zLevel = 0F;
 
         this.texture = oldTexture;
     }
@@ -598,9 +590,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int playerInventoryOffsetX = getPlayerInventoryOffsetX();
             int playerInventoryOffsetY = getPlayerInventoryOffsetY();
             for (ITerminalButton button : tab.getButtons()) {
-                Button guiButton = button.createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
+                Button guiButton = button.getClient().createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
                 if (isHovering(button.getX(0, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(0, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), guiButton.getWidth(), guiButton.getHeight(), mouseX, mouseY)) {
-                    button.onClick(tab, tabCommon, guiButton, getMenu().getSelectedChannel(), mouseButton);
+                    button.getClient().onClick(tab, tabCommon, guiButton, getMenu().getSelectedChannel(), mouseButton);
                     this.clicked = false; // To avoid grid slots being selected on mouse release
                     playButtonClickSound();
                     return;
@@ -888,7 +880,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         int offsetX = TAB_OFFSET_X;
 
         // Draw channels label
-        guiGraphics.drawString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
+        guiGraphics.drawString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, ARGB.opaque(16777215));
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getMenu().getTabsClient().values()) {
@@ -901,19 +893,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int textureY = selected ? TAB_SELECTED_TEXTURE_Y : TAB_UNSELECTED_TEXTURE_Y;
 
             // Draw background
-            guiGraphics.blit(RenderType::guiTextured, this.texture, x, y, textureX, textureY, width, height, 256, 256);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, x, y, textureX, textureY, width, height, 256, 256);
 
             // Draw icon
-            ItemStack icon = tab.getIcon();
-            guiGraphics.pose().pushPose();
-            GlStateManager._enableBlend();
-            GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            Lighting.setupFor3DItems();
-            GL11.glEnable(GL11.GL_DEPTH_TEST);
-            guiGraphics.renderItem(icon, x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
-            Lighting.setupForFlatItems();
-            guiGraphics.pose().popPose();
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            guiGraphics.renderItem(tab.getIcon(), x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
 
             offsetX += width;
         }
@@ -955,8 +938,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             // Draw status string
             if (layer == DrawLayer.BACKGROUND) {
                 guiGraphics.drawCenteredString(font, tab.getStatus(channel), leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (IModHelpers.get().getGuiHelpers().getSlotSize() * tab.getRowColumnProvider().getRowsAndColumns().columns()) / 2,
-                        y + 2 + getSlotVisibleRows() * IModHelpers.get().getGuiHelpers().getSlotSize(), 16777215);
-                RenderSystem.setShaderColor(1, 1, 1, 1);
+                        y + 2 + getSlotVisibleRows() * IModHelpers.get().getGuiHelpers().getSlotSize(), ARGB.opaque(16777215));
             }
 
             // Draw slots
@@ -988,9 +970,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 }
             }
         } else {
-            RenderSystem.setShaderColor(0.3F, 0.3F, 0.3F, 0.3F);
             guiGraphics.fill(x - 1, y - 1, x - 1 + IModHelpers.get().getGuiHelpers().getSlotSize() * getSlotRowLength(), y - 1 + IModHelpers.get().getGuiHelpers().getSlotSize() * getSlotVisibleRows(), IModHelpers.get().getBaseHelpers().RGBAToInt(50, 50, 50, 100));
-            RenderSystem.setShaderColor(1, 1, 1, 1);
         }
     }
 
@@ -1003,8 +983,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 List<?> slots = tab.getSlots(getMenu().getSelectedChannel(), slotId, 1);
                 if (!slots.isEmpty()) {
                     ITerminalStorageSlot slot = (ITerminalStorageSlot) slots.get(0);
-                    IModHelpers.get().getRenderHelpers().bindTexture(this.texture);
-                    RenderSystem.setShaderColor(1, 1, 1, 1);
 
                     if (this.terminalDragSplitting && this.terminalDragSplittingSlots.size() > 1) {
                         quantity = this.terminalDragSplittingRemnant;
@@ -1031,6 +1009,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return Optional.ofNullable(getMenu().getTabsCommon().get(tab));
     }
 
+    @Override
     public Optional<ITerminalStorageTabClient<?>> getSelectedClientTab() {
         return getClientTab(getMenu().getSelectedTab());
     }
@@ -1055,7 +1034,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
             int tabIndex = (mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH;
             getTabByIndex(tabIndex)
-                    .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), guiGraphics.pose(), mouseX - getGuiLeft(), mouseY - getGuiTop()));
+                    .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), guiGraphics, mouseX, mouseY));
         }
     }
 

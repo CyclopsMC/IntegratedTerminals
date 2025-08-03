@@ -1,45 +1,27 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Lighting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
-import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackIdSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackNameSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackQuantitySorter;
-import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
-import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
-import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.function.Predicate;
 
 /**
  * Terminal storage handler for items.
@@ -54,6 +36,11 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     }
 
     @Override
+    public IIngredientComponentTerminalStorageHandlerClient<ItemStack, Integer> getClient() {
+        return new IngredientComponentTerminalStorageHandlerItemStackClient(this);
+    }
+
+    @Override
     public IngredientComponent<ItemStack, Integer> getComponent() {
         return ingredientComponent;
     }
@@ -61,43 +48,6 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     public ItemStack getIcon() {
         return new ItemStack(Blocks.CHEST);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void drawInstance(GuiGraphics guiGraphics, ItemStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
-                             ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
-        // Make a copy of the item to make sure that any changes in the NBT tag that the mod may make during rendering
-        // does not propagate into our client-side index. Otherwise, the client may think it has different items than
-        // the server, which will cause these items not to be extractable by the client from the terminal.
-        // See https://github.com/CyclopsMC/IntegratedTerminals/issues/106
-        final ItemStack instanceCopy = instance.copy();
-
-        GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-        GlStateManager._enableBlend();
-        GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        Lighting.setupFor3DItems();
-        //GlStateManager._enableRescaleNormal();
-        GlStateManager._enableDepthTest();
-        GL11.glEnable(GL11.GL_DEPTH_TEST); // Needed, as the line above doesn't always seem to work...
-        if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            guiGraphics.renderItem(instanceCopy, x, y);
-            renderItem.renderItemDecorations(Minecraft.getInstance().font, instanceCopy, x, y, label);
-        } else {
-            IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics.pose(), x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
-                List<Component> lines = instanceCopy.getTooltipLines(
-                        Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()),
-                        Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
-                                ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL);
-                if (additionalTooltipLines != null) {
-                    lines.addAll(additionalTooltipLines);
-                }
-                addQuantityTooltip(lines, instanceCopy);
-                return lines;
-            });
-        }
-        Lighting.setupForFlatItems();
     }
 
     @Override
@@ -235,22 +185,6 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantity) {
         container.getCarried().shrink((int) quantity);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
-        return switch (searchMode) {
-            case MOD -> i -> Optional.ofNullable(i.getItem().getCreatorModId(Minecraft.getInstance().getConnection().registryAccess(), i))
-                    .orElse("minecraft").toLowerCase(Locale.ENGLISH)
-                    .matches(".*" + query + ".*");
-            case TOOLTIP -> i -> i.getTooltipLines(Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()), Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
-                    .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
-            case TAG -> i -> i.getItem().builtInRegistryHolder().tags()
-                    .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
-                    .anyMatch(tag -> BuiltInRegistries.ITEM.get(tag).isPresent());
-            case DEFAULT -> i -> i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
-        };
     }
 
     @Override

@@ -2,12 +2,10 @@ package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.Level;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
@@ -15,13 +13,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
-import org.cyclops.integratedcrafting.api.crafting.CraftingJob;
-import org.cyclops.integratedcrafting.api.crafting.CraftingJobDependencyGraph;
-import org.cyclops.integratedcrafting.api.crafting.FailedCraftingRecipeException;
-import org.cyclops.integratedcrafting.api.crafting.ICraftingInterface;
-import org.cyclops.integratedcrafting.api.crafting.RecursiveCraftingRecipeException;
-import org.cyclops.integratedcrafting.api.crafting.UnavailableCraftingInterfacesException;
-import org.cyclops.integratedcrafting.api.crafting.UnknownCraftingRecipeException;
+import org.cyclops.integratedcrafting.api.crafting.*;
 import org.cyclops.integratedcrafting.api.network.ICraftingNetwork;
 import org.cyclops.integratedcrafting.api.recipe.IRecipeIndex;
 import org.cyclops.integratedcrafting.core.CraftingHelpers;
@@ -29,22 +21,11 @@ import org.cyclops.integratedcrafting.core.MissingIngredients;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.CraftingJobStartException;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.*;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -93,13 +74,13 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public CompoundTag serializeCraftingOption(HolderLookup.Provider lookupProvider, TerminalCraftingOptionRecipeDefinition craftingOption) {
-        return IRecipeDefinition.serialize(lookupProvider, craftingOption.getRecipe());
+    public void serializeCraftingOption(ValueOutput valueOutput, TerminalCraftingOptionRecipeDefinition craftingOption) {
+        IRecipeDefinition.serialize(valueOutput, craftingOption.getRecipe());
     }
 
     @Override
-    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException {
-        return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, IRecipeDefinition.deserialize(lookupProvider, tag));
+    public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(ValueInput valueInput, IngredientComponent<T, M> ingredientComponent) throws IllegalArgumentException {
+        return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, IRecipeDefinition.deserialize(valueInput));
     }
 
     @Override
@@ -437,54 +418,50 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public CompoundTag serializeCraftingPlan(HolderLookup.Provider lookupProvider, ITerminalCraftingPlan<Integer> craftingPlan) {
-        CompoundTag tag = TerminalCraftingPlanStatic.serialize(lookupProvider, (TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
+    public void serializeCraftingPlan(ValueOutput valueOutput, ITerminalCraftingPlan<Integer> craftingPlan) {
+        TerminalCraftingPlanStatic.serialize(valueOutput, (TerminalCraftingPlanStatic<Integer>) craftingPlan, this);
         if (craftingPlan instanceof TerminalCraftingPlanCraftingJobDependencyGraph) {
-            CompoundTag serializedGraph = CraftingJobDependencyGraph.serialize(
-                    lookupProvider,
+            CraftingJobDependencyGraph.serialize(
+                    valueOutput.child("craftingJobDependencyGraph"),
                     ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph());
-            tag.put("craftingJobDependencyGraph", serializedGraph);
-        }
-        return tag;
-    }
-
-    @Override
-    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(HolderLookup.Provider lookupProvider, CompoundTag tag) throws IllegalArgumentException {
-        TerminalCraftingPlanStatic<Integer> planStatic = TerminalCraftingPlanStatic.deserialize(lookupProvider, tag, this);
-        if (tag.contains("craftingJobDependencyGraph")) {
-            CraftingJobDependencyGraph craftingJobDependencyGraph = CraftingJobDependencyGraph.deserialize(
-                    lookupProvider,
-                    tag.getCompound("craftingJobDependencyGraph"));
-            TerminalCraftingPlanCraftingJobDependencyGraph graph = new TerminalCraftingPlanCraftingJobDependencyGraph(
-                    planStatic.getId(),
-                    planStatic.getDependencies(),
-                    planStatic.getOutputs(),
-                    planStatic.getStatus(),
-                    planStatic.getCraftingQuantity(),
-                    planStatic.getStorageIngredients(),
-                    planStatic.getLastMissingIngredients(),
-                    planStatic.getLabel(),
-                    planStatic.getTickDuration(),
-                    planStatic.getChannel(),
-                    planStatic.getInitiatorName(),
-                    craftingJobDependencyGraph
-            );
-            if (planStatic.getUnlocalizedLabelOverride() != null) {
-                graph.setUnlocalizedLabelOverride(planStatic.getUnlocalizedLabelOverride());
-            }
-            return graph;
-        } else {
-            return planStatic;
         }
     }
 
     @Override
-    public Tag serializeCraftingJobId(Integer id) {
-        return IntTag.valueOf(id);
+    public ITerminalCraftingPlan<Integer> deserializeCraftingPlan(ValueInput valueInput) throws IllegalArgumentException {
+        TerminalCraftingPlanStatic<Integer> planStatic = TerminalCraftingPlanStatic.deserialize(valueInput, this);
+        return valueInput.child("craftingJobDependencyGraph")
+                .<ITerminalCraftingPlan<Integer>>map(craftingJobDependencyGraphInput -> {
+                    CraftingJobDependencyGraph craftingJobDependencyGraph = CraftingJobDependencyGraph.deserialize(craftingJobDependencyGraphInput);
+                    TerminalCraftingPlanCraftingJobDependencyGraph graph = new TerminalCraftingPlanCraftingJobDependencyGraph(
+                            planStatic.getId(),
+                            planStatic.getDependencies(),
+                            planStatic.getOutputs(),
+                            planStatic.getStatus(),
+                            planStatic.getCraftingQuantity(),
+                            planStatic.getStorageIngredients(),
+                            planStatic.getLastMissingIngredients(),
+                            planStatic.getLabel(),
+                            planStatic.getTickDuration(),
+                            planStatic.getChannel(),
+                            planStatic.getInitiatorName(),
+                            craftingJobDependencyGraph
+                    );
+                    if (planStatic.getUnlocalizedLabelOverride() != null) {
+                        graph.setUnlocalizedLabelOverride(planStatic.getUnlocalizedLabelOverride());
+                    }
+                    return graph;
+                })
+                .orElse(planStatic);
     }
 
     @Override
-    public Integer deserializeCraftingJobId(Tag tag) {
-        return ((IntTag) tag).getAsInt();
+    public void serializeCraftingJobId(ValueOutput valueOutput, Integer id) {
+        valueOutput.putInt("id", id);
+    }
+
+    @Override
+    public Integer deserializeCraftingJobId(ValueInput valueInput) {
+        return valueInput.getInt("id").orElseThrow();
     }
 }

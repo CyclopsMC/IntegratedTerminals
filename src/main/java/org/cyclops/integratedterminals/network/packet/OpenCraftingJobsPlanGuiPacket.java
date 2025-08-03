@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Triple;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.cyclopscore.network.PacketCodecs;
@@ -65,8 +66,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsP
         this.side = craftingPlanGuiData.getSide();
         this.channel = craftingPlanGuiData.getChannel();
         this.craftingPlanHandler = craftingPlanGuiData.getHandler().getId().toString();
-        this.craftingJobId = new CompoundTag();
-        this.craftingJobId.put("id", craftingPlanGuiData.getHandler().serializeCraftingJobId(craftingPlanGuiData.getCraftingJob()));
+        this.craftingJobId = IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> craftingPlanGuiData.getHandler().serializeCraftingJobId(o, craftingPlanGuiData.getCraftingJob()));
     }
 
     @Override
@@ -88,7 +88,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsP
                 side,
                 channel,
                 handler,
-                handler.deserializeCraftingJobId(craftingJobId.get("id"))
+                IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(craftingJobId, world.registryAccess(), handler::deserializeCraftingJobId)
         );
         PartPos partPos = PartPos.of(world, pos, side);
 

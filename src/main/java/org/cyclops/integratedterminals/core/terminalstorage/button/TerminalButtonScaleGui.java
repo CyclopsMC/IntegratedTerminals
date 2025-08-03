@@ -11,6 +11,7 @@ import org.cyclops.cyclopscore.client.gui.image.IImage;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButtonClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageScreenSizeEvent;
@@ -30,11 +31,11 @@ public class TerminalButtonScaleGui<T>
         implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
         TerminalStorageTabIngredientComponentCommon<T, ?>, ButtonImage> {
 
-    private final TerminalStorageState state;
-    private final String buttonName;
-    private final ITerminalStorageTabClient<?> clientTab;
+    protected final TerminalStorageState state;
+    protected final String buttonName;
+    protected final ITerminalStorageTabClient<?> clientTab;
 
-    private GuiScale scale;
+    protected GuiScale scale;
 
     public TerminalButtonScaleGui(TerminalStorageState state, ITerminalStorageTabClient<?> clientTab) {
         this.state = state;
@@ -45,33 +46,18 @@ public class TerminalButtonScaleGui<T>
     }
 
     @Override
+    public ITerminalButtonClient<TerminalStorageTabIngredientComponentClient<T, ?>, TerminalStorageTabIngredientComponentCommon<T, ?>, ButtonImage> getClient() {
+        return new TerminalButtonScaleGuiClient<>(this);
+    }
+
+    @Override
     public void reloadFromState() {
         if (state.hasButton("minecraft:itemstack", this.buttonName)) {
             CompoundTag data = (CompoundTag) state.getButton("minecraft:itemstack", this.buttonName);
-            this.scale = GuiScale.values()[data.getInt("scale")];
+            this.scale = GuiScale.values()[data.getInt("scale").orElseThrow()];
         } else {
             this.scale = GuiScale.SCALE_XY;
         }
-    }
-
-    @Override
-    public ButtonImage createButton(int x, int y) {
-        return new ButtonImage(x, y,
-                Component.translatable("gui.integratedterminals.terminal_storage.scale"),
-                (b) -> {},
-                scale == GuiScale.SCALE_XY ? Images.BUTTON_BACKGROUND_INACTIVE : Images.BUTTON_BACKGROUND_ACTIVE,
-                scale.getImage());
-    }
-
-    @Override
-    public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab, @Nullable TerminalStorageTabIngredientComponentCommon<T, ?> commonTab, ButtonImage guiButton, int channel, int mouseButton) {
-        this.scale = mouseButton == 0 ? GuiScale.values()[(this.scale.ordinal() + 1) % GuiScale.values().length] : GuiScale.SCALE_XY;
-
-        CompoundTag data = new CompoundTag();
-        data.putInt("scale", scale.ordinal());
-        state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
-
-        clientTab.resetScale();
     }
 
     @Override

@@ -1,17 +1,16 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.TooltipFlag;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButtonClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
@@ -30,11 +29,11 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
         implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
         TerminalStorageTabIngredientComponentItemStackCraftingCommon, ButtonImage> {
 
-    private final TerminalStorageState state;
-    private final String buttonName;
-    private final ITerminalStorageTabClient<?> clientTab;
+    protected final TerminalStorageState state;
+    protected final String buttonName;
+    protected final ITerminalStorageTabClient<?> clientTab;
 
-    private AutoRefillType active;
+    protected AutoRefillType active;
 
     public TerminalButtonItemStackCraftingGridAutoRefill(TerminalStorageState state, ITerminalStorageTabClient<?> clientTab) {
         this.state = state;
@@ -47,10 +46,15 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
     }
 
     @Override
+    public ITerminalButtonClient<TerminalStorageTabIngredientComponentClient<T, ?>, TerminalStorageTabIngredientComponentItemStackCraftingCommon, ButtonImage> getClient() {
+        return new TerminalButtonItemStackCraftingGridAutoRefillClient<>(this);
+    }
+
+    @Override
     public void reloadFromState() {
         if (state.hasButton(clientTab.getTabSettingsName().toString(), this.buttonName)) {
             CompoundTag data = (CompoundTag) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
-            this.active = AutoRefillType.values()[data.getInt("active")];
+            this.active = AutoRefillType.values()[data.getInt("active").orElseThrow()];
         } else {
             this.active = AutoRefillType.STORAGE;
         }
@@ -62,36 +66,11 @@ public class TerminalButtonItemStackCraftingGridAutoRefill<T>
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
-    public ButtonImage createButton(int x, int y) {
-        return new ButtonImage(x, y,
-                Component.translatable("gui.integratedterminals.terminal_storage.craftinggrid.autorefill"),
-                (b) -> {},
-                active == AutoRefillType.DISABLED ? Images.BUTTON_BACKGROUND_INACTIVE : Images.BUTTON_BACKGROUND_ACTIVE,
-                active.getImage());
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
-                        TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, ButtonImage guiButton,
-                        int channel, int mouseButton) {
-        this.active = mouseButton == 0 ? AutoRefillType.values()[(this.active.ordinal() + 1) % AutoRefillType.values().length] : AutoRefillType.DISABLED;
-
-        CompoundTag data = new CompoundTag();
-        data.putInt("active", active.ordinal());
-        state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
-
-        notifyServer(clientTab);
-    }
-
-    @Override
     public String getTranslationKey() {
         return "gui.integratedterminals.terminal_storage.craftinggrid.autorefill";
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
         lines.add(Component.translatable("gui." + Reference.MOD_ID + ".terminal_storage.craftinggrid.autorefill.info").withStyle(ChatFormatting.GRAY));
         lines.add(Component.translatable(active.getLabel()));

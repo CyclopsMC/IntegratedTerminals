@@ -4,20 +4,20 @@ import com.google.common.collect.Maps;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodecs;
-import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -164,47 +164,43 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         }
 
         @Override
-        public void writeToNBT(ValueDeseralizationContext valueDeseralizationContext, CompoundTag tag) {
-            super.writeToNBT(valueDeseralizationContext, tag);
+        public void serialize(ValueOutput valueOutput) {
+            super.serialize(valueOutput);
 
             // Write namedInventories
-            ListTag namedInventoriesList = new ListTag();
+            ValueOutput.ValueOutputList namedInventoriesList = valueOutput.childrenList("namedInventories");
             for (Map.Entry<String, NonNullList<ItemStack>> entry : this.namedInventories.entrySet()) {
-                CompoundTag listEntry = new CompoundTag();
+                ValueOutput listEntry = namedInventoriesList.addChild();
                 listEntry.putString("tabName", entry.getKey());
                 listEntry.putInt("itemCount", entry.getValue().size());
-                ContainerHelper.saveAllItems(listEntry, entry.getValue(), valueDeseralizationContext.holderLookupProvider());
-                namedInventoriesList.add(listEntry);
+                ContainerHelper.saveAllItems(listEntry, entry.getValue());
             }
-            tag.put("namedInventories", namedInventoriesList);
 
             // Write playerStorageStates
-            ListTag playerStorageStatesList = new ListTag();
+            ValueOutput.ValueOutputList playerStorageStatesList = valueOutput.childrenList("playerStorageStates");
             for (Map.Entry<String, TerminalStorageState> entry : this.playerStorageStates.entrySet()) {
-                CompoundTag stateEntry = new CompoundTag();
+                ValueOutput stateEntry = playerStorageStatesList.addChild();
                 stateEntry.putString("player", entry.getKey());
-                stateEntry.put("value", entry.getValue().getTag());
-                playerStorageStatesList.add(stateEntry);
+                stateEntry.store("value", ExtraCodecs.NBT, entry.getValue().getTag());
             }
-            tag.put("playerStorageStates", playerStorageStatesList);
         }
 
         @Override
-        public void readFromNBT(ValueDeseralizationContext valueDeseralizationContext, CompoundTag tag) {
-            super.readFromNBT(valueDeseralizationContext, tag);
+        public void deserialize(ValueInput valueInput) {
+            super.deserialize(valueInput);
 
             // Read namedInventories
-            for (Tag listEntry : tag.getList("namedInventories", Tag.TAG_COMPOUND)) {
-                NonNullList<ItemStack> list = NonNullList.withSize(((CompoundTag) listEntry).getInt("itemCount"), ItemStack.EMPTY);
-                String tabName = ((CompoundTag) listEntry).getString("tabName");
-                ContainerHelper.loadAllItems((CompoundTag) listEntry, list, valueDeseralizationContext.holderLookupProvider());
+            for (ValueInput listEntry : valueInput.childrenList("namedInventories").orElseThrow()) {
+                NonNullList<ItemStack> list = NonNullList.withSize(listEntry.getInt("itemCount").orElseThrow(), ItemStack.EMPTY);
+                String tabName = listEntry.getString("tabName").orElseThrow();
+                ContainerHelper.loadAllItems(listEntry, list);
                 this.namedInventories.put(tabName, list);
             }
 
             // Read playerStorageStates
-            for (Tag listEntry : tag.getList("playerStorageStates", Tag.TAG_COMPOUND)) {
-                String playerName = ((CompoundTag) listEntry).getString("player");
-                TerminalStorageState state = new TerminalStorageState(((CompoundTag) listEntry).getCompound("value"), this);
+            for (ValueInput listEntry : valueInput.childrenList("playerStorageStates").orElseThrow()) {
+                String playerName = listEntry.getString("player").orElseThrow();
+                TerminalStorageState state = new TerminalStorageState((CompoundTag) listEntry.read("value", ExtraCodecs.NBT).orElseThrow(), this);
                 this.playerStorageStates.put(playerName, state);
             }
         }

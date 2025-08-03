@@ -1,25 +1,18 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
-import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Predicate;
 
 /**
  * Capability for displaying and interacting with ingredient components of a certain type in the storage terminal.
@@ -28,6 +21,8 @@ import java.util.function.Predicate;
  * @author rubensworks
  */
 public interface IIngredientComponentTerminalStorageHandler<T, M> {
+
+    public IIngredientComponentTerminalStorageHandlerClient<T, M> getClient();
 
     /**
      * @return The ingredient component.
@@ -38,25 +33,6 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @return The item that can be used to visually represent this ingredient component type.
      */
     public ItemStack getIcon();
-
-    /**
-     * Draw the given instance in the given gui.
-     * @param guiGraphics The matrix stack.
-     * @param instance An instance.
-     * @param maxQuantity The maximum allowed quantity of the given instance.
-     * @param label An optional label that should be rendered instead of the quantity.
-     * @param gui A gui to render in.
-     * @param layer The layer to render in.
-     * @param partialTick The partial tick.
-     * @param x The slot X position.
-     * @param y The slot Y position.
-     * @param mouseX The mouse X position.
-     * @param mouseY The mouse Y position.
-     * @param additionalTooltipLines The additional tooltip lines to add.
-     */
-    @OnlyIn(Dist.CLIENT)
-    public void drawInstance(GuiGraphics guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines);
 
     /**
      * Show the quantity of the given instance on the second tooltip line.
@@ -190,15 +166,6 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param quantity The quantity to drain.
      */
     public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantity);
-
-    /**
-     * Get a predicate for matching instances that apply to the given query string.
-     * @param searchMode The mode to search under
-     * @param query A query string.
-     * @return An instance matcher.
-     */
-    @OnlyIn(Dist.CLIENT)
-    public Predicate<T> getInstanceFilterPredicate(SearchMode searchMode, String query);
 
     /**
      * @return The available sorters.

@@ -8,8 +8,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -53,7 +51,6 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
 
     }

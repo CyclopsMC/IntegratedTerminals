@@ -1,23 +1,28 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.item.TagPathElement;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
+import org.slf4j.Logger;
 
 /**
  * Packet for sending a storage slot click event from client to server.
@@ -25,6 +30,8 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  *
  */
 public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<TerminalStorageIngredientSlotClickPacket<T>> {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final Type<TerminalStorageIngredientSlotClickPacket<?>> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_slot_click"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientSlotClickPacket<?>> CODEC = (StreamCodec) getCodec(TerminalStorageIngredientSlotClickPacket::new);
@@ -62,13 +69,19 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
         this.clickType = clickType.ordinal();
         this.ingredientName = component.getName().toString();
         this.channel = channel;
-        this.hoveringStorageInstanceData = new CompoundTag();
         IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-        this.hoveringStorageInstanceData.put("i", serializer.serializeInstance(lookupProvider, hoveringStorageInstance));
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(new CompoundTag()), LOGGER)) {
+            TagValueOutput valueOutput = TagValueOutput.createWithContext(scopedCollector, lookupProvider);
+            serializer.serializeInstance(valueOutput, hoveringStorageInstance);
+            this.hoveringStorageInstanceData = valueOutput.buildResult();
+        }
         this.hoveredContainerSlot = hoveredContainerSlot;
         this.moveQuantityPlayerSlot = moveQuantityPlayerSlot;
-        this.activeStorageInstanceData = new CompoundTag();
-        this.activeStorageInstanceData.put("i", serializer.serializeInstance(lookupProvider, activeStorageInstance));
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(new CompoundTag()), LOGGER)) {
+            TagValueOutput valueOutput = TagValueOutput.createWithContext(scopedCollector, lookupProvider);
+            serializer.serializeInstance(valueOutput, activeStorageInstance);
+            this.activeStorageInstanceData = valueOutput.buildResult();
+        }
         this.transferFullSelection = transferFullSelection;
     }
 
@@ -78,7 +91,6 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
 
     }
@@ -90,8 +102,16 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
             TerminalStorageTabIngredientComponentServer<T, ?> tab = (TerminalStorageTabIngredientComponentServer<T, ?>)
                     container.getTabServer(tabId);
             IIngredientSerializer<T, ?> serializer = getComponent().getSerializer();
-            T hoveringStorageInstance = serializer.deserializeInstance(world.registryAccess(), this.hoveringStorageInstanceData.get("i"));
-            T activeInstance = serializer.deserializeInstance(world.registryAccess(), this.activeStorageInstanceData.get("i"));
+            T hoveringStorageInstance;
+            T activeInstance;
+            try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(this.hoveringStorageInstanceData), LOGGER)) {
+                ValueInput input = TagValueInput.create(scopedCollector, world.registryAccess(), this.hoveringStorageInstanceData);
+                hoveringStorageInstance = serializer.deserializeInstance(input);
+            }
+            try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(this.activeStorageInstanceData), LOGGER)) {
+                ValueInput input = TagValueInput.create(scopedCollector, world.registryAccess(), this.activeStorageInstanceData);
+                activeInstance = serializer.deserializeInstance(input);
+            }
             tab.handleStorageSlotClick(container, player, getClickType(), getChannel(), hoveringStorageInstance,
                     hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection);
         }

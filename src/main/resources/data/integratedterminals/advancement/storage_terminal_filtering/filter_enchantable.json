@@ -6,9 +6,13 @@
         "integrateddynamics:variable_facade": {
           "partId": 1,
           "_id": 1,
-          "_type": "integrateddynamics:operator",
-          "operatorName": "integrateddynamics:itemstack_enchantable",
-          "variableIds": [1]
+          "_type": "integrateddynamics:valuetype",
+          "typeName": "integrateddynamics:operator",
+          "value": {
+            "v": {
+              "v": "integrateddynamics:itemstack_enchantable"
+            }
+          }
         }
       }
     },

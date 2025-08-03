@@ -1,13 +1,18 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
-import net.minecraft.core.HolderLookup;
+import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.integrateddynamics.api.item.TagPathElement;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
+import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -20,6 +25,8 @@ import java.util.List;
  * @author rubensworks
  */
 public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITerminalCraftingOption<?>, I> {
+
+    static final Logger LOGGER = LogUtils.getLogger();
 
     /**
      * @return The unique id of this handler.
@@ -59,24 +66,22 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
     /**
      * Serialize a crafting option to NBT.
      *
-     * @param lookupProvider
+     * @param valueOutput
      * @param craftingOption A crafting option.
-     * @return An NBT tag.
      */
-    public CompoundTag serializeCraftingOption(HolderLookup.Provider lookupProvider, O craftingOption);
+    public void serializeCraftingOption(ValueOutput valueOutput, O craftingOption);
 
     /**
      * Deserialize a crafting option from NBT.
      *
      * @param <T>                 The instance type.
      * @param <M>                 The matching condition parameter.
-     * @param lookupProvider
+     * @param valueInput          An NBT tag representing a crafting option.
      * @param ingredientComponent The ingredient component for the crafting option.
-     * @param tag                 An NBT tag representing a crafting option.
      * @return A crafting option.
      * @throws IllegalArgumentException If the given tag was invalid.
      */
-    public <T, M> O deserializeCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException;
+    public <T, M> O deserializeCraftingOption(ValueInput valueInput, IngredientComponent<T, M> ingredientComponent) throws IllegalArgumentException;
 
     /**
      * Calculate a crafting plan for the given crafting option.
@@ -92,62 +97,68 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
     /**
      * Serialize a crafting plan to NBT.
      *
-     * @param lookupProvider The lookup provider.
-     * @param craftingPlan   A crafting plan.
-     * @return An NBT tag.
+     * @param valueOutput  The lookup provider.
+     * @param craftingPlan A crafting plan.
      */
-    public default CompoundTag serializeCraftingPlan(HolderLookup.Provider lookupProvider, ITerminalCraftingPlan<I> craftingPlan) {
-        return TerminalCraftingPlanStatic.serialize(lookupProvider, (TerminalCraftingPlanStatic) craftingPlan, this);
+    public default void serializeCraftingPlan(ValueOutput valueOutput, ITerminalCraftingPlan<I> craftingPlan) {
+        TerminalCraftingPlanStatic.serialize(valueOutput, (TerminalCraftingPlanStatic) craftingPlan, this);
+    }
+
+    public default CompoundTag serializeCraftingPlanToNbt(ITerminalCraftingPlan<I> craftingPlan) {
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(new CompoundTag()), LOGGER)) {
+            TagValueOutput valueOutput = TagValueOutput.createWithoutContext(scopedCollector);
+            serializeCraftingPlan(valueOutput, craftingPlan);
+            return valueOutput.buildResult();
+        }
     }
 
     /**
      * Deserialize a crafting plan from NBT.
      *
-     * @param lookupProvider The lookup provider.
-     * @param tag            An NBT tag representing a crafting plan.
+     * @param valueInput An NBT tag representing a crafting plan.
      * @return A crafting option.
      * @throws IllegalArgumentException If the given tag was invalid.
      */
-    public default ITerminalCraftingPlan<I> deserializeCraftingPlan(HolderLookup.Provider lookupProvider, CompoundTag tag) throws IllegalArgumentException {
-        return TerminalCraftingPlanStatic.deserialize(lookupProvider, tag, this);
+    public default ITerminalCraftingPlan<I> deserializeCraftingPlan(ValueInput valueInput) throws IllegalArgumentException {
+        return TerminalCraftingPlanStatic.deserialize(valueInput, this);
     }
 
     /**
      * Serialize a flat crafting plan to NBT.
      *
-     * @param lookupProvider The lookup provider.
-     * @param craftingPlan   A flat crafting plan.
-     * @return An NBT tag.
+     * @param valueOutput  The lookup provider.
+     * @param craftingPlan A flat crafting plan.
      */
-    public default CompoundTag serializeCraftingPlanFlat(HolderLookup.Provider lookupProvider, ITerminalCraftingPlanFlat<I> craftingPlan) {
-        return TerminalCraftingPlanFlatStatic.serialize(lookupProvider, (TerminalCraftingPlanFlatStatic) craftingPlan, this);
+    public default void serializeCraftingPlanFlat(ValueOutput valueOutput, ITerminalCraftingPlanFlat<I> craftingPlan) {
+        TerminalCraftingPlanFlatStatic.serialize(valueOutput, (TerminalCraftingPlanFlatStatic) craftingPlan, this);
     }
 
     /**
      * Deserialize a flat crafting plan from NBT.
      *
-     * @param lookupProvider The lookup provider.
-     * @param tag            An NBT tag representing a flat crafting plan.
+     * @param valueInput An NBT tag representing a flat crafting plan.
      * @return A crafting option.
      * @throws IllegalArgumentException If the given tag was invalid.
      */
-    public default ITerminalCraftingPlanFlat<I> deserializeCraftingPlanFlat(HolderLookup.Provider lookupProvider, CompoundTag tag) throws IllegalArgumentException {
-        return TerminalCraftingPlanFlatStatic.deserialize(lookupProvider, tag, this);
+    public default ITerminalCraftingPlanFlat<I> deserializeCraftingPlanFlat(ValueInput valueInput) throws IllegalArgumentException {
+        return TerminalCraftingPlanFlatStatic.deserialize(valueInput, this);
     }
 
     /**
      * Serializes a crafting job id.
-     * @param id An id.
-     * @return An NBT tag.
+     *
+     * @param valueOutput An NBT tag.
+     * @param id          An id.
      */
-    public Tag serializeCraftingJobId(I id);
+    public void serializeCraftingJobId(ValueOutput valueOutput, I id);
 
     /**
      * Deserialize a crafting job id.
-     * @param tag An NBT tag.
+     *
+     * @param valueInput An NBT tag.
      * @return An id.
      */
-    public I deserializeCraftingJobId(Tag tag);
+    public I deserializeCraftingJobId(ValueInput valueInput);
 
     /**
      * Start a crafting job.

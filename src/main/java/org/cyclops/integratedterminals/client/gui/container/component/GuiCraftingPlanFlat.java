@@ -1,9 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -11,6 +8,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.apache.commons.lang3.time.DurationFormatUtils;
@@ -23,7 +21,6 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
-import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -47,6 +44,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     private static final int ELEMENT_WIDTH = 110;
     private static final int ELEMENT_HEIGHT = 16;
     private static final int ELEMENT_HEIGHT_TOTAL = 18;
+    private static final int ELEMENT_HEIGHT_MAX = 178;
 
     protected static final int TICK_DELAY = 30;
 
@@ -66,14 +64,14 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     private int firstRow;
 
     public GuiCraftingPlanFlat(AbstractContainerScreen parentGui, ITerminalCraftingPlanFlat<?> craftingPlan, int guiLeft, int guiTop, int x, int y, int visibleRows) {
-        super(x, y, 0, 0, Component.literal(""));
+        super(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT_MAX, Component.literal(""));
         this.parentGui = parentGui;
         this.guiLeft = guiLeft;
         this.guiTop = guiTop;
         this.elements = getElements(craftingPlan);
         this.visibleElements = Lists.newArrayList(this.elements);
         this.valid = craftingPlan.getStatus().isValid();
-        this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
+        this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, ELEMENT_HEIGHT_MAX, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows((int) Math.ceil(visibleElements.size() / COLUMNS));
         this.label = IModHelpers.get().getL10NHelpers().localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
@@ -136,7 +134,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         int finalX = x;
         int finalY = y;
         ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
-                .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity,
+                .ifPresent(h -> h.getClient().drawInstance(guiGraphics, output.getPrototype(), quantity,
                         "", this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
 
         x = xOriginal + width - 50;
@@ -145,13 +143,13 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
             int moved = 0;
             if (element.getStorageQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.CHEST), x, y, 0.45F);
-                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.stored", element.getStorageQuantity()), x + 9, y + 1, 0.5F, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
                 y += 8;
                 moved++;
             }
             if (element.getToCraftQuantity() > 0) {
                 renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.to_craft", element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.to_craft", element.getToCraftQuantity()), x + 9, y + 1, 0.5F, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
                 y += 8;
                 moved++;
             }
@@ -161,7 +159,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
                     x -= 44;
                 }
                 renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
-                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.crafting", element.getCraftingQuantity()), x + 9, y + 1, 0.5F, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
                 y += 8;
                 moved++;
             }
@@ -171,30 +169,21 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
                     x -= 44;
                 }
                 renderItem(guiGraphics, new ItemStack(Blocks.BARRIER), x, y, 0.45F);
-                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, Minecraft.getInstance().font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.missing", element.getMissingQuantity()), x + 9, y + 1, 0.5F, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
             }
-            RenderSystem.setShaderColor(1, 1, 1, 1);
         }
     }
 
     protected static void renderItem(GuiGraphics guiGraphics, ItemStack itemStack, int x, int y, float scale) {
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 0);
-        guiGraphics.pose().scale(scale, scale, scale);
-//        RenderSystem.applyModelViewMatrix();
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().translate(x, y);
+        guiGraphics.pose().scale(scale, scale);
 
         GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-        GlStateManager._enableBlend();
-        GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        Lighting.setupFor3DItems();
-        GlStateManager._enableDepthTest();
-        GL11.glEnable(GL11.GL_DEPTH_TEST);
         guiGraphics.renderItem(itemStack, 0, 0);
         renderItem.renderItemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
-        Lighting.setupForFlatItems();
 
-        guiGraphics.pose().popPose();
-//        RenderSystem.applyModelViewMatrix();
+        guiGraphics.pose().popMatrix();
     }
 
     public static String getDurationString(long tickDuration) {
@@ -207,24 +196,24 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         Font fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + GuiCraftingPlan.ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
+        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + GuiCraftingPlan.ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, ARGB.opaque(16777215));
 
         // Draw duration
         if (tickDuration >= 0) {
             String durationString = getDurationString(tickDuration);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
         }
 
         // Draw channel
         if (channel != -1) {
             String channelString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
         }
 
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);

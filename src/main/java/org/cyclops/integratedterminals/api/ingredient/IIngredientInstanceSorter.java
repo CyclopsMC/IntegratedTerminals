@@ -1,10 +1,8 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.TooltipFlag;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
 
 import java.util.Comparator;
@@ -37,7 +35,6 @@ public interface IIngredientInstanceSorter<T> extends Comparator<T> {
      * @param tooltipFlag The tooltip flag.
      * @param lines The tooltip lines.
      */
-    @OnlyIn(Dist.CLIENT)
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines);
 
 }

@@ -2,10 +2,8 @@ package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
@@ -253,143 +251,93 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
     }
 
-    public static <I> CompoundTag serialize(HolderLookup.Provider lookupProvider, TerminalCraftingPlanStatic<I> plan,
-                                            ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
-        CompoundTag tag = new CompoundTag();
+    public static <I> void serialize(ValueOutput valueOutput, TerminalCraftingPlanStatic<I> plan,
+                                     ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
+        handler.serializeCraftingJobId(valueOutput, plan.getId());
 
-        tag.put("id", handler.serializeCraftingJobId(plan.getId()));
-
-        ListTag dependencies = new ListTag();
+        ValueOutput.ValueOutputList dependencies = valueOutput.childrenList("dependencies");
         for (ITerminalCraftingPlan<I> dependency : plan.getDependencies()) {
-            dependencies.add(TerminalCraftingPlanStatic.serialize(lookupProvider, (TerminalCraftingPlanStatic) dependency, handler));
+            TerminalCraftingPlanStatic.serialize(dependencies.addChild(), (TerminalCraftingPlanStatic) dependency, handler);
         }
-        tag.put("dependencies", dependencies);
 
-        ListTag outputs = new ListTag();
+        ValueOutput.ValueOutputList outputs = valueOutput.childrenList("outputs");
         for (IPrototypedIngredient<?, ?> output : plan.getOutputs()) {
-            outputs.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) output));
+            IPrototypedIngredient.serialize(outputs.addChild(), (PrototypedIngredient) output);
         }
-        tag.put("outputs", outputs);
 
-        tag.putInt("status", plan.getStatus().ordinal());
+        valueOutput.putInt("status", plan.getStatus().ordinal());
 
-        tag.putLong("craftingQuantity", plan.getCraftingQuantity());
+        valueOutput.putLong("craftingQuantity", plan.getCraftingQuantity());
 
-        ListTag storageIngredients = new ListTag();
+        ValueOutput.ValueOutputList storageIngredients = valueOutput.childrenList("storageIngredients");
         for (IPrototypedIngredient<?, ?> storageIngredient : plan.getStorageIngredients()) {
-            storageIngredients.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) storageIngredient));
+            IPrototypedIngredient.serialize(storageIngredients.addChild(), (PrototypedIngredient) storageIngredient);
         }
-        tag.put("storageIngredients", storageIngredients);
 
-        ListTag lastMissingIngredients = new ListTag();
+        ValueOutput.ValueOutputList lastMissingIngredients = valueOutput.childrenList("lastMissingIngredients");
         for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : plan.getLastMissingIngredients()) {
-            ListTag lastMissingIngredientTag = new ListTag();
+            ValueOutput child = lastMissingIngredients.addChild();
+            ValueOutput.ValueOutputList lastMissingIngredientTag = child.childrenList("v");
             for (IPrototypedIngredient<?, ?> prototypedIngredient : lastMissingIngredient) {
-                lastMissingIngredientTag.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) prototypedIngredient));
+                IPrototypedIngredient.serialize(lastMissingIngredientTag.addChild(), (PrototypedIngredient) prototypedIngredient);
             }
-            lastMissingIngredients.add(lastMissingIngredientTag);
         }
-        tag.put("lastMissingIngredients", lastMissingIngredients);
 
-        tag.putInt("label", plan.label.ordinal());
+        valueOutput.putInt("label", plan.label.ordinal());
         if (plan.unlocalizedLabelOverride != null) {
-            tag.putString("unlocalizedLabelOverride", plan.unlocalizedLabelOverride);
+            valueOutput.putString("unlocalizedLabelOverride", plan.unlocalizedLabelOverride);
         }
 
-        tag.putLong("tickDuration", plan.getTickDuration());
+        valueOutput.putLong("tickDuration", plan.getTickDuration());
 
-        tag.putInt("channel", plan.getChannel());
+        valueOutput.putInt("channel", plan.getChannel());
 
         if (plan.getInitiatorName() != null) {
-            tag.putString("initiatorName", plan.getInitiatorName());
+            valueOutput.putString("initiatorName", plan.getInitiatorName());
         }
-
-        return tag;
     }
 
-    public static <I> TerminalCraftingPlanStatic<I> deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag,
+    public static <I> TerminalCraftingPlanStatic<I> deserialize(ValueInput valueInput,
                                                                 ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
-        if (!tag.contains("id")) {
-            throw new IllegalArgumentException("Could not find an id entry in the given tag");
-        }
-        if (!tag.contains("dependencies", Tag.TAG_LIST)) {
-            throw new IllegalArgumentException("Could not find a dependencies entry in the given tag");
-        }
-        if (!tag.contains("outputs", Tag.TAG_LIST)) {
-            throw new IllegalArgumentException("Could not find a outputs entry in the given tag");
-        }
-        if (!tag.contains("status", Tag.TAG_INT)) {
-            throw new IllegalArgumentException("Could not find a status entry in the given tag");
-        }
-        if (!tag.contains("craftingQuantity", Tag.TAG_LONG)) {
-            throw new IllegalArgumentException("Could not find a craftingQuantity entry in the given tag");
-        }
-        if (!tag.contains("storageIngredients", Tag.TAG_LIST)) {
-            throw new IllegalArgumentException("Could not find a storageIngredients entry in the given tag");
-        }
-        if (!tag.contains("lastMissingIngredients", Tag.TAG_LIST)) {
-            throw new IllegalArgumentException("Could not find a lastMissingIngredients entry in the given tag");
-        }
-        if (!tag.contains("label", Tag.TAG_INT)) {
-            throw new IllegalArgumentException("Could not find a label entry in the given tag");
-        }
-        if (!tag.contains("tickDuration", Tag.TAG_LONG)) {
-            throw new IllegalArgumentException("Could not find a tickDuration entry in the given tag");
-        }
-        if (!tag.contains("channel", Tag.TAG_INT)) {
-            throw new IllegalArgumentException("Could not find a channel entry in the given tag");
+        I id = handler.deserializeCraftingJobId(valueInput);
+
+        List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayList();
+        for (ValueInput dependency : valueInput.childrenList("dependencies").orElseThrow()) {
+            dependencies.add(TerminalCraftingPlanStatic.deserialize(dependency, handler));
         }
 
-        I id = handler.deserializeCraftingJobId(tag.get("id"));
-
-        ListTag dependenciesTag = tag.getList("dependencies", Tag.TAG_COMPOUND);
-        List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayListWithExpectedSize(dependenciesTag.size());
-        for (Tag nbtBase : dependenciesTag) {
-            dependencies.add(TerminalCraftingPlanStatic.deserialize(lookupProvider, (CompoundTag) nbtBase, handler));
+        List<IPrototypedIngredient<?, ?>> outputs = Lists.newArrayList();
+        for (ValueInput output : valueInput.childrenList("outputs").orElseThrow()) {
+            outputs.add(IPrototypedIngredient.deserialize(output));
         }
 
-        ListTag outputsTag = tag.getList("outputs", Tag.TAG_COMPOUND);
-        List<IPrototypedIngredient<?, ?>> outputs = Lists.newArrayListWithExpectedSize(outputsTag.size());
-        for (Tag nbtBase : outputsTag) {
-            outputs.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) nbtBase));
+        TerminalCraftingJobStatus status = TerminalCraftingJobStatus.values()[valueInput.getInt("status").orElseThrow()];
+
+        long craftingQuantity = valueInput.getLong("craftingQuantity").orElseThrow();
+
+        List<IPrototypedIngredient<?, ?>> storageIngredients = Lists.newArrayList();
+        for (ValueInput storageIngredient : valueInput.childrenList("storageIngredients").orElseThrow()) {
+            storageIngredients.add(IPrototypedIngredient.deserialize(storageIngredient));
         }
 
-        TerminalCraftingJobStatus status = TerminalCraftingJobStatus.values()[tag.getInt("status")];
-
-        long craftingQuantity = tag.getLong("craftingQuantity");
-
-        ListTag storageIngredientsTag = tag.getList("storageIngredients", Tag.TAG_COMPOUND);
-        List<IPrototypedIngredient<?, ?>> storageIngredients = Lists.newArrayListWithExpectedSize(storageIngredientsTag.size());
-        for (Tag nbtBase : storageIngredientsTag) {
-            storageIngredients.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) nbtBase));
-        }
-
-        ListTag lastMissingIngredientsTag = tag.getList("lastMissingIngredients", Tag.TAG_LIST);
-        List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients = Lists.newArrayListWithExpectedSize(lastMissingIngredientsTag.size());
-        for (Tag nbtBase : lastMissingIngredientsTag) {
-            ListTag list = ((ListTag) nbtBase);
-            List<IPrototypedIngredient<?, ?>> lastMissingIngredient = Lists.newArrayListWithExpectedSize(list.size());
-            for (Tag base : list) {
-                lastMissingIngredient.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) base));
+        List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients = Lists.newArrayList();
+        for (ValueInput lastMissingIngredientValue : valueInput.childrenList("lastMissingIngredients").orElseThrow()) {
+            List<IPrototypedIngredient<?, ?>> lastMissingIngredient = Lists.newArrayList();
+            for (ValueInput base : lastMissingIngredientValue.childrenList("v").orElseThrow()) {
+                lastMissingIngredient.add(IPrototypedIngredient.deserialize(base));
             }
             lastMissingIngredients.add(lastMissingIngredient);
         }
 
-        Label label = Label.values()[tag.getInt("label")];
+        Label label = Label.values()[valueInput.getInt("label").orElseThrow()];
 
-        String unlocalizedLabelOverride = null;
-        if (tag.contains("unlocalizedLabelOverride")) {
-            unlocalizedLabelOverride = tag.getString("unlocalizedLabelOverride");
-        }
+        String unlocalizedLabelOverride = valueInput.getStringOr("unlocalizedLabelOverride", null);
 
-        long tickDuration = tag.getLong("tickDuration");
+        long tickDuration = valueInput.getLong("tickDuration").orElseThrow();
 
-        int channel = tag.getInt("channel");
+        int channel = valueInput.getInt("channel").orElseThrow();
 
-        String initiatorName = null;
-        if (tag.contains("initiatorName", Tag.TAG_STRING)) {
-            initiatorName = tag.getString("initiatorName");
-        }
+        String initiatorName = valueInput.getStringOr("initiatorName", null);
 
         TerminalCraftingPlanStatic<I> plan = new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients,
                 lastMissingIngredients, label, tickDuration, channel, initiatorName);

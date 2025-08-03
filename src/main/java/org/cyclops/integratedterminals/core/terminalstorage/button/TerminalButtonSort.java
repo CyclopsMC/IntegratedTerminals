@@ -1,15 +1,14 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.TooltipFlag;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButtonClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.client.gui.ButtonSort;
@@ -27,14 +26,14 @@ import java.util.List;
 public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTabIngredientComponentClient<T, ?>,
         ITerminalStorageTabCommon, ButtonSort> {
 
-    private final IIngredientInstanceSorter<T> instanceSorter;
-    private final TerminalStorageState state;
-    private final String buttonName;
-    private final ITerminalStorageTabClient<?> clientTab;
+    protected final IIngredientInstanceSorter<T> instanceSorter;
+    protected final TerminalStorageState state;
+    protected final String buttonName;
+    protected final ITerminalStorageTabClient<?> clientTab;
 
-    private Comparator<T> effectiveSorter;
-    private boolean active;
-    private boolean descending;
+    protected Comparator<T> effectiveSorter;
+    protected boolean active;
+    protected boolean descending;
 
     public TerminalButtonSort(IIngredientInstanceSorter<T> instanceSorter, TerminalStorageState state,
                               ITerminalStorageTabClient<?> clientTab) {
@@ -47,51 +46,21 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     }
 
     @Override
+    public ITerminalButtonClient<TerminalStorageTabIngredientComponentClient<T, ?>, ITerminalStorageTabCommon, ButtonSort> getClient() {
+        return new TerminalButtonSortClient<>(this);
+    }
+
+    @Override
     public void reloadFromState() {
         if (state.hasButton(clientTab.getTabSettingsName().toString(), this.buttonName)) {
             CompoundTag data = (CompoundTag) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
-            this.active = data.getBoolean("active");
-            this.descending = data.getBoolean("descending");
+            this.active = data.getBoolean("active").orElseThrow();
+            this.descending = data.getBoolean("descending").orElseThrow();
         } else {
             this.active = false;
             this.descending = true;
         }
         updateSorter();
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public ButtonSort createButton(int x, int y) {
-        return new ButtonSort(x, y, Component.translatable("gui.integratedterminals.terminal_storage.sort"), (b) -> {}, instanceSorter.getIcon(), active, descending);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab, ITerminalStorageTabCommon commonTab,
-                        ButtonSort guiButton, int channel, int mouseButton) {
-        if (mouseButton == 0) {
-            if (active) {
-                if (descending) {
-                    descending = false;
-                } else {
-                    active = false;
-                }
-            } else {
-                active = true;
-                descending = true;
-            }
-        } else {
-            active = false;
-            descending = true;
-        }
-
-        CompoundTag data = new CompoundTag();
-        data.putBoolean("active", active);
-        data.putBoolean("descending", descending);
-        state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
-
-        updateSorter();
-        clientTab.resetFilteredIngredientsViews(channel);
     }
 
     protected void updateSorter() {
@@ -112,7 +81,6 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void getTooltip(Player player, TooltipFlag tooltipFlag, List<Component> lines) {
         instanceSorter.getTooltip(player, tooltipFlag, lines);
         if (active) {

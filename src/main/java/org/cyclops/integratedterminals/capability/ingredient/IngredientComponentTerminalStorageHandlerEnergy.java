@@ -1,39 +1,28 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
-import com.google.common.collect.Lists;
-import com.mojang.blaze3d.platform.Lighting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
-import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
-import org.cyclops.cyclopscore.helper.IGuiHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
+import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
-import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
-import org.cyclops.integratedterminals.client.gui.image.Images;
-import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
-import java.util.*;
-import java.util.function.Predicate;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Terminal storage handler for energy.
@@ -48,6 +37,11 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     }
 
     @Override
+    public IIngredientComponentTerminalStorageHandlerClient<Long, Boolean> getClient() {
+        return new IngredientComponentTerminalStorageHandlerEnergyClient(this);
+    }
+
+    @Override
     public IngredientComponent<Long, Boolean> getComponent() {
         return ingredientComponent;
     }
@@ -55,51 +49,6 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @Override
     public ItemStack getIcon() {
         return new ItemStack(RegistryEntries.ITEM_ENERGY_BATTERY);
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public void drawInstance(GuiGraphics guiGraphics, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
-                             ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
-        if (instance > 0) {
-            if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
-
-                // Draw background
-                Lighting.setupForFlatItems();
-                guiGraphics.blit(RenderType::guiTextured, Images.ICONS, x, y, 0, 240, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), 256, 256);
-
-                // Draw progress
-                int progressScaled;
-                int progressMaxScaled;
-                if ((int)maxQuantity == maxQuantity) {
-                    progressScaled = (int) (long) instance;
-                    progressMaxScaled = (int) maxQuantity;
-                } else {
-                    progressScaled = (int) (long) (instance >> 16);
-                    progressMaxScaled = (int) (maxQuantity >> 16);
-                }
-                IModHelpers.get().getGuiHelpers().renderProgressBar(guiGraphics, Images.ICONS, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(),
-                        16, 240, IGuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
-
-                // Draw amount
-                GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance), x, y);
-
-                Lighting.setupFor3DItems();
-            } else {
-                IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics.pose(), x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(),
-                        mouseX, mouseY, () -> {
-                            List<Component> lines = Lists.newArrayList();
-                            lines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.energy"));
-                            addQuantityTooltip(lines, instance);
-                            if (additionalTooltipLines != null) {
-                                lines.addAll(additionalTooltipLines);
-                            }
-                            return lines;
-                        });
-            }
-        }
     }
 
     @Override
@@ -228,12 +177,6 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                         quantity -= drained;
                     }
                 });
-    }
-
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public Predicate<Long> getInstanceFilterPredicate(SearchMode searchMode, String query) {
-        return integer -> true; // Searching does not make sense here, as at most one instance exists.
     }
 
     @Override

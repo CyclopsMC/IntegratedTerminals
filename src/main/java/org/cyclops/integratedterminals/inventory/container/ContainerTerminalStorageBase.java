@@ -18,8 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.NeoForge;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
@@ -36,7 +34,6 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCo
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabCommonLoadSlotsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
-import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageChangeGuiState;
@@ -72,8 +69,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     private final List<String> channelStrings;
     private String channelAllLabel;
 
-    @OnlyIn(Dist.CLIENT)
-    public ContainerScreenTerminalStorage screen;
+    public ISelectedClientTabProvider selectedClientTabProvider;
 
     public ContainerTerminalStorageBase(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                         Optional<ContainerTerminalStorageBase.InitTabData> initTabData,
@@ -81,7 +77,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                                         Optional<ITerminalStorageTabCommon.IVariableInventory> variableInventory) {
         super(type, id, playerInventory, new SimpleContainer());
 
-        this.world = player.getCommandSenderWorld();
+        this.world = player.level();
         this.tabsClient = Maps.newLinkedHashMap();
         this.tabsServer = Maps.newLinkedHashMap();
         this.tabsCommon = Maps.newLinkedHashMap();
@@ -272,7 +268,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     @Override
     protected int getSizeInventory() {
-        return slots.size() - player.getInventory().items.size();
+        return slots.size() - player.getInventory().getNonEquipmentItems().size();
     }
 
     public List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> getTabSlots(String tabName) {
@@ -287,7 +283,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     public ItemStack quickMoveStack(Player player, int slotID) {
         // Handle any (modded) client-side quick move controls
         if(player.level().isClientSide) {
-            Optional<ITerminalStorageTabClient<?>> tabOptional = this.screen.getSelectedClientTab();
+            Optional<ITerminalStorageTabClient<?>> tabOptional = this.selectedClientTabProvider.getSelectedClientTab();
             if(tabOptional.isPresent() && !tabOptional.get().isQuickMovePrevented(slotID)) {
                 tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
                         false, false, slotID, true);
@@ -431,6 +427,11 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
             return new InitTabData(packetBuffer.readUtf(32767), packetBuffer.readInt());
         }
 
+    }
+
+    public static interface ISelectedClientTabProvider {
+        public void init();
+        public Optional<ITerminalStorageTabClient<?>> getSelectedClientTab();
     }
 
 }

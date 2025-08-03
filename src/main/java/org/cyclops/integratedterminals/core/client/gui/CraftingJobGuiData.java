@@ -1,10 +1,11 @@
 package org.cyclops.integratedterminals.core.client.gui;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 
@@ -53,18 +54,16 @@ public class CraftingJobGuiData {
         packetBuffer.writeInt(side.ordinal());
         packetBuffer.writeInt(channel);
         packetBuffer.writeUtf(handler.getId().toString());
-        CompoundTag tag = new CompoundTag();
-        tag.put("id", handler.serializeCraftingJobId(craftingJob));
-        packetBuffer.writeNbt(tag);
+        packetBuffer.writeNbt(IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> handler.serializeCraftingJobId(o, craftingJob)));
     }
 
-    public static CraftingJobGuiData readFromPacketBuffer(FriendlyByteBuf packetBuffer) {
+    public static CraftingJobGuiData readFromPacketBuffer(RegistryFriendlyByteBuf packetBuffer) {
         BlockPos pos = packetBuffer.readBlockPos();
         Direction side = Direction.values()[packetBuffer.readInt()];
         int channel = packetBuffer.readInt();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
                 ResourceLocation.parse(packetBuffer.readUtf(32767)));
-        Object craftingJob = handler.deserializeCraftingJobId(packetBuffer.readNbt().get("id"));
+        Object craftingJob = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(packetBuffer.readNbt(), packetBuffer.registryAccess(), handler::deserializeCraftingJobId);
         return new CraftingJobGuiData(
                 pos,
                 side,

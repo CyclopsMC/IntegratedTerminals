@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
@@ -48,8 +49,7 @@ public class CancelCraftingJobPacket extends PacketCodec<CancelCraftingJobPacket
         this.side = craftingPlanGuiData.getSide();
         this.channel = craftingPlanGuiData.getChannel();
         this.craftingPlanHandler = craftingPlanGuiData.getHandler().getId().toString();
-        this.craftingJobId = new CompoundTag();
-        this.craftingJobId.put("id", craftingPlanGuiData.getHandler().serializeCraftingJobId(craftingPlanGuiData.getCraftingJob()));
+        this.craftingJobId = IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> craftingPlanGuiData.getHandler().serializeCraftingJobId(o, craftingPlanGuiData.getCraftingJob()));
     }
 
     @Override
@@ -67,7 +67,7 @@ public class CancelCraftingJobPacket extends PacketCodec<CancelCraftingJobPacket
         NetworkHelpers.getNetwork(world, pos, side)
                 .ifPresent(network -> {
                     ITerminalStorageTabIngredientCraftingHandler handler = getHandler();
-                    Object craftingJobId = handler.deserializeCraftingJobId(this.craftingJobId.get("id"));
+                    Object craftingJobId = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(this.craftingJobId, world.registryAccess(), handler::deserializeCraftingJobId);
                     handler.cancelCraftingJob(network, channel, craftingJobId);
                 });
     }

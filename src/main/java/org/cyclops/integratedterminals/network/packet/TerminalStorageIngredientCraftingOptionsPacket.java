@@ -1,27 +1,31 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.item.TagPathElement;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
+import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.List;
@@ -32,6 +36,8 @@ import java.util.List;
  *
  */
 public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<TerminalStorageIngredientCraftingOptionsPacket> {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final Type<TerminalStorageIngredientCraftingOptionsPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_crafting_options"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientCraftingOptionsPacket> CODEC = getCodec(TerminalStorageIngredientCraftingOptionsPacket::new);
@@ -60,12 +66,14 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
         super(ID);
         this.tabId = tabId;
         this.channel = channel;
-        this.data = new CompoundTag();
-        ListTag list = new ListTag();
-        for (HandlerWrappedTerminalCraftingOption<?> option : craftingOptions) {
-            list.add(HandlerWrappedTerminalCraftingOption.serialize(lookupProvider, option));
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(new CompoundTag()), LOGGER)) {
+            TagValueOutput valueOutput = TagValueOutput.createWithContext(scopedCollector, lookupProvider);
+            ValueOutput.ValueOutputList list = valueOutput.childrenList("craftingOptions");
+            for (HandlerWrappedTerminalCraftingOption<?> option : craftingOptions) {
+                HandlerWrappedTerminalCraftingOption.serialize(list.addChild(), option);
+            }
+            this.data = valueOutput.buildResult();
         }
-        this.data.put("craftingOptions", list);
         this.reset = reset;
         this.firstChannel = firstChannel;
     }
@@ -76,7 +84,6 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
@@ -85,14 +92,15 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
             TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
             IngredientComponent<?, ?> ingredientComponent = tab.getIngredientComponent();
 
-            ListTag list = this.data.getList("craftingOptions", Tag.TAG_COMPOUND);
-            List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
-            for (int i = 0; i < list.size(); i++) {
-                HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
-                        .deserialize(world.registryAccess(), ingredientComponent, list.getCompound(i));
-                craftingOptions.add(option);
+            List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayList();
+            try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(this.data), LOGGER)) {
+                ValueInput input = TagValueInput.create(scopedCollector, world.registryAccess(), this.data);
+                for (ValueInput craftingOption : input.childrenList("craftingOptions").orElseThrow()) {
+                    HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
+                            .deserialize(craftingOption, ingredientComponent);
+                    craftingOptions.add(option);
+                }
             }
-
             tab.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
 
             // Hard-coded crafting tab

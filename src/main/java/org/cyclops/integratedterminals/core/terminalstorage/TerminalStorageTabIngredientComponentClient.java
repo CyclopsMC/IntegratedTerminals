@@ -397,7 +397,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Re-init screen if the tab was not yet enabled
         if (!wasEnabled && enabled) {
-            this.container.screen.init();
+            this.container.selectedClientTabProvider.init();
         }
     }
 
@@ -443,7 +443,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         // Re-init screen if the tab was not yet enabled
         if (!wasEnabled && enabled) {
-            this.container.screen.init();
+            this.container.selectedClientTabProvider.init();
         }
     }
 
@@ -773,13 +773,13 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     Images.ERROR.draw(guiGraphics, x + 2, y + 2);
                 } else {
                     if (IModHelpers.get().getRenderHelpers().isPointInRegion(x, y, IModHelpers.get().getGuiHelpers().getSlotSize(), IModHelpers.get().getGuiHelpers().getSlotSize(), mouseX, mouseY)) {
-                        IModHelpers.get().getGuiHelpers().drawTooltip(gui, guiGraphics.pose(), errors.stream()
+                        IModHelpers.get().getGuiHelpers().drawTooltip(gui, guiGraphics, errors.stream()
                                 .map(Component::getString)
                                 .map(s -> StringHelpers.splitLines(s, IModHelpers.get().getL10NHelpers().getMaxTooltipLineLength(),
                                         ChatFormatting.RED.toString()))
                                 .flatMap(List::stream)
                                 .map(Component::literal)
-                                .collect(Collectors.toList()), x - gui.getGuiLeft() + 10, y - gui.getGuiTop());
+                                .collect(Collectors.toList()), x + 10, y);
                     }
                 }
             }
@@ -855,7 +855,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     public void resetScale() {
         // Re-init screen to enforce new scale
-        container.screen.init();
+        container.selectedClientTabProvider.init();
     }
 
     public int getLastChangeId() {

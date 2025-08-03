@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
@@ -145,7 +146,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
             guiCraftingPlanFlat.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         } else {
             guiGraphics.drawCenteredString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
-                    leftPos + getBaseXSize() / 2, topPos + 23, 16777215);
+                    leftPos + getBaseXSize() / 2, topPos + 23, ARGB.opaque(16777215));
         }
     }
 
@@ -194,12 +195,12 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
         super.onUpdate(valueId, value);
 
         if (getMenu().getCraftingPlanNotifierId() == valueId) {
-            this.craftingPlan = getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlan(getMenu().getPlayerIInventory().player.registryAccess(), value);
+            this.craftingPlan = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(value, container.getPlayerIInventory().player.registryAccess(), getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler()::deserializeCraftingPlan);
             this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(null);
             this.init();
         }
         if (getMenu().getCraftingPlanFlatNotifierId() == valueId) {
-            this.craftingPlanFlat = getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler().deserializeCraftingPlanFlat(getMenu().getPlayerIInventory().player.registryAccess(), value);
+            this.craftingPlanFlat = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(value, container.getPlayerIInventory().player.registryAccess(), getMenu().getCraftingOptionGuiData().getCraftingOption().getHandler()::deserializeCraftingPlanFlat);
             this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(null);
             this.init();
         }

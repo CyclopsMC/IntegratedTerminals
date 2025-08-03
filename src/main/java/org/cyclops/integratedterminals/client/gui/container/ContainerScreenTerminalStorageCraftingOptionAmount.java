@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -17,7 +18,6 @@ import org.cyclops.cyclopscore.client.gui.component.button.ButtonExtended;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.component.input.WidgetNumberField;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
-import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -85,7 +85,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         numberField.setMaxValue(10000);
         numberField.setMinValue(1);
         numberField.setVisible(true);
-        numberField.setTextColor(16777215);
+        numberField.setTextColor(ARGB.opaque(16777215));
         numberField.setCanLoseFocus(true);
         numberField.setValue("1");
         addRenderableWidget(numberField);
@@ -150,6 +150,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         long quantity = ingredientComponent.getMatcher().getQuantity(instance) * getAmount();
         ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find ingredient terminal storage handler"))
+                .getClient()
                 .drawInstance(guiGraphics, ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null);
     }
 
@@ -179,7 +180,6 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         numberField.render(guiGraphics, mouseX - leftPos, mouseY - topPos, partialTicks);
         scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-        IModHelpers.get().getRenderHelpers().bindTexture(this.texture);
         drawOutputSlots(guiGraphics, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
     }
 
@@ -210,11 +210,11 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
         @Override
         protected void drawButtonInner(GuiGraphics guiGraphics, int i, int j) {
-            int color = 14737632;
+            int color = ARGB.opaque(14737632);
             if (!this.active) {
-                color = 10526880;
+                color = ARGB.opaque(10526880);
             } else if (this.isHovered) {
-                color = 16777120;
+                color = ARGB.opaque(16777120);
             }
             guiGraphics.drawCenteredString(minecraft.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
         }

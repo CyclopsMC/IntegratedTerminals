@@ -1,11 +1,13 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
@@ -39,7 +41,7 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
 
     public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory, FriendlyByteBuf packetBuffer) {
         this(id, playerInventory, PartHelpers.readPartTarget((RegistryFriendlyByteBuf) packetBuffer), Optional.empty(), PartHelpers.readPart(packetBuffer),
-                CraftingJobGuiData.readFromPacketBuffer(packetBuffer));
+                CraftingJobGuiData.readFromPacketBuffer((RegistryFriendlyByteBuf) packetBuffer));
     }
 
     public ContainerTerminalCraftingJobsPlan(int id, Inventory playerInventory,
@@ -95,10 +97,11 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
                     this.craftingJobGuiData.getChannel(), craftingJobGuiData.getCraftingJob()));
             if (this.craftingPlan.isPresent()) {
                 ITerminalCraftingPlan plan = this.craftingPlan.get();
+                RegistryAccess lookupProvider = player.level().registryAccess();
                 if (!ContainerTerminalCraftingJobsPlan.isPlanTooLarge(plan)) {
-                    setValue(this.craftingPlanNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlan(player.level().registryAccess(), plan));
+                    setValue(this.craftingPlanNotifierId, IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> this.craftingJobGuiData.getHandler().serializeCraftingPlan(o, plan), lookupProvider));
                 }
-                setValue(this.craftingPlanFlatNotifierId, this.craftingJobGuiData.getHandler().serializeCraftingPlanFlat(player.level().registryAccess(), plan.flatten()));
+                setValue(this.craftingPlanFlatNotifierId, IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> this.craftingJobGuiData.getHandler().serializeCraftingPlanFlat(o, plan.flatten()), lookupProvider));
             } else {
                 setValue(this.craftingPlanNotifierId, new CompoundTag());
                 setValue(this.craftingPlanFlatNotifierId, new CompoundTag());
@@ -120,13 +123,13 @@ public class ContainerTerminalCraftingJobsPlan extends ContainerMultipart<PartTy
     public void onUpdate(int valueId, CompoundTag value) {
         if (valueId == this.craftingPlanNotifierId) {
             try {
-                this.craftingPlan = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlan(player.level().registryAccess(), value));
+                this.craftingPlan = Optional.of(IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(value, player.level().registryAccess(), craftingJobGuiData.getHandler()::deserializeCraftingPlan));
             } catch (IllegalArgumentException e) {
                 this.craftingPlan = Optional.empty();
             }
         } else if (valueId == this.craftingPlanFlatNotifierId) {
             try {
-                this.craftingPlanFlat = Optional.of(craftingJobGuiData.getHandler().deserializeCraftingPlanFlat(player.level().registryAccess(), value));
+                this.craftingPlanFlat = Optional.of(IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(value, player.level().registryAccess(), craftingJobGuiData.getHandler()::deserializeCraftingPlanFlat));
             } catch (IllegalArgumentException e) {
                 this.craftingPlanFlat = Optional.empty();
             }

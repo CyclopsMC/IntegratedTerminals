@@ -6,9 +6,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
@@ -18,6 +17,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrap
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 
 import javax.annotation.Nullable;
+import java.util.NoSuchElementException;
 
 /**
  * Packet for sending a storage slot click event from client to server.
@@ -53,7 +53,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
         this.tabName = craftingOptionData.getTabName();
         this.channel = craftingOptionData.getChannel();
         this.craftingOption = craftingOptionData.getCraftingOption() != null
-                ? HandlerWrappedTerminalCraftingOption.serialize(lookupProvider, craftingOptionData.getCraftingOption())
+                ? IModHelpers.get().getMinecraftHelpers().valueOutputToNbt(o -> HandlerWrappedTerminalCraftingOption.serialize(o, craftingOptionData.getCraftingOption()), lookupProvider)
                 : new CompoundTag();
         this.amount = craftingOptionData.getAmount();
         this.craftingPlan = craftingOptionData.getCraftingPlan() != null
@@ -81,7 +81,6 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
 
     }
@@ -89,8 +88,8 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     @Nullable
     protected HandlerWrappedTerminalCraftingOption<T> getCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent) {
         try {
-            return HandlerWrappedTerminalCraftingOption.deserialize(lookupProvider, ingredientComponent, this.craftingOption);
-        } catch (IllegalArgumentException e) {
+            return IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(craftingOption, lookupProvider, i -> HandlerWrappedTerminalCraftingOption.deserialize(i, ingredientComponent));
+        } catch (NoSuchElementException e) {
             return null;
         }
     }
@@ -99,7 +98,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     protected HandlerWrappedTerminalCraftingPlan getCraftingPlan(HolderLookup.Provider lookupProvider) {
         try {
             return HandlerWrappedTerminalCraftingPlan.deserialize(lookupProvider, this.craftingPlan);
-        } catch (IllegalArgumentException e) {
+        } catch (NoSuchElementException e) {
             return null;
         }
     }

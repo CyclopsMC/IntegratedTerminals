@@ -6,8 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
@@ -38,18 +36,17 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void drawGuiContainerLayer(AbstractContainerScreen gui, GuiGraphics guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer,
                                       float partialTick, int x, int y, int mouseX, int mouseY,
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getIngredientComponentViewHandler();
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-            viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
+            viewHandler.getClient().drawInstance(guiGraphics, getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
             drawCraftLabel(guiGraphics, x, y);
         } else {
             long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
-            getIngredientComponentViewHandler().drawInstance(guiGraphics, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, getTooltipLines());
+            getIngredientComponentViewHandler().getClient().drawInstance(guiGraphics, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, getTooltipLines());
         }
     }
 

@@ -22,8 +22,8 @@ import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobs;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * A part that exposes a gui using which players can view and manage the active crafting jobs in the network.
@@ -80,10 +80,10 @@ public class PartTypeTerminalCraftingJob extends PartTypeTerminal<PartTypeTermin
     }
 
     @Override
-    public void loadTooltip(ItemStack itemStack, List<Component> lines) {
+    public void loadTooltip(ItemStack itemStack, Consumer<Component> lines) {
         super.loadTooltip(itemStack, lines);
         if (TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers().isEmpty()) {
-            lines.add(Component.translatable(
+            lines.accept(Component.translatable(
                     "parttype.integratedterminals.terminal_crafting_job.tooltip.nohandlers")
                     .withStyle(ChatFormatting.GOLD));
         }

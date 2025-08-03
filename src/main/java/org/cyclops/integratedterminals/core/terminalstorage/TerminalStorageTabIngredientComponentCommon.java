@@ -1,14 +1,19 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
+import com.mojang.logging.LogUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.inventory.SimpleInventory;
@@ -16,6 +21,7 @@ import org.cyclops.cyclopscore.persist.nbt.NBTClassType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.item.IVariableFacade;
+import org.cyclops.integrateddynamics.api.item.TagPathElement;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.core.evaluate.InventoryVariableEvaluator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
@@ -24,7 +30,9 @@ import org.cyclops.integrateddynamics.core.helper.L10NValues;
 import org.cyclops.integrateddynamics.core.inventory.container.slot.SlotVariable;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
+import org.slf4j.Logger;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +43,8 @@ import java.util.Optional;
  * @author rubensworks
  */
 public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITerminalStorageTabCommon, IVariableFacade.IValidator {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private final ContainerTerminalStorageBase containerTerminalStorage;
     private final ResourceLocation name;
@@ -174,13 +184,21 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     public void addError(MutableComponent error) {
         List<Component> errors = getGlobalErrors();
         errors.add(error);
+        setGlobalErrors(errors);
+    }
+
+    protected void setGlobalErrors(List<Component> errors) {
         CompoundTag tag = this.containerTerminalStorage.getValue(this.errorsValueId);
         if (tag == null) {
             tag = new CompoundTag();
         } else {
             tag = tag.copy();
         }
-        NBTClassType.writeNbt(List.class, getName().toString() + ":globalErrors", errors, tag, getHolderLookupProvider());
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(tag), LOGGER)) {
+            TagValueOutput valueOutput = TagValueOutput.createWithContext(scopedCollector, getHolderLookupProvider());
+            NBTClassType.writeNbt(List.class, "v", errors, valueOutput);
+            tag.put(getName().toString() + ":globalErrors", valueOutput.buildResult());
+        }
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
@@ -189,19 +207,19 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         if (tag == null) {
             return Lists.newArrayList();
         } else {
-            return NBTClassType.readNbt(List.class, getName().toString() + ":globalErrors", tag, getHolderLookupProvider());
+            return tag.getCompound(getName().toString() + ":globalErrors")
+                    .map(subTag -> {
+                        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(subTag), LOGGER)) {
+                            ValueInput input = TagValueInput.create(scopedCollector, getHolderLookupProvider(), subTag);
+                            return NBTClassType.readNbt(List.class, "v", input);
+                        }
+                    })
+                    .orElseGet(Collections::emptyList);
         }
     }
 
     public void clearGlobalErrors() {
-        CompoundTag tag = this.containerTerminalStorage.getValue(this.errorsValueId);
-        if (tag == null) {
-            tag = new CompoundTag();
-        } else {
-            tag = tag.copy();
-        }
-        NBTClassType.writeNbt(List.class, getName().toString() + ":globalErrors", Lists.newArrayList(), tag, getHolderLookupProvider());
-        this.containerTerminalStorage.setValue(this.errorsValueId, tag);
+        setGlobalErrors(Lists.newArrayList());
     }
 
     public void setLocalErrors(int slot, List<MutableComponent> errors) {
@@ -211,7 +229,11 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         } else {
             tag = tag.copy();
         }
-        NBTClassType.writeNbt(List.class, getName().toString() + ":localErrors" + slot, errors, tag, getHolderLookupProvider());
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(tag), LOGGER)) {
+            TagValueOutput valueOutput = TagValueOutput.createWithContext(scopedCollector, getHolderLookupProvider());
+            NBTClassType.writeNbt(List.class, "v", errors, valueOutput);
+            tag.put(getName().toString() + ":localErrors" + slot, valueOutput.buildResult());
+        }
         this.containerTerminalStorage.setValue(this.errorsValueId, tag);
     }
 
@@ -220,7 +242,14 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
         if (tag == null) {
             return Lists.newArrayList();
         } else {
-            return NBTClassType.readNbt(List.class, getName().toString() + ":localErrors" + slot, tag, getHolderLookupProvider());
+            return tag.getCompound(getName().toString() + ":localErrors" + slot)
+                    .map(subTag -> {
+                        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(subTag), LOGGER)) {
+                            ValueInput input = TagValueInput.create(scopedCollector, getHolderLookupProvider(), subTag);
+                            return NBTClassType.readNbt(List.class, "v", input);
+                        }
+                    })
+                    .orElseGet(Collections::emptyList);
         }
     }
 

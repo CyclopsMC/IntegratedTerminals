@@ -1,10 +1,8 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
 import com.google.common.collect.Lists;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 
@@ -110,97 +108,61 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
         this.unlocalizedLabelOverride = unlocalizedError;
     }
 
-    public static <I> CompoundTag serialize(HolderLookup.Provider lookupProvider, TerminalCraftingPlanFlatStatic<I> plan,
-                                            ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
-        CompoundTag tag = new CompoundTag();
+    public static <I> void serialize(ValueOutput valueOutput, TerminalCraftingPlanFlatStatic<I> plan,
+                                     ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
+        handler.serializeCraftingJobId(valueOutput, plan.getId());
 
-        tag.put("id", handler.serializeCraftingJobId(plan.getId()));
-
-        ListTag entries = new ListTag();
+        ValueOutput.ValueOutputList entries = valueOutput.childrenList("entries");
         for (TerminalCraftingPlanFlatStatic.Entry entry : plan.getEntries()) {
-            entries.add(TerminalCraftingPlanFlatStatic.Entry.serialize(lookupProvider, entry));
+            TerminalCraftingPlanFlatStatic.Entry.serialize(entries.addChild(), entry);
         }
-        tag.put("entries", entries);
 
-        ListTag outputs = new ListTag();
+        ValueOutput.ValueOutputList outputs = valueOutput.childrenList("outputs");
         for (IPrototypedIngredient<?, ?> output : plan.getOutputs()) {
-            outputs.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) output));
+            IPrototypedIngredient.serialize(outputs.addChild(), (PrototypedIngredient) output);
         }
-        tag.put("outputs", outputs);
 
-        tag.putInt("status", plan.getStatus().ordinal());
+        valueOutput.putInt("status", plan.getStatus().ordinal());
 
-        tag.putInt("label", plan.label.ordinal());
+        valueOutput.putInt("label", plan.label.ordinal());
         if (plan.unlocalizedLabelOverride != null) {
-            tag.putString("unlocalizedLabelOverride", plan.unlocalizedLabelOverride);
+            valueOutput.putString("unlocalizedLabelOverride", plan.unlocalizedLabelOverride);
         }
 
-        tag.putLong("tickDuration", plan.getTickDuration());
+        valueOutput.putLong("tickDuration", plan.getTickDuration());
 
-        tag.putInt("channel", plan.getChannel());
+        valueOutput.putInt("channel", plan.getChannel());
 
         if (plan.getInitiatorName() != null) {
-            tag.putString("initiatorName", plan.getInitiatorName());
+            valueOutput.putString("initiatorName", plan.getInitiatorName());
         }
-
-        return tag;
     }
 
-    public static <I> TerminalCraftingPlanFlatStatic<I> deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag,
+    public static <I> TerminalCraftingPlanFlatStatic<I> deserialize(ValueInput valueInput,
                                                                     ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
-        if (!tag.contains("id")) {
-            throw new IllegalArgumentException("Could not find an id entry in the given tag");
-        }
-        if (!tag.contains("entries", Tag.TAG_LIST)) {
-            throw new IllegalArgumentException("Could not find a entries entry in the given tag");
-        }
-        if (!tag.contains("outputs", Tag.TAG_LIST)) {
-            throw new IllegalArgumentException("Could not find a outputs entry in the given tag");
-        }
-        if (!tag.contains("status", Tag.TAG_INT)) {
-            throw new IllegalArgumentException("Could not find a status entry in the given tag");
-        }
-        if (!tag.contains("label", Tag.TAG_INT)) {
-            throw new IllegalArgumentException("Could not find a label entry in the given tag");
-        }
-        if (!tag.contains("tickDuration", Tag.TAG_LONG)) {
-            throw new IllegalArgumentException("Could not find a tickDuration entry in the given tag");
-        }
-        if (!tag.contains("channel", Tag.TAG_INT)) {
-            throw new IllegalArgumentException("Could not find a channel entry in the given tag");
+        I id = handler.deserializeCraftingJobId(valueInput);
+
+        List<TerminalCraftingPlanFlatStatic.Entry> entries = Lists.newArrayList();
+        for (ValueInput nbtBase : valueInput.childrenList("entries").orElseThrow()) {
+            entries.add(TerminalCraftingPlanFlatStatic.Entry.deserialize(nbtBase));
         }
 
-        I id = handler.deserializeCraftingJobId(tag.get("id"));
-
-        ListTag entriesTag = tag.getList("entries", Tag.TAG_COMPOUND);
-        List<TerminalCraftingPlanFlatStatic.Entry> entries = Lists.newArrayListWithExpectedSize(entriesTag.size());
-        for (Tag nbtBase : entriesTag) {
-            entries.add(TerminalCraftingPlanFlatStatic.Entry.deserialize(lookupProvider, (CompoundTag) nbtBase));
+        List<IPrototypedIngredient<?, ?>> outputs = Lists.newArrayList();
+        for (ValueInput nbtBase : valueInput.childrenList("outputs").orElseThrow()) {
+            outputs.add(IPrototypedIngredient.deserialize(nbtBase));
         }
 
-        ListTag outputsTag = tag.getList("outputs", Tag.TAG_COMPOUND);
-        List<IPrototypedIngredient<?, ?>> outputs = Lists.newArrayListWithExpectedSize(outputsTag.size());
-        for (Tag nbtBase : outputsTag) {
-            outputs.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) nbtBase));
-        }
+        TerminalCraftingJobStatus status = TerminalCraftingJobStatus.values()[valueInput.getInt("status").orElseThrow()];
 
-        TerminalCraftingJobStatus status = TerminalCraftingJobStatus.values()[tag.getInt("status")];
+        TerminalCraftingPlanStatic.Label label = TerminalCraftingPlanStatic.Label.values()[valueInput.getInt("label").orElseThrow()];
 
-        TerminalCraftingPlanStatic.Label label = TerminalCraftingPlanStatic.Label.values()[tag.getInt("label")];
+        String unlocalizedLabelOverride = valueInput.getStringOr("unlocalizedLabelOverride", null);
 
-        String unlocalizedLabelOverride = null;
-        if (tag.contains("unlocalizedLabelOverride")) {
-            unlocalizedLabelOverride = tag.getString("unlocalizedLabelOverride");
-        }
+        long tickDuration = valueInput.getLong("tickDuration").orElseThrow();
 
-        long tickDuration = tag.getLong("tickDuration");
+        int channel = valueInput.getInt("channel").orElseThrow();
 
-        int channel = tag.getInt("channel");
-
-        String initiatorName = null;
-        if (tag.contains("initiatorName", Tag.TAG_STRING)) {
-            initiatorName = tag.getString("initiatorName");
-        }
+        String initiatorName = valueInput.getStringOr("initiatorName", null);
 
         TerminalCraftingPlanFlatStatic<I> plan = new TerminalCraftingPlanFlatStatic<>(id, entries, outputs, status, label, tickDuration, channel, initiatorName);
         if (unlocalizedLabelOverride != null) {
@@ -270,38 +232,20 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
             this.quantityMissing = quantityMissing;
         }
 
-        public static CompoundTag serialize(HolderLookup.Provider lookupProvider, TerminalCraftingPlanFlatStatic.Entry entry) {
-            CompoundTag tag = new CompoundTag();
-            tag.put("instance", IPrototypedIngredient.serialize(lookupProvider, entry.getInstance()));
-            tag.putLong("quantityToCraft", entry.getQuantityToCraft());
-            tag.putLong("quantityCrafting", entry.getQuantityCrafting());
-            tag.putLong("quantityInStorage", entry.getQuantityInStorage());
-            tag.putLong("quantityMissing", entry.getQuantityMissing());
-            return tag;
+        public static void serialize(ValueOutput valueOutput, Entry entry) {
+            IPrototypedIngredient.serialize(valueOutput.child("instance"), entry.getInstance());
+            valueOutput.putLong("quantityToCraft", entry.getQuantityToCraft());
+            valueOutput.putLong("quantityCrafting", entry.getQuantityCrafting());
+            valueOutput.putLong("quantityInStorage", entry.getQuantityInStorage());
+            valueOutput.putLong("quantityMissing", entry.getQuantityMissing());
         }
 
-        public static TerminalCraftingPlanFlatStatic.Entry deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag) {
-            if (!tag.contains("instance", Tag.TAG_COMPOUND)) {
-                throw new IllegalArgumentException("Could not find a instance entry in the given tag");
-            }
-            if (!tag.contains("quantityToCraft", Tag.TAG_LONG)) {
-                throw new IllegalArgumentException("Could not find a quantityToCraft entry in the given tag");
-            }
-            if (!tag.contains("quantityCrafting", Tag.TAG_LONG)) {
-                throw new IllegalArgumentException("Could not find a quantityCrafting entry in the given tag");
-            }
-            if (!tag.contains("quantityInStorage", Tag.TAG_LONG)) {
-                throw new IllegalArgumentException("Could not find a quantityInStorage entry in the given tag");
-            }
-            if (!tag.contains("quantityMissing", Tag.TAG_LONG)) {
-                throw new IllegalArgumentException("Could not find a quantityMissing entry in the given tag");
-            }
-
-            IPrototypedIngredient<?, ?> instance = IPrototypedIngredient.deserialize(lookupProvider, tag.getCompound("instance"));
-            long quantityToCraft = tag.getLong("quantityToCraft");
-            long quantityCrafting = tag.getLong("quantityCrafting");
-            long quantityInStorage = tag.getLong("quantityInStorage");
-            long quantityMissing = tag.getLong("quantityMissing");
+        public static TerminalCraftingPlanFlatStatic.Entry deserialize(ValueInput valueInput) {
+            IPrototypedIngredient<?, ?> instance = IPrototypedIngredient.deserialize(valueInput.child("instance").orElseThrow());
+            long quantityToCraft = valueInput.getLong("quantityToCraft").orElseThrow();
+            long quantityCrafting = valueInput.getLong("quantityCrafting").orElseThrow();
+            long quantityInStorage = valueInput.getLong("quantityInStorage").orElseThrow();
+            long quantityMissing = valueInput.getLong("quantityMissing").orElseThrow();
 
             return new TerminalCraftingPlanFlatStatic.Entry(instance, quantityToCraft, quantityCrafting, quantityInStorage, quantityMissing);
         }

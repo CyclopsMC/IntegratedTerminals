@@ -2,8 +2,6 @@ package org.cyclops.integratedterminals;
 
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -125,7 +123,6 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     protected IClientProxy constructClientProxy() {
         return new ClientProxy();
     }

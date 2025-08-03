@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
@@ -167,7 +168,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
             guiCraftingPlanFlat.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         } else {
             guiGraphics.drawCenteredString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.empty"),
-                    leftPos + getBaseXSize() / 2, topPos + 23, 16777215);
+                    leftPos + getBaseXSize() / 2, topPos + 23, ARGB.opaque(16777215));
         }
     }
 
