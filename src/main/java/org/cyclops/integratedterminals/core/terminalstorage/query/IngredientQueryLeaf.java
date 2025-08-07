@@ -24,9 +24,9 @@ public class IngredientQueryLeaf<T> implements IIngredientQuery<T> {
             switch (c) {
                 case '@':
                     return Pair.of(SearchMode.MOD, query.substring(1));
-                case '#':
-                    return Pair.of(SearchMode.TOOLTIP, query.substring(1));
                 case '$':
+                    return Pair.of(SearchMode.TOOLTIP, query.substring(1));
+                case '#':
                     return Pair.of(SearchMode.TAG, query.substring(1));
             }
         }
