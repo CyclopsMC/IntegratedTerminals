@@ -6,6 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -18,6 +19,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalSto
 
 import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 /**
  * Packet for sending a storage slot click event from client to server.
@@ -88,7 +90,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     @Nullable
     protected HandlerWrappedTerminalCraftingOption<T> getCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent) {
         try {
-            return IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(craftingOption, lookupProvider, i -> HandlerWrappedTerminalCraftingOption.deserialize(i, ingredientComponent));
+            return IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(craftingOption, lookupProvider, (Function<ValueInput, HandlerWrappedTerminalCraftingOption<T>>) i -> HandlerWrappedTerminalCraftingOption.deserialize(i, ingredientComponent));
         } catch (NoSuchElementException e) {
             return null;
         }

@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.core.client.gui;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.storage.ValueInput;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
@@ -10,6 +11,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrap
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * @author rubensworks
@@ -112,7 +114,7 @@ public class CraftingOptionGuiData<T, M, L> {
         int amount = packetBuffer.readInt();
         HandlerWrappedTerminalCraftingOption craftingOption = null;
         if (packetBuffer.readBoolean()) {
-            craftingOption = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(packetBuffer.readNbt(), packetBuffer.registryAccess(), i -> HandlerWrappedTerminalCraftingOption.deserialize(i, component));
+            craftingOption = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(packetBuffer.readNbt(), packetBuffer.registryAccess(), (Function<ValueInput, HandlerWrappedTerminalCraftingOption>) i -> HandlerWrappedTerminalCraftingOption.deserialize(i, component));
         }
         HandlerWrappedTerminalCraftingPlan craftingPlan = null;
         if (packetBuffer.readBoolean()) {

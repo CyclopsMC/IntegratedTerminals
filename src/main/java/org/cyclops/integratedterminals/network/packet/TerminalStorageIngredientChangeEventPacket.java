@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollection;
@@ -20,6 +21,8 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
+
+import java.util.function.Function;
 
 /**
  * Packet for sending a storage change event from server to client.
@@ -68,7 +71,7 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
             IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType").orElseThrow()];
-            IngredientArrayList ingredients = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(changeData, world.registryAccess(), IngredientCollections::deserialize);
+            IngredientArrayList ingredients = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(changeData, world.registryAccess(), (Function<ValueInput, IngredientArrayList>) IngredientCollections::deserialize);
 
             TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
             tab.onChange(channel, changeType, ingredients, enabled);
