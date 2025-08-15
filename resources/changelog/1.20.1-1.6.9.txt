@@ -1,0 +1,6 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Fixes:
+* Fix wrong slot offset for JEI fill on some recipes, Closes CyclopsMC/IntegratedTerminals#178
+* Fix static crafting plan being scrollable with half rows, Closes CyclopsMC/IntegratedCrafting#150
