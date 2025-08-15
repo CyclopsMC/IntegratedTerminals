@@ -77,7 +77,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         this.visibleElements = Lists.newArrayList(this.elements);
         this.valid = craftingPlan.getStatus().isValid();
         this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
-        this.scrollBar.setTotalRows((int) Math.ceil(visibleElements.size() / COLUMNS));
+        refreshList();
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
         this.channel = craftingPlan.getChannel();
@@ -94,7 +94,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     }
 
     protected void refreshList() {
-        this.scrollBar.setTotalRows(visibleElements.size());
+        this.scrollBar.setTotalRows((int) Math.ceil(visibleElements.size() / COLUMNS));
     }
 
     public void setFirstRow(int firstRow) {
