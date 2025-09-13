@@ -393,7 +393,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         long quantity = 0;
         IIngredientMatcher<T, M> matcher = ingredients.getComponent().getMatcher();
         for (T ingredient : ingredients) {
-            quantity += matcher.getQuantity(ingredient);
+            try {
+                quantity = Math.addExact(quantity, matcher.getQuantity(ingredient));
+            } catch (ArithmeticException e) {
+                quantity = Long.MAX_VALUE; // If we had an overflow, we're already at max quantity.
+            }
+            if (quantity == Long.MAX_VALUE) {
+                break;
+            }
         }
         if (changeType != IIngredientComponentStorageObservable.Change.ADDITION) {
             quantity = -quantity;
@@ -662,7 +669,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             } else if (clickType != null) {
                 T activeInstance = matcher.getEmptyInstance();
                 if (activeSlotId >= 0) {
-                    activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), moveQuantity);
+                    TerminalStorageSlotIngredient<T, M> slot = getSlots(channel, activeSlotId, 1).stream().findFirst().orElse(null);
+                    if (slot != null) {
+                        activeInstance = matcher.withQuantity(slot.getInstance(), moveQuantity);
+                    }
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         player.level().registryAccess(),
