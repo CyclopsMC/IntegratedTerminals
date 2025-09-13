@@ -1,8 +1,16 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.16"></a>
+## [1.21.1-1.6.16](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.15...1.21.1-1.6.16) - 2025-09-13 15:08:23
+
+
+### Fixed
+* Fix rare terminal crash when clicking on desynced slot, Closes #180
+* Properly handle long overflows in channel quantities
+
 <a name="1.21.1-1.6.15"></a>
-## [1.21.1-1.6.15](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.14...1.21.1-1.6.15) - 2025-08-15 08:46:50
+## [1.21.1-1.6.15](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.14...1.21.1-1.6.15) - 2025-08-15 08:46:50 +0200
 
 
 ### Added
