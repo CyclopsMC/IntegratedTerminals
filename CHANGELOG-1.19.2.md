@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.19.2
 All notable changes to this project will be documented in this file.
 
+<a name="1.19.2-1.6.10"></a>
+## [1.19.2-1.6.10](/compare/1.19.2-1.6.9...1.19.2-1.6.10) - 2025-09-13 15:06:36
+
+
+### Fixed
+* Fix rare terminal crash when clicking on desynced slot, Closes #180
+
 <a name="1.19.2-1.6.9"></a>
-## [1.19.2-1.6.9](/compare/1.19.2-1.6.8...1.19.2-1.6.9) - 2025-08-15 08:44:17
+## [1.19.2-1.6.9](/compare/1.19.2-1.6.8...1.19.2-1.6.9) - 2025-08-15 08:44:17 +0200
 
 
 ### Fixed
