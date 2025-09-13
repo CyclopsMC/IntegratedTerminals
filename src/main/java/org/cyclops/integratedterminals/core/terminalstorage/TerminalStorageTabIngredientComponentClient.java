@@ -662,7 +662,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             } else if (clickType != null) {
                 T activeInstance = matcher.getEmptyInstance();
                 if (activeSlotId >= 0) {
-                    activeInstance = matcher.withQuantity(getSlots(channel, activeSlotId, 1).get(0).getInstance(), moveQuantity);
+                    TerminalStorageSlotIngredient<T, M> slot = getSlots(channel, activeSlotId, 1).stream().findFirst().orElse(null);
+                    if (slot != null) {
+                        activeInstance = matcher.withQuantity(slot.getInstance(), moveQuantity);
+                    }
                 }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         this.getName().toString(), ingredientComponent, clickType, channel,
