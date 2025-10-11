@@ -39,9 +39,16 @@
       "automergeType": "branch"
     },
     {
-      "matchManagers": ["maven"],
+      "matchPackagePatterns": [
+        "^org\\.cyclops:.*$",
+        "^net\\.neoforged:neoforge$"
+      ],
       "automerge": true,
       "automergeType": "branch"
+    },
+    {
+      "matchManagers": ["maven"],
+      "enabled": false
     }
   ],
   "github-actions": {
