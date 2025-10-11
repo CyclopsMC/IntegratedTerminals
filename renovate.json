@@ -26,6 +26,6 @@
     {
       "matchDatasources": ["maven"],
       "registryUrls": ["https://maven.neoforged.net/releases"]
-    },
-  ],
+    }
+  ]
 }
