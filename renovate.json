@@ -32,6 +32,21 @@
     {
       "matchPackageNames": ["net.neoforged:neoforge"],
       "registryUrls": ["https://maven.neoforged.net/releases"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "matchManagers": ["maven"],
+      "automerge": true,
+      "automergeType": "branch"
     }
-  ]
+  ],
+  "github-actions": {
+      "major": {
+          "enabled": true
+      }
+  }
 }
