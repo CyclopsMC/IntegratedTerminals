@@ -13,5 +13,12 @@
       "depNameTemplate": "org.cyclops.${{depName}}:${{depName}}-${{mcVersion}}-neoforge",
       "datasourceTemplate": "maven"
     }
-  ]
+  ],
+  "hostRules": [
+    {
+      "matchHost": "maven.pkg.github.com",
+      "username": "{{ github.actor }}",
+      "password": "{{ secrets.GITHUB_TOKEN }}"
+    }
+  ],
 }
