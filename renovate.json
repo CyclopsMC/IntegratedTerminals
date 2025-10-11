@@ -22,7 +22,7 @@
   ],
   "hostRules": [
     {
-      "matchHost": "maven.pkg.github.com",
+      "matchHost": "https://maven.pkg.github.com/CyclopsMC/packages",
       "username": "x-access-token",
       "token": "github"
     }
