@@ -40,10 +40,6 @@
     },
     {
       "matchManagers": ["gradle"],
-      "enabled": false
-    },
-    {
-      "matchManagers": ["gradle"],
       "matchPackagePatterns": [
         "^org\\.cyclops:.*$",
         "^net\\.neoforged:neoforge$"
