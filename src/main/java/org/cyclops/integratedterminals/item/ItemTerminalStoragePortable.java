@@ -160,13 +160,16 @@ public class ItemTerminalStoragePortable extends ItemGui {
         return new ITerminalStorageTabCommon.IVariableInventory() {
             @Override
             public NonNullList<ItemStack> getNamedInventory(String name, HolderLookup.Provider holderLookupProvider) {
-                CompoundTag tag = finalTagInventories.getCompound(name).orElseThrow();
-                try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(tag), LOGGER)) {
-                    ValueInput input = TagValueInput.create(scopedCollector, holderLookupProvider, tag);
-                    NonNullList<ItemStack> list = NonNullList.withSize(input.getInt("itemCount").orElseThrow(), ItemStack.EMPTY);
-                    ContainerHelper.loadAllItems(input, list);
-                    return list;
-                }
+                return finalTagInventories.getCompound(name)
+                        .map(subTag -> {
+                            try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(subTag), LOGGER)) {
+                                ValueInput input = TagValueInput.create(scopedCollector, holderLookupProvider, subTag);
+                                NonNullList<ItemStack> list = NonNullList.withSize(input.getInt("itemCount").orElseThrow(), ItemStack.EMPTY);
+                                ContainerHelper.loadAllItems(input, list);
+                                return list;
+                            }
+                        })
+                        .orElseGet(NonNullList::create);
             }
 
             @Override
