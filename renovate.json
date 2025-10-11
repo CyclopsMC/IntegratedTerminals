@@ -22,6 +22,12 @@
       "datasourceTemplate": "maven"
     }
   ],
+  "hostRules": [
+    {
+      "matchHost": "https://maven.pkg.github.com/CyclopsMC/packages",
+      "token": "{{ secrets.RENOVATE_GITHUB_COM_TOKEN }}"
+    }
+  ],
   "packageRules": [
     {
       "matchPackageNames": ["net.neoforged:neoforge"],
