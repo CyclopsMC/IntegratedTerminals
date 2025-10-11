@@ -14,11 +14,10 @@
       "datasourceTemplate": "maven"
     }
   ],
-  "hostRules": [
+  "packageRules": [
     {
-      "matchHost": "maven.pkg.github.com",
-      "username": "Renovate",
-      "password": "{{ secrets.GITHUB_TOKEN }}"
+      "matchDatasources": ["maven"],
+      "registryUrls": ["https://maven.pkg.github.com/CyclopsMC/packages"]
     }
-  ],
+  ]
 }
