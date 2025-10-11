@@ -2,5 +2,16 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "enabledManagers": ["gradle"],
+  "regexManagers": [
+    {
+      "fileMatch": ["(^|/)gradle\\.properties$"],
+      "matchStrings": [
+        "minecraft_version\\s*=\\s*(?<mcVersion>\\S+)[\\s\\S]*?(?<depName>[a-z0-9]+)_version\\s*=\\s*(?<currentValue>\\S+)"
+      ],
+      "depNameTemplate": "org.cyclops.${{depName}}:${{depName}}-${{mcVersion}}-neoforge",
+      "datasourceTemplate": "maven"
+    }
   ]
 }
