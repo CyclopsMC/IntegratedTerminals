@@ -17,7 +17,7 @@
   "hostRules": [
     {
       "matchHost": "maven.pkg.github.com",
-      "username": "{{ github.actor }}",
+      "username": "Renovate",
       "password": "{{ secrets.GITHUB_TOKEN }}"
     }
   ],
