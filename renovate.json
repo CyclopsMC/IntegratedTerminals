@@ -39,6 +39,7 @@
       "automergeType": "branch"
     },
     {
+      "matchManagers": ["gradle"],
       "matchPackagePatterns": [
         "^org\\.cyclops:.*$",
         "^net\\.neoforged:neoforge$"
@@ -47,7 +48,7 @@
       "automergeType": "branch"
     },
     {
-      "matchManagers": ["maven"],
+      "matchManagers": ["gradle"],
       "enabled": false
     }
   ],
