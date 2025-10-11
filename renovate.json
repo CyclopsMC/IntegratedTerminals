@@ -12,6 +12,14 @@
       ],
       "depNameTemplate": "org.cyclops.${{depName}}:${{depName}}-${{mcVersion}}-neoforge",
       "datasourceTemplate": "maven"
+    },
+    {
+      "fileMatch": ["(^|/)gradle\\.properties$"],
+      "matchStrings": [
+        "neoforge_version\\s*=\\s*(?<currentValue>\\S+)"
+      ],
+      "depNameTemplate": "net.neoforged:neoforge",
+      "datasourceTemplate": "maven"
     }
   ],
   "hostRules": [
