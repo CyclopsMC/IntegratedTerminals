@@ -19,7 +19,8 @@
         "neoforge_version\\s*=\\s*(?<currentValue>\\S+)"
       ],
       "depNameTemplate": "net.neoforged:neoforge",
-      "datasourceTemplate": "maven"
+      "datasourceTemplate": "maven",
+      "registryUrls": ["https://maven.neoforged.net/releases"]
     }
   ],
   "hostRules": [
