@@ -3,7 +3,7 @@
   "extends": [
     "config:recommended"
   ],
-  "enabledManagers": ["gradle"],
+  "enabledManagers": ["gradle", "github-actions"],
   "regexManagers": [
     {
       "fileMatch": ["(^|/)gradle\\.properties$"],
