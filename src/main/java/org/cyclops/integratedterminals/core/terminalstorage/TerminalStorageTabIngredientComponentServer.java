@@ -85,6 +85,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final Int2ObjectMap<IIngredientCollapsedCollectionMutable<T, M>> unfilteredIngredientsViews;
     private final Int2ObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
     private boolean initialized; // True if the first change event has been sent to the client.
+    private boolean sentCraftingOptionsFiltered;
 
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
                                                        IngredientComponent<T, M> ingredientComponent,
@@ -323,7 +324,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 } else {
                     channeledCraftingOptionsFiltered = channeledCraftingOptions;
                 }
-                this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true, firstChannel);
+                if (ingredientsFilter != null || this.sentCraftingOptionsFiltered) {
+                    this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true, firstChannel);
+                }
+                this.sentCraftingOptionsFiltered = ingredientsFilter != null;
             }
 
             firstChannel = false;
