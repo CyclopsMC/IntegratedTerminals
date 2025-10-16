@@ -3,12 +3,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.ints.Int2LongMap;
-import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -26,12 +21,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.image.Images;
-import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.Helpers;
-import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
-import org.cyclops.cyclopscore.helper.RenderHelpers;
-import org.cyclops.cyclopscore.helper.StringHelpers;
+import org.cyclops.cyclopscore.helper.*;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionHelpers;
@@ -42,11 +32,7 @@ import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
-import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
+import org.cyclops.integratedterminals.api.terminalstorage.*;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientLoadButtonsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabClientSearchFieldUpdateEvent;
@@ -56,6 +42,7 @@ import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonFilterCrafting;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonScaleGui;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.CraftingOptionDelta;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
@@ -65,15 +52,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickPacket;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -439,15 +418,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
     }
 
-    public synchronized void addCraftingOptions(int channel, List<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
-                                                boolean reset, boolean firstChannel) {
+    public synchronized void onChangeCraftingOptions(int channel, List<CraftingOptionDelta<T>> craftingOptions) {
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
         Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
 
         // Apply the change to the wildcard channel as well
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
-            addCraftingOptions(IPositionedAddonsNetwork.WILDCARD_CHANNEL, craftingOptions, reset && firstChannel, firstChannel);
+            onChangeCraftingOptions(IPositionedAddonsNetwork.WILDCARD_CHANNEL, craftingOptions);
         }
 
         boolean wasEnabled = this.enabled;
@@ -456,10 +434,16 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             this.channels.add(channel);
         }
         Collection<HandlerWrappedTerminalCraftingOption<T>> existingOptions = this.craftingOptions.get(channel);
-        if (existingOptions == null || reset) {
-            this.craftingOptions.put(channel, Lists.newArrayList(craftingOptions));
-        } else {
-            existingOptions.addAll(craftingOptions);
+        if (existingOptions == null) {
+            existingOptions = Sets.newTreeSet();
+            this.craftingOptions.put(channel, existingOptions);
+        }
+        for (CraftingOptionDelta<T> craftingOption : craftingOptions) {
+            if (craftingOption.changeType() == IIngredientComponentStorageObservable.Change.ADDITION) {
+                existingOptions.add(craftingOption.craftingOption());
+            } else {
+                existingOptions.remove(craftingOption.craftingOption());
+            }
         }
 
         // Persist changes

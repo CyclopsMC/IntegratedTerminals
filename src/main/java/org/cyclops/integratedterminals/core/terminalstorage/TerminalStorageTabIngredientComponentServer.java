@@ -44,6 +44,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.CraftingOptionDelta;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
@@ -145,6 +146,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         // We assume that crafting options don't change that often,
         // so we don't have any observers that listen on recipe index changes.
         // Consequence is: players will have to re-open the terminal when they want to see recipe changes.
+        // TODO: introduce a change listener system for the recipe index? Will become too expensive to do diff every tick...
+        // TODO: No: only send it once to the client on init, and keep change index as future work if needed.
         List<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions = Lists.newArrayList();
         for (ITerminalStorageTabIngredientCraftingHandler handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
             Collection<ITerminalCraftingOption<T>> options = handler.getCraftingOptions(this, channel);
@@ -155,10 +158,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             }
         }
         this.craftingOptions.put(channel, channeledCraftingOptions);
-        boolean firstChannel = true;
-        if (channeledCraftingOptions.size() > 0) {
-            this.sendCraftingOptionsToClient(channel, channeledCraftingOptions, false, firstChannel);
-            firstChannel = false;
+        if (!channeledCraftingOptions.isEmpty()) {
+            List<CraftingOptionDelta<T>> channeledCraftingDeltaOptions = channeledCraftingOptions.stream()
+                    .map(option -> new CraftingOptionDelta<>(option, IIngredientComponentStorageObservable.Change.ADDITION))
+                    .toList();
+            this.sendCraftingOptionsToClient(channel, channeledCraftingDeltaOptions);
         }
     }
 
@@ -263,7 +267,6 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     protected void reApplyFilter(@Nullable IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
-        boolean firstChannel = true;
         for (int channel : event == null ? this.unfilteredIngredientsViews.keySet() : Collections.singleton(event.getChannel())) {
             Predicate<T> ingredientsFilter = getIngredientsFilter();
             if (ingredientsFilter != null || event == null) {
@@ -304,6 +307,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             }
 
             // Filter crafting options and re-send to client
+            // TODO: don't do this!!! Use change events as well here!!!
             Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions = this.craftingOptions.get(channel);
             if (channeledCraftingOptions != null) {
                 Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptionsFiltered;
@@ -323,10 +327,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 } else {
                     channeledCraftingOptionsFiltered = channeledCraftingOptions;
                 }
-                this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true, firstChannel);
+                this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered);
             }
-
-            firstChannel = false;
         }
 
         initialized = true;
@@ -375,37 +377,35 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         }
     }
 
-    private void sendCraftingOptionsToClient(int channel, Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions,
-                                             boolean reset, boolean firstChannel) {
+    private void sendCraftingOptionsToClient(int channel, Collection<CraftingOptionDelta<T>> channeledCraftingOptions) {
         // Only allow collection of a max given size to be sent in a packet
         if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxRecipes) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel), player);
+                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions), player);
         } else {
-            List<Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>>> chunks = Lists.newArrayList();
-            List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
+            List<List<CraftingOptionDelta<T>>> chunks = Lists.newArrayList();
+            List<CraftingOptionDelta<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
 
-            for (HandlerWrappedTerminalCraftingOption<T> instance : channeledCraftingOptions) {
+            for (CraftingOptionDelta<T> instance : channeledCraftingOptions) {
                 buffer.add(instance);
 
                 // If our buffer reaches its capacity,
                 // flush it, and create a new buffer
                 if (buffer.size() == GeneralConfig.terminalStoragePacketMaxRecipes) {
-                    chunks.add(Pair.of(reset, buffer));
-                    reset = false; // Only reset in first packet
+                    chunks.add(buffer);
                     buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
                 }
             }
             // Our buffer can contain some remaining instances, make sure to flush them as well.
             if (!buffer.isEmpty()) {
-                chunks.add(Pair.of(reset, buffer));
+                chunks.add(buffer);
             }
 
-            for (Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>> chunk : chunks) {
+            for (List<CraftingOptionDelta<T>> chunk : chunks) {
                 if (GeneralConfig.packetSerializationEnableMultithreading) {
-                    PACKET_SERIALIZER.execute(() -> sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel));
+                    PACKET_SERIALIZER.execute(() -> sendCraftingOptionsToClient(channel, chunk));
                 } else {
-                    sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel);
+                    sendCraftingOptionsToClient(channel, chunk);
                 }
             }
         }

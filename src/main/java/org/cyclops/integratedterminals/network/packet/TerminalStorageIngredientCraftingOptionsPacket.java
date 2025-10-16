@@ -13,8 +13,10 @@ import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.CraftingOptionDelta;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
@@ -34,10 +36,6 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
     private int channel;
     @CodecField
     private CompoundTag data;
-    @CodecField
-    private boolean reset;
-    @CodecField
-    private boolean firstChannel;
 
     public TerminalStorageIngredientCraftingOptionsPacket() {
 
@@ -45,19 +43,18 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
 
     public <T> TerminalStorageIngredientCraftingOptionsPacket(String tabId,
                                                               int channel,
-                                                              Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
-                                                              boolean reset,
-                                                              boolean firstChannel) {
+                                                              Collection<CraftingOptionDelta<T>> craftingOptions) {
         this.tabId = tabId;
         this.channel = channel;
         this.data = new CompoundTag();
         ListTag list = new ListTag();
-        for (HandlerWrappedTerminalCraftingOption<?> option : craftingOptions) {
-            list.add(HandlerWrappedTerminalCraftingOption.serialize(option));
+        for (CraftingOptionDelta<?> option : craftingOptions) {
+            CompoundTag optionTag = new CompoundTag();
+            optionTag.putBoolean("addition", option.changeType() == IIngredientComponentStorageObservable.Change.ADDITION);
+            optionTag.put("option", HandlerWrappedTerminalCraftingOption.serialize(option.craftingOption()));
+            list.add(optionTag);
         }
         this.data.put("craftingOptions", list);
-        this.reset = reset;
-        this.firstChannel = firstChannel;
     }
 
     @Override
@@ -76,21 +73,23 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec 
             IngredientComponent<?, ?> ingredientComponent = tab.getIngredientComponent();
 
             ListTag list = this.data.getList("craftingOptions", Tag.TAG_COMPOUND);
-            List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
+            List<CraftingOptionDelta<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
             for (int i = 0; i < list.size(); i++) {
+                CompoundTag optionTag = list.getCompound(i);
+                IIngredientComponentStorageObservable.Change changeType = optionTag.getBoolean("addition") ? IIngredientComponentStorageObservable.Change.ADDITION : IIngredientComponentStorageObservable.Change.DELETION;
                 HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
-                        .deserialize(ingredientComponent, list.getCompound(i));
-                craftingOptions.add(option);
+                        .deserialize(ingredientComponent, optionTag.getCompound("option"));
+                craftingOptions.add(new CraftingOptionDelta(option, changeType));
             }
 
-            tab.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
+            tab.onChangeCraftingOptions(channel, (List) craftingOptions);
 
             // Hard-coded crafting tab
             // TODO: abstract this as "auxiliary" tabs
             if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
                 TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
                         .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
-                tabCrafting.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
+                tabCrafting.onChangeCraftingOptions(channel, (List) craftingOptions);
             }
 
             container.refreshChannelStrings();

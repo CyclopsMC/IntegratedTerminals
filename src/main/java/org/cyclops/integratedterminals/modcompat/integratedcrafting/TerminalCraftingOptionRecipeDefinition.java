@@ -70,4 +70,17 @@ public class TerminalCraftingOptionRecipeDefinition<T, M> implements ITerminalCr
         }
         return this.getRecipe().compareTo(((TerminalCraftingOptionRecipeDefinition) o).getRecipe());
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof TerminalCraftingOptionRecipeDefinition other)) {
+            return false;
+        }
+        return this.getRecipe().equals(other.getRecipe());
+    }
+
+    @Override
+    public int hashCode() {
+        return 937 | this.getRecipe().hashCode();
+    }
 }

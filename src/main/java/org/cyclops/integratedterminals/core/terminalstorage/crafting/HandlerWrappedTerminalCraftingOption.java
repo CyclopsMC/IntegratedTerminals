@@ -6,13 +6,16 @@ import net.minecraft.resources.ResourceLocation;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 /**
  * Data holder for {@link ITerminalCraftingOption} wrapped with its handler.
  * @param <T> The instance type.
  * @author rubensworks
  */
-public class HandlerWrappedTerminalCraftingOption<T> {
+public class HandlerWrappedTerminalCraftingOption<T> implements Comparable<HandlerWrappedTerminalCraftingOption<T>> {
 
     private final ITerminalStorageTabIngredientCraftingHandler handler;
     private final ITerminalCraftingOption<T> craftingOption;
@@ -49,4 +52,19 @@ public class HandlerWrappedTerminalCraftingOption<T> {
         return new HandlerWrappedTerminalCraftingOption<>(handler, craftingOption);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof HandlerWrappedTerminalCraftingOption<?> that)) return false;
+        return Objects.equals(craftingOption, that.craftingOption);
+    }
+
+    @Override
+    public int hashCode() {
+        return 941 | craftingOption.hashCode();
+    }
+
+    @Override
+    public int compareTo(@NotNull HandlerWrappedTerminalCraftingOption<T> o) {
+        return craftingOption.compareTo(o.getCraftingOption());
+    }
 }
