@@ -1,0 +1,8 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Changes:
+* Don't re-send crafting options for every storage change event
+  Related to CyclopsMC/IntegratedCrafting#156
+* Serialize terminal elements in off-thead
+  Related to CyclopsMC/IntegratedCrafting#156

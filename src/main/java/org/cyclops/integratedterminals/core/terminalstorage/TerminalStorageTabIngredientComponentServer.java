@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -51,11 +52,9 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientM
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -67,6 +66,8 @@ import java.util.stream.Collectors;
  */
 public class TerminalStorageTabIngredientComponentServer<T, M> implements ITerminalStorageTabServer,
         IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
+
+    private static final ExecutorService PACKET_SERIALIZER = Executors.newFixedThreadPool(1);
 
     private final ResourceLocation name;
     private final INetwork network;
@@ -84,6 +85,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final Int2ObjectMap<IIngredientCollapsedCollectionMutable<T, M>> unfilteredIngredientsViews;
     private final Int2ObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
     private boolean initialized; // True if the first change event has been sent to the client.
+    private boolean sentCraftingOptionsFiltered;
 
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
                                                        IngredientComponent<T, M> ingredientComponent,
@@ -322,7 +324,10 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 } else {
                     channeledCraftingOptionsFiltered = channeledCraftingOptions;
                 }
-                this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true, firstChannel);
+                if (ingredientsFilter != null || this.sentCraftingOptionsFiltered) {
+                    this.sendCraftingOptionsToClient(channel, channeledCraftingOptionsFiltered, true, firstChannel);
+                }
+                this.sentCraftingOptionsFiltered = ingredientsFilter != null;
             }
 
             firstChannel = false;
@@ -341,6 +346,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientMaxQuantityPacket(this.getName().toString(), event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
         } else {
+            List<IngredientArrayList<T, M>> chunks = Lists.newArrayList();
             IngredientArrayList<T, M> buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
                     GeneralConfig.terminalStoragePacketMaxInstances);
             for (T instance : event.getInstances()) {
@@ -349,19 +355,26 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 // If our buffer reaches its capacity,
                 // flush it, and create a new buffer
                 if (buffer.size() == GeneralConfig.terminalStoragePacketMaxInstances) {
-                    sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
-                            event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer, false
-                    ));
+                    chunks.add(buffer);
                     buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
                             GeneralConfig.terminalStoragePacketMaxInstances);
                 }
             }
-
             // Our buffer can contain some remaining instances, make sure to flush them as well.
             if (!buffer.isEmpty()) {
-                sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
-                        event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), buffer, false
-                ));
+                chunks.add(buffer);
+            }
+
+            for (IngredientArrayList<T, M> chunk : chunks) {
+                if (GeneralConfig.packetSerializationEnableMultithreading) {
+                    PACKET_SERIALIZER.execute(() -> sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
+                            event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), chunk, false
+                    )));
+                } else {
+                    sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
+                            event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), chunk, false
+                    ));
+                }
             }
         }
     }
@@ -373,6 +386,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientCraftingOptionsPacket(player.level().registryAccess(), this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel), player);
         } else {
+            List<Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>>> chunks = Lists.newArrayList();
             List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
 
             for (HandlerWrappedTerminalCraftingOption<T> instance : channeledCraftingOptions) {
@@ -381,15 +395,22 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 // If our buffer reaches its capacity,
                 // flush it, and create a new buffer
                 if (buffer.size() == GeneralConfig.terminalStoragePacketMaxRecipes) {
-                    sendCraftingOptionsToClient(channel, buffer, reset, firstChannel);
+                    chunks.add(Pair.of(reset, buffer));
                     reset = false; // Only reset in first packet
                     buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
                 }
             }
-
             // Our buffer can contain some remaining instances, make sure to flush them as well.
             if (!buffer.isEmpty()) {
-                sendCraftingOptionsToClient(channel, buffer, reset, firstChannel);
+                chunks.add(Pair.of(reset, buffer));
+            }
+
+            for (Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>> chunk : chunks) {
+                if (GeneralConfig.packetSerializationEnableMultithreading) {
+                    PACKET_SERIALIZER.execute(() -> sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel));
+                } else {
+                    sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel);
+                }
             }
         }
     }
