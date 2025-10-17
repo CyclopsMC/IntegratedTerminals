@@ -1,8 +1,18 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.6.11"></a>
+## [1.20.1-1.6.11](/compare/1.20.1-1.6.10...1.20.1-1.6.11) - 2025-10-17 15:12:19
+
+
+### Changed
+* Don't re-send crafting options for every storage change event
+  Related to CyclopsMC/IntegratedCrafting#156
+* Serialize terminal elements in off-thead
+  Related to CyclopsMC/IntegratedCrafting#156
+
 <a name="1.20.1-1.6.10"></a>
-## [1.20.1-1.6.10](/compare/1.20.1-1.6.9...1.20.1-1.6.10) - 2025-09-13 15:07:40
+## [1.20.1-1.6.10](/compare/1.20.1-1.6.9...1.20.1-1.6.10) - 2025-09-13 15:07:40 +0200
 
 
 ### Fixed
