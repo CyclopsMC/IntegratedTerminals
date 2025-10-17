@@ -53,6 +53,8 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
 
     @ConfigurablePropertyCommon(category = "core", comment = "If the crafting planners can work on separate thread.", isCommandable = true, configLocation = ModConfigLocation.SERVER)
     public static boolean craftingPlannerEnableMultithreading = false;
+    @ConfigurablePropertyCommon(category = "core", comment = "If client-directed packets should be serialized in a separate thread.", isCommandable = true, configLocation = ModConfigLocation.SERVER)
+    public static boolean packetSerializationEnableMultithreading = true;
 
     @ConfigurablePropertyCommon(category = "general", comment = "The base energy usage for the crafting terminal.", minimalValue = 0, configLocation = ModConfigLocation.SERVER)
     public static int terminalCraftingBaseConsumption = 1;
