@@ -1,8 +1,18 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.17"></a>
+## [1.21.1-1.6.17](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.16...1.21.1-1.6.17) - 2025-10-17 15:20:05
+
+
+### Changed
+* Don't re-send crafting options for every storage change event
+  Related to CyclopsMC/IntegratedCrafting#156
+* Serialize terminal elements in off-thead
+  Related to CyclopsMC/IntegratedCrafting#156
+
 <a name="1.21.1-1.6.16"></a>
-## [1.21.1-1.6.16](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.15...1.21.1-1.6.16) - 2025-09-13 15:08:23
+## [1.21.1-1.6.16](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.15...1.21.1-1.6.16) - 2025-09-13 15:08:23 +0200
 
 
 ### Fixed
