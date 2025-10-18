@@ -1009,9 +1009,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                         quantityString = ChatFormatting.YELLOW + quantityString;
                     }
 
+                    Minecraft.getInstance().getItemRenderer().blitOffset += 150;
                     slot.drawGuiContainerLayer(this, matrixStack, DrawLayer.BACKGROUND,
                             0, mouseX - this.leftPos - GuiHelpers.SLOT_SIZE_INNER / 4,
                             mouseY - this.topPos - GuiHelpers.SLOT_SIZE_INNER / 4, mouseX, mouseY, tab, getMenu().getSelectedChannel(), quantityString);
+                    Minecraft.getInstance().getItemRenderer().blitOffset -= 150;
                 }
             }
         });
