@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -17,6 +18,7 @@ import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
@@ -46,6 +48,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
     private boolean reset;
     @CodecField
     private boolean firstChannel;
+    @CodecField
+    private String ingredientComponentName;
 
     public TerminalStorageIngredientCraftingOptionsPacket() {
         super(ID);
@@ -56,7 +60,8 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
                                                               int channel,
                                                               Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions,
                                                               boolean reset,
-                                                              boolean firstChannel) {
+                                                              boolean firstChannel,
+                                                              IngredientComponent<?, ?> ingredientComponent) {
         super(ID);
         this.tabId = tabId;
         this.channel = channel;
@@ -68,43 +73,46 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
         this.data.put("craftingOptions", list);
         this.reset = reset;
         this.firstChannel = firstChannel;
+        this.ingredientComponentName = IngredientComponent.REGISTRY.getKey(ingredientComponent).toString();
     }
 
     @Override
     public boolean isAsync() {
-        return false;
+        return GeneralConfig.packetDeserializationEnableMultithreading;
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
-        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-
-
-            TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
-            IngredientComponent<?, ?> ingredientComponent = tab.getIngredientComponent();
-
-            ListTag list = this.data.getList("craftingOptions", Tag.TAG_COMPOUND);
-            List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
-            for (int i = 0; i < list.size(); i++) {
-                HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
-                        .deserialize(world.registryAccess(), ingredientComponent, list.getCompound(i));
-                craftingOptions.add(option);
-            }
-
-            tab.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
-
-            // Hard-coded crafting tab
-            // TODO: abstract this as "auxiliary" tabs
-            if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
-                TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
-                        .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
-                tabCrafting.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
-            }
-
-            container.refreshChannelStrings();
+        IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.get(ResourceLocation.parse(ingredientComponentName));
+        if (ingredientComponentName == null) {
+            throw new IllegalArgumentException("Could not find the ingredient component type " + ingredientComponentName);
         }
+        ListTag list = this.data.getList("craftingOptions", Tag.TAG_COMPOUND);
+        List<HandlerWrappedTerminalCraftingOption<?>> craftingOptions = Lists.newArrayListWithExpectedSize(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            HandlerWrappedTerminalCraftingOption<?> option = HandlerWrappedTerminalCraftingOption
+                    .deserialize(world.registryAccess(), ingredientComponent, list.getCompound(i));
+            craftingOptions.add(option);
+        }
+
+        // Run the following code in the render thread, since this packet runs in a different thread. (isAsync is true)
+        Minecraft.getInstance().execute(() -> {
+            if(player.containerMenu instanceof ContainerTerminalStorageBase container) {
+                TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
+                tab.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
+
+                // Hard-coded crafting tab
+                // TODO: abstract this as "auxiliary" tabs
+                if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
+                    TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
+                            .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
+                    tabCrafting.addCraftingOptions(channel, (List) craftingOptions, this.reset, this.firstChannel);
+                }
+
+                container.refreshChannelStrings();
+            }
+        });
     }
 
     @Override
