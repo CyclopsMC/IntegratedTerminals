@@ -56,6 +56,8 @@ public class GeneralConfig extends DummyConfig {
     public static boolean craftingPlannerEnableMultithreading = false;
     @ConfigurableProperty(category = "core", comment = "If client-directed packets should be serialized in a separate thread.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static boolean packetSerializationEnableMultithreading = true;
+    @ConfigurableProperty(category = "core", comment = "If client-received packets should be deserialized in a separate thread.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean packetDeserializationEnableMultithreading = true;
 
     @ConfigurableProperty(category = "general", comment = "The base energy usage for the crafting terminal.", minimalValue = 0, configLocation = ModConfig.Type.SERVER)
     public static int terminalCraftingBaseConsumption = 1;

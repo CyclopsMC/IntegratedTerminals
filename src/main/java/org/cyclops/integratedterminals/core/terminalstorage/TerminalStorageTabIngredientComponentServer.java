@@ -384,7 +384,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         // Only allow collection of a max given size to be sent in a packet
         if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxRecipes) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel), player);
+                    new TerminalStorageIngredientCraftingOptionsPacket(this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel, ingredientComponent), player);
         } else {
             List<Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>>> chunks = Lists.newArrayList();
             List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
