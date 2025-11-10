@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
 public class TerminalStorageTabIngredientComponentServer<T, M> implements ITerminalStorageTabServer,
         IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
 
-    private static final ExecutorService PACKET_SERIALIZER = Executors.newFixedThreadPool(1);
+    public static ExecutorService PACKET_SERIALIZER = Executors.newFixedThreadPool(1);
 
     private final ResourceLocation name;
     private final INetwork network;
