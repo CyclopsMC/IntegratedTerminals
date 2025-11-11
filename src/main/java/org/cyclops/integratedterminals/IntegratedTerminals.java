@@ -7,6 +7,8 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import org.apache.logging.log4j.Level;
 import org.cyclops.cyclopscore.config.ConfigHandler;
@@ -26,25 +28,22 @@ import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
 import org.cyclops.integratedterminals.component.DataComponentTerminalStorageInventoriesConfig;
 import org.cyclops.integratedterminals.component.DataComponentTerminalStorageStateConfig;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlerRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocationRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlanConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountItemConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountPartConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanItemConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanPartConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageItemConfig;
-import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePartConfig;
+import org.cyclops.integratedterminals.inventory.container.*;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortableConfig;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
 import org.cyclops.integratedterminals.part.PartTypes;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.cyclops.integratedterminals.proxy.CommonProxy;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The main mod class of this mod.
@@ -140,6 +139,23 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
     @Override
     protected ICommonProxy constructCommonProxy() {
         return new CommonProxy();
+    }
+
+    public void onServerStarting(ServerStartingEvent event) {
+        TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER = Executors.newFixedThreadPool(1);
+    }
+
+    public void onServerStopping(ServerStoppingEvent event) {
+        TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.shutdown();
+        try {
+            if (!TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.awaitTermination(5, TimeUnit.SECONDS)) {
+                TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.shutdownNow();
+            }
+        } catch (InterruptedException ex) {
+            TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+        TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER = null;
     }
 
     /**

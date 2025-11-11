@@ -1,8 +1,21 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.6.12"></a>
+## [1.20.1-1.6.12](/compare/1.20.1-1.6.11...1.20.1-1.6.12) - 2025-11-11 15:05:04
+
+
+### Fixed
+* Fix terminal serialization thread sometimes blocking shutdown, Closes #184
+* Deserialize terminal packets off-thread
+  Related to CyclopsMC/IntegratedCrafting#156
+* Fix dragged storage slots not rendering over other slots
+* Allow shift-clicking in terminal crafting grid, Closes #170
+* Don't re-send crafting options for every storage change event
+  Related to CyclopsMC/IntegratedCrafting#156
+
 <a name="1.20.1-1.6.11"></a>
-## [1.20.1-1.6.11](/compare/1.20.1-1.6.10...1.20.1-1.6.11) - 2025-10-17 15:12:19
+## [1.20.1-1.6.11](/compare/1.20.1-1.6.10...1.20.1-1.6.11) - 2025-10-17 15:12:19 +0200
 
 
 ### Changed
