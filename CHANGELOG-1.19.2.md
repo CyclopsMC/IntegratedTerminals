@@ -1,8 +1,16 @@
 # Changelog for Minecraft 1.19.2
 All notable changes to this project will be documented in this file.
 
+<a name="1.19.2-1.6.12"></a>
+## [1.19.2-1.6.12](/compare/1.19.2-1.6.11...1.19.2-1.6.12) - 2025-11-11 14:55:56
+
+
+### Fixed
+* Fix dragged storage slots not rendering over other slots
+* Allow shift-clicking in terminal crafting grid, Closes #170
+
 <a name="1.19.2-1.6.11"></a>
-## [1.19.2-1.6.11](/compare/1.19.2-1.6.10...1.19.2-1.6.11) - 2025-10-17 15:11:22
+## [1.19.2-1.6.11](/compare/1.19.2-1.6.10...1.19.2-1.6.11) - 2025-10-17 15:11:22 +0200
 
 
 ### Changed
