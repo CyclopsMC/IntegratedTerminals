@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -17,6 +18,7 @@ import org.cyclops.cyclopscore.ingredient.collection.IngredientCollections;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
@@ -63,29 +65,31 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
 
     @Override
     public boolean isAsync() {
-        return false;
+        return GeneralConfig.packetDeserializationEnableMultithreading;
     }
 
     @Override
     public void actionClient(Level world, Player player) {
-        if(player.containerMenu instanceof ContainerTerminalStorageBase) {
-            ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-            IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType").orElseThrow()];
-            IngredientArrayList ingredients = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(changeData, world.registryAccess(), (Function<ValueInput, IngredientArrayList>) IngredientCollections::deserialize);
+        IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType").orElseThrow()];
+        IngredientArrayList ingredients = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(changeData, world.registryAccess(), (Function<ValueInput, IngredientArrayList>) IngredientCollections::deserialize);
 
-            TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
-            tab.onChange(channel, changeType, ingredients, enabled);
+        // Run the following code in the render thread, since this packet runs in a different thread. (isAsync is true)
+        Minecraft.getInstance().execute(() -> {
+            if(player.containerMenu instanceof ContainerTerminalStorageBase container) {
+                TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
+                tab.onChange(channel, changeType, ingredients, enabled);
 
-            // Hard-coded crafting tab
-            // TODO: abstract this as "auxiliary" tabs
-            if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
-                TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
-                        .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
-                tabCrafting.onChange(channel, changeType, ingredients, enabled);
+                // Hard-coded crafting tab
+                // TODO: abstract this as "auxiliary" tabs
+                if (tabId.equals(IngredientComponents.ITEMSTACK.getName().toString())) {
+                    TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
+                            .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
+                    tabCrafting.onChange(channel, changeType, ingredients, enabled);
+                }
+
+                container.refreshChannelStrings();
             }
-
-            container.refreshChannelStrings();
-        }
+        });
     }
 
     @Override
