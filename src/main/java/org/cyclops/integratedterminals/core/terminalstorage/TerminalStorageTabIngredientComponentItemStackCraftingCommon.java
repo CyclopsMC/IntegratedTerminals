@@ -3,11 +3,11 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.collect.Lists;
 import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -139,15 +139,16 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.level().isClientSide) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            RecipeHolder<CraftingRecipe> recipeHolder = IModHelpers.get().getCraftingHelpers().findRecipeCached(RecipeType.CRAFTING, inventoryCrafting.asCraftInput(), player.level(), false).orElse(null);
-
-            if (recipeHolder != null && (recipeHolder.value().isSpecial()
-                    || !((ServerLevel) player.level()).getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
-                    || entityplayermp.getRecipeBook().contains(recipeHolder.id()))) {
-                inventoryCraftResult.setRecipeUsed(recipeHolder);
-                itemstack = recipeHolder.value().assemble(inventoryCrafting.asCraftInput(), player.level().registryAccess());
+            CraftingInput craftInput = inventoryCrafting.asCraftInput();
+            if (!craftInput.isEmpty()) {
+                RecipeHolder<CraftingRecipe> recipeHolder = IModHelpers.get().getCraftingHelpers().findRecipeCached(RecipeType.CRAFTING, inventoryCrafting.asCraftInput(), player.level(), false).orElse(null);
+                if (recipeHolder != null && (recipeHolder.value().isSpecial()
+                        || !entityplayermp.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
+                        || entityplayermp.getRecipeBook().contains(recipeHolder.id()))) {
+                    inventoryCraftResult.setRecipeUsed(recipeHolder);
+                    itemstack = recipeHolder.value().assemble(craftInput, player.level().registryAccess());
+                }
             }
-
             inventoryCraftResult.setItem(0, itemstack);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientItemStackCraftingGridSetResult(getName().toString(), itemstack),
