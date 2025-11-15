@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -143,15 +144,16 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
         if (!player.level().isClientSide) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
-            RecipeHolder<CraftingRecipe> recipeHolder = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, inventoryCrafting.asCraftInput(), player.level(), false).orElse(null);
-
-            if (recipeHolder != null && (recipeHolder.value().isSpecial()
-                    || !player.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
-                    || entityplayermp.getRecipeBook().contains(recipeHolder))) {
-                inventoryCraftResult.setRecipeUsed(recipeHolder);
-                itemstack = recipeHolder.value().assemble(inventoryCrafting.asCraftInput(), player.level().registryAccess());
+            CraftingInput craftInput = inventoryCrafting.asCraftInput();
+            if (!craftInput.isEmpty()) {
+                RecipeHolder<CraftingRecipe> recipeHolder = CraftingHelpers.findRecipeCached(RecipeType.CRAFTING, craftInput, player.level(), false).orElse(null);
+                if (recipeHolder != null && (recipeHolder.value().isSpecial()
+                        || !player.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
+                        || entityplayermp.getRecipeBook().contains(recipeHolder))) {
+                    inventoryCraftResult.setRecipeUsed(recipeHolder);
+                    itemstack = recipeHolder.value().assemble(craftInput, player.level().registryAccess());
+                }
             }
-
             inventoryCraftResult.setItem(0, itemstack);
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                     new TerminalStorageIngredientItemStackCraftingGridSetResult(getName().toString(), itemstack),
