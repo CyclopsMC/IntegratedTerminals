@@ -1,0 +1,7 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.25.1 or higher.
+
+Fixes:
+* Avoid recipe lookups for empty crafting grids
+  Closes CyclopsMC/IntegratedCrafting#164
+

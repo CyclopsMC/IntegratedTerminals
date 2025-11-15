@@ -1,8 +1,16 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.19"></a>
+## [1.21.1-1.6.19](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.18...1.21.1-1.6.19) - 2025-11-15 06:06:13
+
+
+### Fixed
+* Avoid recipe lookups for empty crafting grids
+  Closes CyclopsMC/IntegratedCrafting#164
+
 <a name="1.21.1-1.6.18"></a>
-## [1.21.1-1.6.18](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.17...1.21.1-1.6.18) - 2025-11-11 15:09:47
+## [1.21.1-1.6.18](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.17...1.21.1-1.6.18) - 2025-11-11 15:09:47 +0100
 
 
 ### Changed
