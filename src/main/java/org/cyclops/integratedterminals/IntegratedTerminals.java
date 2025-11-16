@@ -4,8 +4,6 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -27,7 +25,6 @@ import org.cyclops.integratedterminals.block.BlockChorusGlassConfig;
 import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.IngredientComponentTerminalStorageHandlerConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
-import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlerRegistry;
@@ -40,9 +37,6 @@ import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCr
 import org.cyclops.integratedterminals.part.PartTypes;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.cyclops.integratedterminals.proxy.CommonProxy;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The main mod class of this mod.
@@ -137,23 +131,6 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
     @Override
     protected ICommonProxy constructCommonProxy() {
         return new CommonProxy();
-    }
-
-    public void onServerStarting(ServerStartingEvent event) {
-        TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER = Executors.newFixedThreadPool(1);
-    }
-
-    public void onServerStopping(ServerStoppingEvent event) {
-        TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.shutdown();
-        try {
-            if (!TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.awaitTermination(5, TimeUnit.SECONDS)) {
-                TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.shutdownNow();
-            }
-        } catch (InterruptedException ex) {
-            TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
-        TerminalStorageTabIngredientComponentServer.PACKET_SERIALIZER = null;
     }
 
     /**
