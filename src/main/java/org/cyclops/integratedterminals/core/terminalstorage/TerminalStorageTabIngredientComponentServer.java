@@ -67,8 +67,7 @@ import java.util.stream.Collectors;
 public class TerminalStorageTabIngredientComponentServer<T, M> implements ITerminalStorageTabServer,
         IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
 
-    public static ExecutorService PACKET_SERIALIZER = Executors.newFixedThreadPool(1);
-
+    private final ExecutorService packetSerializer = Executors.newFixedThreadPool(1);
     private final ResourceLocation name;
     private final INetwork network;
     private final IngredientComponent<T, M> ingredientComponent;
@@ -165,6 +164,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
     @Override
     public void deInit() {
+        this.packetSerializer.shutdownNow();
         this.ingredientNetwork.removeObserver(this);
     }
 
@@ -367,7 +367,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
             for (IngredientArrayList<T, M> chunk : chunks) {
                 if (GeneralConfig.packetSerializationEnableMultithreading) {
-                    PACKET_SERIALIZER.execute(() -> sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
+                    packetSerializer.execute(() -> sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
                             event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), chunk, false
                     )));
                 } else {
@@ -407,7 +407,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
             for (Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>> chunk : chunks) {
                 if (GeneralConfig.packetSerializationEnableMultithreading) {
-                    PACKET_SERIALIZER.execute(() -> sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel));
+                    packetSerializer.execute(() -> sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel));
                 } else {
                     sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel);
                 }

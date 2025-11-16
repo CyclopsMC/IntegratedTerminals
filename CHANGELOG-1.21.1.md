@@ -1,8 +1,18 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.20"></a>
+## [1.21.1-1.6.20](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.19...1.21.1-1.6.20) - 2025-11-16 15:33:59
+
+
+### Fixed
+* Fix serialize threads not closing after terminal is closed
+  This makes sure that thread pools are localized per container, and
+  is closed once the container is closed.
+  Closes #185
+
 <a name="1.21.1-1.6.19"></a>
-## [1.21.1-1.6.19](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.18...1.21.1-1.6.19) - 2025-11-15 06:06:13
+## [1.21.1-1.6.19](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.18...1.21.1-1.6.19) - 2025-11-15 06:06:13 +0100
 
 
 ### Fixed
