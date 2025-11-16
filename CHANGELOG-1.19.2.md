@@ -1,8 +1,18 @@
 # Changelog for Minecraft 1.19.2
 All notable changes to this project will be documented in this file.
 
+<a name="1.19.2-1.6.13"></a>
+## [1.19.2-1.6.13](/compare/1.19.2-1.6.12...1.19.2-1.6.13) - 2025-11-16 15:22:42
+
+
+### Fixed
+* Fix serialize threads not closing after terminal is closed
+  This makes sure that thread pools are localized per container, and
+  is closed once the container is closed.
+  Closes #185
+
 <a name="1.19.2-1.6.12"></a>
-## [1.19.2-1.6.12](/compare/1.19.2-1.6.11...1.19.2-1.6.12) - 2025-11-11 14:55:56
+## [1.19.2-1.6.12](/compare/1.19.2-1.6.11...1.19.2-1.6.12) - 2025-11-11 14:55:56 +0100
 
 
 ### Fixed
