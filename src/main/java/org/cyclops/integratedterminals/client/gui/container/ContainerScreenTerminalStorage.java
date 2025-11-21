@@ -91,6 +91,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     private boolean clicked;
     protected boolean swallowNextCharacter = false;
 
+    private int lastMouseX;
+    private int lastMouseY;
+
     public ContainerScreenTerminalStorage(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
         container.selectedClientTabProvider = this;
@@ -382,7 +385,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         drawTabsForeground(guiGraphics, mouseX, mouseY);
         drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
-        drawActiveStorageSlotItem(guiGraphics, mouseX, mouseY);
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
 
         // Draw button tooltips
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
@@ -426,6 +430,14 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 .withStyle(ChatFormatting.GRAY));
             drawTooltip(lines, guiGraphics, mouseX, mouseY);
         }
+    }
+
+    @Override
+    protected void renderSlots(GuiGraphics guiGraphics) {
+        super.renderSlots(guiGraphics);
+
+        // Postpone this until after all slots are rendered, to ensure it is rendered in front of other slots.
+        drawActiveStorageSlotItem(guiGraphics, this.lastMouseX, this.lastMouseY);
     }
 
     @Override
