@@ -266,6 +266,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     protected void reApplyFilter(@Nullable IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
         boolean firstChannel = true;
         for (int channel : event == null ? this.unfilteredIngredientsViews.keySet() : Collections.singleton(event.getChannel())) {
+            long maxQuantity = this.ingredientNetwork.getChannel(channel).getMaxQuantity();
             Predicate<T> ingredientsFilter = getIngredientsFilter();
             if (ingredientsFilter != null || event == null) {
                 Iterator<T> newFilteredIngredients = getUnfilteredIngredientsView(channel)
@@ -276,22 +277,22 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 IngredientCollectionDiff<T, M> diffOut = filteredDiffManager.onChange(newFilteredIngredients);
                 if (!initialized || diffOut.hasAdditions()) {
                     this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                            IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()));
+                            IIngredientComponentStorageObservable.Change.ADDITION, false, diffOut.getAdditions()), maxQuantity);
                 }
                 if (diffOut.hasDeletions()) {
                     this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                            IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()));
+                            IIngredientComponentStorageObservable.Change.DELETION, diffOut.isCompletelyEmpty(), diffOut.getDeletions()), maxQuantity);
                 }
             } else {
                 // If the filter is null (=show all ingredients), forward the diff to the client as-is.
                 // This allows us to skip the expensive filteredDiffManager.onChange call.
                 if (!initialized || event.getDiff().hasAdditions()) {
                     this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                            IIngredientComponentStorageObservable.Change.ADDITION, false, event.getDiff().getAdditions()));
+                            IIngredientComponentStorageObservable.Change.ADDITION, false, event.getDiff().getAdditions()), maxQuantity);
                 }
                 if (event.getDiff().hasDeletions()) {
                     this.sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(channel, null,
-                            IIngredientComponentStorageObservable.Change.DELETION, event.getDiff().isCompletelyEmpty(), event.getDiff().getDeletions()));
+                            IIngredientComponentStorageObservable.Change.DELETION, event.getDiff().isCompletelyEmpty(), event.getDiff().getDeletions()), maxQuantity);
                 }
 
                 // Also apply the diff to our diff manager
@@ -336,9 +337,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         initialized = true;
     }
 
-    protected void sendToClient(IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event) {
-        long maxQuantity = this.ingredientNetwork.getChannel(event.getChannel()).getMaxQuantity();
-
+    protected void sendToClient(IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event, long maxQuantity) {
         // Only allow ingredient collection of a max given size to be sent in a packet
         if (event.getInstances().size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
             IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
@@ -369,11 +368,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                 if (GeneralConfig.packetSerializationEnableMultithreading) {
                     packetSerializer.execute(() -> sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
                             event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), chunk
-                    )));
+                    ), maxQuantity));
                 } else {
                     sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
                             event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), chunk
-                    ));
+                    ), maxQuantity);
                 }
             }
         }

@@ -1,8 +1,17 @@
 # Changelog for Minecraft 1.19.2
 All notable changes to this project will be documented in this file.
 
+<a name="1.19.2-1.6.14"></a>
+## [1.19.2-1.6.14](/compare/1.19.2-1.6.13...1.19.2-1.6.14) - 2025-11-24 16:49:25
+
+
+### Fixed
+* Fix rare deadlock when opening terminal
+
+Closes CyclopsMC/IntegratedDynamics#1572
+
 <a name="1.19.2-1.6.13"></a>
-## [1.19.2-1.6.13](/compare/1.19.2-1.6.12...1.19.2-1.6.13) - 2025-11-16 15:22:42
+## [1.19.2-1.6.13](/compare/1.19.2-1.6.12...1.19.2-1.6.13) - 2025-11-16 15:22:42 +0100
 
 
 ### Fixed
