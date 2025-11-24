@@ -1,8 +1,17 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.21"></a>
+## [1.21.1-1.6.21](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.20...1.21.1-1.6.21) - 2025-11-24 16:52:10
+
+
+### Fixed
+* Fix rare deadlock when opening terminal
+
+Closes CyclopsMC/IntegratedDynamics#1572
+
 <a name="1.21.1-1.6.20"></a>
-## [1.21.1-1.6.20](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.19...1.21.1-1.6.20) - 2025-11-16 15:33:59
+## [1.21.1-1.6.20](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.19...1.21.1-1.6.20) - 2025-11-16 15:33:59 +0100
 
 
 ### Fixed
