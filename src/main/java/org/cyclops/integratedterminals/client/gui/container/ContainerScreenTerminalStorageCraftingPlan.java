@@ -2,6 +2,8 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -123,13 +125,13 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    public boolean keyPressed(int typedChar, int keyCode, int modifiers) {
+    public boolean keyPressed(KeyEvent evt) {
         if (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()
-                && (typedChar == GLFW.GLFW_KEY_ENTER || typedChar == GLFW.GLFW_KEY_KP_ENTER)) {
-            buttonConfirm.onPress();
+                && (evt.key() == GLFW.GLFW_KEY_ENTER || evt.key() == GLFW.GLFW_KEY_KP_ENTER)) {
+            buttonConfirm.onPress(evt);
             return true;
         }
-        return super.keyPressed(typedChar, keyCode, modifiers);
+        return super.keyPressed(evt);
     }
 
     private void returnToTerminalStorage() {
@@ -181,13 +183,13 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
+    public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
         if (this.guiCraftingPlan != null) {
-            return guiCraftingPlan.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+            return guiCraftingPlan.mouseDragged(mouse, mouseXPrev, mouseYPrev);
         } else if (this.guiCraftingPlanFlat != null) {
-            return guiCraftingPlanFlat.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+            return guiCraftingPlanFlat.mouseDragged(mouse, mouseXPrev, mouseYPrev);
         }
-        return super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     @Override

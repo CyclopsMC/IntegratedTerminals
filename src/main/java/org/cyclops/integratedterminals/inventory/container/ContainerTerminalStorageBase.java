@@ -282,7 +282,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     @Override
     public ItemStack quickMoveStack(Player player, int slotID) {
         // Handle any (modded) client-side quick move controls
-        if(player.level().isClientSide) {
+        if(player.level().isClientSide()) {
             Optional<ITerminalStorageTabClient<?>> tabOptional = this.selectedClientTabProvider.getSelectedClientTab();
             if(tabOptional.isPresent() && !tabOptional.get().isQuickMovePrevented(slotID)) {
                 tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
@@ -310,7 +310,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     public void setSelectedTab(@Nullable String selectedTab) {
         disableSlots(getSelectedTab());
 
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             ITerminalStorageTabClient previousTab = getTabClient(getSelectedTab());
             if (previousTab != null) {
                 previousTab.onDeselect(getSelectedChannel());

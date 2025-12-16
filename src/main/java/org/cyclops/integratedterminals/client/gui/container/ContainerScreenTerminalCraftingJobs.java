@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.client.gui.container;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -189,20 +190,20 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-        HandlerWrappedTerminalCraftingPlan plan = getHoveredPlan(mouseX, mouseY);
+    public boolean mouseClicked(MouseButtonEvent mouse, boolean isDoubleClick) {
+        HandlerWrappedTerminalCraftingPlan plan = getHoveredPlan(mouse.x(), mouse.y());
         if (plan != null) {
             PartPos pos = getMenu().getTarget().get().getCenter();
             OpenCraftingJobsPlanGuiPacket.send(pos.getPos().getBlockPos(), pos.getSide(), getMenu().getChannel(), plan);
             return true;
         }
 
-        return super.mouseClicked(mouseX, mouseY, mouseButton);
+        return super.mouseClicked(mouse, isDoubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
-        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+    public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
+        return this.getFocused() != null && this.isDragging() && mouse.button() == 0 && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {

@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.integratedterminals.IntegratedTerminals;
@@ -34,7 +35,7 @@ public class TerminalButtonItemStackCraftingGridBalanceClient<T>
     @Override
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
                         TerminalStorageTabIngredientComponentItemStackCraftingCommon commonTab, ButtonImage guiButton,
-                        int channel, int mouseButton) {
+                        int channel, MouseButtonEvent mouse, boolean isDoubleClick) {
         IntegratedTerminals._instance.getPacketHandler().sendToServer(
                 new TerminalStorageIngredientItemStackCraftingGridBalance(commonTab.getName().toString()));
     }

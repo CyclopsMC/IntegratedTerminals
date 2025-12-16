@@ -5,6 +5,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -112,20 +115,20 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     }
 
     @Override
-    public boolean charTyped(char typedChar, int keyCode) {
-        return this.numberField.charTyped(typedChar, keyCode) || super.charTyped(typedChar, keyCode);
+    public boolean charTyped(CharacterEvent evt) {
+        return this.numberField.charTyped(evt) || super.charTyped(evt);
     }
 
     @Override
-    public boolean keyPressed(int typedChar, int keyCode, int modifiers) {
-        if (typedChar == GLFW.GLFW_KEY_ESCAPE) {
+    public boolean keyPressed(KeyEvent evt) {
+        if (evt.key() == GLFW.GLFW_KEY_ESCAPE) {
             returnToTerminalStorage();
             return true;
-        } else if (typedChar == GLFW.GLFW_KEY_ENTER || typedChar == GLFW.GLFW_KEY_KP_ENTER) {
+        } else if (evt.key() == GLFW.GLFW_KEY_ENTER || evt.key() == GLFW.GLFW_KEY_KP_ENTER) {
             calculateCraftingJob(getMenu().getPlayerIInventory().player.registryAccess());
             return true;
         }
-        return this.numberField.keyPressed(typedChar, keyCode, modifiers) || super.keyPressed(typedChar, keyCode, modifiers);
+        return this.numberField.keyPressed(evt) || super.keyPressed(evt);
     }
 
     private void returnToTerminalStorage() {
@@ -191,8 +194,8 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
-        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+    public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
+        return this.getFocused() != null && this.isDragging() && mouse.button() == 0 && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {

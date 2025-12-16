@@ -8,7 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.wrapper.PlayerInvWrapper;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
 import org.cyclops.commoncapabilities.api.capability.itemhandler.ItemMatch;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
@@ -48,7 +48,7 @@ public class SlotCraftingAutoRefill extends ResultSlot {
         }
 
         TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = tabCommon.getAutoRefill();
-        if (!thePlayer.level().isClientSide && autoRefill != TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.DISABLED) {
+        if (!thePlayer.level().isClientSide() && autoRefill != TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.DISABLED) {
             NonNullList<ItemStack> beforeCraft = inventoryToList(inventoryCrafting, true);
             super.onTake(thePlayer, stack);
             NonNullList<ItemStack> afterCraft = inventoryToList(inventoryCrafting, false);
@@ -57,7 +57,7 @@ public class SlotCraftingAutoRefill extends ResultSlot {
             // Attempt to get and re-add removed stacks from storage
             IIngredientComponentStorage<ItemStack, Integer> storage = tabServer.getIngredientNetwork()
                     .getChannel(this.container.getSelectedChannel());
-            IIngredientComponentStorage<ItemStack, Integer> player = new IngredientComponentStorageWrapperHandlerItemStack.ComponentStorageWrapper(IngredientComponent.ITEMSTACK, new PlayerInvWrapper(thePlayer.getInventory()));
+            IIngredientComponentStorage<ItemStack, Integer> player = new IngredientComponentStorageWrapperHandlerItemStack.ComponentStorageWrapper<>(IngredientComponent.ITEMSTACK, PlayerInventoryWrapper.of(thePlayer), IngredientComponent.ITEMSTACK_CONVERTER);
             for (int i = 0; i < removed.size(); i++) {
                 ItemStack removedStack = removed.get(i);
                 if (!removedStack.isEmpty()) {

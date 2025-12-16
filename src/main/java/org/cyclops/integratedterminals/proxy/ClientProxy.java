@@ -28,30 +28,12 @@ public class ClientProxy extends ClientProxyComponent {
 
     private static final String KEYBINDING_CATEGORY_NAME = "key.categories." + Reference.MOD_ID;
 
-    public static final KeyMapping TERMINAL_TAB_NEXT = new KeyMapping(
-            "key." + Reference.MOD_ID + ".terminal.tab.next",
-            KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
-            KEYBINDING_CATEGORY_NAME);
-    public static final KeyMapping TERMINAL_TAB_PREVIOUS = new KeyMapping(
-            "key." + Reference.MOD_ID + ".terminal.tab.previous",
-            KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
-            KEYBINDING_CATEGORY_NAME);
-    public static final KeyMapping TERMINAL_CRAFTINGGRID_CLEARPLAYER = new KeyMapping(
-            "key." + Reference.MOD_ID + ".terminal.craftinggrid.clearplayer",
-            KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
-            KEYBINDING_CATEGORY_NAME);
-    public static final KeyMapping TERMINAL_CRAFTINGGRID_CLEARSTORAGE = new KeyMapping(
-            "key." + Reference.MOD_ID + ".terminal.craftinggrid.clearstorage",
-            KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
-            KEYBINDING_CATEGORY_NAME);
-    public static final KeyMapping TERMINAL_CRAFTINGGRID_BALANCE = new KeyMapping(
-            "key." + Reference.MOD_ID + ".terminal.craftinggrid.balance",
-            KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B,
-            KEYBINDING_CATEGORY_NAME);
-    public static final KeyMapping TERMINAL_STORAGE_PORTABLE_OPEN = new KeyMapping(
-            "key." + Reference.MOD_ID + ".terminal.portable.open",
-            KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
-            KEYBINDING_CATEGORY_NAME);
+    public static KeyMapping TERMINAL_TAB_NEXT;
+    public static KeyMapping TERMINAL_TAB_PREVIOUS;
+    public static KeyMapping TERMINAL_CRAFTINGGRID_CLEARPLAYER;
+    public static KeyMapping TERMINAL_CRAFTINGGRID_CLEARSTORAGE;
+    public static KeyMapping TERMINAL_CRAFTINGGRID_BALANCE;
+    public static KeyMapping TERMINAL_STORAGE_PORTABLE_OPEN;
 
     public ClientProxy() {
         super(new CommonProxy());
@@ -64,12 +46,30 @@ public class ClientProxy extends ClientProxyComponent {
 
     @Override
     public void registerKeyBindings(IKeyRegistry keyRegistry, RegisterKeyMappingsEvent event) {
-        event.register(TERMINAL_TAB_NEXT);
-        event.register(TERMINAL_TAB_PREVIOUS);
-        event.register(TERMINAL_CRAFTINGGRID_CLEARPLAYER);
-        event.register(TERMINAL_CRAFTINGGRID_CLEARSTORAGE);
-        event.register(TERMINAL_CRAFTINGGRID_BALANCE);
-        event.register(TERMINAL_STORAGE_PORTABLE_OPEN);
+        event.register(TERMINAL_TAB_NEXT = new KeyMapping(
+                "key." + Reference.MOD_ID + ".terminal.tab.next",
+                KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
+                getMainKeyCategory()));
+        event.register(TERMINAL_TAB_PREVIOUS = new KeyMapping(
+                "key." + Reference.MOD_ID + ".terminal.tab.previous",
+                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
+                getMainKeyCategory()));
+        event.register(TERMINAL_CRAFTINGGRID_CLEARPLAYER = new KeyMapping(
+                "key." + Reference.MOD_ID + ".terminal.craftinggrid.clearplayer",
+                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
+                getMainKeyCategory()));
+        event.register(TERMINAL_CRAFTINGGRID_CLEARSTORAGE = new KeyMapping(
+                "key." + Reference.MOD_ID + ".terminal.craftinggrid.clearstorage",
+                KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
+                getMainKeyCategory()));
+        event.register(TERMINAL_CRAFTINGGRID_BALANCE = new KeyMapping(
+                "key." + Reference.MOD_ID + ".terminal.craftinggrid.balance",
+                KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B,
+                getMainKeyCategory()));
+        event.register(TERMINAL_STORAGE_PORTABLE_OPEN = new KeyMapping(
+                "key." + Reference.MOD_ID + ".terminal.portable.open",
+                KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
+                getMainKeyCategory()));
 
         keyRegistry.addKeyHandler(TERMINAL_STORAGE_PORTABLE_OPEN, (kb) -> {
             LocalPlayer player = Minecraft.getInstance().player;

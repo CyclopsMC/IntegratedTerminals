@@ -65,7 +65,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         super.broadcastChanges();
 
         // Calculate crafting plan on server
-        if (!player.level().isClientSide && !calculatedCraftingPlan) {
+        if (!player.level().isClientSide() && !calculatedCraftingPlan) {
             this.calculatedCraftingPlan = true;
             updateCraftingPlan();
         }

@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
@@ -32,8 +33,8 @@ public class TerminalButtonFilterCraftingClient<T> implements ITerminalButtonCli
     @Override
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
                         TerminalStorageTabIngredientComponentCommon<T, ?> commomTab, ButtonImage guiButton,
-                        int channel, int mouseButton) {
-        this.button.active = mouseButton == 0 ? TerminalButtonFilterCrafting.FilterType.values()[(this.button.active.ordinal() + 1) % TerminalButtonFilterCrafting.FilterType.values().length] : TerminalButtonFilterCrafting.FilterType.ALL;
+                        int channel, MouseButtonEvent mouse, boolean isDoubleClick) {
+        this.button.active = mouse.button() == 0 ? TerminalButtonFilterCrafting.FilterType.values()[(this.button.active.ordinal() + 1) % TerminalButtonFilterCrafting.FilterType.values().length] : TerminalButtonFilterCrafting.FilterType.ALL;
 
         CompoundTag data = new CompoundTag();
         data.putInt("active", this.button.active.ordinal());

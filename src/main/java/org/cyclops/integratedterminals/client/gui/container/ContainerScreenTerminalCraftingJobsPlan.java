@@ -2,6 +2,8 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -136,12 +138,12 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    public boolean keyPressed(int typedChar, int keyCode, int modifiers) {
-        if (typedChar == GLFW.GLFW_KEY_ESCAPE) {
+    public boolean keyPressed(KeyEvent evt) {
+        if (evt.key() == GLFW.GLFW_KEY_ESCAPE) {
             returnToOverview();
             return true;
         } else {
-            return super.keyPressed(typedChar, keyCode, modifiers);
+            return super.keyPressed(evt);
         }
     }
 
@@ -203,13 +205,13 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
+    public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
         if (this.guiCraftingPlan != null) {
-            return guiCraftingPlan.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+            return guiCraftingPlan.mouseDragged(mouse, mouseXPrev, mouseYPrev);
         } else if (this.guiCraftingPlanFlat != null) {
-            return guiCraftingPlanFlat.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+            return guiCraftingPlanFlat.mouseDragged(mouse, mouseXPrev, mouseYPrev);
         }
-        return super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     @Override

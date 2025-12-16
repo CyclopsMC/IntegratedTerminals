@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.helper.IModHelpers;
@@ -33,7 +34,7 @@ public class TerminalButtonItemStackCraftingGridClearClient<T>
     @Override
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
                         TerminalStorageTabIngredientComponentItemStackCraftingCommon commomTab, ButtonImage guiButton,
-                        int channel, int mouseButton) {
+                        int channel, MouseButtonEvent mouse, boolean isDoubleClick) {
         boolean toStorage = !IModHelpers.get().getMinecraftClientHelpers().isShifted();
         TerminalButtonItemStackCraftingGridClear.clearGrid(commomTab, channel, toStorage);
     }

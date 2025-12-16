@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.item.ItemStack;
@@ -33,7 +34,7 @@ import java.util.List;
  * * {@link #drawGuiContainerBackgroundLayer(GuiGraphics, float, int, int)}
  * * {@link #drawGuiContainerForegroundLayer(GuiGraphics, int, int)}
  * * {@link #mouseScrolled(double, double, double, double)}}
- * * {@link #mouseDragged(double, double, int, double, double)}}
+ * * {@link #mouseDragged(MouseButtonEvent, double, double)}
  *
  * @author rubensworks
  */
@@ -230,12 +231,12 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double offsetX, double offsetY) {
-        return scrollBar.mouseDragged(mouseX, mouseY, mouseButton, offsetX, offsetY);
+    public boolean mouseDragged(MouseButtonEvent mouse, double offsetX, double offsetY) {
+        return scrollBar.mouseDragged(mouse, offsetX, offsetY);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseClicked(MouseButtonEvent mouse, boolean isDoubleClick) {
         return false;
     }
 

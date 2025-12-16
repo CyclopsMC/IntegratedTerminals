@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
  * * {@link #drawGuiContainerBackgroundLayer(GuiGraphics, float, int, int)}
  * * {@link #drawGuiContainerForegroundLayer(GuiGraphics, int, int)}
  * * {@link #mouseScrolled(double, double, double, double)}}
- * * {@link #mouseDragged(double, double, int, double, double)}}
+ * * {@link #mouseDragged(MouseButtonEvent, double, double)}
  *
  * @author rubensworks
  */
@@ -276,18 +277,18 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double offsetX, double offsetY) {
-        return scrollBar.mouseDragged(mouseX, mouseY, mouseButton, offsetX, offsetY);
+    public boolean mouseDragged(MouseButtonEvent mouse, double offsetX, double offsetY) {
+        return scrollBar.mouseDragged(mouse, offsetX, offsetY);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseClicked(MouseButtonEvent mouse, boolean isDoubleClick   ) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
             int x = this.guiLeft + this.getX() + getAbsoluteElementIndent(element);
             int y = this.guiTop + this.getY() + offsetY;
             offsetY += ELEMENT_HEIGHT_TOTAL;
-            if (IModHelpers.get().getRenderHelpers().isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point((int) mouseX, (int) mouseY))) {
+            if (IModHelpers.get().getRenderHelpers().isPointInRegion(new Rectangle(x, y, ELEMENT_WIDTH, ELEMENT_HEIGHT), new Point((int) mouse.x(), (int) mouse.y()))) {
                 Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 // Toggle children
                 for (Element child : element.getChildren()) {

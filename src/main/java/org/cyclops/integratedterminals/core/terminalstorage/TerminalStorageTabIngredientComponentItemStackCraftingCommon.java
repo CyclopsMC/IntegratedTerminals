@@ -136,7 +136,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
 
     public void updateCraftingResult(Player player, AbstractContainerMenu container,
                                      ITerminalStorageTabCommon.IVariableInventory variableInventory) {
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             ServerPlayer entityplayermp = (ServerPlayer)player;
             ItemStack itemstack = ItemStack.EMPTY;
             CraftingInput craftInput = inventoryCrafting.asCraftInput();

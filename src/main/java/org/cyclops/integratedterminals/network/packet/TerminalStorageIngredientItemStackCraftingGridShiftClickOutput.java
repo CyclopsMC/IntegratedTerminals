@@ -8,8 +8,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integratedterminals.Reference;
@@ -72,9 +73,11 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                 int craftedAmount = 0;
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
-                    if (!ItemHandlerHelper.insertItem(new PlayerMainInvWrapper(player.getInventory()),
-                            slotCrafting.getItem(), true).isEmpty()) {
-                        break;
+                    ItemStack insertItem = slotCrafting.getItem();
+                    try (var tx = Transaction.openRoot()) {
+                        if (PlayerInventoryWrapper.of(player).insert(ItemResource.of(insertItem), insertItem.getCount(), tx) != insertItem.getCount()) {
+                            break;
+                        }
                     }
 
                     // Break the loop if we are crafting something else

@@ -9,6 +9,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -524,24 +527,24 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseClicked(MouseButtonEvent mouse, boolean isDoubleClick) {
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         this.clicked = true;
 
         // Select a tab
-        if (mouseButton == 0
-                && mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
-                && mouseX > getGuiLeft() + TAB_OFFSET_X
-                && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
+        if (mouse.button() == 0
+                && mouse.y() < getGuiTop() + TAB_UNSELECTED_HEIGHT
+                && mouse.x() > getGuiLeft() + TAB_OFFSET_X
+                && mouse.x() <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
             // Save tab index
-            setTabByIndex((int) ((mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH));
+            setTabByIndex((int) ((mouse.x() - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH));
             playButtonClickSound();
 
             return true;
         }
 
         // Update channel when changing channel field
-        if (this.fieldChannel.mouseClicked(mouseX, mouseY, mouseButton)) {
+        if (this.fieldChannel.mouseClicked(mouse, isDoubleClick)) {
             int channel;
             try {
                 channel = Integer.parseInt(this.fieldChannel.getActiveElement());
@@ -566,17 +569,17 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
             // Start dragging over container slots when a storage slot is selected
             if (tab.getActiveSlotId() >= 0
-                    && (mouseButton == 0 || mouseButton == 1 || this.getMinecraft().options.keyPickItem.getKey().getValue() == mouseButton - 100)) {
+                    && (mouse.button() == 0 || mouse.button() == 1 || this.getMinecraft().options.keyPickItem.getKey().getValue() == mouse.button() - 100)) {
                 if (playerSlot != null && !this.terminalDragSplitting) {
                     this.terminalDragSplitting = true;
-                    this.terminalDragSplittingButton = mouseButton;
+                    this.terminalDragSplittingButton = mouse.button();
                     this.terminalDragSplittingSlots.clear();
 
-                    if (mouseButton == 0) {
+                    if (mouse.button() == 0) {
                         this.terminalDragMode = 0;
-                    } else if (mouseButton == 1) {
+                    } else if (mouse.button() == 1) {
                         this.terminalDragMode = 1;
-                    } else if (this.getMinecraft().options.keyPickItem.getKey().getValue() == mouseButton - 100) {
+                    } else if (this.getMinecraft().options.keyPickItem.getKey().getValue() == mouse.button() - 100) {
                         this.terminalDragMode = 2;
                     }
                     return true;
@@ -591,7 +594,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         // Click in search field
-        fieldSearch.mouseClicked(mouseX, mouseY, mouseButton);
+        fieldSearch.mouseClicked(mouse, isDoubleClick);
 
         // Handle buttons clicks
         tabOptional.ifPresent(tab -> {
@@ -603,8 +606,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int playerInventoryOffsetY = getPlayerInventoryOffsetY();
             for (ITerminalButton button : tab.getButtons()) {
                 Button guiButton = button.getClient().createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
-                if (isHovering(button.getX(0, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(0, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), guiButton.getWidth(), guiButton.getHeight(), mouseX, mouseY)) {
-                    button.getClient().onClick(tab, tabCommon, guiButton, getMenu().getSelectedChannel(), mouseButton);
+                if (isHovering(button.getX(0, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(0, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), guiButton.getWidth(), guiButton.getHeight(), mouse.x(), mouse.y())) {
+                    button.getClient().onClick(tab, tabCommon, guiButton, getMenu().getSelectedChannel(), mouse, isDoubleClick);
                     this.clicked = false; // To avoid grid slots being selected on mouse release
                     playButtonClickSound();
                     return;
@@ -615,7 +618,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
-        return super.mouseClicked(mouseX, mouseY, mouseButton);
+        return super.mouseClicked(mouse, isDoubleClick);
     }
 
     @Nullable
@@ -630,7 +633,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int mouseButton, double mouseXPrev, double mouseYPrev) {
+    public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
         if (getSelectedClientTab().map(tab -> {
             if (this.terminalDragSplitting & tab.getActiveSlotId() >= 0) {
                 Slot slot = this.getSlotUnderMouse();
@@ -646,7 +649,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }).orElse(false)) {
             return true;
         }
-        return this.getFocused() != null && this.isDragging() && mouseButton == 0 && this.getFocused().mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouseX, mouseY, mouseButton, mouseXPrev, mouseYPrev);
+        return this.getFocused() != null && this.isDragging() && mouse.button() == 0 && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     private void updateTerminalDragSplitting(ITerminalStorageTabClient<?> tab) {
@@ -664,13 +667,13 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int mouseButton) {
+    public boolean mouseReleased(MouseButtonEvent mouse) {
         // Validate dragging process
         if (this.terminalDragSplitting
-                && (this.terminalDragSplittingSlots.size() <= 1 || this.terminalDragSplittingButton != mouseButton)) {
+                && (this.terminalDragSplittingSlots.size() <= 1 || this.terminalDragSplittingButton != mouse.button())) {
             this.terminalDragSplitting = false;
             this.terminalDragSplittingSlots.clear();
-            if (this.terminalDragSplittingButton != mouseButton) {
+            if (this.terminalDragSplittingButton != mouse.button()) {
                 return true;
             }
         }
@@ -707,20 +710,20 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             this.clicked = false;
             Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
             if (tabOptional.isPresent()) {
-                int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+                int slot = getStorageSlotIndexAtPosition(mouse.x(), mouse.y());
                 Slot playerSlot = getSlotUnderMouse();
 
                 // Handle clicks on storage slots
-                boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, mouseButton);
-                boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
-                if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
+                boolean hasClickedOutside = this.hasClickedOutside(mouse.x(), mouse.y(), this.leftPos, this.topPos);
+                boolean hasClickedInStorage = this.hasClickedInStorage(mouse.x(), mouse.y());
+                if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouse.button(),
                         hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1, false)) {
                     return true;
                 }
             }
         }
 
-        return super.mouseReleased(mouseX, mouseY, mouseButton);
+        return super.mouseReleased(mouse);
     }
 
     @Override
@@ -732,7 +735,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             Slot playerSlot = getSlotUnderMouse();
 
             // Handle clicks on storage slots
-            boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, 0);
+            boolean hasClickedOutside = this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos);
             boolean hasClickedInStorage = this.hasClickedInStorage(mouseX, mouseY);
             if (tabOptional.get().handleScroll(getMenu(), getMenu().getSelectedChannel(), slot, delta,
                     hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1)) {
@@ -745,8 +748,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }).isPresent();
     }
 
-    protected boolean handleKeyCodeFirst(int keyCode, int scanCode) {
-        InputConstants.Key inputCode = InputConstants.getKey(keyCode, scanCode);
+    protected boolean handleKeyCodeFirst(KeyEvent evt) {
+        InputConstants.Key inputCode = InputConstants.getKey(evt);
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(inputCode)) {
             fieldSearch.setFocused(true);
             swallowNextCharacter = true;
@@ -769,8 +772,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return false;
     }
 
-    protected boolean handleKeyCodeLast(int keyCode, int scanCode) {
-        InputConstants.Key inputCode = InputConstants.getKey(keyCode, scanCode);
+    protected boolean handleKeyCodeLast(KeyEvent evt) {
+        InputConstants.Key inputCode = InputConstants.getKey(evt);
         if (ClientProxy.TERMINAL_CRAFTINGGRID_CLEARPLAYER.isActiveAndMatches(inputCode)) {
             clearCraftingGrid(false);
             playButtonClickSound();
@@ -788,42 +791,42 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    public boolean charTyped(char keyCode, int scanCode) {
+    public boolean charTyped(CharacterEvent evt) {
         if (swallowNextCharacter) {
             swallowNextCharacter = false;
             return true;
         }
-        if (handleKeyCodeFirst(keyCode, scanCode)) {
+        if (handleKeyCodeFirst(new KeyEvent(evt.codepoint(), 0, evt.modifiers()))) {
             return true;
         }
         if (fieldSearch.isFocused()) {
-            if (fieldSearch.charTyped(keyCode, scanCode)) {
+            if (fieldSearch.charTyped(evt)) {
                 getSelectedClientTab()
                         .ifPresent(tab -> tab.setInstanceFilter(getMenu().getSelectedChannel(), fieldSearch.getValue()));
             }
             return true;
         }
-        return handleKeyCodeLast(keyCode, scanCode) || super.charTyped(keyCode, scanCode);
+        return handleKeyCodeLast(new KeyEvent(evt.codepoint(), 0, evt.modifiers())) || super.charTyped(evt);
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode != GLFW.GLFW_KEY_ESCAPE) {
-            if (handleKeyCodeFirst(keyCode, scanCode)) {
+    public boolean keyPressed(KeyEvent evt) {
+        if (evt.key() != GLFW.GLFW_KEY_ESCAPE) {
+            if (handleKeyCodeFirst(evt)) {
                 return true;
             }
             if (fieldSearch.isFocused()) {
-                if (this.fieldSearch.keyPressed(keyCode, scanCode, modifiers)) {
+                if (this.fieldSearch.keyPressed(evt)) {
                     getSelectedClientTab()
                             .ifPresent(tab -> tab.setInstanceFilter(getMenu().getSelectedChannel(), fieldSearch.getValue()));
                 }
                 return true;
             }
-            if (handleKeyCodeLast(keyCode, scanCode)) {
+            if (handleKeyCodeLast(evt)) {
                 return true;
             }
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(evt);
     }
 
 

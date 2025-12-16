@@ -9,10 +9,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
+import org.cyclops.cyclopscore.capability.item.ItemStackResourceHandlerContainerSlot;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpersNeoForge;
 import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
@@ -65,21 +68,21 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
 
     @Override
     public boolean isInstance(ItemStack itemStack) {
-        return itemStack.getCapability(Capabilities.FluidHandler.ITEM) != null;
+        return itemStack.getCapability(Capabilities.Fluid.ITEM, ItemAccess.forStack(itemStack)) != null;
     }
 
     @Override
     public FluidStack getInstance(ItemStack itemStack) {
-        return Optional.ofNullable(itemStack.getCapability(Capabilities.FluidHandler.ITEM))
-                .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0) : FluidStack.EMPTY)
+        return Optional.ofNullable(itemStack.getCapability(Capabilities.Fluid.ITEM, ItemAccess.forStack(itemStack)))
+                .map(fluidHandler -> fluidHandler.size() > 0 ? fluidHandler.getResource(0).toStack(fluidHandler.getAmountAsInt(0)) : FluidStack.EMPTY)
                 .orElse(FluidStack.EMPTY);
     }
 
     @Override
     public long getMaxQuantity(ItemStack itemStack) {
-        return Optional.ofNullable(itemStack.getCapability(Capabilities.FluidHandler.ITEM))
-                .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getTankCapacity(0) : 0)
-                .orElse(0);
+        return Optional.ofNullable(itemStack.getCapability(Capabilities.Fluid.ITEM, ItemAccess.forStack(itemStack)))
+                .map(fluidHandler -> fluidHandler.size() > 0 ? fluidHandler.getAmountAsLong(0) : 0)
+                .orElse(0L);
     }
 
     @Override
@@ -102,8 +105,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     public FluidStack insertIntoContainer(IIngredientComponentStorage<FluidStack, Integer> storage,
                                           AbstractContainerMenu container, int containerSlot, FluidStack maxInstance,
                                           @Nullable Player player, boolean transferFullSelection) {
-        ItemStack stack = container.getSlot(containerSlot).getItem();
-        return Optional.ofNullable(stack.getCapability(Capabilities.FluidHandler.ITEM))
+        return Optional.ofNullable(ItemStackResourceHandlerContainerSlot.asItemAccess(container, containerSlot).getCapability(Capabilities.Fluid.ITEM))
                 .map(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                     FluidStack moved = FluidStack.EMPTY;
@@ -114,25 +116,23 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         // Ignore
                     }
 
-                    container.getSlot(containerSlot).set(fluidHandler.getContainer());
-                    container.broadcastChanges();
+                    container.broadcastChanges(); // TODO: can this be removed due to ItemAccess usage?
                     return moved;
                 })
                 .orElse(FluidStack.EMPTY);
     }
 
     protected IIngredientComponentStorage<FluidStack, Integer> getFluidStorage(IngredientComponent<FluidStack, Integer> component,
-                                                                               IFluidHandlerItem fluidHandler) {
+                                                                               ResourceHandler<FluidResource> fluidHandler) {
         return component
-                .getStorageWrapperHandler(Capabilities.FluidHandler.ITEM)
+                .getStorageWrapperHandler(Capabilities.Fluid.ITEM)
                 .wrapComponentStorage(fluidHandler);
     }
 
     @Override
     public void extractActiveStackFromPlayerInventory(IIngredientComponentStorage<FluidStack, Integer> storage,
                                                       AbstractContainerMenu container, Inventory playerInventory, long moveQuantityPlayerSlot) {
-        ItemStack playerStack = container.getCarried();
-        Optional.ofNullable(playerStack.getCapability(Capabilities.FluidHandler.ITEM))
+        Optional.ofNullable(ItemAccess.forPlayerCursor(playerInventory.player, container).getCapability(Capabilities.Fluid.ITEM))
                 .ifPresent(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                     try {
@@ -140,8 +140,6 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                     } catch (InconsistentIngredientInsertionException e) {
                         // Ignore
                     }
-
-                    container.setCarried(fluidHandler.getContainer());
                 });
     }
 
@@ -149,8 +147,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     public void extractMaxFromContainerSlot(IIngredientComponentStorage<FluidStack, Integer> storage, AbstractContainerMenu container, int containerSlot, Inventory playerInventory, int limit) {
         Slot slot = container.getSlot(containerSlot);
         if (slot.mayPickup(playerInventory.player)) {
-            ItemStack toMoveStack = slot.getItem();
-            Optional.ofNullable(toMoveStack.getCapability(Capabilities.FluidHandler.ITEM))
+            Optional.ofNullable(ItemStackResourceHandlerContainerSlot.asItemAccess(container, containerSlot).getCapability(Capabilities.Fluid.ITEM))
                     .ifPresent(fluidHandler -> {
                         IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                         try {
@@ -159,34 +156,34 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                             // Ignore
                         }
 
-                        container.getSlot(containerSlot).set(fluidHandler.getContainer());
-                        container.broadcastChanges();
+                        container.broadcastChanges(); // TODO: can this be removed due to ItemAccess usage?
                     });
         }
     }
 
     @Override
     public long getActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container) {
-        ItemStack toMoveStack = container.getCarried();
-        return Optional.ofNullable(toMoveStack.getCapability(Capabilities.FluidHandler.ITEM))
-                .map(fluidHandler -> fluidHandler.getTanks() > 0 ? fluidHandler.getFluidInTank(0).getAmount() : 0)
-                .orElse(0);
+        return Optional.ofNullable(ItemAccess.forPlayerCursor(playerInventory.player, container).getCapability(Capabilities.Fluid.ITEM))
+                .map(fluidHandler -> fluidHandler.size() > 0 ? fluidHandler.getAmountAsLong(0) : 0)
+                .orElse(0L);
     }
 
     @Override
     public void drainActivePlayerStackQuantity(Inventory playerInventory, AbstractContainerMenu container, long quantityIn) {
-        ItemStack toMoveStack = container.getCarried();
-        Optional.ofNullable(toMoveStack.getCapability(Capabilities.FluidHandler.ITEM))
+        Optional.ofNullable(ItemAccess.forPlayerCursor(playerInventory.player, container).getCapability(Capabilities.Fluid.ITEM))
                 .ifPresent(fluidHandler -> {
                     long quantity = quantityIn;
                     while (quantity > 0) {
-                        int drained = fluidHandler.drain((int) quantity, IFluidHandler.FluidAction.EXECUTE).getAmount();
+                        int drained;
+                        try (var tx = Transaction.openRoot()) {
+                            drained = fluidHandler.extract(fluidHandler.getResource(0), (int) quantity, tx);
+                            tx.commit();
+                        }
                         if (drained <= 0) {
                             break;
                         }
                         quantity -= drained;
                     }
-                    container.setCarried(fluidHandler.getContainer());
                 });
     }
 

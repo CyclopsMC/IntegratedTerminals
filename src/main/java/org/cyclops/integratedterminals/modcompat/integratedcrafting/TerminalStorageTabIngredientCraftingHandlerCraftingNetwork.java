@@ -1,9 +1,9 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -374,9 +374,9 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         if (uuid != null) {
             try {
                 UUID uuidObject = UUID.fromString(uuid);
-                return ServerLifecycleHooks.getCurrentServer().getProfileCache()
+                return ServerLifecycleHooks.getCurrentServer().services().nameToIdCache()
                         .get(uuidObject)
-                        .map(GameProfile::getName)
+                        .map(NameAndId::name)
                         .orElse(null);
             } catch (IllegalArgumentException e) {}
         }

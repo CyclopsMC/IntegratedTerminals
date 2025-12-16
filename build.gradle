@@ -1,6 +1,6 @@
 plugins {
-	id 'net.neoforged.gradle.userdev' version '7.0.185'
-    id 'net.darkhax.curseforgegradle' version '1.1.26'
+    id 'net.neoforged.moddev' version '2.0.119'
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
 	id 'com.github.kt3k.coveralls' version '2.12.0'
     id 'com.diffplug.spotless' version '6.25.0'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
@@ -14,7 +14,6 @@ apply plugin: 'jacoco'
 // All jar files from this folder will be added automatically as runtime mod dependencies (inspired by AE2's build.gradle)
 def extraModsDir = "extra-mods"
 
-import net.neoforged.gradle.common.tasks.PotentiallySignJar
 import net.darkhax.curseforgegradle.Constants
 import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
@@ -121,8 +120,6 @@ repositories {
 }
 
 dependencies {
-    implementation "net.neoforged:neoforge:${project.neoforge_version}"
-
     // Add something like 'cyclopscore_version_local=0.1.0-DEV' to your secrets.properties if you want to use a custom local CyclopsCore version.
     if(secrets.cyclopscore_version_local) {
         implementation "org.cyclops.cyclopscore:cyclopscore-${project.minecraft_version}-neoforge:${secrets.cyclopscore_version_local}:deobf"
@@ -151,15 +148,16 @@ dependencies {
     }
 
     // Add something like 'integratedterminalscompat_version_local=0.1.0-DEV' to your secrets.properties if you want to use a custom local Integrated Tunnels Compat version.
-    if(secrets.integratedterminalscompat_version_local) {
-        shadow("org.cyclops.integratedterminalscompat:integratedterminalscompat-${project.minecraft_version}-neoforge:${secrets.integratedterminalscompat_version_local}") {
-            transitive = false
-        }
-    } else {
-        shadow("org.cyclops.integratedterminalscompat:integratedterminalscompat-${project.minecraft_version}-neoforge:${project.integratedterminalscompat_version}") {
-            transitive = false
-        }
-    }
+    // TODO: restore
+//    if(secrets.integratedterminalscompat_version_local) {
+//        shadow("org.cyclops.integratedterminalscompat:integratedterminalscompat-${project.minecraft_version}-neoforge:${secrets.integratedterminalscompat_version_local}") {
+//            transitive = false
+//        }
+//    } else {
+//        shadow("org.cyclops.integratedterminalscompat:integratedterminalscompat-${project.minecraft_version}-neoforge:${project.integratedterminalscompat_version}") {
+//            transitive = false
+//        }
+//    }
 
     if(secrets.commoncapabilities_version_local) {
         implementation ("org.cyclops.commoncapabilities:commoncapabilities-${project.minecraft_version}-neoforge:${secrets.commoncapabilities_version_local}:deobf") {
@@ -176,8 +174,6 @@ dependencies {
         transitive = false
     }
 
-	testImplementation "junit:junit:4.12"
-
     // Locally sourced extra mods for runtime (i.e. testing)
     for (extraModJar in fileTree(dir: extraModsDir, include: '*.jar')) {
         def basename = extraModJar.name.substring(0, extraModJar.name.length() - ".jar".length())
@@ -189,46 +185,44 @@ dependencies {
     }
 }
 
-minecraft {
-    accessTransformers {
-        file('src/main/resources/META-INF/accesstransformer.cfg')
-	}
-}
+neoForge {
+    version = "${neoforge_version}"
 
-subsystems {
     parchment {
-        minecraftVersion = "${project.parchment_minecraft_version}"
-        mappingsVersion = "${project.parchment_version}"
+        mappingsVersion = "${parchment_version}"
+        minecraftVersion = "${parchment_minecraft_version}"
     }
-}
 
-runs {
-    configureEach {
-		systemProperty 'forge.logging.markers', 'REGISTRIES'
-        systemProperty 'forge.logging.console.level', 'debug'
-        systemProperty 'forge.logging.console.level', 'debug'
-        modSource project.sourceSets.main
+    // Automatically enable neoforge AccessTransformers if the file exists
+    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers = [ at.absolutePath ]
+    }
 
-        dependencies {
-            runtime project.configurations.modLib
+    validateAccessTransformers = true
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+        gameTestServer {
+            type = "gameTestServer"
+        }
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            logLevel = org.slf4j.event.Level.DEBUG
+            systemProperty 'neoforge.enabledGameTestNamespaces', "cyclopscore,${mod_id}"
         }
     }
-	
-    client {
-        systemProperty 'neoforge.enabledGameTestNamespaces', "cyclopscore,${mod_id}"
-    }
 
-    server {
-        systemProperty 'neoforge.enabledGameTestNamespaces', "cyclopscore,${mod_id}"
-        argument '--nogui'
-    }
-
-    gameTestServer {
-        systemProperty 'neoforge.enabledGameTestNamespaces', "cyclopscore,${mod_id}"
-    }
-
-    clientData {
-        arguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
     }
 }
 
@@ -245,21 +239,6 @@ jar {
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-}
-
-task signJar(type: PotentiallySignJar, dependsOn: jar) {
-	dependsOn(tasks.jar)
-
-    onlyIf {
-        System.getenv().SIGN_KEYSTORE
-    }
-
-    keyStore = System.getenv().SIGN_KEYSTORE
-    alias = System.getenv().SIGN_ALIAS
-    storePass = System.getenv().SIGN_STOREPASS
-    keyPass = System.getenv().SIGN_KEYPASS
-    input = jar.archivePath
-    output = jar.archivePath
 }
 
 task deobfJar(type: Jar) {
@@ -428,14 +407,10 @@ jacocoTestReport {
 }
 
 // Also measure coverage for game tests
-tasks.whenTaskAdded { task ->
-    if (task.name.equals('runGameTestServer')) {
-        jacocoTestReport.dependsOn test, task
-        jacoco {
-            toolVersion = "0.8.12"
-            applyTo task
-        }
-    }
+jacocoTestReport.dependsOn test, runGameTestServer
+jacoco {
+    toolVersion = "0.8.12"
+    applyTo runGameTestServer
 }
 
 spotless {
