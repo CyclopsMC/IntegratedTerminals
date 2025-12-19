@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +20,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientItemStackCraftingGridSetResult extends PacketCodec<TerminalStorageIngredientItemStackCraftingGridSetResult> {
 
-    public static final Type<TerminalStorageIngredientItemStackCraftingGridSetResult> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_set_result"));
+    public static final Type<TerminalStorageIngredientItemStackCraftingGridSetResult> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_set_result"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientItemStackCraftingGridSetResult> CODEC = getCodec(TerminalStorageIngredientItemStackCraftingGridSetResult::new);
 
     @CodecField

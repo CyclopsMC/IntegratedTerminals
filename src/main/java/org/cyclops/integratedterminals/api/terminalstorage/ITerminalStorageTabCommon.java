@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.api.terminalstorage;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -25,7 +25,7 @@ public interface ITerminalStorageTabCommon {
     /**
      * @return The unique tab name, as inherited from {@link ITerminalStorageTab#getName()}.
      */
-    public ResourceLocation getName();
+    public Identifier getName();
 
     public default List<Pair<Slot, ISlotPositionCallback>> loadSlots(AbstractContainerMenu container, int startIndex, Player player,
                                                                      Optional<IVariableInventory> variableInventory, ValueDeseralizationContext valueDeseralizationContext) {

@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
@@ -62,7 +62,7 @@ public class CraftingJobGuiData {
         Direction side = Direction.values()[packetBuffer.readInt()];
         int channel = packetBuffer.readInt();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
-                ResourceLocation.parse(packetBuffer.readUtf(32767)));
+                Identifier.parse(packetBuffer.readUtf(32767)));
         Object craftingJob = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(packetBuffer.readNbt(), packetBuffer.registryAccess(), handler::deserializeCraftingJobId);
         return new CraftingJobGuiData(
                 pos,

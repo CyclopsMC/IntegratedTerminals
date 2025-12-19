@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -40,7 +40,7 @@ public class HandlerWrappedTerminalCraftingOption<T> {
     public static <T, M> HandlerWrappedTerminalCraftingOption<T> deserialize(ValueInput valueInput, IngredientComponent<T, M> ingredientComponent) {
         String handlerId = valueInput.getString("craftingOptionHandler").orElseThrow();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
-                .getHandler(ResourceLocation.parse(handlerId));
+                .getHandler(Identifier.parse(handlerId));
         ITerminalCraftingOption<T> craftingOption = handler.deserializeCraftingOption(valueInput, ingredientComponent);
         return new HandlerWrappedTerminalCraftingOption<>(handler, craftingOption);
     }

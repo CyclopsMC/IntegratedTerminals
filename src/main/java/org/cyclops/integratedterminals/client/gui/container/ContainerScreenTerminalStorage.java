@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
@@ -93,9 +93,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     private int terminalDragSplittingRemnant;
     private boolean clicked;
     protected boolean swallowNextCharacter = false;
-
-    private int lastMouseX;
-    private int lastMouseY;
 
     public ContainerScreenTerminalStorage(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
@@ -225,8 +222,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected ResourceLocation constructGuiTexture() {
-        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/part_terminal_storage.png");
+    protected Identifier constructGuiTexture() {
+        return Identifier.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/part_terminal_storage.png");
     }
 
     public int getGridXSize() {
@@ -358,7 +355,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         getSelectedClientTab().ifPresent(tab -> tab.onTabBackgroundRender(this, guiGraphics, f, mouseX, mouseY));
     }
 
-    public static void blitRescalable(GuiGraphics guiGraphics, ResourceLocation texture, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight, int realWidth, int realHeight, int color) {
+    public static void blitRescalable(GuiGraphics guiGraphics, Identifier texture, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight, int realWidth, int realHeight, int color) {
         guiGraphics.innerBlit(
                 RenderPipelines.GUI_TEXTURED,
                 texture,
@@ -388,8 +385,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         drawTabsForeground(guiGraphics, mouseX, mouseY);
         drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
-        this.lastMouseX = mouseX;
-        this.lastMouseY = mouseY;
 
         // Draw button tooltips
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
@@ -436,20 +431,20 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected void renderSlots(GuiGraphics guiGraphics) {
-        super.renderSlots(guiGraphics);
+    protected void renderSlots(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderSlots(guiGraphics, mouseX, mouseY);
 
         // Postpone this until after all slots are rendered, to ensure it is rendered in front of other slots.
-        drawActiveStorageSlotItem(guiGraphics, this.lastMouseX, this.lastMouseY);
+        drawActiveStorageSlotItem(guiGraphics, mouseX, mouseY);
     }
 
     @Override
     protected void drawCurrentScreen(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
 
-        ResourceLocation oldTexture = this.texture;
+        Identifier oldTexture = this.texture;
         getSelectedClientTab().ifPresent(tab -> {
-            ResourceLocation texture = tab.getBackgroundTexture();
+            Identifier texture = tab.getBackgroundTexture();
             if (texture != null) {
                 this.texture = texture;
             }

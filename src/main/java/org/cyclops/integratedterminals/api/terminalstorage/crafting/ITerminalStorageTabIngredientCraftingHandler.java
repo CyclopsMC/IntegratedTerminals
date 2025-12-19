@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -31,7 +31,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
     /**
      * @return The unique id of this handler.
      */
-    public ResourceLocation getId();
+    public Identifier getId();
 
     /**
      * @param tab An ingredient tab.

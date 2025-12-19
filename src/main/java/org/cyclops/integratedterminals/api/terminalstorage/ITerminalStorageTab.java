@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
@@ -16,7 +16,7 @@ public interface ITerminalStorageTab {
     /**
      * @return The unique name of this tab.
      */
-    public ResourceLocation getName();
+    public Identifier getName();
 
     /**
      * @param container The container in which the tab is about to be created.

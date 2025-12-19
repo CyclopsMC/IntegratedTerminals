@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
@@ -14,7 +14,7 @@ import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngred
 public class TerminalStorageTabIngredientComponentItemStackCraftingServer
         extends TerminalStorageTabIngredientComponentServer<ItemStack, Integer> {
 
-    public TerminalStorageTabIngredientComponentItemStackCraftingServer(ResourceLocation name, INetwork network, IngredientComponent<ItemStack, Integer> ingredientComponent,
+    public TerminalStorageTabIngredientComponentItemStackCraftingServer(Identifier name, INetwork network, IngredientComponent<ItemStack, Integer> ingredientComponent,
                                                                         IPositionedAddonsNetworkIngredients<ItemStack, Integer> ingredientNetwork,
                                                                         ServerPlayer player) {
         super(name, network, ingredientComponent, ingredientNetwork, player);

@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultSlot;
@@ -25,7 +25,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput extends PacketCodec<TerminalStorageIngredientItemStackCraftingGridShiftClickOutput> {
 
-    public static final Type<TerminalStorageIngredientItemStackCraftingGridShiftClickOutput> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_shift_click_output"));
+    public static final Type<TerminalStorageIngredientItemStackCraftingGridShiftClickOutput> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_shift_click_output"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientItemStackCraftingGridShiftClickOutput> CODEC = getCodec(TerminalStorageIngredientItemStackCraftingGridShiftClickOutput::new);
 
     @CodecField

@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.network.packet;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
@@ -66,14 +66,14 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     @Override
     public void encode(RegistryFriendlyByteBuf output) {
         super.encode(output);
-        output.writeResourceLocation(location.getName());
+        output.writeIdentifier(location.getName());
         location.writeToPacketBuffer(output, locationInstance);
     }
 
     @Override
     public void decode(RegistryFriendlyByteBuf input) {
         super.decode(input);
-        this.location = (ITerminalStorageLocation<L>) TerminalStorageLocations.REGISTRY.getLocation(input.readResourceLocation());
+        this.location = (ITerminalStorageLocation<L>) TerminalStorageLocations.REGISTRY.getLocation(input.readIdentifier());
         this.locationInstance = this.location.readFromPacketBuffer(input);
     }
 
@@ -106,7 +106,7 @@ public abstract class TerminalStorageIngredientCraftingOptionDataPacketAbstract<
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
-        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(ingredientComponent));
+        IngredientComponent<?, ?> component = IngredientComponent.REGISTRY.getValue(Identifier.parse(ingredientComponent));
         if (component == null) {
             throw new IllegalArgumentException("Could not find the ingredient component type " + ingredientComponent);
         }

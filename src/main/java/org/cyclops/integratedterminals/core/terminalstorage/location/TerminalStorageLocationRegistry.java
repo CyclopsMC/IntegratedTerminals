@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage.location;
 
 import com.google.common.collect.Maps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocationRegistry;
 
@@ -34,7 +34,7 @@ public class TerminalStorageLocationRegistry implements ITerminalStorageLocation
 
     @Nullable
     @Override
-    public ITerminalStorageLocation<?> getLocation(ResourceLocation name) {
+    public ITerminalStorageLocation<?> getLocation(Identifier name) {
         return locations.get(name.toString());
     }
 

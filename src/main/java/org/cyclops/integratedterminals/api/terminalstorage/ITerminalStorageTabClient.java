@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.api.terminalstorage;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -40,13 +40,13 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
     /**
      * @return The unique tab name, as inherited from {@link ITerminalStorageTab#getName()}.
      */
-    public ResourceLocation getName();
+    public Identifier getName();
 
     /**
      * @return The tab name that will be used to store {@link TerminalStorageState} settings inside a tab.
      * This can be used to modify in what tab certain settings are stored.
      */
-    public default ResourceLocation getTabSettingsName() {
+    public default Identifier getTabSettingsName() {
         return getName();
     }
 
@@ -213,7 +213,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @return An optional alternative background texture that should be used when rendering the gui of the tab.
      */
     @Nullable
-    public default ResourceLocation getBackgroundTexture() {
+    public default Identifier getBackgroundTexture() {
         return null;
     }
 

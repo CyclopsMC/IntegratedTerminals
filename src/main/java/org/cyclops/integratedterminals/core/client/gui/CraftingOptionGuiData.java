@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.client.gui;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.ValueInput;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.IModHelpers;
@@ -103,12 +103,12 @@ public class CraftingOptionGuiData<T, M, L> {
         if (craftingPlan != null) {
             packetBuffer.writeNbt(HandlerWrappedTerminalCraftingPlan.serialize(packetBuffer.registryAccess(), craftingPlan));
         }
-        packetBuffer.writeResourceLocation(location.getName());
+        packetBuffer.writeIdentifier(location.getName());
         location.writeToPacketBuffer(packetBuffer, locationInstance);
     }
 
     public static CraftingOptionGuiData readFromPacketBuffer(RegistryFriendlyByteBuf packetBuffer) {
-        IngredientComponent component = IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(packetBuffer.readUtf(32767)));
+        IngredientComponent component = IngredientComponent.REGISTRY.getValue(Identifier.parse(packetBuffer.readUtf(32767)));
         String tabName = packetBuffer.readUtf(32767);
         int channel = packetBuffer.readInt();
         int amount = packetBuffer.readInt();
@@ -120,7 +120,7 @@ public class CraftingOptionGuiData<T, M, L> {
         if (packetBuffer.readBoolean()) {
             craftingPlan = HandlerWrappedTerminalCraftingPlan.deserialize(packetBuffer.registryAccess(), packetBuffer.readNbt());
         }
-        ITerminalStorageLocation<?> location = TerminalStorageLocations.REGISTRY.getLocation(packetBuffer.readResourceLocation());
+        ITerminalStorageLocation<?> location = TerminalStorageLocations.REGISTRY.getLocation(packetBuffer.readIdentifier());
         Object locationInstance = location.readFromPacketBuffer(packetBuffer);
         return new CraftingOptionGuiData(component, tabName, channel, craftingOption, amount, craftingPlan, location, locationInstance);
     }

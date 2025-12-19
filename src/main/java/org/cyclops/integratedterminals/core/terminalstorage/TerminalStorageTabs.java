@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -33,7 +33,7 @@ public class TerminalStorageTabs {
 
         // Add custom tabs
         IngredientComponent<ItemStack, Integer> ingredientComponentItemStack = (IngredientComponent<ItemStack, Integer>)
-                IngredientComponent.REGISTRY.getValue(ResourceLocation.parse("minecraft:itemstack"));
+                IngredientComponent.REGISTRY.getValue(Identifier.parse("minecraft:itemstack"));
         if (ingredientComponentItemStack != null
                 && ingredientComponentItemStack.getCapability(Capabilities.PositionedAddonsNetworkIngredientsHandler.INGREDIENT).isPresent()) {
             TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponentItemStackCrafting(ingredientComponentItemStack));

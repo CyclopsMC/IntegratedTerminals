@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.image;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.cyclopscore.client.gui.image.Image;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 
@@ -10,7 +10,7 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
  */
 public class Images {
 
-    public static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(IntegratedTerminals._instance.getModId(), "textures/gui/icons.png");
+    public static final Identifier ICONS = Identifier.fromNamespaceAndPath(IntegratedTerminals._instance.getModId(), "textures/gui/icons.png");
 
     public static final Image BUTTON_BACKGROUND_INACTIVE = new Image(ICONS, 0, 0, 18, 18);
     public static final Image BUTTON_BACKGROUND_ACTIVE = new Image(ICONS, 18, 0, 18, 18);

@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage.location;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.cyclopscore.init.IRegistry;
 
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ public interface ITerminalStorageLocationRegistry extends IRegistry {
      * @return The registered location or null.ø
      */
     @Nullable
-    public ITerminalStorageLocation<?> getLocation(ResourceLocation name);
+    public ITerminalStorageLocation<?> getLocation(Identifier name);
 
     /**
      * @return All registered locations.

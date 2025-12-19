@@ -5,7 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -38,7 +38,7 @@ import java.util.Optional;
  */
 public class TerminalStorageIngredientPartOpenPacket extends PacketCodec<TerminalStorageIngredientPartOpenPacket> {
 
-    public static final Type<TerminalStorageIngredientPartOpenPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_part_open"));
+    public static final Type<TerminalStorageIngredientPartOpenPacket> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_part_open"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientPartOpenPacket> CODEC = getCodec(TerminalStorageIngredientPartOpenPacket::new);
 
     @CodecField

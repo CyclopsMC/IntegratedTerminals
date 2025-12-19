@@ -6,7 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -42,7 +42,7 @@ import java.util.Optional;
  */
 public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsPlanGuiPacket> {
 
-    public static final Type<OpenCraftingJobsPlanGuiPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "open_crafting_jobs_plan_gui"));
+    public static final Type<OpenCraftingJobsPlanGuiPacket> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "open_crafting_jobs_plan_gui"));
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenCraftingJobsPlanGuiPacket> CODEC = getCodec(OpenCraftingJobsPlanGuiPacket::new);
 
     @CodecField
@@ -123,7 +123,7 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsP
 
     protected ITerminalStorageTabIngredientCraftingHandler getHandler() {
         return TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
-                ResourceLocation.parse(this.craftingPlanHandler));
+                Identifier.parse(this.craftingPlanHandler));
     }
 
     public static void send(BlockPos pos, Direction side,

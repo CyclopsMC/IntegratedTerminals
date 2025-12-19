@@ -5,7 +5,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -25,7 +25,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
  */
 public class CancelCraftingJobPacket extends PacketCodec<CancelCraftingJobPacket> {
 
-    public static final Type<CancelCraftingJobPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "cancel_crafting_job"));
+    public static final Type<CancelCraftingJobPacket> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "cancel_crafting_job"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CancelCraftingJobPacket> CODEC = getCodec(CancelCraftingJobPacket::new);
 
     @CodecField
@@ -74,7 +74,7 @@ public class CancelCraftingJobPacket extends PacketCodec<CancelCraftingJobPacket
 
     protected ITerminalStorageTabIngredientCraftingHandler getHandler() {
         return TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandler(
-                ResourceLocation.parse(this.craftingPlanHandler));
+                Identifier.parse(this.craftingPlanHandler));
     }
 
 }

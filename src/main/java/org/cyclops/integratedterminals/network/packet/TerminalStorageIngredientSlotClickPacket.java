@@ -5,7 +5,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
@@ -33,7 +33,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final Type<TerminalStorageIngredientSlotClickPacket<?>> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_slot_click"));
+    public static final Type<TerminalStorageIngredientSlotClickPacket<?>> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_slot_click"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientSlotClickPacket<?>> CODEC = (StreamCodec) getCodec(TerminalStorageIngredientSlotClickPacket::new);
 
     @CodecField
@@ -122,7 +122,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
     }
 
     public IngredientComponent<T, ?> getComponent() {
-        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(this.ingredientName));
+        IngredientComponent<T, ?> ingredientComponent = (IngredientComponent<T, ?>) IngredientComponent.REGISTRY.getValue(Identifier.parse(this.ingredientName));
         if (ingredientComponent == null) {
             throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
         }

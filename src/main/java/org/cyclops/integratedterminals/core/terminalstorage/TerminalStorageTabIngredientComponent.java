@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
@@ -29,7 +29,7 @@ public class TerminalStorageTabIngredientComponent<T, M> implements ITerminalSto
     }
 
     @Override
-    public ResourceLocation getName() {
+    public Identifier getName() {
         return ingredientComponent.getName();
     }
 

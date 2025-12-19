@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * A server-side terminal storage tab.
@@ -11,7 +11,7 @@ public interface ITerminalStorageTabServer {
     /**
      * @return The unique tab name, as inherited from {@link ITerminalStorageTab#getName()}.
      */
-    public ResourceLocation getName();
+    public Identifier getName();
 
     /**
      * Initializes the tab when the container was opened.

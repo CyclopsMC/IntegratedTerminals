@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -21,7 +21,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientItemStackCraftingGridSetAutoRefill extends PacketCodec<TerminalStorageIngredientItemStackCraftingGridSetAutoRefill> {
 
-    public static final Type<TerminalStorageIngredientItemStackCraftingGridSetAutoRefill> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_set_auto_refill"));
+    public static final Type<TerminalStorageIngredientItemStackCraftingGridSetAutoRefill> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_set_auto_refill"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientItemStackCraftingGridSetAutoRefill> CODEC = getCodec(TerminalStorageIngredientItemStackCraftingGridSetAutoRefill::new);
 
     @CodecField

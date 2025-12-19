@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
@@ -43,7 +43,7 @@ public class HandlerWrappedTerminalCraftingPlan {
     public static HandlerWrappedTerminalCraftingPlan deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag) {
         String handlerId = tag.getString("craftingPlanHandler").orElseThrow();
         ITerminalStorageTabIngredientCraftingHandler handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY
-                .getHandler(ResourceLocation.parse(handlerId));
+                .getHandler(Identifier.parse(handlerId));
         ITerminalCraftingPlanFlat craftingPlanFlat = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(tag.getCompound("flatPlan").orElseThrow(), lookupProvider, handler::deserializeCraftingPlanFlat);
 
         return new HandlerWrappedTerminalCraftingPlan(handler, craftingPlanFlat);

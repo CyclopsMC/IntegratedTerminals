@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -154,7 +154,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     protected void addInventoryAndOffHand(Inventory inventory) {
         EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-        ResourceLocation[] TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET};
+        Identifier[] TEXTURE_EMPTY_SLOTS = new Identifier[]{InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET};
 
         for(int k = 0; k < 4; ++k) {
             final EquipmentSlot equipmentslot = SLOT_IDS[k];
@@ -172,13 +172,13 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                     return !itemstack.isEmpty() && !p_39744_.isCreative() && EnchantmentHelper.has(itemstack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE) ? false : super.mayPickup(p_39744_);
                 }
 
-                public ResourceLocation getNoItemIcon() {
+                public Identifier getNoItemIcon() {
                     return TEXTURE_EMPTY_SLOTS[equipmentslot.getIndex()];
                 }
             });
         }
         this.addSlot(new Slot(inventory, 40, 2, 201) {
-            public ResourceLocation getNoItemIcon() {
+            public Identifier getNoItemIcon() {
                 return InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD;
             }
         });

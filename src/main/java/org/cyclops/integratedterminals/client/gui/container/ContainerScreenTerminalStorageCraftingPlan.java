@@ -6,7 +6,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
@@ -85,13 +85,13 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    protected ResourceLocation constructGuiTexture() {
-        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan.png");
+    protected Identifier constructGuiTexture() {
+        return Identifier.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan.png");
     }
 
     @Override
-    public ResourceLocation getGuiTexture() {
-        return this.guiCraftingPlanToggler.getCraftingPlanDisplayMode() == GuiCraftingPlanToggler.CraftingPlanDisplayMode.FLAT ? ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan_flat.png") : super.getGuiTexture();
+    public Identifier getGuiTexture() {
+        return this.guiCraftingPlanToggler.getCraftingPlanDisplayMode() == GuiCraftingPlanToggler.CraftingPlanDisplayMode.FLAT ? Identifier.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan_flat.png") : super.getGuiTexture();
     }
 
     @Override

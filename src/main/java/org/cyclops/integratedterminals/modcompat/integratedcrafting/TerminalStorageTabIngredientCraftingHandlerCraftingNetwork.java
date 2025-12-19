@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.level.storage.ValueInput;
@@ -37,7 +37,7 @@ import java.util.stream.StreamSupport;
 public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         implements ITerminalStorageTabIngredientCraftingHandler<TerminalCraftingOptionRecipeDefinition<?, ?>, Integer> {
 
-    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Reference.MOD_INTEGRATEDCRAFTING, "crafting_network");
+    private static final Identifier ID = Identifier.fromNamespaceAndPath(Reference.MOD_INTEGRATEDCRAFTING, "crafting_network");
 
     protected IRecipeIndex getRecipeIndex(INetwork network, int channel) {
         ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetworkChecked(network);
@@ -45,7 +45,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return ID;
     }
 

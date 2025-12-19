@@ -7,7 +7,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +41,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final Type<TerminalStorageIngredientCraftingOptionsPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_crafting_options"));
+    public static final Type<TerminalStorageIngredientCraftingOptionsPacket> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_crafting_options"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientCraftingOptionsPacket> CODEC = getCodec(TerminalStorageIngredientCraftingOptionsPacket::new);
 
     @CodecField
@@ -91,7 +91,7 @@ public class TerminalStorageIngredientCraftingOptionsPacket extends PacketCodec<
 
     @Override
     public void actionClient(Level world, Player player) {
-        IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(ingredientComponentName));
+        IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(Identifier.parse(ingredientComponentName));
         if (ingredientComponentName == null) {
             throw new IllegalArgumentException("Could not find the ingredient component type " + ingredientComponentName);
         }

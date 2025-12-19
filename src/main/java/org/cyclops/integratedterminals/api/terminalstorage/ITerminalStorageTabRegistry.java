@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.cyclopscore.init.IRegistry;
 
 import javax.annotation.Nullable;
@@ -26,7 +26,7 @@ public interface ITerminalStorageTabRegistry extends IRegistry {
      * @return The registered tab or null.
      */
     @Nullable
-    public ITerminalStorageTab getTab(ResourceLocation name);
+    public ITerminalStorageTab getTab(Identifier name);
 
     /**
      * @return All registered tabs.

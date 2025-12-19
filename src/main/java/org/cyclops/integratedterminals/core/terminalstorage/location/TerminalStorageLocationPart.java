@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage.location;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -33,8 +33,8 @@ import java.util.Optional;
 public class TerminalStorageLocationPart implements ITerminalStorageLocation<PartPos> {
 
     @Override
-    public ResourceLocation getName() {
-        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "part");
+    public Identifier getName() {
+        return Identifier.fromNamespaceAndPath(Reference.MOD_ID, "part");
     }
 
     @Override

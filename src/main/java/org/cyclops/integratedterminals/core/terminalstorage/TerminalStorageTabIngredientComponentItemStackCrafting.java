@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
@@ -24,20 +24,20 @@ import java.util.Optional;
  */
 public class TerminalStorageTabIngredientComponentItemStackCrafting implements ITerminalStorageTab {
 
-    public static ResourceLocation NAME;
+    public static Identifier NAME;
 
     private final IngredientComponent<ItemStack, Integer> ingredientComponent;
-    private final ResourceLocation name;
+    private final Identifier name;
 
     public TerminalStorageTabIngredientComponentItemStackCrafting(IngredientComponent<ItemStack, Integer> ingredientComponent) {
         this.ingredientComponent = ingredientComponent;
-        this.name = ResourceLocation.fromNamespaceAndPath(ingredientComponent.getName().getNamespace(),
+        this.name = Identifier.fromNamespaceAndPath(ingredientComponent.getName().getNamespace(),
                 ingredientComponent.getName().getPath() + "_crafting");
         TerminalStorageTabIngredientComponentItemStackCrafting.NAME = this.name;
     }
 
     @Override
-    public ResourceLocation getName() {
+    public Identifier getName() {
         return this.name;
     }
 

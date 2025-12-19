@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Maps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
 
@@ -34,7 +34,7 @@ public class TerminalStorageTabRegistry implements ITerminalStorageTabRegistry {
 
     @Nullable
     @Override
-    public ITerminalStorageTab getTab(ResourceLocation name) {
+    public ITerminalStorageTab getTab(Identifier name) {
         return tabs.get(name.toString());
     }
 

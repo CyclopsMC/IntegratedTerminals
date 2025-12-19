@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.cyclopscore.init.IRegistry;
 
 import javax.annotation.Nullable;
@@ -31,6 +31,6 @@ public interface ITerminalStorageTabIngredientCraftingHandlerRegistry extends IR
      * @return The registered handler or null.
      */
     @Nullable
-    public ITerminalStorageTabIngredientCraftingHandler getHandler(ResourceLocation id);
+    public ITerminalStorageTabIngredientCraftingHandler getHandler(Identifier id);
 
 }

@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.capability.ingredient.sorter;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
@@ -19,7 +19,7 @@ public class ItemStackIdSorter extends IngredientInstanceSorterAdapter<ItemStack
 
     protected String getItemStackId(ItemStack itemStack) {
         return Optional.ofNullable(BuiltInRegistries.ITEM.getKey(itemStack.getItem()))
-                .orElseGet(() -> ResourceLocation.parse(itemStack.getItem().getDescriptionId())).toString();
+                .orElseGet(() -> Identifier.parse(itemStack.getItem().getDescriptionId())).toString();
     }
 
     @Override

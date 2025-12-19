@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.network.packet;
 import com.google.common.collect.Lists;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -27,7 +27,7 @@ import java.util.List;
  */
 public class TerminalStorageIngredientItemStackCraftingGridBalance extends PacketCodec<TerminalStorageIngredientItemStackCraftingGridBalance> {
 
-    public static final Type<TerminalStorageIngredientItemStackCraftingGridBalance> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_balance"));
+    public static final Type<TerminalStorageIngredientItemStackCraftingGridBalance> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_itemstack_crafting_grid_balance"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientItemStackCraftingGridBalance> CODEC = getCodec(TerminalStorageIngredientItemStackCraftingGridBalance::new);
 
     @CodecField

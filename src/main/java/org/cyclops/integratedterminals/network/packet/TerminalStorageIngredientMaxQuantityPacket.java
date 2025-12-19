@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.network.packet;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -22,7 +22,7 @@ import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStor
  */
 public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec<TerminalStorageIngredientMaxQuantityPacket> {
 
-    public static final Type<TerminalStorageIngredientMaxQuantityPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_max_quantity"));
+    public static final Type<TerminalStorageIngredientMaxQuantityPacket> ID = new Type<>(Identifier.fromNamespaceAndPath(Reference.MOD_ID, "terminal_storage_ingredient_max_quantity"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalStorageIngredientMaxQuantityPacket> CODEC = getCodec(TerminalStorageIngredientMaxQuantityPacket::new);
 
     @CodecField
@@ -56,7 +56,7 @@ public class TerminalStorageIngredientMaxQuantityPacket extends PacketCodec<Term
     public void actionClient(Level world, Player player) {
         if(player.containerMenu instanceof ContainerTerminalStorageBase) {
             ContainerTerminalStorageBase container = ((ContainerTerminalStorageBase) player.containerMenu);
-            IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(ResourceLocation.parse(this.ingredientName));
+            IngredientComponent<?, ?> ingredientComponent = IngredientComponent.REGISTRY.getValue(Identifier.parse(this.ingredientName));
             if (ingredientComponent == null) {
                 throw new IllegalArgumentException("No ingredient component with the given name was found: " + ingredientName);
             }

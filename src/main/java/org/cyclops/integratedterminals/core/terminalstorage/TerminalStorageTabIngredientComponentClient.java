@@ -9,7 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -70,7 +70,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         NeoForge.EVENT_BUS.register(TerminalStorageTabIngredientComponentClient.class);
     }
 
-    private final ResourceLocation name;
+    private final Identifier name;
     protected final IngredientComponent<T, M> ingredientComponent;
     private final IIngredientComponentTerminalStorageHandler<T, M> ingredientComponentViewHandler;
     private final ItemStack icon;
@@ -106,7 +106,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
     }
 
-    public TerminalStorageTabIngredientComponentClient(ContainerTerminalStorageBase container, ResourceLocation name,
+    public TerminalStorageTabIngredientComponentClient(ContainerTerminalStorageBase container, Identifier name,
                                                        IngredientComponent<?, ?> ingredientComponent) {
         this.name = name;
         this.ingredientComponent = (IngredientComponent<T, M>) ingredientComponent;
@@ -171,7 +171,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public ResourceLocation getName() {
+    public Identifier getName() {
         return this.name;
     }
 

@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
@@ -11,7 +11,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.helper.IModHelpers;
@@ -42,12 +42,12 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
     private TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType autoRefill = TerminalButtonItemStackCraftingGridAutoRefill.AutoRefillType.STORAGE;
 
     public TerminalStorageTabIngredientComponentItemStackCraftingCommon(ContainerTerminalStorageBase containerTerminalStorage,
-                                                                        ResourceLocation name,
+                                                                        Identifier name,
                                                                         IngredientComponent<ItemStack, Integer> ingredientComponent) {
         super(containerTerminalStorage, name, ingredientComponent);
     }
 
-    public static int getCraftingResultSlotIndex(AbstractContainerMenu container, ResourceLocation name) {
+    public static int getCraftingResultSlotIndex(AbstractContainerMenu container, Identifier name) {
         ITerminalStorageTabCommon tabCommon = ((ContainerTerminalStorageBase) container).getTabCommon(name.toString());
         TerminalStorageTabIngredientComponentItemStackCraftingCommon tabCommonCrafting =
                 (TerminalStorageTabIngredientComponentItemStackCraftingCommon) tabCommon;
@@ -143,7 +143,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
             if (!craftInput.isEmpty()) {
                 RecipeHolder<CraftingRecipe> recipeHolder = IModHelpers.get().getCraftingHelpers().findRecipeCached(RecipeType.CRAFTING, inventoryCrafting.asCraftInput(), player.level(), false).orElse(null);
                 if (recipeHolder != null && (recipeHolder.value().isSpecial()
-                        || !entityplayermp.level().getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING)
+                        || !entityplayermp.level().getGameRules().get(GameRules.LIMITED_CRAFTING)
                         || entityplayermp.getRecipeBook().contains(recipeHolder.id()))) {
                     inventoryCraftResult.setRecipeUsed(recipeHolder);
                     itemstack = recipeHolder.value().assemble(craftInput, player.level().registryAccess());

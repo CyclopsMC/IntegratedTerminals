@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
 import com.google.common.collect.Maps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandlerRegistry;
 
@@ -18,7 +18,7 @@ public class TerminalStorageTabIngredientCraftingHandlerRegistry
 
     private static TerminalStorageTabIngredientCraftingHandlerRegistry INSTANCE = new TerminalStorageTabIngredientCraftingHandlerRegistry();
 
-    private final Map<ResourceLocation, ITerminalStorageTabIngredientCraftingHandler> handlers = Maps.newHashMap();
+    private final Map<Identifier, ITerminalStorageTabIngredientCraftingHandler> handlers = Maps.newHashMap();
 
     private TerminalStorageTabIngredientCraftingHandlerRegistry() {
 
@@ -41,7 +41,7 @@ public class TerminalStorageTabIngredientCraftingHandlerRegistry
 
     @Nullable
     @Override
-    public ITerminalStorageTabIngredientCraftingHandler getHandler(ResourceLocation id) {
+    public ITerminalStorageTabIngredientCraftingHandler getHandler(Identifier id) {
         return handlers.get(id);
     }
 }

@@ -6,7 +6,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -47,7 +47,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private final ContainerTerminalStorageBase containerTerminalStorage;
-    private final ResourceLocation name;
+    private final Identifier name;
     protected final IngredientComponent<T, M> ingredientComponent;
 
     private final int errorsValueId;
@@ -61,7 +61,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     private int variableSlotNumberEnd;
 
     public TerminalStorageTabIngredientComponentCommon(ContainerTerminalStorageBase containerTerminalStorage,
-                                                       ResourceLocation name,
+                                                       Identifier name,
                                                        IngredientComponent<T, M> ingredientComponent) {
         this.containerTerminalStorage = containerTerminalStorage;
         this.name = name;
@@ -71,7 +71,7 @@ public class TerminalStorageTabIngredientComponentCommon<T, M> implements ITermi
     }
 
     @Override
-    public ResourceLocation getName() {
+    public Identifier getName() {
         return this.name;
     }
 

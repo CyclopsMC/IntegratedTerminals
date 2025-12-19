@@ -6,7 +6,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -20,15 +20,14 @@ import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionHelpers
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiff;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffHelpers;
 import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDiffManager;
-import org.cyclops.integrateddynamics.Capabilities;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.operator.IOperator;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
+import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentHandler;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientPositionsIndex;
-import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
@@ -37,6 +36,7 @@ import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 import org.cyclops.integrateddynamics.core.helper.L10NValues;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
+import org.cyclops.integrateddynamics.core.ingredient.IngredientComponentHandlers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -68,12 +68,12 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IIngredientComponentStorageObservable.IIndexChangeObserver<T, M> {
 
     private final ExecutorService packetSerializer = Executors.newFixedThreadPool(1);
-    private final ResourceLocation name;
+    private final Identifier name;
     private final INetwork network;
     private final IngredientComponent<T, M> ingredientComponent;
     private final IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork;
     private final ServerPlayer player;
-    private final IIngredientComponentValueHandler<?, ?, T, M> valueHandler;
+    private final IIngredientComponentHandler<IValueType<IValue>, IValue, T, M> valueHandler;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
     @Nullable
@@ -86,7 +86,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private boolean initialized; // True if the first change event has been sent to the client.
     private boolean sentCraftingOptionsFiltered;
 
-    public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
+    public TerminalStorageTabIngredientComponentServer(Identifier name, INetwork network,
                                                        IngredientComponent<T, M> ingredientComponent,
                                                        IPositionedAddonsNetworkIngredients<T, M> ingredientNetwork,
                                                        ServerPlayer player) {
@@ -95,7 +95,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientComponent = ingredientComponent;
         this.ingredientNetwork = ingredientNetwork;
         this.player = player;
-        this.valueHandler = ingredientComponent.getCapability(Capabilities.IngredientComponentValueHandler.INGREDIENT)
+        this.valueHandler = Optional.ofNullable(IngredientComponentHandlers.REGISTRY.getComponentHandler(ingredientComponent))
                 .orElseThrow(() -> new IllegalStateException("No value handler was found for " + ingredientComponent.getName()));
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
@@ -108,7 +108,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     @Override
-    public ResourceLocation getName() {
+    public Identifier getName() {
         return name;
     }
 
