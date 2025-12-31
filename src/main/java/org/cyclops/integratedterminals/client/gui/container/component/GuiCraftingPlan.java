@@ -309,14 +309,14 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     protected static void addElements(@Nullable Element parent, int indent, ITerminalCraftingPlan<?> craftingPlan, List<GuiCraftingPlan.Element> elements) {
         boolean valid = craftingPlan.getStatus().isValid()
-                || (!craftingPlan.getStorageIngredients().isEmpty() || !craftingPlan.getDependencies().isEmpty());
+                || (!craftingPlan.getBufferedIngredients().isEmpty() || !craftingPlan.getDependencies().isEmpty());
         int elementId = Objects.hash(craftingPlan.getId()) * 100;
         Element currentElement = new Element(
                 elementId++,
                 indent,
-                (List) craftingPlan.getOutputs()
+                craftingPlan.getOutputs()
                     .stream()
-                    .map(Collections::singletonList)
+                    .map(i -> Collections.singletonList((IPrototypedIngredient) i))
                     .collect(Collectors.toList()),
                 0,
                 valid ? craftingPlan.getCraftingQuantity() : 0,
@@ -330,7 +330,7 @@ public class GuiCraftingPlan extends AbstractWidget {
         if (craftingPlan.getStatus() == TerminalCraftingJobStatus.PENDING_INPUTS) {
             // Add last missing ingredients
             for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : craftingPlan.getLastMissingIngredients()) {
-                List outputs = Collections.singletonList(lastMissingIngredient
+                List<List<IPrototypedIngredient>> outputs = Collections.singletonList(lastMissingIngredient
                         .stream()
                         .map(prototypedIngredient -> {
                             IIngredientMatcher matcher = prototypedIngredient.getComponent().getMatcher();
@@ -343,9 +343,9 @@ public class GuiCraftingPlan extends AbstractWidget {
                         0, 0, craftingPlan.getCraftingQuantity(), TerminalCraftingJobStatus.INVALID.getColor(), TerminalCraftingJobStatus.INVALID)));
             }
         } else if (craftingPlan.getStatus() != TerminalCraftingJobStatus.CRAFTING) {
-            for (IPrototypedIngredient storageIngredient : craftingPlan.getStorageIngredients()) {
-                elements.add(currentElement.addChild(new Element(elementId++, indent + 1, Collections.singletonList(Collections.singletonList(storageIngredient)),
-                        storageIngredient.getComponent().getMatcher().getQuantity(storageIngredient.getPrototype()),
+            for (IPrototypedIngredient bufferedIngredient : craftingPlan.getBufferedIngredients()) {
+                elements.add(currentElement.addChild(new Element(elementId++, indent + 1, Collections.singletonList(Collections.singletonList(bufferedIngredient)),
+                        bufferedIngredient.getComponent().getMatcher().getQuantity(bufferedIngredient.getPrototype()),
                         0, 0, TerminalCraftingJobStatus.FINISHED.getColor(), TerminalCraftingJobStatus.FINISHED)));
             }
         }
@@ -377,11 +377,11 @@ public class GuiCraftingPlan extends AbstractWidget {
 
         private boolean enabled;
 
-        public Element(int id, int indent, List<List<IPrototypedIngredient<?, ?>>> outputs, long storageQuantity, long craftQuantity,
+        public Element(int id, int indent, List<List<IPrototypedIngredient>> outputs, long storageQuantity, long craftQuantity,
                        long missingQuantity, int color, TerminalCraftingJobStatus status) {
             this.id = id;
             this.indent = indent;
-            this.outputs = outputs;
+            this.outputs = (List) outputs;
             this.storageQuantity = storageQuantity;
             this.craftQuantity = craftQuantity;
             this.missingQuantity = missingQuantity;
