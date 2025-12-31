@@ -14,13 +14,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
-import org.cyclops.integratedcrafting.api.crafting.CraftingJob;
-import org.cyclops.integratedcrafting.api.crafting.CraftingJobDependencyGraph;
-import org.cyclops.integratedcrafting.api.crafting.FailedCraftingRecipeException;
-import org.cyclops.integratedcrafting.api.crafting.ICraftingInterface;
-import org.cyclops.integratedcrafting.api.crafting.RecursiveCraftingRecipeException;
-import org.cyclops.integratedcrafting.api.crafting.UnavailableCraftingInterfacesException;
-import org.cyclops.integratedcrafting.api.crafting.UnknownCraftingRecipeException;
+import org.cyclops.integratedcrafting.api.crafting.*;
 import org.cyclops.integratedcrafting.api.network.ICraftingNetwork;
 import org.cyclops.integratedcrafting.api.recipe.IRecipeIndex;
 import org.cyclops.integratedcrafting.core.CraftingHelpers;
@@ -28,22 +22,11 @@ import org.cyclops.integratedcrafting.core.MissingIngredients;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.CraftingJobStartException;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.*;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -134,7 +117,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
                     TerminalCraftingJobStatus.UNSTARTED,
                     craftingJob.getAmount(),
-                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
+                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
                     Collections.emptyList(),
                     TerminalCraftingPlanStatic.Label.VALID,
                     -1,
@@ -148,12 +131,11 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
                     TerminalCraftingJobStatus.UNSTARTED,
                     craftingJob.getAmount(),
-                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
+                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
                     Collections.emptyList(),
                     TerminalCraftingPlanStatic.Label.VALID,
                     -1,
-                    craftingJob.getChannel(),
-                    null);
+                    craftingJob.getChannel(), null);
         }
     }
 
@@ -180,8 +162,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 TerminalCraftingPlanStatic.Label.INCOMPLETE,
                 -1,
-                -1,
-                null);
+                -1, null);
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlanFailed(FailedCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
@@ -208,8 +189,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 TerminalCraftingPlanStatic.Label.INCOMPLETE,
                 -1,
-                -1,
-                null);
+                -1, null);
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlanErrorRecursive(List<IRecipeDefinition> childRecipes) {
@@ -227,8 +207,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 TerminalCraftingPlanStatic.Label.RECURSION,
                 -1,
-                -1,
-                null);
+                -1, null);
     }
 
     @Override
@@ -238,7 +217,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 && craftingPlan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
             CraftingJobDependencyGraph craftingJobDependencyGraph = ((TerminalCraftingPlanCraftingJobDependencyGraph) craftingPlan).getCraftingJobDependencyGraph();
             try {
-                CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetworkChecked(network), craftingJobDependencyGraph, true, player.getUUID());
+                CraftingHelpers.scheduleCraftingJobs(CraftingHelpers.getCraftingNetworkChecked(network), CraftingHelpers.getNetworkStorageGetter(network, channel, false), craftingJobDependencyGraph, true, player.getUUID());
             } catch (UnavailableCraftingInterfacesException e) {
                 throw new CraftingJobStartException("gui.integratedterminals.terminal_storage.craftingplan.label.failed.insufficient_crafting_interfaces");
             }
@@ -258,8 +237,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 Collections.emptyList(),
                 TerminalCraftingPlanStatic.Label.ERROR,
                 -1,
-                -1,
-                null);
+                -1, null);
     }
 
     protected static ITerminalCraftingPlan<Integer> newActiveCraftingJob(ICraftingNetwork craftingNetwork, int channel,
@@ -379,12 +357,11 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 pendingOutputs,
                 jobStatus,
                 craftingJob.getAmount(),
-                IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
+                IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
                 lastMissingIngredients,
                 TerminalCraftingPlanStatic.Label.RUNNING,
                 craftingNetwork.getRunningTicks(craftingJob),
-                craftingJob.getChannel(),
-                uuidToName(craftingJob.getInitiatorUuid()));
+                craftingJob.getChannel(), uuidToName(craftingJob.getInitiatorUuid()));
     }
 
     @Nullable
@@ -458,7 +435,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     planStatic.getOutputs(),
                     planStatic.getStatus(),
                     planStatic.getCraftingQuantity(),
-                    planStatic.getStorageIngredients(),
+                    planStatic.getBufferedIngredients(),
                     planStatic.getLastMissingIngredients(),
                     planStatic.getLabel(),
                     planStatic.getTickDuration(),

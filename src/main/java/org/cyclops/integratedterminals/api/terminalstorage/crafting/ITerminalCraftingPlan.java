@@ -43,9 +43,9 @@ public interface ITerminalCraftingPlan<I> {
     public long getCraftingQuantity();
 
     /**
-     * @return The ingredients that will be used from storage.
+     * @return The ingredients within the storage buffer.
      */
-    public List<IPrototypedIngredient<?, ?>> getStorageIngredients();
+    public List<IPrototypedIngredient<?, ?>> getBufferedIngredients();
 
     /**
      * @return The ingredients that were missing for 1 job amount.

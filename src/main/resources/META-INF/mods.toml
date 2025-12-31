@@ -22,7 +22,7 @@ Terminals for managing and overviewing Integrated Dynamics networks.
 [[dependencies.integratedterminals]]
     modId="integrateddynamics"
     mandatory=true
-    versionRange="[1.16.7,)"
+    versionRange="[1.29.9,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.integratedterminals]]
