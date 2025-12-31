@@ -1,8 +1,20 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.22"></a>
+## [1.21.1-1.6.22](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.21...1.21.1-1.6.22) - 2025-12-31 15:15:47
+
+
+### Added
+* Add translations through Crowdin (#187)
+
+### Changed
+* Update to new crafting storage in Integrated Crafting
+
+Required for CyclopsMC/IntegratedCrafting#112
+
 <a name="1.21.1-1.6.21"></a>
-## [1.21.1-1.6.21](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.20...1.21.1-1.6.21) - 2025-11-24 16:52:10
+## [1.21.1-1.6.21](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.20...1.21.1-1.6.21) - 2025-11-24 16:52:10 +0100
 
 
 ### Fixed

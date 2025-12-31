@@ -1,0 +1,10 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.25.1 or higher.
+
+Additions:
+* Add translations through Crowdin (#187)
+
+Changes:
+* Update to new crafting storage in Integrated Crafting
+
+Required for CyclopsMC/IntegratedCrafting#112
