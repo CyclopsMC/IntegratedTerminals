@@ -22,15 +22,15 @@ public class TerminalCraftingPlanCraftingJobDependencyGraph extends TerminalCraf
                                                           List<IPrototypedIngredient<?, ?>> outputs,
                                                           TerminalCraftingJobStatus status,
                                                           long craftingQuantity,
-                                                          List<IPrototypedIngredient<?, ?>> storageIngredients,
+                                                          List<IPrototypedIngredient<?, ?>> bufferedIngredients,
                                                           List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
                                                           TerminalCraftingPlanStatic.Label label,
                                                           long tickDuration,
                                                           int channel,
                                                           @Nullable String initiatorName,
                                                           CraftingJobDependencyGraph craftingJobDependencyGraph) {
-        super(id, dependencies, outputs, status, craftingQuantity, storageIngredients, lastMissingIngredients,
-                label, tickDuration, channel, initiatorName);
+        super(id, dependencies, outputs, status, craftingQuantity, bufferedIngredients,
+                lastMissingIngredients, label, tickDuration, channel, initiatorName);
         this.craftingJobDependencyGraph = craftingJobDependencyGraph;
     }
 

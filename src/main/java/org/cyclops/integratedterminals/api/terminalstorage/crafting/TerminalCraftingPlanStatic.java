@@ -25,7 +25,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     private final List<IPrototypedIngredient<?, ?>> outputs;
     private TerminalCraftingJobStatus status;
     private final long craftingQuantity;
-    private final List<IPrototypedIngredient<?, ?>> storageIngredients;
+    private final List<IPrototypedIngredient<?, ?>> bufferedIngredients;
     private final List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients;
     private TerminalCraftingPlanStatic.Label label;
     @Nullable
@@ -40,7 +40,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                                       List<IPrototypedIngredient<?, ?>> outputs,
                                       TerminalCraftingJobStatus status,
                                       long craftingQuantity,
-                                      List<IPrototypedIngredient<?, ?>> storageIngredients,
+                                      List<IPrototypedIngredient<?, ?>> bufferedIngredients,
                                       List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
                                       TerminalCraftingPlanStatic.Label label,
                                       long tickDuration,
@@ -51,7 +51,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         this.outputs = outputs;
         this.status = status;
         this.craftingQuantity = craftingQuantity;
-        this.storageIngredients = storageIngredients;
+        this.bufferedIngredients = bufferedIngredients;
         this.lastMissingIngredients = lastMissingIngredients;
         this.label = label;
         this.unlocalizedLabelOverride = null;
@@ -86,8 +86,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     }
 
     @Override
-    public List<IPrototypedIngredient<?, ?>> getStorageIngredients() {
-        return storageIngredients;
+    public List<IPrototypedIngredient<?,?>> getBufferedIngredients() {
+        return bufferedIngredients;
     }
 
     @Override
@@ -233,7 +233,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
 
         // Determine storage ingredients
-        for (IPrototypedIngredient<?, ?> output : plan.getStorageIngredients()) {
+        for (IPrototypedIngredient<?, ?> output : plan.getBufferedIngredients()) {
             TerminalCraftingPlanFlatStatic.Entry entry = indexedEntries.get(output);
             long quantity = IndexedEntries.getQuantity(output);
             entry.setQuantityInStorage(entry.getQuantityInStorage() + quantity);
@@ -275,11 +275,11 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         tag.putLong("craftingQuantity", plan.getCraftingQuantity());
 
-        ListTag storageIngredients = new ListTag();
-        for (IPrototypedIngredient<?, ?> storageIngredient : plan.getStorageIngredients()) {
-            storageIngredients.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) storageIngredient));
+        ListTag bufferedIngredients = new ListTag();
+        for (IPrototypedIngredient<?, ?> storageIngredient : plan.getBufferedIngredients()) {
+            bufferedIngredients.add(IPrototypedIngredient.serialize(lookupProvider, (PrototypedIngredient) storageIngredient));
         }
-        tag.put("storageIngredients", storageIngredients);
+        tag.put("bufferedIngredients", bufferedIngredients);
 
         ListTag lastMissingIngredients = new ListTag();
         for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : plan.getLastMissingIngredients()) {
@@ -358,10 +358,10 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         long craftingQuantity = tag.getLong("craftingQuantity");
 
-        ListTag storageIngredientsTag = tag.getList("storageIngredients", Tag.TAG_COMPOUND);
-        List<IPrototypedIngredient<?, ?>> storageIngredients = Lists.newArrayListWithExpectedSize(storageIngredientsTag.size());
-        for (Tag nbtBase : storageIngredientsTag) {
-            storageIngredients.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) nbtBase));
+        ListTag bufferedIngredientsTag = tag.getList("bufferedIngredients", Tag.TAG_COMPOUND);
+        List<IPrototypedIngredient<?, ?>> bufferedIngredients = Lists.newArrayListWithExpectedSize(bufferedIngredientsTag.size());
+        for (Tag nbtBase : bufferedIngredientsTag) {
+            bufferedIngredients.add(IPrototypedIngredient.deserialize(lookupProvider, (CompoundTag) nbtBase));
         }
 
         ListTag lastMissingIngredientsTag = tag.getList("lastMissingIngredients", Tag.TAG_LIST);
@@ -391,7 +391,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             initiatorName = tag.getString("initiatorName");
         }
 
-        TerminalCraftingPlanStatic<I> plan = new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, storageIngredients,
+        TerminalCraftingPlanStatic<I> plan = new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, bufferedIngredients,
                 lastMissingIngredients, label, tickDuration, channel, initiatorName);
         if (unlocalizedLabelOverride != null) {
             plan.unlocalizedLabelOverride = unlocalizedLabelOverride;
