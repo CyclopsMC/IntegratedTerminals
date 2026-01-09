@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.23"></a>
+## [1.21.1-1.6.23](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.22...1.21.1-1.6.23) - 2026-01-09 19:43:53
+
+
+### Fixed
+* Fix static plans never successfully deserialising
+
 <a name="1.21.1-1.6.22"></a>
-## [1.21.1-1.6.22](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.21...1.21.1-1.6.22) - 2025-12-31 15:15:47
+## [1.21.1-1.6.22](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.21...1.21.1-1.6.22) - 2025-12-31 15:15:47 +0100
 
 
 ### Added
