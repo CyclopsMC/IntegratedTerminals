@@ -323,8 +323,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         if (!tag.contains("craftingQuantity", Tag.TAG_LONG)) {
             throw new IllegalArgumentException("Could not find a craftingQuantity entry in the given tag");
         }
-        if (!tag.contains("storageIngredients", Tag.TAG_LIST)) {
-            throw new IllegalArgumentException("Could not find a storageIngredients entry in the given tag");
+        if (!tag.contains("bufferedIngredients", Tag.TAG_LIST)) {
+            throw new IllegalArgumentException("Could not find a bufferedIngredients entry in the given tag");
         }
         if (!tag.contains("lastMissingIngredients", Tag.TAG_LIST)) {
             throw new IllegalArgumentException("Could not find a lastMissingIngredients entry in the given tag");
