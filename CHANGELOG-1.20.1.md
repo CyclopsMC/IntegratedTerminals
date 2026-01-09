@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.6.16"></a>
+## [1.20.1-1.6.16](/compare/1.20.1-1.6.15...1.20.1-1.6.16) - 2026-01-09 19:42:01
+
+
+### Fixed
+* Fix static plans never successfully deserialising
+
 <a name="1.20.1-1.6.15"></a>
-## [1.20.1-1.6.15](/compare/1.20.1-1.6.14...1.20.1-1.6.15) - 2025-12-31 15:10:58
+## [1.20.1-1.6.15](/compare/1.20.1-1.6.14...1.20.1-1.6.15) - 2025-12-31 15:10:58 +0100
 
 
 ### Changed
