@@ -10,9 +10,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author rubensworks
@@ -141,7 +139,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     public ITerminalCraftingPlanFlat<I> flatten() {
         // Group dependencies by prototype
         IndexedEntries indexedEntries = new IndexedEntries();
-        groupDependenciesByPrototype(indexedEntries, this);
+        Set<I> handledPlans = new HashSet<>();
+        groupDependenciesByPrototype(indexedEntries, handledPlans, this);
 
         // Make plan
         TerminalCraftingPlanFlatStatic<I> planFlat = new TerminalCraftingPlanFlatStatic<>(
@@ -203,7 +202,13 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
     }
 
-    protected static <I> void groupDependenciesByPrototype(IndexedEntries indexedEntries, ITerminalCraftingPlan<I> plan) {
+    protected static <I> void groupDependenciesByPrototype(IndexedEntries indexedEntries, Set<I> handledPlans, ITerminalCraftingPlan<I> plan) {
+        // Since jobs can have multiple dependents due to job splitting, we only consider each job once during flattening.
+        if (handledPlans.contains(plan.getId())) {
+            return;
+        }
+        handledPlans.add(plan.getId());
+
         // Determine outputs that are invalid or will be crafted
         for (IPrototypedIngredient<?, ?> output : plan.getOutputs()) {
             TerminalCraftingPlanFlatStatic.Entry entry = indexedEntries.get(output);
@@ -221,7 +226,6 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             if (plan.getStatus() == TerminalCraftingJobStatus.QUEUEING
                     || plan.getStatus() == TerminalCraftingJobStatus.PENDING_DEPENDENCIES
                     || plan.getStatus() == TerminalCraftingJobStatus.PENDING_INPUTS
-                    || plan.getStatus() == TerminalCraftingJobStatus.CRAFTING
                     || plan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
                 entry.setQuantityToCraft(entry.getQuantityToCraft() + quantity);
             }
@@ -248,7 +252,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         // Recurse into dependencies
         for (ITerminalCraftingPlan<I> dependency : plan.getDependencies()) {
-            groupDependenciesByPrototype(indexedEntries, dependency);
+            groupDependenciesByPrototype(indexedEntries, handledPlans, dependency);
         }
     }
 
