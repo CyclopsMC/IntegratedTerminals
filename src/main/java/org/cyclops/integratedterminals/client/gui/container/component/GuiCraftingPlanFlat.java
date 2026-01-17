@@ -12,6 +12,7 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
@@ -153,7 +154,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
                 moved++;
             }
             if (element.getToCraftQuantity() > 0) {
-                renderItem(guiGraphics, new ItemStack(Blocks.CRAFTING_TABLE), x, y, 0.45F);
+                renderItem(guiGraphics, new ItemStack(Items.PAINTING), x, y, 0.45F);
                 RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.to_craft", element.getToCraftQuantity()), x + 9, y + 1, 0.5F, 16777215, true, Font.DisplayMode.NORMAL);
                 y += 8;
                 moved++;

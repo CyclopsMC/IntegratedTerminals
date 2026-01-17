@@ -1,0 +1,8 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Changes:
+* Use a different icon for showin to-craft items
+
+Fixes:
+* Fix flattened plans showing too high counts on parallelized plans, Closes #190
