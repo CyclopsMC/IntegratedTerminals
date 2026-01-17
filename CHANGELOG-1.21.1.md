@@ -1,8 +1,18 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.24"></a>
+## [1.21.1-1.6.24](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.23...1.21.1-1.6.24) - 2026-01-17 14:27:49
+
+
+### Changed
+* Use a different icon for showin to-craft items
+
+### Fixed
+* Fix flattened plans showing too high counts on parallelized plans, Closes #190
+
 <a name="1.21.1-1.6.23"></a>
-## [1.21.1-1.6.23](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.22...1.21.1-1.6.23) - 2026-01-09 19:43:53
+## [1.21.1-1.6.23](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.22...1.21.1-1.6.23) - 2026-01-09 19:43:53 +0100
 
 
 ### Fixed
