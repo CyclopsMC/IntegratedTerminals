@@ -1,8 +1,18 @@
 # Changelog for Minecraft 1.19.2
 All notable changes to this project will be documented in this file.
 
+<a name="1.19.2-1.6.15"></a>
+## [1.19.2-1.6.15](/compare/1.19.2-1.6.14...1.19.2-1.6.15) - 2026-01-17 14:24:55
+
+
+### Changed
+* Use a different icon for showin to-craft items
+
+### Fixed
+* Fix flattened plans showing too high counts on parallelized plans, Closes #190
+
 <a name="1.19.2-1.6.14"></a>
-## [1.19.2-1.6.14](/compare/1.19.2-1.6.13...1.19.2-1.6.14) - 2025-11-24 16:49:25
+## [1.19.2-1.6.14](/compare/1.19.2-1.6.13...1.19.2-1.6.14) - 2025-11-24 16:49:25 +0100
 
 
 ### Fixed
