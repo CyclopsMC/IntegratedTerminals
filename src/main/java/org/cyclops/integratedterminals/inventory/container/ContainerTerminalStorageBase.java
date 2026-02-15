@@ -100,6 +100,18 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         // Add all tabs from the registry
         for (ITerminalStorageTab tab : TerminalStorageTabs.REGISTRY.getTabs()) {
             String tabId = tab.getName().toString();
+
+            // Skip ender chest tab if terminal is not upgraded
+            if (tabId.equals("integratedterminals:ender_chest")) {
+                if (variableInventory.isPresent() && variableInventory.get() instanceof org.cyclops.integratedterminals.part.PartTypeTerminalStorage.State) {
+                    org.cyclops.integratedterminals.part.PartTypeTerminalStorage.State partState =
+                        (org.cyclops.integratedterminals.part.PartTypeTerminalStorage.State) variableInventory.get();
+                    if (!partState.isEnderUpgraded()) {
+                        continue; // Skip this tab
+                    }
+                }
+            }
+
             if (this.getWorld().isClientSide()) {
                 this.tabsClient.put(tabId, tab.createClientTab(this, player));
             } else {

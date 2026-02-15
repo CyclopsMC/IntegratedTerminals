@@ -8,6 +8,11 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.Level;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.ListTag;
@@ -55,6 +60,30 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
     }
 
     @Override
+    public InteractionResult onPartActivated(State partState, BlockPos pos, Level world, Player player, InteractionHand hand, ItemStack heldItem, BlockHitResult hit) {
+        // Check if player is holding an Eye of Ender and terminal is not yet upgraded
+        if (!partState.isEnderUpgraded() && heldItem.getItem() == net.minecraft.world.item.Items.ENDER_EYE) {
+            if (!world.isClientSide) {
+                // Upgrade the terminal
+                partState.setEnderUpgraded(true);
+
+                // Consume the Eye of Ender
+                if (!player.isCreative()) {
+                    heldItem.shrink(1);
+                }
+
+                // Play sound
+                world.playSound(null, pos, net.minecraft.sounds.SoundEvents.END_PORTAL_FRAME_FILL,
+                    net.minecraft.sounds.SoundSource.BLOCKS, 1.0F, 1.0F);
+            }
+            return InteractionResult.sidedSuccess(world.isClientSide);
+        }
+
+        // Default behavior for opening GUI
+        return super.onPartActivated(partState, pos, world, player, hand, heldItem, hit);
+    }
+
+    @Override
     public Optional<MenuProvider> getContainerProvider(PartPos pos) {
         return Optional.of(new MenuProvider() {
 
@@ -94,6 +123,12 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
     @Override
     public void addDrops(PartTarget target, State state, List<ItemStack> itemStacks, boolean dropMainElement, boolean saveState) {
+        // If the terminal was ender-upgraded, drop an Eye of Ender and reset the upgrade
+        if (state.isEnderUpgraded() && dropMainElement) {
+            itemStacks.add(new ItemStack(net.minecraft.world.item.Items.ENDER_EYE));
+            state.setEnderUpgraded(false);
+        }
+
         for (Map.Entry<String, NonNullList<ItemStack>> entry : state.getNamedInventories().entrySet()) {
             // TODO: for now hardcoded on crafting tab
             if (entry.getKey().equals(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString())) {
@@ -115,10 +150,21 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
         private final Map<String, NonNullList<ItemStack>> namedInventories;
         private final Map<String, TerminalStorageState> playerStorageStates;
+        private boolean enderUpgraded;
 
         public State() {
             this.namedInventories = Maps.newHashMap();
             this.playerStorageStates = Maps.newHashMap();
+            this.enderUpgraded = false;
+        }
+
+        public boolean isEnderUpgraded() {
+            return enderUpgraded;
+        }
+
+        public void setEnderUpgraded(boolean enderUpgraded) {
+            this.enderUpgraded = enderUpgraded;
+            this.onDirty();
         }
 
         @Override
@@ -160,6 +206,9 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         public void writeToNBT(CompoundTag tag) {
             super.writeToNBT(tag);
 
+            // Write enderUpgraded
+            tag.putBoolean("enderUpgraded", this.enderUpgraded);
+
             // Write namedInventories
             ListTag namedInventoriesList = new ListTag();
             for (Map.Entry<String, NonNullList<ItemStack>> entry : this.namedInventories.entrySet()) {
@@ -185,6 +234,9 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         @Override
         public void readFromNBT(CompoundTag tag) {
             super.readFromNBT(tag);
+
+            // Read enderUpgraded
+            this.enderUpgraded = tag.getBoolean("enderUpgraded");
 
             // Read namedInventories
             for (Tag listEntry : tag.getList("namedInventories", Tag.TAG_COMPOUND)) {
