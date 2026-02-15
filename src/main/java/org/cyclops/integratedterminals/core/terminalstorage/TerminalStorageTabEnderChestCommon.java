@@ -43,14 +43,14 @@ public class TerminalStorageTabEnderChestCommon implements ITerminalStorageTabCo
                 int slotIndex = col + row * 9;
                 int finalRow = row;
                 int finalCol = col;
-                
+
                 Slot slot = new Slot(player.getEnderChestInventory(), slotIndex, 0, 0);
                 ISlotPositionCallback positionCallback = (factors) -> {
                     int x = factors.offsetX() + finalCol * 18;
                     int y = factors.offsetY() + finalRow * 18 + 18; // Add offset to position below tab area
                     return Pair.of(x, y);
                 };
-                
+
                 slots.add(Pair.of(slot, positionCallback));
             }
         }

@@ -1,8 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -10,10 +8,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
-import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import java.util.Collections;
@@ -75,6 +72,11 @@ public class TerminalStorageTabEnderChestClient implements ITerminalStorageTabCl
     public List<ITerminalStorageSlot> getSlots(int channel, int offset, int limit) {
         // Ender Chest inventory is handled by regular container slots
         return Collections.emptyList();
+    }
+
+    @Override
+    public ITerminalRowColumnProvider getRowColumnProvider() {
+        return () -> new ITerminalRowColumnProvider.RowsAndColumns(3, 9);
     }
 
     @Override
@@ -145,16 +147,6 @@ public class TerminalStorageTabEnderChestClient implements ITerminalStorageTabCl
     @Override
     public int getSlotOffsetY() {
         return 58; // Adjusted to position the Ender Chest slots properly
-    }
-
-    @Override
-    public int getSlotVisibleRows() {
-        return 3; // Ender Chest has 3 rows
-    }
-
-    @Override
-    public int getSlotRowLength() {
-        return 9; // 9 columns
     }
 
     @Override
