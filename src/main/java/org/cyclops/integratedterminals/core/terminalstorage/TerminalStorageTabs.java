@@ -40,6 +40,9 @@ public class TerminalStorageTabs {
                     && ingredientComponentItemStack.getCapability(PositionedAddonsNetworkIngredientsHandlerConfig.CAPABILITY).isPresent()) {
                 TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponentItemStackCrafting(ingredientComponentItemStack));
             }
+
+            // Add Ender Chest tab
+            TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabEnderChest());
         }
     }
 
