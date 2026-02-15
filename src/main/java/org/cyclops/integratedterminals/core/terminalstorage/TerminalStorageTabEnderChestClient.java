@@ -140,16 +140,6 @@ public class TerminalStorageTabEnderChestClient implements ITerminalStorageTabCl
     }
 
     @Override
-    public int getSlotOffsetX() {
-        return 32;
-    }
-
-    @Override
-    public int getSlotOffsetY() {
-        return 58; // Adjusted to position the Ender Chest slots properly
-    }
-
-    @Override
     public boolean isSlotValidForDraggingInto(int channel, Slot slot) {
         // Allow dragging into Ender Chest slots
         return true;

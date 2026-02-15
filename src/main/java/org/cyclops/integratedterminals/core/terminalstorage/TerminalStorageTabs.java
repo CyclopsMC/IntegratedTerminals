@@ -8,6 +8,7 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.capability.network.PositionedAddonsNetworkIngredientsHandlerConfig;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
 
@@ -42,7 +43,9 @@ public class TerminalStorageTabs {
             }
 
             // Add Ender Chest tab
-            TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabEnderChest());
+            if (GeneralConfig.terminalStorageTabEnderChestEnabled) {
+                TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabEnderChest());
+            }
         }
     }
 

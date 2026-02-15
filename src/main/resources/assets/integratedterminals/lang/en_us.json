@@ -11,7 +11,7 @@
     "gui.integratedterminals.terminal_storage.tooltip.fluid.amount": "%s mB",
     "gui.integratedterminals.terminal_storage.storage_name": "%s Storage",
     "gui.integratedterminals.terminal_storage.crafting_name": "%s Crafting",
-    "gui.integratedterminals.terminal_storage.ender_chest": "Ender Chest",
+    "gui.integratedterminals.terminal_storage.ender_chest": "Ender Storage",
     "gui.integratedterminals.terminal_storage.channel": "Chan:",
     "gui.integratedterminals.terminal_storage.craft": "craft",
     "gui.integratedterminals.terminal_storage.tooltip.requirements": "Crafting Requirements:",

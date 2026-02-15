@@ -90,6 +90,8 @@ public class GeneralConfig extends DummyConfig {
     public static int guiStorageScaleMaxColumns = 32;
     @ConfigurableProperty(category = "general", comment = "If the crafting grid should always be shown centrally, and not be responsive based on screen size.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean guiStorageForceCraftingGridCenter = false;
+    @ConfigurableProperty(category = "general", comment = "If the Ender Chest tab should be enabled in the storage terminal.", isCommandable = true, configLocation = ModConfig.Type.COMMON)
+    public static boolean terminalStorageTabEnderChestEnabled = true;
 
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");
