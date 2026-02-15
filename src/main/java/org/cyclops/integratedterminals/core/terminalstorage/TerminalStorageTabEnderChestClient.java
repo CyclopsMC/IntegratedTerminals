@@ -7,10 +7,12 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
+import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import java.util.Collections;
@@ -108,8 +110,93 @@ public class TerminalStorageTabEnderChestClient implements ITerminalStorageTabCl
     public boolean handleClick(AbstractContainerMenu container, int channel, int hoveringStorageSlot, int mouseButton,
                                boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot,
                                boolean isQuickMove) {
-        // Let default container handling take care of clicks
+        // Handle shift-clicking for Ender Chest slots
+        if (isQuickMove && hoveredContainerSlot >= 0 && container instanceof ContainerTerminalStorageBase) {
+            ContainerTerminalStorageBase<?> terminalContainer = (ContainerTerminalStorageBase<?>) container;
+
+            // Get the Ender Chest slots for this tab
+            List<Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback>> enderSlots =
+                    terminalContainer.getTabSlots(getName().toString());
+
+            if (!enderSlots.isEmpty()) {
+                // Find the start and end indices of Ender Chest slots
+                int startIndex = Integer.MAX_VALUE;
+                int endIndex = Integer.MIN_VALUE;
+                for (Pair<Slot, ITerminalStorageTabCommon.ISlotPositionCallback> slotPair : enderSlots) {
+                    int index = slotPair.getLeft().index;
+                    startIndex = Math.min(startIndex, index);
+                    endIndex = Math.max(endIndex, index);
+                }
+
+                boolean isEnderSlot = hoveredContainerSlot >= startIndex && hoveredContainerSlot <= endIndex;
+                Slot slot = container.getSlot(hoveredContainerSlot);
+                ItemStack stackInSlot = slot.getItem().copy();
+
+                if (!stackInSlot.isEmpty()) {
+                    // Try to move items
+                    if (isEnderSlot) {
+                        // Moving from Ender Chest to player inventory (slots 0-35)
+                        if (moveItems(container, stackInSlot, 0, 36)) {
+                            slot.set(stackInSlot.isEmpty() ? ItemStack.EMPTY : stackInSlot);
+                            slot.setChanged();
+                            return true;
+                        }
+                    } else {
+                        // Moving from player inventory to Ender Chest
+                        if (moveItems(container, stackInSlot, startIndex, endIndex + 1)) {
+                            slot.set(stackInSlot.isEmpty() ? ItemStack.EMPTY : stackInSlot);
+                            slot.setChanged();
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Let default container handling take care of other clicks
         return false;
+    }
+
+    private boolean moveItems(AbstractContainerMenu container, ItemStack stack, int startIndex, int endIndex) {
+        boolean moved = false;
+        int originalCount = stack.getCount();
+
+        // Try to merge with existing stacks first
+        for (int i = startIndex; i < endIndex && !stack.isEmpty(); i++) {
+            Slot targetSlot = container.getSlot(i);
+            ItemStack targetStack = targetSlot.getItem();
+
+            if (!targetStack.isEmpty() && ItemStack.isSameItemSameTags(stack, targetStack)) {
+                int maxSize = Math.min(targetSlot.getMaxStackSize(), targetStack.getMaxStackSize());
+                int toTransfer = Math.min(stack.getCount(), maxSize - targetStack.getCount());
+
+                if (toTransfer > 0) {
+                    targetStack.grow(toTransfer);
+                    stack.shrink(toTransfer);
+                    targetSlot.setChanged();
+                    moved = true;
+                }
+            }
+        }
+
+        // Then try to put in empty slots
+        for (int i = startIndex; i < endIndex && !stack.isEmpty(); i++) {
+            Slot targetSlot = container.getSlot(i);
+
+            if (!targetSlot.mayPlace(stack)) {
+                continue;
+            }
+
+            ItemStack targetStack = targetSlot.getItem();
+            if (targetStack.isEmpty()) {
+                int toTransfer = Math.min(stack.getCount(), targetSlot.getMaxStackSize());
+                targetSlot.set(stack.split(toTransfer));
+                targetSlot.setChanged();
+                moved = true;
+            }
+        }
+
+        return moved && stack.getCount() < originalCount;
     }
 
     @Override
