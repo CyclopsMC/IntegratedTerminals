@@ -10,7 +10,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalButton;
-import org.cyclops.integratedterminals.api.terminalstorage.ITerminalRowColumnProvider;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
@@ -30,13 +29,11 @@ public class TerminalStorageTabEnderChestClient implements ITerminalStorageTabCl
     private final ResourceLocation name;
     private final ItemStack icon;
     protected final ContainerTerminalStorageBase container;
-    private final ITerminalRowColumnProvider rowColumnProvider;
 
     public TerminalStorageTabEnderChestClient(ContainerTerminalStorageBase container, ResourceLocation name) {
         this.name = name;
         this.icon = new ItemStack(Blocks.ENDER_CHEST);
         this.container = container;
-        this.rowColumnProvider = () -> new ITerminalRowColumnProvider.RowsColumns(5, 9);
     }
 
     @Override
@@ -78,11 +75,6 @@ public class TerminalStorageTabEnderChestClient implements ITerminalStorageTabCl
     public List<ITerminalStorageSlot> getSlots(int channel, int offset, int limit) {
         // Ender Chest inventory is handled by regular container slots
         return Collections.emptyList();
-    }
-
-    @Override
-    public ITerminalRowColumnProvider getRowColumnProvider() {
-        return rowColumnProvider;
     }
 
     @Override

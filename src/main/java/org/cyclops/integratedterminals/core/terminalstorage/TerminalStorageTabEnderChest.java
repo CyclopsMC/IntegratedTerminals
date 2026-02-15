@@ -4,7 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.cyclops.integrateddynamics.api.network.INetwork;
-import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
@@ -19,7 +19,7 @@ import javax.annotation.Nullable;
  */
 public class TerminalStorageTabEnderChest implements ITerminalStorageTab {
 
-    public static ResourceLocation NAME = new ResourceLocation(IntegratedTerminals.MOD_ID, "ender_chest");
+    public static ResourceLocation NAME = new ResourceLocation(Reference.MOD_ID, "ender_chest");
 
     @Override
     public ResourceLocation getName() {
