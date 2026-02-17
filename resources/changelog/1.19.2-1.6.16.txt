@@ -1,0 +1,5 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Additions:
+* Show ingredient alternatives in flat crafting plan, Closes #189
