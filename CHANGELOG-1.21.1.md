@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.25"></a>
+## [1.21.1-1.6.25](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.24...1.21.1-1.6.25) - 2026-02-17 11:45:52
+
+
+### Changed
+* Show ingredient alternatives in flat crafting plan, Closes #189
+
 <a name="1.21.1-1.6.24"></a>
-## [1.21.1-1.6.24](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.23...1.21.1-1.6.24) - 2026-01-17 14:27:49
+## [1.21.1-1.6.24](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.23...1.21.1-1.6.24) - 2026-01-17 14:27:49 +0100
 
 
 ### Changed
