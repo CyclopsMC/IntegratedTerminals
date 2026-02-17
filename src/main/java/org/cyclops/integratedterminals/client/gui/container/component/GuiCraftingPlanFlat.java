@@ -102,6 +102,10 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         this.firstRow = Math.max(0, firstRow);
     }
 
+    protected int getTick() {
+        return (int) Minecraft.getInstance().level.getGameTime() / TICK_DELAY;
+    }
+
     @Override
     public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
 
@@ -133,15 +137,19 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
 
         int xOriginal = x;
 
-        // Draw instance
-        IPrototypedIngredient<?, ?> output = element.getInstance();
-        IngredientComponent<?, ?> ingredientComponent = output.getComponent();
-        long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
-        int finalX = x;
-        int finalY = y;
-        ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
-                .ifPresent(h -> h.drawInstance(matrixStack, output.getPrototype(), quantity,
-                        "", this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
+        // Draw instance (rotate over alternatives if present)
+        List<IPrototypedIngredient<?, ?>> instances = element.getInstances();
+        if (!instances.isEmpty()) {
+            int tick = getTick();
+            IPrototypedIngredient<?, ?> output = instances.get(tick % instances.size());
+            IngredientComponent<?, ?> ingredientComponent = output.getComponent();
+            long quantity = ((IngredientComponent) ingredientComponent).getMatcher().getQuantity(output.getPrototype());
+            int finalX = x;
+            int finalY = y;
+            ingredientComponent.getCapability(IngredientComponentTerminalStorageHandlerConfig.CAPABILITY)
+                    .ifPresent(h -> h.drawInstance(matrixStack, output.getPrototype(), quantity,
+                            "", this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
+        }
 
         x = xOriginal + width - 50;
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
@@ -264,7 +272,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
 
     protected static void addElements(ITerminalCraftingPlanFlat.IEntry craftingPlan, List<GuiCraftingPlanFlat.Element> elements) {
         elements.add(new Element(
-                craftingPlan.getInstance(),
+                craftingPlan.getInstances(),
                 craftingPlan.getQuantityInStorage(),
                 craftingPlan.getQuantityToCraft(),
                 craftingPlan.getQuantityCrafting(),
@@ -283,23 +291,23 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
 
     public static class Element {
 
-        private final IPrototypedIngredient<?, ?> instance;
+        private final List<IPrototypedIngredient<?, ?>> instances;
         private final long storageQuantity;
         private final long toCraftQuantity;
         private final long craftingQuantity;
         private final long missingQuantity;
 
-        public Element(IPrototypedIngredient<?, ?> instance,
+        public Element(List<IPrototypedIngredient<?, ?>> instances,
                        long storageQuantity, long toCraftQuantity, long craftingQuantity, long missingQuantity) {
-            this.instance = instance;
+            this.instances = instances;
             this.storageQuantity = storageQuantity;
             this.toCraftQuantity = toCraftQuantity;
             this.craftingQuantity = craftingQuantity;
             this.missingQuantity = missingQuantity;
         }
 
-        public IPrototypedIngredient<?, ?> getInstance() {
-            return instance;
+        public List<IPrototypedIngredient<?, ?>> getInstances() {
+            return instances;
         }
 
         public long getStorageQuantity() {

@@ -210,27 +210,44 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
 
     public static class Entry implements ITerminalCraftingPlanFlat.IEntry {
 
-        private final IPrototypedIngredient<?, ?> instance;
+        private final List<IPrototypedIngredient<?, ?>> instances;
         private long quantityToCraft;
         private long quantityCrafting;
         private long quantityInStorage;
         private long quantityMissing;
 
-        public Entry(IPrototypedIngredient<?, ?> instance, long quantityToCraft, long quantityCrafting, long quantityInStorage, long quantityMissing) {
-            this.instance = instance;
+        public Entry(List<IPrototypedIngredient<?, ?>> instances, long quantityToCraft, long quantityCrafting, long quantityInStorage, long quantityMissing) {
+            this.instances = instances;
             this.quantityToCraft = quantityToCraft;
             this.quantityCrafting = quantityCrafting;
             this.quantityInStorage = quantityInStorage;
             this.quantityMissing = quantityMissing;
         }
 
+        public Entry(List<IPrototypedIngredient<?, ?>> instances) {
+            this(instances, 0, 0, 0, 0);
+        }
+
+        /**
+         * @deprecated Use {@link #Entry(List)} instead. TODO: rm in next major
+         */
+        @Deprecated
         public Entry(IPrototypedIngredient<?, ?> instance) {
-            this(instance, 0, 0, 0, 0);
+            this(List.of(instance), 0, 0, 0, 0);
+        }
+
+        /**
+         * @deprecated Use {@link #getInstances()} instead. TODO: rm in next major
+         */
+        @Override
+        @Deprecated
+        public IPrototypedIngredient<?, ?> getInstance() {
+            return instances.get(0);
         }
 
         @Override
-        public IPrototypedIngredient<?, ?> getInstance() {
-            return instance;
+        public List<IPrototypedIngredient<?, ?>> getInstances() {
+            return instances;
         }
 
         @Override
@@ -271,7 +288,13 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
 
         public static CompoundTag serialize(TerminalCraftingPlanFlatStatic.Entry entry) {
             CompoundTag tag = new CompoundTag();
-            tag.put("instance", IPrototypedIngredient.serialize(entry.getInstance()));
+
+            // New multi-instance field for alternatives
+            ListTag instancesTag = new ListTag();
+            for (IPrototypedIngredient<?, ?> instance : entry.getInstances()) {
+                instancesTag.add(IPrototypedIngredient.serialize((PrototypedIngredient) instance));
+            }
+            tag.put("instances", instancesTag);
             tag.putLong("quantityToCraft", entry.getQuantityToCraft());
             tag.putLong("quantityCrafting", entry.getQuantityCrafting());
             tag.putLong("quantityInStorage", entry.getQuantityInStorage());
@@ -296,13 +319,22 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
                 throw new IllegalArgumentException("Could not find a quantityMissing entry in the given tag");
             }
 
-            IPrototypedIngredient<?, ?> instance = IPrototypedIngredient.deserialize(tag.getCompound("instance"));
+            // Prefer the new \"instances\" list if present, otherwise fall back to the legacy single instance.
+            List<IPrototypedIngredient<?, ?>> instances = Lists.newArrayList();
+            if (tag.contains("instances", Tag.TAG_LIST)) {
+                ListTag instancesTag = tag.getList("instances", Tag.TAG_COMPOUND);
+                for (Tag base : instancesTag) {
+                    instances.add(IPrototypedIngredient.deserialize((CompoundTag) base));
+                }
+            } else {
+                instances.add(IPrototypedIngredient.deserialize(tag.getCompound("instance"))); // TODO: rm in next major
+            }
             long quantityToCraft = tag.getLong("quantityToCraft");
             long quantityCrafting = tag.getLong("quantityCrafting");
             long quantityInStorage = tag.getLong("quantityInStorage");
             long quantityMissing = tag.getLong("quantityMissing");
 
-            return new TerminalCraftingPlanFlatStatic.Entry(instance, quantityToCraft, quantityCrafting, quantityInStorage, quantityMissing);
+            return new TerminalCraftingPlanFlatStatic.Entry(instances, quantityToCraft, quantityCrafting, quantityInStorage, quantityMissing);
         }
 
     }
