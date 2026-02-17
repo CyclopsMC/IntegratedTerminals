@@ -68,8 +68,15 @@ public interface ITerminalCraftingPlanFlat<I> {
 
         /**
          * @return The entry instance.
+         * @deprecated Use {@link #getInstances()} instead. TODO: rm in next major
          */
+        @Deprecated
         public IPrototypedIngredient<?, ?> getInstance();
+
+        /**
+         * @return The alternative entry instances for this entry. Never empty.
+         */
+        public List<IPrototypedIngredient<?, ?>> getInstances();
 
         /**
          * @return The number of instances to craft.
