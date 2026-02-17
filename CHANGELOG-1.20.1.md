@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.6.18"></a>
+## [1.20.1-1.6.18](/compare/1.20.1-1.6.17...1.20.1-1.6.18) - 2026-02-17 11:43:36
+
+
+### Changed
+* Show ingredient alternatives in flat crafting plan, Closes #189
+
 <a name="1.20.1-1.6.17"></a>
-## [1.20.1-1.6.17](/compare/1.20.1-1.6.16...1.20.1-1.6.17) - 2026-01-17 14:26:49
+## [1.20.1-1.6.17](/compare/1.20.1-1.6.16...1.20.1-1.6.17) - 2026-01-17 14:26:49 +0100
 
 
 ### Changed

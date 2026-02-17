@@ -173,27 +173,44 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
 
     public static class Entry implements ITerminalCraftingPlanFlat.IEntry {
 
-        private final IPrototypedIngredient<?, ?> instance;
+        private final List<IPrototypedIngredient<?, ?>> instances;
         private long quantityToCraft;
         private long quantityCrafting;
         private long quantityInStorage;
         private long quantityMissing;
 
-        public Entry(IPrototypedIngredient<?, ?> instance, long quantityToCraft, long quantityCrafting, long quantityInStorage, long quantityMissing) {
-            this.instance = instance;
+        public Entry(List<IPrototypedIngredient<?, ?>> instances, long quantityToCraft, long quantityCrafting, long quantityInStorage, long quantityMissing) {
+            this.instances = instances;
             this.quantityToCraft = quantityToCraft;
             this.quantityCrafting = quantityCrafting;
             this.quantityInStorage = quantityInStorage;
             this.quantityMissing = quantityMissing;
         }
 
+        public Entry(List<IPrototypedIngredient<?, ?>> instances) {
+            this(instances, 0, 0, 0, 0);
+        }
+
+        /**
+         * @deprecated Use {@link #Entry(List)} instead. TODO: rm in next major
+         */
+        @Deprecated
         public Entry(IPrototypedIngredient<?, ?> instance) {
-            this(instance, 0, 0, 0, 0);
+            this(List.of(instance), 0, 0, 0, 0);
+        }
+
+        /**
+         * @deprecated Use {@link #getInstances()} instead. TODO: rm in next major
+         */
+        @Override
+        @Deprecated
+        public IPrototypedIngredient<?, ?> getInstance() {
+            return instances.get(0);
         }
 
         @Override
-        public IPrototypedIngredient<?, ?> getInstance() {
-            return instance;
+        public List<IPrototypedIngredient<?, ?>> getInstances() {
+            return instances;
         }
 
         @Override
@@ -233,7 +250,10 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
         }
 
         public static void serialize(ValueOutput valueOutput, Entry entry) {
-            IPrototypedIngredient.serialize(valueOutput.child("instance"), entry.getInstance());
+            ValueOutput.ValueOutputList instances = valueOutput.childrenList("instances");
+            for (IPrototypedIngredient<?, ?> instance : entry.getInstances()) {
+                IPrototypedIngredient.serialize(instances.addChild(), instance);
+            }
             valueOutput.putLong("quantityToCraft", entry.getQuantityToCraft());
             valueOutput.putLong("quantityCrafting", entry.getQuantityCrafting());
             valueOutput.putLong("quantityInStorage", entry.getQuantityInStorage());
@@ -241,13 +261,16 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
         }
 
         public static TerminalCraftingPlanFlatStatic.Entry deserialize(ValueInput valueInput) {
-            IPrototypedIngredient<?, ?> instance = IPrototypedIngredient.deserialize(valueInput.child("instance").orElseThrow());
+            List<IPrototypedIngredient<?, ?>> instances = Lists.newArrayList();
+            for (ValueInput instance : valueInput.childrenList("instances").orElseThrow()) {
+                instances.add(IPrototypedIngredient.deserialize(instance));
+            }
             long quantityToCraft = valueInput.getLong("quantityToCraft").orElseThrow();
             long quantityCrafting = valueInput.getLong("quantityCrafting").orElseThrow();
             long quantityInStorage = valueInput.getLong("quantityInStorage").orElseThrow();
             long quantityMissing = valueInput.getLong("quantityMissing").orElseThrow();
 
-            return new TerminalCraftingPlanFlatStatic.Entry(instance, quantityToCraft, quantityCrafting, quantityInStorage, quantityMissing);
+            return new TerminalCraftingPlanFlatStatic.Entry(instances, quantityToCraft, quantityCrafting, quantityInStorage, quantityMissing);
         }
 
     }
