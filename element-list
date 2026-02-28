@@ -20,6 +20,7 @@ org.cyclops.integratedterminals.core.terminalstorage.crafting
 org.cyclops.integratedterminals.core.terminalstorage.location
 org.cyclops.integratedterminals.core.terminalstorage.query
 org.cyclops.integratedterminals.core.terminalstorage.slot
+org.cyclops.integratedterminals.gametest
 org.cyclops.integratedterminals.inventory
 org.cyclops.integratedterminals.inventory.container
 org.cyclops.integratedterminals.item
