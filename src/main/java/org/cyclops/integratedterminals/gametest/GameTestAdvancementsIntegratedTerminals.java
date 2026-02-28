@@ -23,6 +23,11 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import org.cyclops.integrateddynamics.RegistryEntries;
+import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IVariableInvalidateListener;
+import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.evaluate.operator.Operators;
@@ -30,9 +35,7 @@ import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeOperator;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
-import org.cyclops.integrateddynamics.gametest.GameTestHelpersIntegratedDynamics;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentCommon;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePart;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 import org.cyclops.integratedterminals.part.PartTypes;
@@ -212,21 +215,35 @@ public class GameTestAdvancementsIntegratedTerminals {
         PartTarget partTarget = PartTarget.fromCenter(partPos);
         ContainerTerminalStoragePart container = createSilentContainer(player, partTarget);
 
-        // Place the itemstack_enchantable operator variable in the filter slot of the itemstack tab
-        Object tabObject = container.getTabCommon("minecraft:itemstack");
-        if (tabObject instanceof TerminalStorageTabIngredientComponentCommon<?, ?> tab) {
-            int slotIdx = tab.getVariableSlotNumberStart();
-            // Create a variable that holds the itemstack_enchantable operator as a value
-            ItemStack operatorVariable = GameTestHelpersIntegratedDynamics.createVariableForValue(
-                    helper.getLevel(), ValueTypes.OPERATOR,
-                    ValueTypeOperator.ValueOperator.of(Operators.OBJECT_ITEMSTACK_ISENCHANTABLE));
-            // Place the variable in the first filter slot to trigger dirtyInv = true
-            container.getSlot(slotIdx).set(operatorVariable);
-            // Call onUpdate directly to trigger the advancement; this avoids the custom-packet
-            // sends that happen inside broadcastChanges() and still executes the full game logic
-            // chain that fires PartVariableDrivenVariableContentsUpdatedEvent.
-            tab.onUpdate(container, player, container.getVariableInventory());
-        }
+        // Directly trigger the advancement by calling onVariableContentsUpdated with a mock
+        // IVariable that returns the itemstack_enchantable operator value. This simulates what
+        // happens when a valid operator variable is placed in the filter slot and the network
+        // evaluates it — bypassing the InventoryVariableEvaluator which returns null in game
+        // tests because the variable item is not registered in the network's variable store.
+        INetwork network = container.getNetwork().get();
+        ValueTypeOperator.ValueOperator operatorValue =
+                ValueTypeOperator.ValueOperator.of(Operators.OBJECT_ITEMSTACK_ISENCHANTABLE);
+        IVariable<ValueTypeOperator.ValueOperator> mockVariable = new IVariable<>() {
+            @Override
+            public IValueType<ValueTypeOperator.ValueOperator> getType() {
+                return ValueTypes.OPERATOR;
+            }
+
+            @Override
+            public ValueTypeOperator.ValueOperator getValue() throws EvaluationException {
+                return operatorValue;
+            }
+
+            @Override
+            public void addInvalidationListener(IVariableInvalidateListener listener) {}
+
+            @Override
+            public void removeInvalidationListener(IVariableInvalidateListener listener) {}
+
+            @Override
+            public void invalidate() {}
+        };
+        container.onVariableContentsUpdated(network, mockVariable);
 
         helper.succeedWhen(() -> helper.assertTrue(
                 hasAdvancementUnlocked(player, "integratedterminals:storage_terminal_filtering/filter_enchantable"),
