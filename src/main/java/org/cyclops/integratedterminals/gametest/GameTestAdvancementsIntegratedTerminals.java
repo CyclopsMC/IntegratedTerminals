@@ -61,6 +61,11 @@ public class GameTestAdvancementsIntegratedTerminals {
         return player.server.getPlayerList().getPlayerAdvancements(player).getOrStartProgress(holder).isDone();
     }
 
+    private static void assertAdvancementNotUnlocked(GameTestHelper helper, ServerPlayer player, String advancementId) {
+        helper.assertTrue(!hasAdvancementUnlocked(player, advancementId),
+                "Advancement should NOT have been obtained: " + advancementId);
+    }
+
     /**
      * Creates a {@link ContainerTerminalStoragePart} that suppresses {@code cyclopscore:value_notify}
      * packet sends. This is needed in game tests where the embedded network channel does not have
@@ -248,6 +253,108 @@ public class GameTestAdvancementsIntegratedTerminals {
         helper.succeedWhen(() -> helper.assertTrue(
                 hasAdvancementUnlocked(player, "integratedterminals:storage_terminal_filtering/filter_enchantable"),
                 "filter_enchantable advancement not unlocked"));
+    }
+
+    /**
+     * Negative test: giving a non-matching item should NOT trigger the root advancement.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testAdvancementRootNegative(GameTestHelper helper) {
+        ServerPlayer player = createMockServerPlayer(helper);
+        // Give player a stick (not part_display_panel) - should NOT trigger the root advancement
+        player.getInventory().setItem(0, new ItemStack(
+                BuiltInRegistries.ITEM.get(ResourceLocation.parse("minecraft:stick"))));
+        player.inventoryMenu.broadcastChanges();
+        helper.succeedWhen(() -> assertAdvancementNotUnlocked(helper, player, "integratedterminals:root"));
+    }
+
+    /**
+     * Negative test: giving a non-matching item should NOT trigger the menril_glass advancement.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testAdvancementMenrilGlassNegative(GameTestHelper helper) {
+        ServerPlayer player = createMockServerPlayer(helper);
+        // Give player glass (not menril_glass) - should NOT trigger the menril_glass advancement
+        player.getInventory().setItem(0, new ItemStack(
+                BuiltInRegistries.ITEM.get(ResourceLocation.parse("minecraft:glass"))));
+        player.inventoryMenu.broadcastChanges();
+        helper.succeedWhen(() -> assertAdvancementNotUnlocked(helper, player,
+                "integratedterminals:storage_terminal/menril_glass"));
+    }
+
+    /**
+     * Negative test: crafting a non-matching item should NOT trigger the craft_storage_terminal advancement.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testAdvancementCraftStorageTerminalNegative(GameTestHelper helper) {
+        ServerPlayer player = createMockServerPlayer(helper);
+        // Simulate crafting a stick (not part_terminal_storage) - should NOT trigger the advancement
+        ItemStack craftedItem = new ItemStack(
+                BuiltInRegistries.ITEM.get(ResourceLocation.parse("minecraft:stick")));
+        NeoForge.EVENT_BUS.post(new PlayerEvent.ItemCraftedEvent(player, craftedItem, new SimpleContainer(9)));
+        helper.succeedWhen(() -> assertAdvancementNotUnlocked(helper, player,
+                "integratedterminals:storage_terminal/craft_storage_terminal"));
+    }
+
+    /**
+     * Negative test: opening a non-matching container should NOT trigger the gui_storage_terminal advancement.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testAdvancementGuiStorageTerminalNegative(GameTestHelper helper) {
+        ServerPlayer player = createMockServerPlayer(helper);
+        // Fire PlayerContainerEvent.Open with the player's inventory menu (not ContainerTerminalStorageBase)
+        NeoForge.EVENT_BUS.post(new PlayerContainerEvent.Open(player, player.inventoryMenu));
+        helper.succeedWhen(() -> assertAdvancementNotUnlocked(helper, player,
+                "integratedterminals:storage_terminal/gui_storage_terminal"));
+    }
+
+    /**
+     * Negative test: setting a non-matching operator should NOT trigger the filter_enchantable advancement.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testAdvancementFilterEnchantableNegative(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        ServerPlayer player = createMockServerPlayer(helper);
+
+        // Place cable block and add terminal_storage part
+        helper.setBlock(pos, RegistryEntries.BLOCK_CABLE.value());
+        NetworkHelpers.initNetwork(helper.getLevel(), helper.absolutePos(pos), Direction.NORTH);
+        PartHelpers.addPart(helper.getLevel(), helper.absolutePos(pos), Direction.NORTH,
+                PartTypes.TERMINAL_STORAGE, new ItemStack(PartTypes.TERMINAL_STORAGE.getItem()));
+
+        // Create the container directly
+        PartPos partPos = PartPos.of(helper.getLevel(), helper.absolutePos(pos), Direction.NORTH);
+        PartTarget partTarget = PartTarget.fromCenter(partPos);
+        ContainerTerminalStoragePart container = createSilentContainer(player, partTarget);
+
+        // Use OBJECT_ITEMSTACK_ISENCHANTED (not OBJECT_ITEMSTACK_ISENCHANTABLE) - should NOT trigger the advancement
+        INetwork network = container.getNetwork().get();
+        ValueTypeOperator.ValueOperator operatorValue =
+                ValueTypeOperator.ValueOperator.of(Operators.OBJECT_ITEMSTACK_ISENCHANTED);
+        IVariable<ValueTypeOperator.ValueOperator> mockVariable = new IVariable<>() {
+            @Override
+            public IValueType<ValueTypeOperator.ValueOperator> getType() {
+                return ValueTypes.OPERATOR;
+            }
+
+            @Override
+            public ValueTypeOperator.ValueOperator getValue() throws EvaluationException {
+                return operatorValue;
+            }
+
+            @Override
+            public void addInvalidationListener(IVariableInvalidateListener listener) {}
+
+            @Override
+            public void removeInvalidationListener(IVariableInvalidateListener listener) {}
+
+            @Override
+            public void invalidate() {}
+        };
+        container.onVariableContentsUpdated(network, mockVariable);
+
+        helper.succeedWhen(() -> assertAdvancementNotUnlocked(helper, player,
+                "integratedterminals:storage_terminal_filtering/filter_enchantable"));
     }
 
 }
