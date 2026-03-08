@@ -302,9 +302,6 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
         }
 
         public static TerminalCraftingPlanFlatStatic.Entry deserialize(HolderLookup.Provider lookupProvider, CompoundTag tag) {
-            if (!tag.contains("instance", Tag.TAG_COMPOUND)) {
-                throw new IllegalArgumentException("Could not find a instance entry in the given tag");
-            }
             if (!tag.contains("quantityToCraft", Tag.TAG_LONG)) {
                 throw new IllegalArgumentException("Could not find a quantityToCraft entry in the given tag");
             }

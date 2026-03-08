@@ -1,8 +1,19 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.6.19"></a>
+## [1.20.1-1.6.19](/compare/1.20.1-1.6.18...1.20.1-1.6.19) - 2026-03-08 07:41:08
+
+
+### Fixed
+* Fix crafting jobs not being sent to clients anymore
+
+This was a regression due to b5c618b8d2bbe101f50aac79e272aeb82e9d5fb6
+
+Closes #194
+
 <a name="1.20.1-1.6.18"></a>
-## [1.20.1-1.6.18](/compare/1.20.1-1.6.17...1.20.1-1.6.18) - 2026-02-17 11:43:36
+## [1.20.1-1.6.18](/compare/1.20.1-1.6.17...1.20.1-1.6.18) - 2026-02-17 11:43:36 +0100
 
 
 ### Changed
