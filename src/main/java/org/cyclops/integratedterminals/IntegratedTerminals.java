@@ -30,6 +30,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocationRegistry;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
+import org.cyclops.integratedterminals.gametest.GameTestAdvancementsIntegratedTerminals;
 import org.cyclops.integratedterminals.inventory.container.*;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortableConfig;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
@@ -130,6 +131,13 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
     @Override
     protected ICommonProxy constructCommonProxy() {
         return new CommonProxy();
+    }
+
+    @Override
+    public Class<?>[] getGameTestClasses() {
+        return new Class<?>[]{
+                GameTestAdvancementsIntegratedTerminals.class,
+        };
     }
 
     /**

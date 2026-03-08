@@ -1,0 +1,10 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Fixes:
+* Fix crafting jobs not being sent to clients anymore
+
+This was a regression due to b5c618b8d2bbe101f50aac79e272aeb82e9d5fb6
+
+Closes #194
+

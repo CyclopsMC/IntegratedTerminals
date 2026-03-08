@@ -1,8 +1,19 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.26"></a>
+## [1.21.1-1.6.26](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.25...1.21.1-1.6.26) - 2026-03-08 07:44:12
+
+
+### Fixed
+* Fix crafting jobs not being sent to clients anymore
+
+This was a regression due to b5c618b8d2bbe101f50aac79e272aeb82e9d5fb6
+
+Closes #194
+
 <a name="1.21.1-1.6.25"></a>
-## [1.21.1-1.6.25](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.24...1.21.1-1.6.25) - 2026-02-17 11:45:52
+## [1.21.1-1.6.25](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.24...1.21.1-1.6.25) - 2026-02-17 11:45:52 +0100
 
 
 ### Changed
