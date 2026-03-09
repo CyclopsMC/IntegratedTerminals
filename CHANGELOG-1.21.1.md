@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.27"></a>
+## [1.21.1-1.6.27](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.26...1.21.1-1.6.27) - 2026-03-08 08:52:43
+
+
+### Fixed
+* Migrate to com.gradleup.shadow to fix compilation issues
+
 <a name="1.21.1-1.6.26"></a>
-## [1.21.1-1.6.26](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.25...1.21.1-1.6.26) - 2026-03-08 07:44:12
+## [1.21.1-1.6.26](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.25...1.21.1-1.6.26) - 2026-03-08 07:44:12 +0100
 
 
 ### Fixed
