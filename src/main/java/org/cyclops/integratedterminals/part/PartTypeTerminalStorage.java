@@ -164,7 +164,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
 
         public void setEnderUpgraded(boolean enderUpgraded) {
             this.enderUpgraded = enderUpgraded;
-            this.onDirty();
+            this.sendUpdate();
         }
 
         @Override

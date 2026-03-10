@@ -46,8 +46,8 @@ public class TerminalStorageTabEnderChestCommon implements ITerminalStorageTabCo
 
                 Slot slot = new Slot(player.getEnderChestInventory(), slotIndex, 0, 0);
                 ISlotPositionCallback positionCallback = (factors) -> {
-                    int x = factors.offsetX() + finalCol * 18;
-                    int y = factors.offsetY() + finalRow * 18;
+                    int x = factors.offsetX() + 32 + finalCol * 18;
+                    int y = factors.offsetY() + 40 + finalRow * 18;
                     return Pair.of(x, y);
                 };
 
