@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.6.28"></a>
+## [1.21.1-1.6.28](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.27...1.21.1-1.6.28) - 2026-03-10 14:24:18
+
+
+### Fixed
+* Fix flat plans not showing dependencies anymore
+
 <a name="1.21.1-1.6.27"></a>
-## [1.21.1-1.6.27](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.26...1.21.1-1.6.27) - 2026-03-08 08:52:43
+## [1.21.1-1.6.27](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.26...1.21.1-1.6.27) - 2026-03-08 08:52:43 +0100
 
 
 ### Fixed
