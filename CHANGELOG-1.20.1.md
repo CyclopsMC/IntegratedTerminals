@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.6.20"></a>
+## [1.20.1-1.6.20](/compare/1.20.1-1.6.19...1.20.1-1.6.20) - 2026-03-10 14:23:33
+
+
+### Fixed
+* Fix flat plans not showing dependencies anymore
+
 <a name="1.20.1-1.6.19"></a>
-## [1.20.1-1.6.19](/compare/1.20.1-1.6.18...1.20.1-1.6.19) - 2026-03-08 07:41:08
+## [1.20.1-1.6.19](/compare/1.20.1-1.6.18...1.20.1-1.6.19) - 2026-03-08 07:41:08 +0100
 
 
 ### Fixed
