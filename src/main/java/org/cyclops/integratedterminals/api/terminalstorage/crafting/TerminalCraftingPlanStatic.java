@@ -244,7 +244,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
     protected static <I> void groupDependenciesByPrototype(IndexedEntries indexedEntries, Set<I> handledPlans, ITerminalCraftingPlan<I> plan) {
         // Since jobs can have multiple dependents due to job splitting, we only consider each job once during flattening.
-        if (handledPlans.contains(plan.getId())) {
+        if ((!(plan.getId() instanceof Integer id) || id > 0) && handledPlans.contains(plan.getId())) {
             return;
         }
         handledPlans.add(plan.getId());
