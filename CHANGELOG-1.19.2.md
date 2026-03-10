@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.19.2
 All notable changes to this project will be documented in this file.
 
+<a name="1.19.2-1.6.17"></a>
+## [1.19.2-1.6.17](/compare/1.19.2-1.6.16...1.19.2-1.6.17) - 2026-03-10 14:22:24
+
+
+### Fixed
+* Fix flat plans not showing dependencies anymore
+
 <a name="1.19.2-1.6.16"></a>
-## [1.19.2-1.6.16](/compare/1.19.2-1.6.15...1.19.2-1.6.16) - 2026-02-17 11:41:13
+## [1.19.2-1.6.16](/compare/1.19.2-1.6.15...1.19.2-1.6.16) - 2026-02-17 11:41:13 +0100
 
 
 ### Added
