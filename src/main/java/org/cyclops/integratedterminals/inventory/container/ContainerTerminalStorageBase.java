@@ -104,7 +104,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
             // Skip ender chest tab if terminal is not upgraded
             if (tabId.equals("integratedterminals:ender_chest")) {
                 boolean isUpgraded = false;
-                
+
                 // Check if this is a part terminal with ender upgrade
                 if (variableInventory.isPresent() && variableInventory.get() instanceof org.cyclops.integratedterminals.part.PartTypeTerminalStorage.State) {
                     org.cyclops.integratedterminals.part.PartTypeTerminalStorage.State partState =
@@ -118,7 +118,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
                     ItemStack itemStack = itemContainer.getItemStack(player);
                     isUpgraded = org.cyclops.integratedterminals.item.ItemTerminalStoragePortable.isEnderUpgraded(itemStack);
                 }
-                
+
                 if (!isUpgraded) {
                     continue; // Skip this tab
                 }
