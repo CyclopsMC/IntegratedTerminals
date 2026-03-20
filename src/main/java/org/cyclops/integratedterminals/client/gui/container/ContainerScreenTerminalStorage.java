@@ -106,12 +106,15 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         super.init();
         this.initialized = false;
 
+        // Check if current tab is ender chest
+        boolean isEnderChestTab = "integratedterminals:ender_chest".equals(getMenu().getSelectedTab());
+
         fieldChannel = new WidgetArrowedListField<String>(Minecraft.getInstance().font, leftPos + CHANNEL_X,
                 topPos + CHANNEL_Y, CHANNEL_WIDTH, CHANNEL_HEIGHT, true,
                 Component.translatable("gui.integratedterminals.channel"), true,
                 getMenu().getChannelStrings());
         fieldChannel.setMaxLength(15);
-        fieldChannel.setVisible(true);
+        fieldChannel.setVisible(!isEnderChestTab); // Hide on ender chest tab
         fieldChannel.setTextColor(16777215);
         fieldChannel.setCanLoseFocus(true);
         fieldChannel.setEditable(true);
@@ -145,7 +148,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().font, leftPos + SEARCH_X,
                 topPos + SEARCH_Y, getSearchWidth() - 10, SEARCH_HEIGHT, Component.translatable("gui.cyclopscore.search"));
         fieldSearch.setMaxLength(50);
-        fieldSearch.setVisible(true);
+        fieldSearch.setVisible(!isEnderChestTab); // Hide on ender chest tab
         fieldSearch.setTextColor(16777215);
         fieldSearch.setCanLoseFocus(true);
         fieldSearch.setEditable(true);
@@ -878,8 +881,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     protected void drawTabsBackground(PoseStack matrixStack) {
         int offsetX = TAB_OFFSET_X;
 
-        // Draw channels label
-        drawString(matrixStack, font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
+        // Draw channels label (but not on ender chest tab)
+        boolean isEnderChestTab = "integratedterminals:ender_chest".equals(getMenu().getSelectedTab());
+        if (!isEnderChestTab) {
+            drawString(matrixStack, font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
+        }
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getMenu().getTabsClient().values()) {
