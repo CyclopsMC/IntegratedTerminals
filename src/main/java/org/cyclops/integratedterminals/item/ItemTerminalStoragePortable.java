@@ -50,6 +50,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
     public static String NBT_KEY_GROUP = Reference.MOD_ID + ":groupKey";
     public static String NBT_KEY_NAMED_INVENTORIES = Reference.MOD_ID + ":namedInventories";
     public static String NBT_KEY_STATES = Reference.MOD_ID + ":terminalStorageStates";
+    public static String NBT_KEY_ENDER_UPGRADED = Reference.MOD_ID + ":enderUpgraded";
 
     public ItemTerminalStoragePortable(Properties properties) {
         super(properties);
@@ -130,6 +131,9 @@ public class ItemTerminalStoragePortable extends ItemGui {
         if (groupId >= 0) {
             tooltip.add(Component.translatable(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
         }
+        if (isEnderUpgraded(stack)) {
+            tooltip.add(Component.translatable("item.integratedterminals.terminal_storage_portable.ender_upgraded"));
+        }
     }
 
     public static int getGroupId(ItemStack itemStack) {
@@ -144,6 +148,20 @@ public class ItemTerminalStoragePortable extends ItemGui {
     public static void setGroupId(ItemStack itemStack, int groupId) {
         CompoundTag tag = itemStack.getOrCreateTag();
         tag.putInt(NBT_KEY_GROUP, groupId);
+    }
+
+    public static boolean isEnderUpgraded(ItemStack itemStack) {
+        CompoundTag tag = itemStack.getTag();
+        if (tag == null || !tag.contains(NBT_KEY_ENDER_UPGRADED, Tag.TAG_BYTE)) {
+            return false;
+        } else {
+            return tag.getBoolean(NBT_KEY_ENDER_UPGRADED);
+        }
+    }
+
+    public static void setEnderUpgraded(ItemStack itemStack, boolean upgraded) {
+        CompoundTag tag = itemStack.getOrCreateTag();
+        tag.putBoolean(NBT_KEY_ENDER_UPGRADED, upgraded);
     }
 
     public static ITerminalStorageTabCommon.IVariableInventory getVariableInventory(ItemStack itemStack) {

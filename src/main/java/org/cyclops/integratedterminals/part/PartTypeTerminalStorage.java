@@ -59,6 +59,9 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         return new PartTypeTerminalStorage.State();
     }
 
+    // TODO: Add particle spawning for ender-upgraded terminals
+    // Need to find correct update method signature to spawn PORTAL particles
+
     @Override
     public InteractionResult onPartActivated(State partState, BlockPos pos, Level world, Player player, InteractionHand hand, ItemStack heldItem, BlockHitResult hit) {
         // Check if player is holding an Eye of Ender and terminal is not yet upgraded
