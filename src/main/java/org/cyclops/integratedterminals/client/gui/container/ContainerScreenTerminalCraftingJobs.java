@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -83,19 +83,19 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
-        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        scrollBar.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         drawCraftingPlans(guiGraphics, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
 
         // Draw plan label
-        guiGraphics.drawString(Minecraft.getInstance().font,
+        guiGraphics.text(Minecraft.getInstance().font,
                 IModHelpers.get().getL10NHelpers().localize("parttype.integratedterminals.terminal_crafting_job"),
                 leftPos + 8, topPos + 5, ARGB.opaque(16777215));
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         drawCraftingPlans(guiGraphics, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
     }
@@ -105,7 +105,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                 .subList(firstRow, Math.min(this.getMenu().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
     }
 
-    protected void drawCraftingPlans(GuiGraphics guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
+    protected void drawCraftingPlans(GuiGraphicsExtractor guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
         for (HandlerWrappedTerminalCraftingPlan craftingPlan : getVisiblePlans()) {
             drawCraftingPlan(guiGraphics, craftingPlan, x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
@@ -113,7 +113,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         }
     }
 
-    protected void drawCraftingPlan(GuiGraphics guiGraphics, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
+    protected void drawCraftingPlan(GuiGraphicsExtractor guiGraphics, HandlerWrappedTerminalCraftingPlan craftingPlan, int x, int y,
                                     ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int xOriginal = x;
         ITerminalCraftingPlanFlat<?> plan = craftingPlan.getCraftingPlanFlat();

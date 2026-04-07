@@ -31,7 +31,7 @@ public abstract class PartTypeTerminal<P extends PartTypeTerminal<P, S>, S exten
     @Override
     public InteractionResult onPartActivated(S partState, BlockPos pos, Level world, Player player, InteractionHand hand, ItemStack heldItem, BlockHitResult hit) {
         if (isUpdate(partState) && !partState.isEnabled()) {
-            player.displayClientMessage(Component.translatable(L10NValues.PART_ERROR_LOWENERGY), true);
+            player.sendOverlayMessage(Component.translatable(L10NValues.PART_ERROR_LOWENERGY));
             return InteractionResult.FAIL;
         }
         return super.onPartActivated(partState, pos, world, player, hand, heldItem, hit);

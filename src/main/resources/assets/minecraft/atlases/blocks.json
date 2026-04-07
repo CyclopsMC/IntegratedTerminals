@@ -1,5 +1,4 @@
 { "sources": [
-  { "type": "minecraft:single", "resource": "integratedterminals:item/terminal_storage_portable" },
   { "type": "minecraft:single", "resource": "integratedterminals:part/terminal_back" },
   { "type": "minecraft:single", "resource": "integratedterminals:part/terminal_storage" },
   { "type": "minecraft:single", "resource": "integratedterminals:part/terminal_crafting_job" },

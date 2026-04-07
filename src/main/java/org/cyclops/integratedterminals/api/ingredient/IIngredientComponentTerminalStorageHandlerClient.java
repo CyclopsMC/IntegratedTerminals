@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
@@ -30,7 +30,7 @@ public interface IIngredientComponentTerminalStorageHandlerClient<T, M> {
      * @param mouseY The mouse Y position.
      * @param additionalTooltipLines The additional tooltip lines to add.
      */
-    public void drawInstance(GuiGraphics guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+    public void drawInstance(GuiGraphicsExtractor guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines);
 
     /**

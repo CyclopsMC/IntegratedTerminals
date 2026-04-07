@@ -146,7 +146,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingCommon
                         || !entityplayermp.level().getGameRules().get(GameRules.LIMITED_CRAFTING)
                         || entityplayermp.getRecipeBook().contains(recipeHolder.id()))) {
                     inventoryCraftResult.setRecipeUsed(recipeHolder);
-                    itemstack = recipeHolder.value().assemble(craftInput, player.level().registryAccess());
+                    itemstack = recipeHolder.value().assemble(craftInput);
                 }
             }
             inventoryCraftResult.setItem(0, itemstack);

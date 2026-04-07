@@ -2,7 +2,7 @@ package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -33,7 +33,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStackClient implement
     }
 
     @Override
-    public void drawInstance(GuiGraphics guiGraphics, FluidStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
+    public void drawInstance(GuiGraphicsExtractor guiGraphics, FluidStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
                              @Nullable List<Component> additionalTooltipLines) {

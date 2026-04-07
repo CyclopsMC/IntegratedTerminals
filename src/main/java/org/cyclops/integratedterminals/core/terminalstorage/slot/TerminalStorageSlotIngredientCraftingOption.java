@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.core.terminalstorage.slot;
 import com.google.common.collect.Lists;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -36,7 +36,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     }
 
     @Override
-    public void drawGuiContainerLayer(AbstractContainerScreen gui, GuiGraphics guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer,
+    public void drawGuiContainerLayer(AbstractContainerScreen gui, GuiGraphicsExtractor guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer,
                                       float partialTick, int x, int y, int mouseX, int mouseY,
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getIngredientComponentViewHandler();
@@ -71,7 +71,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         return craftingOption;
     }
 
-    private void drawCraftLabel(GuiGraphics guiGraphics, int x, int y) {
+    private void drawCraftLabel(GuiGraphicsExtractor guiGraphics, int x, int y) {
         new GuiGraphicsExtended(guiGraphics).drawSlotText(Minecraft.getInstance().font,
                 ChatFormatting.GOLD + IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.craft"), x, y - 11);
     }

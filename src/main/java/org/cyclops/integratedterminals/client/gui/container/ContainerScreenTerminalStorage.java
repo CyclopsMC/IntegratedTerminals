@@ -7,7 +7,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -265,17 +265,17 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
-        //super.renderBg(matrixStack, f, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float f) {
+        //super.extractBackground(guiGraphics, mouseX, mouseY, f);
         this.renderBgTab(guiGraphics, f, mouseX, mouseY);
         this.renderBgPlayerInventory(guiGraphics, f, mouseX, mouseY);
 
-        fieldChannel.render(guiGraphics, mouseX, mouseY, f);
-        fieldSearch.render(guiGraphics, mouseX, mouseY, f);
+        fieldChannel.extractRenderState(guiGraphics, mouseX, mouseY, f);
+        fieldSearch.extractRenderState(guiGraphics, mouseX, mouseY, f);
         drawTabsBackground(guiGraphics);
         drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
-        scrollBar.render(guiGraphics, mouseX, mouseY, f);
+        scrollBar.extractWidgetRenderState(guiGraphics, mouseX, mouseY, f);
 
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         tabOptional.ifPresent(tab -> {
@@ -287,7 +287,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             ITerminalStorageTabCommon.SlotPositionFactors factors = new ITerminalStorageTabCommon.SlotPositionFactors(offsetX, offsetY, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY);
             for (ITerminalButton button : tab.getButtons()) {
                 Button guiButton = button.getClient().createButton(button.getX(leftPos, BUTTONS_OFFSET_X, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY), button.getY(topPos, BUTTONS_OFFSET_Y + offset, gridXSize, gridYSize, playerInventoryOffsetX, playerInventoryOffsetY));
-                guiButton.render(guiGraphics, mouseX, mouseY, f);
+                guiButton.extractRenderState(guiGraphics, mouseX, mouseY, f);
                 if (button.isInLeftColumn()) {
                     offset += BUTTONS_OFFSET + guiButton.getHeight();
                 }
@@ -305,7 +305,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         });
     }
 
-    protected void renderBgTab(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
+    protected void renderBgTab(GuiGraphicsExtractor guiGraphics, float f, int mouseX, int mouseY) {
         int tabWidth = getGridXSize() + 29;
         int tabHeight = getGridYSize() + 40;
         int offset = 21;
@@ -355,7 +355,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         getSelectedClientTab().ifPresent(tab -> tab.onTabBackgroundRender(this, guiGraphics, f, mouseX, mouseY));
     }
 
-    public static void blitRescalable(GuiGraphics guiGraphics, Identifier texture, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight, int realWidth, int realHeight, int color) {
+    public static void blitRescalable(GuiGraphicsExtractor guiGraphics, Identifier texture, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight, int realWidth, int realHeight, int color) {
         guiGraphics.innerBlit(
                 RenderPipelines.GUI_TEXTURED,
                 texture,
@@ -371,7 +371,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         );
     }
 
-    protected void renderBgPlayerInventory(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
+    protected void renderBgPlayerInventory(GuiGraphicsExtractor guiGraphics, float f, int mouseX, int mouseY) {
         // Render player inventory
         guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + (getGridXSize() / 2) - (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + getPlayerInventoryOffsetX() + 3, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 216, 93, 256, 256);
 
@@ -380,7 +380,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         drawTabsForeground(guiGraphics, mouseX, mouseY);
         drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
@@ -431,16 +431,16 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Override
-    protected void renderSlots(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        super.renderSlots(guiGraphics, mouseX, mouseY);
+    protected void extractSlots(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+        super.extractSlots(guiGraphics, mouseX, mouseY);
 
         // Postpone this until after all slots are rendered, to ensure it is rendered in front of other slots.
         drawActiveStorageSlotItem(guiGraphics, mouseX, mouseY);
     }
 
     @Override
-    protected void drawCurrentScreen(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
+    protected void drawCurrentScreen(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        scrollBar.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 
         Identifier oldTexture = this.texture;
         getSelectedClientTab().ifPresent(tab -> {
@@ -464,7 +464,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         this.texture = oldTexture;
     }
 
-        private void drawSlotOverlay(GuiGraphics guiGraphics, Slot slot) {
+        private void drawSlotOverlay(GuiGraphicsExtractor guiGraphics, Slot slot) {
         getSelectedClientTab().ifPresent(tab -> {
             if (this.terminalDragSplitting && this.terminalDragSplittingSlots.contains(slot)) {
                 if (tab.isSlotValidForDraggingInto(getMenu().getSelectedChannel(), slot)) {
@@ -791,7 +791,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             swallowNextCharacter = false;
             return true;
         }
-        if (handleKeyCodeFirst(new KeyEvent(evt.codepoint(), 0, evt.modifiers()))) {
+        if (handleKeyCodeFirst(new KeyEvent(evt.codepoint(), 0, 0))) {
             return true;
         }
         if (fieldSearch.isFocused()) {
@@ -801,7 +801,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
             return true;
         }
-        return handleKeyCodeLast(new KeyEvent(evt.codepoint(), 0, evt.modifiers())) || super.charTyped(evt);
+        return handleKeyCodeLast(new KeyEvent(evt.codepoint(), 0, 0)) || super.charTyped(evt);
     }
 
     @Override
@@ -886,11 +886,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return slotRect;
     }
 
-    protected void drawTabsBackground(GuiGraphics guiGraphics) {
+    protected void drawTabsBackground(GuiGraphicsExtractor guiGraphics) {
         int offsetX = TAB_OFFSET_X;
 
         // Draw channels label
-        guiGraphics.drawString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, ARGB.opaque(16777215));
+        guiGraphics.text(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, ARGB.opaque(16777215));
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getMenu().getTabsClient().values()) {
@@ -906,7 +906,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, x, y, textureX, textureY, width, height, 256, 256);
 
             // Draw icon
-            guiGraphics.renderItem(tab.getIcon(), x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
+            guiGraphics.item(tab.getIcon(), x + TAB_ICON_OFFSET, y + TAB_ICON_OFFSET);
 
             offsetX += width;
         }
@@ -940,14 +940,14 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return firstRow;
     }
 
-    protected void drawTabContents(GuiGraphics guiGraphics, String tabId, int channel, DrawLayer layer,
+    protected void drawTabContents(GuiGraphicsExtractor guiGraphics, String tabId, int channel, DrawLayer layer,
                                    float partialTick, int x, int y, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getClientTab(tabId);
         if (optionalTab.isPresent()) {
             ITerminalStorageTabClient<?> tab = optionalTab.get();
             // Draw status string
             if (layer == DrawLayer.BACKGROUND) {
-                guiGraphics.drawCenteredString(font, tab.getStatus(channel), leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (IModHelpers.get().getGuiHelpers().getSlotSize() * tab.getRowColumnProvider().getRowsAndColumns().columns()) / 2,
+                guiGraphics.centeredText(font, tab.getStatus(channel), leftPos + ITerminalStorageTabClient.DEFAULT_SLOT_OFFSET_X + (IModHelpers.get().getGuiHelpers().getSlotSize() * tab.getRowColumnProvider().getRowsAndColumns().columns()) / 2,
                         y + 2 + getSlotVisibleRows() * IModHelpers.get().getGuiHelpers().getSlotSize(), ARGB.opaque(16777215));
             }
 
@@ -984,7 +984,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
     }
 
-    private void drawActiveStorageSlotItem(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void drawActiveStorageSlotItem(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         Optional<ITerminalStorageTabClient<?>> optionalTab = getSelectedClientTab();
         optionalTab.ifPresent(tab -> {
             int slotId = tab.getActiveSlotId();
@@ -1038,7 +1038,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return -1;
     }
 
-    protected void drawTabsForeground(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void drawTabsForeground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         if (mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
                 && mouseX > getGuiLeft() + TAB_OFFSET_X
                 && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {

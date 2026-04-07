@@ -1,6 +1,6 @@
 package org.cyclops.integratedterminals.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
@@ -22,7 +22,7 @@ public class ButtonSort extends ButtonImage {
     }
 
     @Override
-    protected void drawButtonInner(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void drawButtonInner(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         (active ? Images.BUTTON_BACKGROUND_ACTIVE : Images.BUTTON_BACKGROUND_INACTIVE).draw(guiGraphics, getX(), getY());
         super.drawButtonInner(guiGraphics, mouseX, mouseY);
         if (active) {

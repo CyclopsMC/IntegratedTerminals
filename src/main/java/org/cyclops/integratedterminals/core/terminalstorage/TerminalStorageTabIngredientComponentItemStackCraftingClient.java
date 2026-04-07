@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.core.terminalstorage;
 
 import com.google.common.collect.Lists;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -115,7 +115,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
+    public void onTabBackgroundRender(ContainerScreenTerminalStorage<?, ?> screen, GuiGraphicsExtractor guiGraphics, float f, int mouseX, int mouseY) {
         super.onTabBackgroundRender(screen, guiGraphics, f, mouseX, mouseY);
 
         // Render crafting grid
@@ -123,7 +123,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
     }
 
     @Override
-    public void onCommonSlotRender(AbstractContainerScreen gui, GuiGraphics guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
+    public void onCommonSlotRender(AbstractContainerScreen gui, GuiGraphicsExtractor guiGraphics, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y, int mouseX, int mouseY, int slot, ITerminalStorageTabCommon tabCommon) {
         // Delegate to regular itemstack tab
         String name = ingredientComponent.getName().toString();
         ITerminalStorageTabClient<?> tabClient = container.getTabClient(name);

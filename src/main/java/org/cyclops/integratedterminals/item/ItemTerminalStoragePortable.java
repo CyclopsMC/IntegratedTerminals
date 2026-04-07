@@ -74,10 +74,10 @@ public class ItemTerminalStoragePortable extends ItemGui {
                 if (network.isPresent()) {
                     super.openGuiForItemIndex(world, player, itemLocation);
                 } else {
-                    player.displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.invalid_network"), true);
+                    player.sendOverlayMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.invalid_network"));
                 }
             } else {
-                player.displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.no_network"), true);
+                player.sendOverlayMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.no_network"));
             }
         }
     }
@@ -96,7 +96,7 @@ public class ItemTerminalStoragePortable extends ItemGui {
                     if (partStateHolder != null && partStateHolder.getPart() == PartTypes.CONNECTOR_OMNI) {
                         PartTypeConnectorOmniDirectional.State state = (PartTypeConnectorOmniDirectional.State) partStateHolder.getState();
                         setGroupId(stack, state.getGroupId());
-                        context.getPlayer().displayClientMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.linked"), true);
+                        context.getPlayer().sendOverlayMessage(Component.translatable("item.integratedterminals.terminal_storage_portable.status.linked"));
                         return InteractionResult.SUCCESS;
                     }
                 }

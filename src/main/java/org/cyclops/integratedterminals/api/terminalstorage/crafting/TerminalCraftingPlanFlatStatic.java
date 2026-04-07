@@ -191,23 +191,6 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
             this(instances, 0, 0, 0, 0);
         }
 
-        /**
-         * @deprecated Use {@link #Entry(List)} instead. TODO: rm in next major
-         */
-        @Deprecated
-        public Entry(IPrototypedIngredient<?, ?> instance) {
-            this(List.of(instance), 0, 0, 0, 0);
-        }
-
-        /**
-         * @deprecated Use {@link #getInstances()} instead. TODO: rm in next major
-         */
-        @Override
-        @Deprecated
-        public IPrototypedIngredient<?, ?> getInstance() {
-            return instances.get(0);
-        }
-
         @Override
         public List<IPrototypedIngredient<?, ?>> getInstances() {
             return instances;

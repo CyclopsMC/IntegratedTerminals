@@ -3,7 +3,7 @@ package org.cyclops.integratedterminals.client.gui.container;
 import com.google.common.collect.Lists;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -149,7 +149,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
                 new TerminalStorageIngredientOpenCraftingPlanGuiPacket(lookupProvider, craftingOptionData));
     }
 
-    protected <T, M> void drawInstance(GuiGraphics guiGraphics, IngredientComponent<T, M> ingredientComponent, T instance, int x, int y, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    protected <T, M> void drawInstance(GuiGraphicsExtractor guiGraphics, IngredientComponent<T, M> ingredientComponent, T instance, int x, int y, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         long quantity = ingredientComponent.getMatcher().getQuantity(instance) * getAmount();
         ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find ingredient terminal storage handler"))
@@ -169,7 +169,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         this.numberField.setValue(Integer.toString(this.numberField.validateNumber(amount)));
     }
 
-    protected void drawOutputSlots(GuiGraphics guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
+    protected void drawOutputSlots(GuiGraphicsExtractor guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
         for (IPrototypedIngredient output : this.outputs.subList(firstRow, Math.min(this.outputs.size(), firstRow + scrollBar.getVisibleRows()))) {
             drawInstance(guiGraphics, output.getComponent(), output.getPrototype(), x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
@@ -178,16 +178,16 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
-        numberField.render(guiGraphics, mouseX - leftPos, mouseY - topPos, partialTicks);
-        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        numberField.extractRenderState(guiGraphics, mouseX - leftPos, mouseY - topPos, partialTicks);
+        scrollBar.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
 
         drawOutputSlots(guiGraphics, leftPos, topPos, partialTicks, mouseX - leftPos, mouseY - topPos, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND);
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
 
         drawOutputSlots(guiGraphics, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
@@ -212,14 +212,14 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         }
 
         @Override
-        protected void drawButtonInner(GuiGraphics guiGraphics, int i, int j) {
+        protected void drawButtonInner(GuiGraphicsExtractor guiGraphics, int i, int j) {
             int color = ARGB.opaque(14737632);
             if (!this.active) {
                 color = ARGB.opaque(10526880);
             } else if (this.isHovered) {
                 color = ARGB.opaque(16777120);
             }
-            guiGraphics.drawCenteredString(minecraft.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
+            guiGraphics.centeredText(minecraft.font, this.getMessage(), this.getX() + this.width / 2, this.getY() + (this.height - 8) / 2, color);
         }
 
         public int getDiff() {

@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -41,9 +41,9 @@ import java.util.stream.Collectors;
  * A gui component for visualizing {@link CraftingOptionGuiData}.
  *
  * The using gui must call the following methods from its respective method:
- * * {@link #render(GuiGraphics, int, int, float)}
- * * {@link #drawGuiContainerBackgroundLayer(GuiGraphics, float, int, int)}
- * * {@link #drawGuiContainerForegroundLayer(GuiGraphics, int, int)}
+ * * {@link #extractRenderState(GuiGraphicsExtractor, int, int, float)}
+ * * {@link #drawGuiContainerBackgroundLayer(GuiGraphicsExtractor, float, int, int)}
+ * * {@link #drawGuiContainerForegroundLayer(GuiGraphicsExtractor, int, int)}
  * * {@link #mouseScrolled(double, double, double, double)}}
  * * {@link #mouseDragged(MouseButtonEvent, double, double)}
  *
@@ -131,7 +131,7 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     @Override
-    public void renderWidget(GuiGraphics guiGraphics, int p_268034_, int p_268009_, float p_268085_) {
+    public void extractWidgetRenderState(GuiGraphicsExtractor guiGraphics, int p_268034_, int p_268009_, float p_268085_) {
 
     }
 
@@ -143,7 +143,7 @@ public class GuiCraftingPlan extends AbstractWidget {
         return element.getIndent() * 8;
     }
 
-    public void drawGuiContainerLayer(GuiGraphics guiGraphics, int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    public void drawGuiContainerLayer(GuiGraphicsExtractor guiGraphics, int guiLeft, int guiTop, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         int offsetY = 0;
         for (GuiCraftingPlan.Element element : getVisibleElements()) {
             drawElement(guiGraphics, element,  getAbsoluteElementIndent(element), guiLeft + getX(), guiTop + getY() + offsetY, ELEMENT_WIDTH, ELEMENT_HEIGHT, layer, partialTick, mouseX, mouseY);
@@ -155,7 +155,7 @@ public class GuiCraftingPlan extends AbstractWidget {
         return (int) Minecraft.getInstance().level.getGameTime() / TICK_DELAY;
     }
 
-    private void drawElement(GuiGraphics guiGraphics, Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
+    private void drawElement(GuiGraphicsExtractor guiGraphics, Element element, int indent, int x, int y, int width, int height, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int mouseX, int mouseY) {
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             // Draw background
             guiGraphics.fill(x, y, x + width, y + height + 1, element.getColor());
@@ -221,14 +221,14 @@ public class GuiCraftingPlan extends AbstractWidget {
         }
     }
 
-    protected static void renderItem(GuiGraphics guiGraphics, ItemStack itemStack, int x, int y, float scale) {
+    protected static void renderItem(GuiGraphicsExtractor guiGraphics, ItemStack itemStack, int x, int y, float scale) {
         guiGraphics.pose().pushMatrix();
         guiGraphics.pose().translate(x, y);
         guiGraphics.pose().scale(scale, scale);
 
         GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-        guiGraphics.renderItem(itemStack, 0, 0);
-        renderItem.renderItemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
+        guiGraphics.item(itemStack, 0, 0);
+        renderItem.itemDecorations(Minecraft.getInstance().font, itemStack, 0, 0, "");
 
         guiGraphics.pose().popMatrix();
     }
@@ -239,11 +239,11 @@ public class GuiCraftingPlan extends AbstractWidget {
                 DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
     }
 
-    public void drawGuiContainerBackgroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+    public void drawGuiContainerBackgroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
         Font fontRenderer = Minecraft.getInstance().font;
 
         // Draw plan label
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, ARGB.opaque(16777215));
+        guiGraphics.centeredText(Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, ARGB.opaque(16777215));
 
         // Draw duration
         if (tickDuration >= 0) {
@@ -264,10 +264,10 @@ public class GuiCraftingPlan extends AbstractWidget {
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
-        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
+        scrollBar.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
     }
 
-    public void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    public void drawGuiContainerForegroundLayer(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
     }
 

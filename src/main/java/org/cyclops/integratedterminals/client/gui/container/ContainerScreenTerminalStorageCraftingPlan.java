@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
@@ -140,20 +140,20 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         } else if (this.guiCraftingPlanFlat != null) {
             guiCraftingPlanFlat.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
         } else {
-            guiGraphics.drawCenteredString(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
+            guiGraphics.centeredText(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.step.crafting_plan_calculating"),
                     leftPos + getBaseXSize() / 2, topPos + 23, ARGB.opaque(16777215));
         }
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         if (this.guiCraftingPlan != null) {
             guiCraftingPlan.drawGuiContainerForegroundLayer(guiGraphics, mouseX, mouseY);
@@ -163,12 +163,12 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     }
 
     @Override
-    protected void drawCurrentScreen(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
+    protected void drawCurrentScreen(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
         super.drawCurrentScreen(guiGraphics, mouseX, mouseY, partialTicks);
         if (this.guiCraftingPlan != null) {
-            guiCraftingPlan.render(guiGraphics, mouseX, mouseY, partialTicks);
+            guiCraftingPlan.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         } else if (this.guiCraftingPlanFlat != null) {
-            guiCraftingPlanFlat.render(guiGraphics, mouseX, mouseY, partialTicks);
+            guiCraftingPlanFlat.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
         }
     }
 
