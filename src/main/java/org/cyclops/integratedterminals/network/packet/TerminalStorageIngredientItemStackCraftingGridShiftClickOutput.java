@@ -74,6 +74,9 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
                 do {
                     // Break the loop once we can not add the result into the player inventory anymore
                     ItemStack insertItem = slotCrafting.getItem();
+                    if (insertItem.isEmpty()) {
+                        break;
+                    }
                     try (var tx = Transaction.openRoot()) {
                         if (PlayerInventoryWrapper.of(player).insert(ItemResource.of(insertItem), insertItem.getCount(), tx) != insertItem.getCount()) {
                             break;
