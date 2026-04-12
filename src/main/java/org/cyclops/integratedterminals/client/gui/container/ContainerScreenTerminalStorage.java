@@ -266,7 +266,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     @Override
     public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float f) {
-        //super.extractBackground(guiGraphics, mouseX, mouseY, f);
+        this.extractTransparentBackground(guiGraphics);
         this.renderBgTab(guiGraphics, f, mouseX, mouseY);
         this.renderBgPlayerInventory(guiGraphics, f, mouseX, mouseY);
 
