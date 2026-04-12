@@ -8,7 +8,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
@@ -72,8 +71,12 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     }
 
     private void drawCraftLabel(GuiGraphicsExtractor guiGraphics, int x, int y) {
-        new GuiGraphicsExtended(guiGraphics).drawSlotText(Minecraft.getInstance().font,
-                ChatFormatting.GOLD + IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.craft"), x, y - 11);
+        String text = ChatFormatting.GOLD + IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.craft");
+        float scale = 0.5f;
+        guiGraphics.pose().pushMatrix();
+        guiGraphics.pose().scale(scale, scale);
+        guiGraphics.text(Minecraft.getInstance().font, text, (int) ((x + 17) / scale - Minecraft.getInstance().font.width(text)), (int) ((y + 1) / scale), -1, true);
+        guiGraphics.pose().popMatrix();
     }
 
 }

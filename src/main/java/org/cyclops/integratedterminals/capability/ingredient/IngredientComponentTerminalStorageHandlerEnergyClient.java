@@ -6,7 +6,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.IGuiHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
@@ -53,8 +52,12 @@ public class IngredientComponentTerminalStorageHandlerEnergyClient implements II
                         16, 240, IGuiHelpers.ProgressDirection.UP, progressScaled, progressMaxScaled);
 
                 // Draw amount
-                GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance), x, y);
+                float scale = 0.5f;
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().scale(scale, scale);
+                String amountLabel = label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance);
+                guiGraphics.text(Minecraft.getInstance().font, amountLabel, (int) ((x + 17) / scale - Minecraft.getInstance().font.width(amountLabel)), (int) ((y + 12) / scale), -1, true);
+                guiGraphics.pose().popMatrix();
             } else {
                 IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(),
                         mouseX, mouseY, () -> {

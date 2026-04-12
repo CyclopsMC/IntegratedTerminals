@@ -9,7 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.neoforged.neoforge.fluids.FluidStack;
-import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpersNeoForge;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
@@ -43,8 +42,12 @@ public class IngredientComponentTerminalStorageHandlerFluidStackClient implement
                 IModHelpersNeoForge.get().getGuiHelpers().renderFluidSlot(guiGraphics, instance, x, y);
 
                 // Draw amount
-                GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
-                renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance.getAmount()), x, y);
+                float scale = 0.5f;
+                guiGraphics.pose().pushMatrix();
+                guiGraphics.pose().scale(scale, scale);
+                String amountLabel = label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance.getAmount());
+                guiGraphics.text(Minecraft.getInstance().font, amountLabel, (int) ((x + 17) / scale - Minecraft.getInstance().font.width(amountLabel)), (int) ((y + 12) / scale), -1, true);
+                guiGraphics.pose().popMatrix();
             } else {
                 IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
                     List<Component> lines = Lists.newArrayList();
