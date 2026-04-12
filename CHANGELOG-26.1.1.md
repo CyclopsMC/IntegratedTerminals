@@ -1,8 +1,15 @@
 # Changelog for Minecraft 26.1.1
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.1-1.6.30"></a>
+## [26.1.1-1.6.30](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.1-1.6.29...26.1.1-1.6.30) - 2026-04-12 17:28:08
+
+
+### Fixed
+* Fix crash when shift-clicking output slot with empty item stack (#199)
+
 <a name="26.1.1-1.6.29"></a>
-## [26.1.1-1.6.29](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.1-1.6.28...26.1.1-1.6.29) - 2026-04-11 19:58:40
+## [26.1.1-1.6.29](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.1-1.6.28...26.1.1-1.6.29) - 2026-04-11 19:58:40 +0200
 
 
 ### Changed
