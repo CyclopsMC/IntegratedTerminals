@@ -162,7 +162,7 @@ dependencies {
             transitive = false
         }
     } else {
-        shadow("org.cyclops.integratedterminalscompat:integratedterminalscompat-${project.minecraft_version}-neoforge:${project.integratedterminalscompat_version}") {
+        shadow("org.cyclops.integratedterminalscompat:integratedterminalscompat-${project.integratedterminalscompat_version}") {
             transitive = false
         }
     }
