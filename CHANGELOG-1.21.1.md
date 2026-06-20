@@ -1,8 +1,17 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.7.0"></a>
+## [1.21.1-1.7.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.28...1.21.1-1.7.0) - 2026-06-20 13:36:33
+
+
+### Added
+* Notify user when auto-craft started from JEI with toast
+  Closes CyclopsMC/IntegratedCrafting#203
+* Group crafting jobs for identical items when auto-crafting through JEI
+
 <a name="1.21.1-1.6.28"></a>
-## [1.21.1-1.6.28](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.27...1.21.1-1.6.28) - 2026-03-10 14:24:18
+## [1.21.1-1.6.28](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.27...1.21.1-1.6.28) - 2026-03-10 14:24:18 +0100
 
 
 ### Fixed
