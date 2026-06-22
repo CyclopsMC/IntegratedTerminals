@@ -13,7 +13,6 @@ import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.capability.item.ItemStackResourceHandlerContainerSlot;
 import org.cyclops.cyclopscore.helper.IModHelpers;
-import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.RegistryEntries;
@@ -111,10 +110,9 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                 .map(energyStorage -> {
                     IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
                     Long ret = 0L;
-                    try {
-                        ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, false);
-                    } catch (InconsistentIngredientInsertionException e) {
-                        // Ignore
+                    try (var tx = Transaction.openRoot()) {
+                        ret = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance, tx);
+                        tx.commit();
                     }
                     container.broadcastChanges(); // TODO: can this be removed due to ItemAccess usage?
                     return ret;
@@ -128,10 +126,9 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
         Optional.ofNullable(ItemAccess.forPlayerCursor(playerInventory.player, container).getCapability(Capabilities.Energy.ITEM))
                 .ifPresent(energyStorage -> {
                     IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-                    try {
-                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
-                    } catch (InconsistentIngredientInsertionException e) {
-                        // Ignore
+                    try (var tx = Transaction.openRoot()) {
+                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, tx);
+                        tx.commit();
                     }
                 });
     }
@@ -144,10 +141,9 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
             Optional.ofNullable(ItemStackResourceHandlerContainerSlot.asItemAccess(container, containerSlot).getCapability(Capabilities.Energy.ITEM))
                     .ifPresent(energyStorage -> {
                         IIngredientComponentStorage<Long, Boolean> itemStorage = getEnergyStorage(storage.getComponent(), energyStorage);
-                        try {
-                            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, false);
-                        } catch (InconsistentIngredientInsertionException e) {
-                            // Ignore
+                        try (var tx = Transaction.openRoot()) {
+                            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, tx);
+                            tx.commit();
                         }
                     });
         }

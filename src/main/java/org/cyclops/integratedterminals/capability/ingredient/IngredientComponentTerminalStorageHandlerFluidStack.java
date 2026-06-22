@@ -18,7 +18,6 @@ import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponen
 import org.cyclops.cyclopscore.capability.item.ItemStackResourceHandlerContainerSlot;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpersNeoForge;
-import org.cyclops.cyclopscore.ingredient.storage.InconsistentIngredientInsertionException;
 import org.cyclops.cyclopscore.ingredient.storage.IngredientStorageHelpers;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
@@ -109,11 +108,10 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                 .map(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
                     FluidStack moved = FluidStack.EMPTY;
-                    try {
+                    try (var tx = Transaction.openRoot()) {
                         moved = IngredientStorageHelpers.moveIngredientsIterative(storage, itemStorage, maxInstance,
-                                ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), false);
-                    } catch (InconsistentIngredientInsertionException e) {
-                        // Ignore
+                                ingredientComponent.getMatcher().getExactMatchNoQuantityCondition(), tx);
+                        tx.commit();
                     }
 
                     container.broadcastChanges(); // TODO: can this be removed due to ItemAccess usage?
@@ -135,10 +133,9 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
         Optional.ofNullable(ItemAccess.forPlayerCursor(playerInventory.player, container).getCapability(Capabilities.Fluid.ITEM))
                 .ifPresent(fluidHandler -> {
                     IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-                    try {
-                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, false);
-                    } catch (InconsistentIngredientInsertionException e) {
-                        // Ignore
+                    try (var tx = Transaction.openRoot()) {
+                        IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, moveQuantityPlayerSlot, tx);
+                        tx.commit();
                     }
                 });
     }
@@ -150,10 +147,9 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
             Optional.ofNullable(ItemStackResourceHandlerContainerSlot.asItemAccess(container, containerSlot).getCapability(Capabilities.Fluid.ITEM))
                     .ifPresent(fluidHandler -> {
                         IIngredientComponentStorage<FluidStack, Integer> itemStorage = getFluidStorage(storage.getComponent(), fluidHandler);
-                        try {
-                            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, false);
-                        } catch (InconsistentIngredientInsertionException e) {
-                            // Ignore
+                        try (var tx = Transaction.openRoot()) {
+                            IngredientStorageHelpers.moveIngredientsIterative(itemStorage, storage, limit == -1 ? Long.MAX_VALUE : limit, tx);
+                            tx.commit();
                         }
 
                         container.broadcastChanges(); // TODO: can this be removed due to ItemAccess usage?
