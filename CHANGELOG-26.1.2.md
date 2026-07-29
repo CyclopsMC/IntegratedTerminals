@@ -1,8 +1,18 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.7.1"></a>
+## [26.1.2-1.7.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.7.0...26.1.2-1.7.1) - 2026-07-29 14:24:16
+
+
+### Added
+* Add translations through Crowdin
+
+### Changed
+* Restore REI compat
+
 <a name="26.1.2-1.7.0"></a>
-## [26.1.2-1.7.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.6.31...26.1.2-1.7.0) - 2026-06-20 13:37:26
+## [26.1.2-1.7.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.6.31...26.1.2-1.7.0) - 2026-06-20 13:41:43 +0200
 
 
 ### Added
