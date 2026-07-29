@@ -52,7 +52,8 @@ public class GeneralConfig extends DummyConfig {
     @ConfigurableProperty(category = "core", comment = "The number of threads that the crafting plan calculator can use.", minimalValue = 1, requiresMcRestart = true, configLocation = ModConfig.Type.SERVER)
     public static int craftingPlannerThreads = 2;
 
-    @ConfigurableProperty(category = "core", comment = "If the crafting planners can work on separate thread.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
+    // TODO: consider removing this in next major.
+    @ConfigurableProperty(category = "core", comment = "If the crafting planners can work on separate thread. WARNING: THIS IS UNSAFE, AND WILL CAUSE SOME JOBS TO FAIL!!!", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static boolean craftingPlannerEnableMultithreading = false;
     @ConfigurableProperty(category = "core", comment = "If client-directed packets should be serialized in a separate thread.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static boolean packetSerializationEnableMultithreading = true;
