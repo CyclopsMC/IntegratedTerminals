@@ -5,6 +5,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -86,7 +87,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         numberField.setVisible(true);
         numberField.setTextColor(16777215);
         numberField.setCanLoseFocus(true);
-        numberField.setValue("1");
+        numberField.setValue(Integer.toString(numberField.validateNumber(getMenu().getCraftingOptionGuiData().getAmount())));
         addRenderableWidget(numberField);
 
         scrollBar = new WidgetScrollBar(leftPos + 153, topPos + 15, 54,
@@ -108,6 +109,14 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
                 Component.translatable("gui.integratedterminals.terminal_storage.step.next").withStyle(ChatFormatting.YELLOW),
                 (bb) -> calculateCraftingJob(),
                 true));
+
+        ButtonText backButton = new ButtonText(leftPos + 5, topPos + 33, 20, 20,
+                Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
+                Component.literal("<"),
+                (bb) -> returnToTerminalStorage(),
+                true);
+        backButton.setTooltip(Tooltip.create(Component.translatable("gui.integratedterminals.terminal_storage.step.back")));
+        addRenderableWidget(backButton);
     }
 
     @Override
