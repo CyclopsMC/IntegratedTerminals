@@ -92,6 +92,8 @@ public class GeneralConfig extends DummyConfig {
     public static int guiStorageScaleMaxColumns = 32;
     @ConfigurableProperty(category = "general", comment = "If the crafting grid should always be shown centrally, and not be responsive based on screen size.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean guiStorageForceCraftingGridCenter = false;
+    @ConfigurableProperty(category = "general", comment = "If the automatic re-sorting of the storage terminal contents should be paused while the shift key is held down.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean guiStoragePauseSortingWhileShifting = true;
 
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");
