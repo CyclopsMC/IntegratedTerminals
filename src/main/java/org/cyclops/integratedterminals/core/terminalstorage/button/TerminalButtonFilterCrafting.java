@@ -74,7 +74,6 @@ public class TerminalButtonFilterCrafting<T>
         data.putInt("active", active.ordinal());
         state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
 
-        clientTab.resetPausedSortingOrder(channel);
         clientTab.resetFilteredIngredientsViews(channel);
     }
 

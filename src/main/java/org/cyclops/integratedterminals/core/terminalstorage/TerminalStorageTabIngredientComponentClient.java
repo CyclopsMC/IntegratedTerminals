@@ -234,19 +234,22 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     public void resetFilteredIngredientsViews(int channel) {
-        filteredIngredientsViews.remove(channel);
+        resetFilteredIngredientsViews(channel, true);
     }
 
     /**
-     * Forget the ingredient order that is used to keep ingredient positions stable while sorting is paused.
-     *
-     * This should be called when the user explicitly changes the way ingredients are shown,
-     * as those changes should always be applied immediately.
-     *
+     * Reset the filtered ingredients views of the given channel.
      * @param channel A channel id.
+     * @param resetPausedSortingOrder If the ingredient order that is used to keep ingredient positions stable
+     *                                while sorting is paused should be forgotten as well.
+     *                                This should only be false for changes that are not caused by the user,
+     *                                as user-triggered changes should always be applied immediately.
      */
-    public void resetPausedSortingOrder(int channel) {
-        lastFilteredIngredientsViews.remove(channel);
+    public void resetFilteredIngredientsViews(int channel, boolean resetPausedSortingOrder) {
+        filteredIngredientsViews.remove(channel);
+        if (resetPausedSortingOrder) {
+            lastFilteredIngredientsViews.remove(channel);
+        }
     }
 
     /**
@@ -284,7 +287,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         TerminalStorageTabClientSearchFieldUpdateEvent event = new TerminalStorageTabClientSearchFieldUpdateEvent(this, filter);
         MinecraftForge.EVENT_BUS.post(event);
         filter = event.getSearchString();
-        resetPausedSortingOrder(channel);
         resetFilteredIngredientsViews(channel);
         container.getGuiState().setSearch(getTabSettingsName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
     }
@@ -333,6 +335,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     protected List<InstanceWithMetadata<T>> getFilteredIngredientsView(int channel) {
+        updateSortingPausedState(channel);
         List<InstanceWithMetadata<T>> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = createUnfilteredIngredientsView(channel);
@@ -383,22 +386,36 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
 
         // Determine the position of all previously shown ingredients, while ignoring their quantities.
-        Map<T, Integer> previousPositions = new TreeMap<>(matcher);
+        // Crafting options are taken into account as well,
+        // as an ingredient can be shown both as a stored ingredient and as a crafting option.
+        Map<InstanceWithMetadata<T>, Integer> previousPositions = new TreeMap<>(
+                InstanceWithMetadata.createComparator(matcher));
         int position = 0;
         for (InstanceWithMetadata<T> instanceWithMetadata : previousView) {
-            previousPositions.putIfAbsent(matcher.withQuantity(instanceWithMetadata.getInstance(), 1), position++);
+            previousPositions.putIfAbsent(withoutQuantity(instanceWithMetadata), position++);
         }
 
         // Assign the previous positions to the current ingredients, new ingredients are placed at the end.
         Map<InstanceWithMetadata<T>, Integer> positions = new IdentityHashMap<>();
         for (InstanceWithMetadata<T> instanceWithMetadata : ingredientsView) {
             positions.put(instanceWithMetadata, previousPositions
-                    .getOrDefault(matcher.withQuantity(instanceWithMetadata.getInstance(), 1), Integer.MAX_VALUE));
+                    .getOrDefault(withoutQuantity(instanceWithMetadata), Integer.MAX_VALUE));
         }
 
         ingredientsView.sort(Comparator
                 .<InstanceWithMetadata<T>>comparingInt(positions::get)
                 .thenComparing(InstanceWithMetadata.createComparator(sorter != null ? sorter : matcher)));
+    }
+
+    /**
+     * Create a copy of the given ingredient with a fixed quantity,
+     * so that it can be used as a quantity-independent key.
+     * @param instanceWithMetadata An ingredient with metadata.
+     * @return A quantity-independent copy.
+     */
+    protected InstanceWithMetadata<T> withoutQuantity(InstanceWithMetadata<T> instanceWithMetadata) {
+        return new InstanceWithMetadata<>(this.ingredientComponent.getMatcher()
+                .withQuantity(instanceWithMetadata.getInstance(), 1), instanceWithMetadata.getCraftingOption());
     }
 
     protected Stream<InstanceWithMetadata<T>> transformIngredientsView(Stream<InstanceWithMetadata<T>> ingredientStream) {
@@ -407,7 +424,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public List<TerminalStorageSlotIngredient<T, M>> getSlots(int channel, int offset, int limit) {
-        updateSortingPausedState(channel);
         List<InstanceWithMetadata<T>> ingredients = getFilteredIngredientsView(channel);
         int size = ingredients.size();
         if (offset >= size) {
@@ -447,7 +463,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     @Override
     public int getSlotCount(int channel) {
-        updateSortingPausedState(channel);
         return getFilteredIngredientsView(channel).size();
     }
 
@@ -510,7 +525,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, rawPersistedIngredients);
 
         // Persist changes
-        resetFilteredIngredientsViews(channel);
+        resetFilteredIngredientsViews(channel, false);
 
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
@@ -556,7 +571,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
 
         // Persist changes
-        resetFilteredIngredientsViews(channel);
+        resetFilteredIngredientsViews(channel, false);
 
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.

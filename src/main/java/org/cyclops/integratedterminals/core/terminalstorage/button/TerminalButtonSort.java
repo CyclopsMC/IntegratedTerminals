@@ -91,7 +91,6 @@ public class TerminalButtonSort<T> implements ITerminalButton<TerminalStorageTab
         state.setButton(clientTab.getTabSettingsName().toString(), this.buttonName, data);
 
         updateSorter();
-        clientTab.resetPausedSortingOrder(channel);
         clientTab.resetFilteredIngredientsViews(channel);
     }
 
