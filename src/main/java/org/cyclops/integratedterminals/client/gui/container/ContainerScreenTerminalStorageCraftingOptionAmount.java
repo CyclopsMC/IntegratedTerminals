@@ -110,7 +110,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
                 (bb) -> calculateCraftingJob(),
                 true));
 
-        ButtonText backButton = new ButtonText(leftPos + 5, topPos + 33, 20, 20,
+        ButtonText backButton = new ButtonText(leftPos + 5, topPos + 33, 15, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
                 Component.literal("<"),
                 (bb) -> returnToTerminalStorage(),

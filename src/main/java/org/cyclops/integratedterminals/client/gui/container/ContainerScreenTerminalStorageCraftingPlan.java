@@ -117,7 +117,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
         addRenderableWidget(new ButtonText(leftPos + 221 + 10 - 50 - 55, topPos + 198, 50, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
-                Component.translatable("gui.integratedterminals.terminal_storage.step.back").withStyle(ChatFormatting.YELLOW),
+                Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
                 (b) -> returnToCraftingOptionAmount(),
                 true));
 
