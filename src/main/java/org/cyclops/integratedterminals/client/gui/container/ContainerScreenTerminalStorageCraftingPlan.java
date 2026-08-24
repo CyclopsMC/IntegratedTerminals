@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Inventory;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
+import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
@@ -17,6 +18,7 @@ import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftin
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanToggler;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanBase;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
 import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
@@ -113,6 +115,12 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
         this.guiCraftingPlanToggler.init();
 
+        addRenderableWidget(new ButtonText(leftPos + 221 + 10 - 50 - 55, topPos + 198, 50, 20,
+                Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
+                Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
+                (b) -> returnToCraftingOptionAmount(),
+                true));
+
         addRenderableWidget(buttonConfirm = new ButtonText(leftPos + 221 + 10 - 50, topPos + 198, 50, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.craft"),
                 Component.translatable("gui.integratedterminals.terminal_storage.step.craft").withStyle(ChatFormatting.YELLOW),
@@ -123,12 +131,30 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
     @Override
     public boolean keyPressed(int typedChar, int keyCode, int modifiers) {
+        if (typedChar == GLFW.GLFW_KEY_ESCAPE) {
+            returnToCraftingOptionAmount();
+            return true;
+        }
         if (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()
                 && (typedChar == GLFW.GLFW_KEY_ENTER || typedChar == GLFW.GLFW_KEY_KP_ENTER)) {
             buttonConfirm.onPress();
             return true;
         }
         return super.keyPressed(typedChar, keyCode, modifiers);
+    }
+
+    /**
+     * Go back to the gui in which the crafting amount can be set.
+     * If no crafting option is known, the terminal itself is opened again.
+     */
+    private void returnToCraftingOptionAmount() {
+        CraftingOptionGuiData data = getMenu().getCraftingOptionGuiData();
+        if (data.getCraftingOption() == null) {
+            returnToTerminalStorage();
+        } else {
+            IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                    new TerminalStorageIngredientOpenCraftingJobAmountGuiPacket(getMenu().getPlayerIInventory().player.registryAccess(), data));
+        }
     }
 
     private void returnToTerminalStorage() {
