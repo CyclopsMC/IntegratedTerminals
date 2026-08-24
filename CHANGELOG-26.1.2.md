@@ -1,8 +1,17 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.8.0"></a>
+## [26.1.2-1.8.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.7.1...26.1.2-1.8.0) - 2026-08-24 20:12:29
+
+
+### Changed
+* Pause sorting in the storage terminal while shift is held (#207), Closes #154
+* Allow going back from the crafting plan gui to the amount gui (#208), Closes CyclopsMC/IntegratedCrafting#140
+* Mark craftingPlannerEnableMultithreading as unsafe, Closes CyclopsMC/IntegratedCrafting#211
+
 <a name="26.1.2-1.7.1"></a>
-## [26.1.2-1.7.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.7.0...26.1.2-1.7.1) - 2026-07-29 14:24:16
+## [26.1.2-1.7.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.7.0...26.1.2-1.7.1) - 2026-07-29 14:24:16 +0200
 
 
 ### Added
