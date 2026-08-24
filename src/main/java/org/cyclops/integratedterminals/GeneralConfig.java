@@ -51,7 +51,8 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
     @ConfigurablePropertyCommon(category = "core", comment = "The number of threads that the crafting plan calculator can use.", minimalValue = 1, requiresMcRestart = true, configLocation = ModConfigLocation.SERVER)
     public static int craftingPlannerThreads = 2;
 
-    @ConfigurablePropertyCommon(category = "core", comment = "If the crafting planners can work on separate thread.", isCommandable = true, configLocation = ModConfigLocation.SERVER)
+    // TODO: consider removing this in next major.
+    @ConfigurablePropertyCommon(category = "core", comment = "If the crafting planners can work on separate thread. WARNING: THIS IS UNSAFE, AND WILL CAUSE SOME JOBS TO FAIL!!!", isCommandable = true, configLocation = ModConfigLocation.SERVER)
     public static boolean craftingPlannerEnableMultithreading = false;
     @ConfigurablePropertyCommon(category = "core", comment = "If client-directed packets should be serialized in a separate thread.", isCommandable = true, configLocation = ModConfigLocation.SERVER)
     public static boolean packetSerializationEnableMultithreading = true;
@@ -91,6 +92,8 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
     public static int guiStorageScaleMaxColumns = 32;
     @ConfigurablePropertyCommon(category = "general", comment = "If the crafting grid should always be shown centrally, and not be responsive based on screen size.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
     public static boolean guiStorageForceCraftingGridCenter = false;
+    @ConfigurablePropertyCommon(category = "general", comment = "If the automatic re-sorting of the storage terminal contents should be paused while the shift key is held down.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
+    public static boolean guiStoragePauseSortingWhileShifting = true;
 
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");

@@ -1,8 +1,17 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.8.0"></a>
+## [1.21.1-1.8.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.7.0...1.21.1-1.8.0) - 2026-08-24 20:05:55
+
+
+### Changed
+* Pause sorting in the storage terminal while shift is held (#207), Closes #154
+* Allow going back from the crafting plan gui to the amount gui (#208), Closes CyclopsMC/IntegratedCrafting#140
+* Mark craftingPlannerEnableMultithreading as unsafe, Closes CyclopsMC/IntegratedCrafting#211
+
 <a name="1.21.1-1.7.0"></a>
-## [1.21.1-1.7.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.28...1.21.1-1.7.0) - 2026-06-20 13:36:33
+## [1.21.1-1.7.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.6.28...1.21.1-1.7.0) - 2026-06-20 13:36:33 +0200
 
 
 ### Added

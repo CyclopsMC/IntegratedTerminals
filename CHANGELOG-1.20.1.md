@@ -1,8 +1,16 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.7.0"></a>
+## [1.20.1-1.7.0](/compare/1.20.1-1.6.20...1.20.1-1.7.0) - 2026-08-24 20:02:11
+
+
+### Changed
+* Pause sorting in the storage terminal while shift is held (#207), Closes #154
+* Allow going back from the crafting plan gui to the amount gui (#208), Closes CyclopsMC/IntegratedCrafting#140
+
 <a name="1.20.1-1.6.20"></a>
-## [1.20.1-1.6.20](/compare/1.20.1-1.6.19...1.20.1-1.6.20) - 2026-03-10 14:23:33
+## [1.20.1-1.6.20](/compare/1.20.1-1.6.19...1.20.1-1.6.20) - 2026-03-10 14:23:33 +0100
 
 
 ### Fixed

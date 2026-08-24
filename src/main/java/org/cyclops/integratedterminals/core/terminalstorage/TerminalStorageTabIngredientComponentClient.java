@@ -31,6 +31,7 @@ import org.cyclops.cyclopscore.ingredient.collection.diff.IngredientCollectionDi
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.Capabilities;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
@@ -79,6 +80,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     private final Int2ObjectMap<IIngredientCollapsedCollectionMutable<T, M>> ingredientsUnsortedViews;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
+    private final Int2ObjectMap<List<InstanceWithMetadata<T>>> lastFilteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
 
     private final Int2LongMap maxQuantities;
@@ -89,6 +91,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private int activeSlotQuantity;
     private int activeChannel;
     private int lastChangeId;
+    private boolean sortingPaused;
 
     @SubscribeEvent
     public static void onToolTip(ItemTooltipEvent event) {
@@ -123,6 +126,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         this.ingredientsUnsortedViews = new Int2ObjectOpenHashMap<>();
         this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
+        this.lastFilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
 
         this.maxQuantities = new Int2LongOpenHashMap();
@@ -132,6 +136,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         resetActiveSlot();
 
         this.lastChangeId = 0;
+        this.sortingPaused = false;
 
     }
 
@@ -205,7 +210,52 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     public void resetFilteredIngredientsViews(int channel) {
+        resetFilteredIngredientsViews(channel, true);
+    }
+
+    /**
+     * Reset the filtered ingredients views of the given channel.
+     * @param channel A channel id.
+     * @param resetPausedSortingOrder If the ingredient order that is used to keep ingredient positions stable
+     *                                while sorting is paused should be forgotten as well.
+     *                                This should only be false for changes that are not caused by the user,
+     *                                as user-triggered changes should always be applied immediately.
+     */
+    public void resetFilteredIngredientsViews(int channel, boolean resetPausedSortingOrder) {
         filteredIngredientsViews.remove(channel);
+        if (resetPausedSortingOrder) {
+            lastFilteredIngredientsViews.remove(channel);
+        }
+    }
+
+    /**
+     * @return If the automatic re-sorting of ingredients is currently paused.
+     */
+    public boolean isSortingPaused() {
+        return GeneralConfig.guiStoragePauseSortingWhileShifting && IModHelpers.get().getMinecraftClientHelpers().isShifted();
+    }
+
+    /**
+     * Check if sorting has been paused or resumed since the last call,
+     * and re-sort all ingredient views when sorting has been resumed.
+     * @param channel A channel id.
+     */
+    protected void updateSortingPausedState(int channel) {
+        boolean sortingPaused = isSortingPaused();
+        if (this.sortingPaused != sortingPaused) {
+            // Update the field before doing anything else, so that re-entrant calls become no-ops.
+            this.sortingPaused = sortingPaused;
+            if (!sortingPaused) {
+                // Remember the selected instance, as re-sorting might change its position.
+                Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
+
+                // Enforce a re-sorting of all views
+                this.filteredIngredientsViews.clear();
+                this.lastFilteredIngredientsViews.clear();
+
+                updateActiveInstance(lastInstance, channel);
+            }
+        }
     }
 
     @Override
@@ -261,6 +311,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     protected List<InstanceWithMetadata<T>> getFilteredIngredientsView(int channel) {
+        updateSortingPausedState(channel);
         List<InstanceWithMetadata<T>> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = createUnfilteredIngredientsView(channel);
@@ -274,19 +325,73 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
             // Sort
             Comparator<T> sorter = getInstanceSorter();
-            if (sorter != null) {
-                try {
+            List<InstanceWithMetadata<T>> pausedOrder = this.sortingPaused
+                    ? lastFilteredIngredientsViews.get(channel) : null;
+            try {
+                if (pausedOrder != null) {
+                    // Sorting is paused, so keep the positions of the previously shown ingredients
+                    sortByPreviousOrder(ingredientsView, pausedOrder, sorter);
+                } else if (sorter != null) {
                     ingredientsView.sort(InstanceWithMetadata.createComparator(sorter));
-                } catch (IllegalArgumentException e) {
-                    // We deliberately ignore comparison violations
-                    // If this would cause issues, we'll need to do a deep-copy of all ingredients, which will impact performance
-                    // See https://github.com/CyclopsMC/IntegratedTerminals/issues/119
                 }
+            } catch (IllegalArgumentException e) {
+                // We deliberately ignore comparison violations
+                // If this would cause issues, we'll need to do a deep-copy of all ingredients, which will impact performance
+                // See https://github.com/CyclopsMC/IntegratedTerminals/issues/119
             }
 
             filteredIngredientsViews.put(channel, ingredientsView);
+            lastFilteredIngredientsViews.put(channel, ingredientsView);
         }
         return ingredientsView;
+    }
+
+    /**
+     * Sort the given ingredients view based on the order of a previously shown ingredients view.
+     *
+     * Ingredients that were present in the previous view keep their position, independent of their quantity,
+     * while new ingredients are appended at the end.
+     *
+     * @param ingredientsView The ingredients view to sort in-place.
+     * @param previousView A previously shown ingredients view.
+     * @param sorter An optional sorter that is used for ordering the new ingredients.
+     */
+    protected void sortByPreviousOrder(List<InstanceWithMetadata<T>> ingredientsView,
+                                       List<InstanceWithMetadata<T>> previousView,
+                                       @Nullable Comparator<T> sorter) {
+        IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+
+        // Determine the position of all previously shown ingredients, while ignoring their quantities.
+        // Crafting options are taken into account as well,
+        // as an ingredient can be shown both as a stored ingredient and as a crafting option.
+        Map<InstanceWithMetadata<T>, Integer> previousPositions = new TreeMap<>(
+                InstanceWithMetadata.createComparator(matcher));
+        int position = 0;
+        for (InstanceWithMetadata<T> instanceWithMetadata : previousView) {
+            previousPositions.putIfAbsent(withoutQuantity(instanceWithMetadata), position++);
+        }
+
+        // Assign the previous positions to the current ingredients, new ingredients are placed at the end.
+        Map<InstanceWithMetadata<T>, Integer> positions = new IdentityHashMap<>();
+        for (InstanceWithMetadata<T> instanceWithMetadata : ingredientsView) {
+            positions.put(instanceWithMetadata, previousPositions
+                    .getOrDefault(withoutQuantity(instanceWithMetadata), Integer.MAX_VALUE));
+        }
+
+        ingredientsView.sort(Comparator
+                .<InstanceWithMetadata<T>>comparingInt(positions::get)
+                .thenComparing(InstanceWithMetadata.createComparator(sorter != null ? sorter : matcher)));
+    }
+
+    /**
+     * Create a copy of the given ingredient with a fixed quantity,
+     * so that it can be used as a quantity-independent key.
+     * @param instanceWithMetadata An ingredient with metadata.
+     * @return A quantity-independent copy.
+     */
+    protected InstanceWithMetadata<T> withoutQuantity(InstanceWithMetadata<T> instanceWithMetadata) {
+        return new InstanceWithMetadata<>(this.ingredientComponent.getMatcher()
+                .withQuantity(instanceWithMetadata.getInstance(), 1), instanceWithMetadata.getCraftingOption());
     }
 
     protected Stream<InstanceWithMetadata<T>> transformIngredientsView(Stream<InstanceWithMetadata<T>> ingredientStream) {
@@ -396,7 +501,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, rawPersistedIngredients);
 
         // Persist changes
-        resetFilteredIngredientsViews(channel);
+        resetFilteredIngredientsViews(channel, false);
 
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.
@@ -442,7 +547,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
 
         // Persist changes
-        resetFilteredIngredientsViews(channel);
+        resetFilteredIngredientsViews(channel, false);
 
         // Update the active instance by searching for its new position in the slots
         // If this becomes a performance bottleneck, we could search _around_ the previous position.

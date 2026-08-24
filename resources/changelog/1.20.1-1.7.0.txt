@@ -1,0 +1,6 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.19.4 or higher.
+
+Changes:
+* Pause sorting in the storage terminal while shift is held (#207), Closes #154
+* Allow going back from the crafting plan gui to the amount gui (#208), Closes CyclopsMC/IntegratedCrafting#140
