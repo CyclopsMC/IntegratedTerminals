@@ -58,6 +58,9 @@ import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButto
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonScaleGui;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutput;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputEntry;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
@@ -106,6 +109,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> lastFilteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
+    private PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs;
 
     private final Int2LongMap maxQuantities;
     private final Int2LongMap totalQuantities;
@@ -152,6 +156,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.lastFilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
+        this.pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent);
 
         this.maxQuantities = new Int2LongOpenHashMap();
         this.totalQuantities = new Int2LongOpenHashMap();
@@ -303,6 +308,37 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @Nullable
     public Collection<HandlerWrappedTerminalCraftingOption<T>> getCraftingOptions(int channel) {
         return craftingOptions.get(channel);
+    }
+
+    /**
+     * Called by the server when the outputs that running crafting jobs are still expected to produce have changed.
+     * @param entries All pending crafting job outputs of all ingredient components.
+     */
+    public synchronized void setPendingCraftingJobOutputs(List<PendingCraftingJobOutputEntry> entries) {
+        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent);
+        for (PendingCraftingJobOutputEntry entry : entries) {
+            if (entry.ingredient().getComponent() == this.ingredientComponent) {
+                T instance = (T) entry.ingredient().getPrototype();
+                pendingCraftingJobOutputs.add(entry.channel(), instance, entry.status());
+
+                // Also aggregate into the wildcard channel, as that channel shows the contents of all channels.
+                if (entry.channel() != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+                    pendingCraftingJobOutputs.add(IPositionedAddonsNetwork.WILDCARD_CHANNEL, instance, entry.status());
+                }
+            }
+        }
+        this.pendingCraftingJobOutputs = pendingCraftingJobOutputs;
+    }
+
+    /**
+     * Get the quantity and status of the running crafting jobs that will produce the given instance.
+     * @param channel A channel id.
+     * @param instance An instance.
+     * @return The pending crafting job output, or null if the given instance is not being crafted.
+     */
+    @Nullable
+    public PendingCraftingJobOutput<T> getPendingCraftingJobOutput(int channel, T instance) {
+        return this.pendingCraftingJobOutputs.get(channel, instance);
     }
 
     public List<InstanceWithMetadata<T>> createUnfilteredIngredientsView(int channel) {
