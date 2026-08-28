@@ -76,6 +76,17 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         return tooltipLines;
     }
 
+    @Nullable
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected PendingCraftingJobOutput<T> getPendingCraftingJobOutput(ITerminalStorageTabClient tab, int channel,
+                                                                      @Nullable String label) {
+        // The same instance can also be shown as a stored ingredient.
+        // In that case, only that slot indicates the running crafting jobs, to avoid indicating them twice.
+        return ((TerminalStorageTabIngredientComponentClient<T, M>) tab).isShownAsStoredInstance(channel, getInstance())
+                ? null : super.getPendingCraftingJobOutput(tab, channel, label);
+    }
+
     public HandlerWrappedTerminalCraftingOption<T> getCraftingOption() {
         return craftingOption;
     }

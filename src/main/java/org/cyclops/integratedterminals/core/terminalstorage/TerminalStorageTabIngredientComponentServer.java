@@ -12,7 +12,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
-import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
@@ -31,7 +30,6 @@ import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorage
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientPositionsIndex;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
 import org.cyclops.integrateddynamics.api.network.INetwork;
-import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeBoolean;
@@ -45,9 +43,7 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTermin
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
@@ -197,13 +193,8 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         }
         this.nextCraftingJobsUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
 
-        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent);
-        for (ITerminalStorageTabIngredientCraftingHandler<?, ?> handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
-            Set<Object> handledPlans = Sets.newHashSet();
-            for (ITerminalCraftingPlan<?> craftingJob : handler.getCraftingJobs(this.network, IPositionedAddonsNetwork.WILDCARD_CHANNEL)) {
-                collectPendingCraftingJobOutputs(craftingJob, handledPlans, pendingCraftingJobOutputs);
-            }
-        }
+        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = PendingCraftingJobOutputs
+                .collectFromNetwork(this.ingredientComponent, this.network);
 
         // Don't send anything as long as no crafting jobs are running,
         // but do send one final (empty) update once the last job has finished.
@@ -216,27 +207,6 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
                 new TerminalStorageIngredientCraftingJobsPacket(player.level().registryAccess(),
                         this.getName().toString(), pendingCraftingJobOutputs), player);
-    }
-
-    protected void collectPendingCraftingJobOutputs(ITerminalCraftingPlan<?> craftingPlan, Set<Object> handledPlans,
-                                                    PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs) {
-        // Jobs can occur multiple times within a plan due to job splitting, so only take each of them into account once.
-        if ((!(craftingPlan.getId() instanceof Integer id) || id > 0) && !handledPlans.add(craftingPlan.getId())) {
-            return;
-        }
-
-        // Finished jobs have already produced all their outputs, so nothing is pending for them anymore.
-        if (craftingPlan.getStatus() != TerminalCraftingJobStatus.FINISHED) {
-            for (IPrototypedIngredient<?, ?> output : craftingPlan.getOutputs()) {
-                if (output.getComponent() == this.ingredientComponent) {
-                    pendingCraftingJobOutputs.add(craftingPlan.getChannel(), (T) output.getPrototype(), craftingPlan.getStatus());
-                }
-            }
-        }
-
-        for (ITerminalCraftingPlan<?> dependency : craftingPlan.getDependencies()) {
-            collectPendingCraftingJobOutputs(dependency, handledPlans, pendingCraftingJobOutputs);
-        }
     }
 
     protected IIngredientCollapsedCollectionMutable<T, M> getUnfilteredIngredientsView(int channel) {

@@ -341,6 +341,24 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return this.pendingCraftingJobOutputs.get(channel, instance);
     }
 
+    /**
+     * Check if the given instance is currently shown as a stored ingredient in the given channel.
+     *
+     * An instance can be shown twice: once as a stored ingredient, and once for each crafting option producing it.
+     * This allows crafting option slots to defer to the stored ingredient slot for things
+     * that apply to the instance as a whole, such as the indication of running crafting jobs.
+     *
+     * @param channel A channel id.
+     * @param instance An instance.
+     * @return If a stored ingredient slot is shown for the given instance.
+     */
+    public boolean isShownAsStoredInstance(int channel, T instance) {
+        IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+        return getInstanceFilterMetadata().test(new InstanceWithMetadata<>(instance, null))
+                && getRawUnfilteredIngredientsView(channel)
+                .contains(instance, matcher.getExactMatchNoQuantityCondition());
+    }
+
     public List<InstanceWithMetadata<T>> createUnfilteredIngredientsView(int channel) {
         // Convert raw ingredients view to list
         List<InstanceWithMetadata<T>> enrichedIngredients = Lists.newArrayList();
