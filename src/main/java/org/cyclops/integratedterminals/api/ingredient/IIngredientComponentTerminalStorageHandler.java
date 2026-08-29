@@ -55,6 +55,7 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param mouseY The mouse Y position.
      * @param additionalTooltipLines The additional tooltip lines to add.
      */
+    @Deprecated // TODO: remove in next major
     @OnlyIn(Dist.CLIENT)
     public default void drawInstance(GuiGraphics guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                                      int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {

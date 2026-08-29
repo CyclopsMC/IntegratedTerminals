@@ -59,6 +59,9 @@ public class IntegratedTerminals extends ModBaseVersionable<IntegratedTerminals>
 
         modEventBus.addListener(this::onRegistriesCreate);
         modEventBus.addListener(this::onSetup);
+        if (getModHelpers().getMinecraftHelpers().isClientSide()) {
+            modEventBus.addListener(((ClientProxy) getProxy())::registerClientTooltipComponentFactories);
+        }
         TerminalStorageTabs.load();
         TerminalStorageTabIngredientCraftingHandlers.load();
         TerminalStorageLocations.load();
