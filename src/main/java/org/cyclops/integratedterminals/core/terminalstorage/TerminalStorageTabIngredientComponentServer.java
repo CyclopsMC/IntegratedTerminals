@@ -30,6 +30,7 @@ import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorage
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientPositionsIndex;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
 import org.cyclops.integrateddynamics.api.network.INetwork;
+import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeBoolean;
@@ -45,8 +46,10 @@ import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingJobsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingOptionsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
@@ -85,6 +88,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private final Int2ObjectMap<IngredientCollectionDiffManager<T, M>> filteredDiffManagers;
     private boolean initialized; // True if the first change event has been sent to the client.
     private boolean sentCraftingOptionsFiltered;
+    private long nextCraftingJobsUpdate;
+    private int craftingJobsChannel; // The channel the last pending crafting job outputs were collected for.
+    private boolean sentCraftingJobs; // True if a non-empty set of pending crafting job outputs was sent to the client.
 
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
                                                        IngredientComponent<T, M> ingredientComponent,
@@ -102,6 +108,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.ingredientsFilter = null;
         this.unfilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.filteredDiffManagers = new Int2ObjectOpenHashMap<>();
+        this.nextCraftingJobsUpdate = 0;
+        this.craftingJobsChannel = IPositionedAddonsNetwork.WILDCARD_CHANNEL;
+        this.sentCraftingJobs = false;
 
         // Schedule an observation on creation, as the channel may not have been indexed yet.
         ingredientNetwork.scheduleObservation();
@@ -169,8 +178,42 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     @Override
-    public void updateActive() {
+    public void updateActive(int channel) {
         this.ingredientNetwork.scheduleObservation();
+        updatePendingCraftingJobOutputs(channel);
+    }
+
+    /**
+     * Collect the outputs that all running crafting jobs are still expected to produce,
+     * and send them to the client, so that they can be indicated in the storage terminal.
+     *
+     * As crafting job statuses change frequently,
+     * this is throttled by {@link GeneralConfig#guiTerminalCraftingJobsUpdateFrequency}.
+     *
+     * @param channel The channel that is being shown in the terminal.
+     */
+    protected void updatePendingCraftingJobOutputs(int channel) {
+        // Don't wait for the next update when the shown channel changed, as the client has no outputs for it yet.
+        if (channel == this.craftingJobsChannel && System.currentTimeMillis() < this.nextCraftingJobsUpdate) {
+            return;
+        }
+        this.craftingJobsChannel = channel;
+        this.nextCraftingJobsUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
+
+        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = PendingCraftingJobOutputs
+                .collectFromNetwork(this.ingredientComponent, this.network, channel);
+
+        // Don't send anything as long as no crafting jobs are running,
+        // but do send one final (empty) update once the last job has finished.
+        boolean hasCraftingJobs = !pendingCraftingJobOutputs.isEmpty();
+        if (!hasCraftingJobs && !this.sentCraftingJobs) {
+            return;
+        }
+        this.sentCraftingJobs = hasCraftingJobs;
+
+        IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                new TerminalStorageIngredientCraftingJobsPacket(player.level().registryAccess(),
+                        this.getName().toString(), pendingCraftingJobOutputs), player);
     }
 
     protected IIngredientCollapsedCollectionMutable<T, M> getUnfilteredIngredientsView(int channel) {
