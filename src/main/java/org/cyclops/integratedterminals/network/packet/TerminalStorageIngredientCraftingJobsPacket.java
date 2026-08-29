@@ -1,7 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
 import com.google.common.collect.Lists;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -32,7 +31,6 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraf
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Packet for sending the pending outputs of all running crafting jobs from server to client.
@@ -50,6 +48,8 @@ public class TerminalStorageIngredientCraftingJobsPacket extends PacketCodec<Ter
     @CodecField
     private String tabId;
     @CodecField
+    private int channel;
+    @CodecField
     private CompoundTag data;
 
     public TerminalStorageIngredientCraftingJobsPacket() {
@@ -60,21 +60,18 @@ public class TerminalStorageIngredientCraftingJobsPacket extends PacketCodec<Ter
                                                               PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs) {
         super(ID);
         this.tabId = tabId;
+        this.channel = pendingCraftingJobOutputs.getChannel();
         this.data = new CompoundTag();
 
         IIngredientMatcher<T, M> matcher = pendingCraftingJobOutputs.getIngredientComponent().getMatcher();
         ListTag list = new ListTag();
-        for (Int2ObjectMap.Entry<Map<T, PendingCraftingJobOutput<T>>> channelEntry
-                : pendingCraftingJobOutputs.getChanneledOutputs().int2ObjectEntrySet()) {
-            for (PendingCraftingJobOutput<T> output : channelEntry.getValue().values()) {
-                CompoundTag tag = new CompoundTag();
-                tag.putInt("channel", channelEntry.getIntKey());
-                tag.put("ingredient", IPrototypedIngredient.serialize(lookupProvider,
-                        new PrototypedIngredient<>(pendingCraftingJobOutputs.getIngredientComponent(),
-                                output.getInstance(), matcher.getExactMatchNoQuantityCondition())));
-                tag.putInt("status", output.getStatus().ordinal());
-                list.add(tag);
-            }
+        for (PendingCraftingJobOutput<T> output : pendingCraftingJobOutputs.getOutputs()) {
+            CompoundTag tag = new CompoundTag();
+            tag.put("ingredient", IPrototypedIngredient.serialize(lookupProvider,
+                    new PrototypedIngredient<>(pendingCraftingJobOutputs.getIngredientComponent(),
+                            output.getInstance(), matcher.getExactMatchNoQuantityCondition())));
+            tag.putInt("status", output.getStatus().ordinal());
+            list.add(tag);
         }
         this.data.put("craftingJobOutputs", list);
     }
@@ -92,7 +89,6 @@ public class TerminalStorageIngredientCraftingJobsPacket extends PacketCodec<Ter
         for (int i = 0; i < list.size(); i++) {
             CompoundTag tag = list.getCompound(i);
             outputs.add(new PendingCraftingJobOutputEntry(
-                    tag.getInt("channel"),
                     IPrototypedIngredient.deserialize(world.registryAccess(), tag.getCompound("ingredient")),
                     TerminalCraftingJobStatus.values()[tag.getInt("status")]));
         }
@@ -102,7 +98,7 @@ public class TerminalStorageIngredientCraftingJobsPacket extends PacketCodec<Ter
             if (player.containerMenu instanceof ContainerTerminalStorageBase container) {
                 TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
                 if (tab != null) {
-                    tab.setPendingCraftingJobOutputs(outputs);
+                    tab.setPendingCraftingJobOutputs(channel, outputs);
                 }
 
                 // Hard-coded crafting tab
@@ -111,7 +107,7 @@ public class TerminalStorageIngredientCraftingJobsPacket extends PacketCodec<Ter
                     TerminalStorageTabIngredientComponentClient<?, ?> tabCrafting = (TerminalStorageTabIngredientComponentClient<?, ?>) container
                             .getTabClient(TerminalStorageTabIngredientComponentItemStackCrafting.NAME.toString());
                     if (tabCrafting != null) {
-                        tabCrafting.setPendingCraftingJobOutputs(outputs);
+                        tabCrafting.setPendingCraftingJobOutputs(channel, outputs);
                     }
                 }
             }

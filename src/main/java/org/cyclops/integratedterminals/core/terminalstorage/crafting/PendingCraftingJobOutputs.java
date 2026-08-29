@@ -1,24 +1,22 @@
 package org.cyclops.integratedterminals.core.terminalstorage.crafting;
 
 import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.api.network.INetwork;
-import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
 /**
- * The pending outputs of all running crafting jobs of a single ingredient component, indexed by channel.
+ * The pending outputs of all running crafting jobs of a single ingredient component within a single channel.
  *
  * Instances are indexed independent of their quantity,
  * so that they can be looked up by the instances that are shown in the storage terminal.
@@ -30,31 +28,34 @@ import java.util.TreeMap;
 public class PendingCraftingJobOutputs<T, M> {
 
     private final IngredientComponent<T, M> ingredientComponent;
-    private final Int2ObjectMap<Map<T, PendingCraftingJobOutput<T>>> channeledOutputs;
+    private final int channel;
+    private final Map<T, PendingCraftingJobOutput<T>> outputs;
 
     /**
-     * Collect the outputs that all running crafting jobs in the given network are still expected to produce.
+     * Collect the outputs that all running crafting jobs in the given channel are still expected to produce.
      * @param ingredientComponent The ingredient component to collect the outputs for.
      * @param network A network.
+     * @param channel The channel to collect the outputs for.
      * @param <T> The instance type.
      * @param <M> The matching condition parameter.
      * @return The pending crafting job outputs.
      */
     public static <T, M> PendingCraftingJobOutputs<T, M> collectFromNetwork(IngredientComponent<T, M> ingredientComponent,
-                                                                           INetwork network) {
-        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(ingredientComponent);
+                                                                           INetwork network, int channel) {
+        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(ingredientComponent, channel);
         for (ITerminalStorageTabIngredientCraftingHandler<?, ?> handler : TerminalStorageTabIngredientCraftingHandlers.REGISTRY.getHandlers()) {
             Set<Object> handledPlans = Sets.newHashSet();
-            for (ITerminalCraftingPlan<?> craftingJob : handler.getCraftingJobs(network, IPositionedAddonsNetwork.WILDCARD_CHANNEL)) {
+            for (ITerminalCraftingPlan<?> craftingJob : handler.getCraftingJobs(network, channel)) {
                 pendingCraftingJobOutputs.addCraftingPlan(craftingJob, handledPlans);
             }
         }
         return pendingCraftingJobOutputs;
     }
 
-    public PendingCraftingJobOutputs(IngredientComponent<T, M> ingredientComponent) {
+    public PendingCraftingJobOutputs(IngredientComponent<T, M> ingredientComponent, int channel) {
         this.ingredientComponent = ingredientComponent;
-        this.channeledOutputs = new Int2ObjectOpenHashMap<>();
+        this.channel = channel;
+        this.outputs = new TreeMap<>(ingredientComponent.getMatcher());
     }
 
     public IngredientComponent<T, M> getIngredientComponent() {
@@ -62,34 +63,37 @@ public class PendingCraftingJobOutputs<T, M> {
     }
 
     /**
+     * @return The channel these outputs were collected for.
+     */
+    public int getChannel() {
+        return channel;
+    }
+
+    /**
      * Add a pending crafting job output.
      *
-     * If the given instance is already pending in the given channel,
+     * If the given instance is already pending,
      * the quantities are summed, and the most relevant status is kept.
      *
-     * @param channel A channel id.
      * @param instance An instance, where the quantity indicates the pending quantity.
      * @param status The status of the crafting job that will produce the given instance.
      */
-    public void add(int channel, T instance, TerminalCraftingJobStatus status) {
+    public void add(T instance, TerminalCraftingJobStatus status) {
         IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
         if (matcher.isEmpty(instance)) {
             return;
         }
 
-        Map<T, PendingCraftingJobOutput<T>> outputs = this.channeledOutputs
-                .computeIfAbsent(channel, (c) -> new TreeMap<>(matcher));
         T key = matcher.withQuantity(instance, 1);
-        PendingCraftingJobOutput<T> existingOutput = outputs.get(key);
+        PendingCraftingJobOutput<T> existingOutput = this.outputs.get(key);
         if (existingOutput != null) {
             instance = matcher.withQuantity(instance, addQuantities(matcher,
                     matcher.getQuantity(existingOutput.getInstance()), matcher.getQuantity(instance)));
-            if (PendingCraftingJobOutput.getStatusPriority(existingOutput.getStatus())
-                    >= PendingCraftingJobOutput.getStatusPriority(status)) {
+            if (existingOutput.getStatus().getPriority() >= status.getPriority()) {
                 status = existingOutput.getStatus();
             }
         }
-        outputs.put(key, new PendingCraftingJobOutput<>(instance, status));
+        this.outputs.put(key, new PendingCraftingJobOutput<>(instance, status));
     }
 
     /**
@@ -110,7 +114,7 @@ public class PendingCraftingJobOutputs<T, M> {
                 ? TerminalCraftingJobStatus.CRAFTING : craftingPlan.getStatus();
         for (IPrototypedIngredient<?, ?> output : craftingPlan.getOutputs()) {
             if (output.getComponent() == this.ingredientComponent) {
-                add(craftingPlan.getChannel(), (T) output.getPrototype(), status);
+                add((T) output.getPrototype(), status);
             }
         }
 
@@ -121,32 +125,27 @@ public class PendingCraftingJobOutputs<T, M> {
 
     /**
      * Get the pending output for the given instance, independent of the instance's quantity.
-     * @param channel A channel id.
      * @param instance An instance.
      * @return The pending output, or null if the given instance is not being crafted.
      */
     @Nullable
-    public PendingCraftingJobOutput<T> get(int channel, T instance) {
-        Map<T, PendingCraftingJobOutput<T>> outputs = this.channeledOutputs.get(channel);
-        if (outputs == null) {
-            return null;
-        }
+    public PendingCraftingJobOutput<T> get(T instance) {
         IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
-        return matcher.isEmpty(instance) ? null : outputs.get(matcher.withQuantity(instance, 1));
+        return matcher.isEmpty(instance) ? null : this.outputs.get(matcher.withQuantity(instance, 1));
     }
 
     /**
-     * @return All pending outputs, indexed by channel.
+     * @return All pending outputs.
      */
-    public Int2ObjectMap<Map<T, PendingCraftingJobOutput<T>>> getChanneledOutputs() {
-        return channeledOutputs;
+    public Collection<PendingCraftingJobOutput<T>> getOutputs() {
+        return this.outputs.values();
     }
 
     /**
      * @return If no crafting job outputs are pending.
      */
     public boolean isEmpty() {
-        return this.channeledOutputs.isEmpty();
+        return this.outputs.isEmpty();
     }
 
     private static <T, M> long addQuantities(IIngredientMatcher<T, M> matcher, long quantity, long quantityToAdd) {

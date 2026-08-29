@@ -156,7 +156,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.lastFilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
-        this.pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent);
+        this.pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent,
+                IPositionedAddonsNetwork.WILDCARD_CHANNEL);
 
         this.maxQuantities = new Int2LongOpenHashMap();
         this.totalQuantities = new Int2LongOpenHashMap();
@@ -312,19 +313,14 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     /**
      * Called by the server when the outputs that running crafting jobs are still expected to produce have changed.
+     * @param channel The channel the outputs were collected for.
      * @param entries All pending crafting job outputs of all ingredient components.
      */
-    public synchronized void setPendingCraftingJobOutputs(List<PendingCraftingJobOutputEntry> entries) {
-        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent);
+    public synchronized void setPendingCraftingJobOutputs(int channel, List<PendingCraftingJobOutputEntry> entries) {
+        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent, channel);
         for (PendingCraftingJobOutputEntry entry : entries) {
             if (entry.ingredient().getComponent() == this.ingredientComponent) {
-                T instance = (T) entry.ingredient().getPrototype();
-                pendingCraftingJobOutputs.add(entry.channel(), instance, entry.status());
-
-                // Also aggregate into the wildcard channel, as that channel shows the contents of all channels.
-                if (entry.channel() != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
-                    pendingCraftingJobOutputs.add(IPositionedAddonsNetwork.WILDCARD_CHANNEL, instance, entry.status());
-                }
+                pendingCraftingJobOutputs.add((T) entry.ingredient().getPrototype(), entry.status());
             }
         }
         this.pendingCraftingJobOutputs = pendingCraftingJobOutputs;
@@ -338,7 +334,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      */
     @Nullable
     public PendingCraftingJobOutput<T> getPendingCraftingJobOutput(int channel, T instance) {
-        return this.pendingCraftingJobOutputs.get(channel, instance);
+        // The outputs are collected for the channel that is shown in the terminal,
+        // so they don't apply anymore right after the shown channel has changed.
+        return this.pendingCraftingJobOutputs.getChannel() == channel
+                ? this.pendingCraftingJobOutputs.get(instance) : null;
     }
 
     /**

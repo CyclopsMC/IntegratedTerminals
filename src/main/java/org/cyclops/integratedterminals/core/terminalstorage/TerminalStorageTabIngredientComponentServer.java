@@ -30,6 +30,7 @@ import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorage
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientPositionsIndex;
 import org.cyclops.integrateddynamics.api.ingredient.capability.IIngredientComponentValueHandler;
 import org.cyclops.integrateddynamics.api.network.INetwork;
+import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
 import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetworkIngredients;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueHelpers;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypeBoolean;
@@ -88,6 +89,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     private boolean initialized; // True if the first change event has been sent to the client.
     private boolean sentCraftingOptionsFiltered;
     private long nextCraftingJobsUpdate;
+    private int craftingJobsChannel; // The channel the last pending crafting job outputs were collected for.
     private boolean sentCraftingJobs; // True if a non-empty set of pending crafting job outputs was sent to the client.
 
     public TerminalStorageTabIngredientComponentServer(ResourceLocation name, INetwork network,
@@ -107,6 +109,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         this.unfilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.filteredDiffManagers = new Int2ObjectOpenHashMap<>();
         this.nextCraftingJobsUpdate = 0;
+        this.craftingJobsChannel = IPositionedAddonsNetwork.WILDCARD_CHANNEL;
         this.sentCraftingJobs = false;
 
         // Schedule an observation on creation, as the channel may not have been indexed yet.
@@ -175,9 +178,9 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     }
 
     @Override
-    public void updateActive() {
+    public void updateActive(int channel) {
         this.ingredientNetwork.scheduleObservation();
-        updatePendingCraftingJobOutputs();
+        updatePendingCraftingJobOutputs(channel);
     }
 
     /**
@@ -186,15 +189,19 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
      *
      * As crafting job statuses change frequently,
      * this is throttled by {@link GeneralConfig#guiTerminalCraftingJobsUpdateFrequency}.
+     *
+     * @param channel The channel that is being shown in the terminal.
      */
-    protected void updatePendingCraftingJobOutputs() {
-        if (System.currentTimeMillis() < this.nextCraftingJobsUpdate) {
+    protected void updatePendingCraftingJobOutputs(int channel) {
+        // Don't wait for the next update when the shown channel changed, as the client has no outputs for it yet.
+        if (channel == this.craftingJobsChannel && System.currentTimeMillis() < this.nextCraftingJobsUpdate) {
             return;
         }
+        this.craftingJobsChannel = channel;
         this.nextCraftingJobsUpdate = System.currentTimeMillis() + GeneralConfig.guiTerminalCraftingJobsUpdateFrequency;
 
         PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = PendingCraftingJobOutputs
-                .collectFromNetwork(this.ingredientComponent, this.network);
+                .collectFromNetwork(this.ingredientComponent, this.network, channel);
 
         // Don't send anything as long as no crafting jobs are running,
         // but do send one final (empty) update once the last job has finished.

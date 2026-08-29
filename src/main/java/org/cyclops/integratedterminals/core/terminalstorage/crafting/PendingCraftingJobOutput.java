@@ -31,23 +31,4 @@ public class PendingCraftingJobOutput<T> {
         return status;
     }
 
-    /**
-     * Determine how relevant the given status is when multiple crafting jobs produce the same instance.
-     *
-     * Statuses that require the attention of the player take precedence over statuses that don't.
-     *
-     * @param status A crafting job status.
-     * @return The priority of the given status, where a higher number indicates a higher priority.
-     */
-    public static int getStatusPriority(TerminalCraftingJobStatus status) {
-        return switch (status) {
-            case ERROR, INVALID, INVALID_INPUTS -> 5;
-            case PENDING_INPUTS -> 4;
-            case CRAFTING -> 3;
-            case PENDING_DEPENDENCIES, QUEUEING -> 2;
-            case UNSTARTED -> 1;
-            case FINISHED -> 0;
-        };
-    }
-
 }

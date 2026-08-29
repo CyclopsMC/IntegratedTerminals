@@ -76,9 +76,11 @@ public class GameTestCraftingJobIndication {
                     }
 
                     ticksRunning.increment();
-                    if (PendingCraftingJobOutputs
-                            .collectFromNetwork(IngredientComponents.ITEMSTACK, network)
-                            .get(IPositionedAddonsNetworkIngredients.DEFAULT_CHANNEL, new ItemStack(Items.CHEST)) != null) {
+                    // Both when a single channel is shown, and when all channels are shown at once
+                    if (PendingCraftingJobOutputs.collectFromNetwork(IngredientComponents.ITEMSTACK, network,
+                            IPositionedAddonsNetworkIngredients.DEFAULT_CHANNEL).get(new ItemStack(Items.CHEST)) != null
+                            && PendingCraftingJobOutputs.collectFromNetwork(IngredientComponents.ITEMSTACK, network,
+                            IPositionedAddonsNetworkIngredients.WILDCARD_CHANNEL).get(new ItemStack(Items.CHEST)) != null) {
                         ticksIndicated.increment();
                     } else {
                         ticksMissingIndication.increment();
