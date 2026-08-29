@@ -14,6 +14,7 @@
     "gui.integratedterminals.terminal_storage.channel": "Chan:",
     "gui.integratedterminals.terminal_storage.craft": "craft",
     "gui.integratedterminals.terminal_storage.tooltip.requirements": "Crafting Requirements:",
+    "gui.integratedterminals.terminal_storage.tooltip.crafting": "Being crafted: %s",
     "gui.integratedterminals.terminal_storage.start_crafting_job": "Start crafting job",
     "gui.integratedterminals.terminal_storage.craftingplan.label.valid": "Crafting plan - Valid",
     "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete": "Crafting plan - Incomplete",
@@ -176,6 +177,7 @@
     "info_book.integratedterminals.storage_terminal.autocrafting.text2": "If your network contains crafting recipes, then you will be able to start crafting jobs right from within your &lStorage Terminal&r.",
     "info_book.integratedterminals.storage_terminal.autocrafting.text3": "All available recipes will show up in their respective tabs and channels. Clicking on a recipe will open a gui to select the amount of times the recipe should be executed. After that, a crafting plan will be shown that lists all required or missing ingredients. After that, the job will be started. All running crafting jobs will be visible in the &lCrafting Job Terminal&r.",
     "info_book.integratedterminals.storage_terminal.autocrafting.text4": "Power users can shift-click on recipes in the storage terminal to skip the crafting amount gui, and go immediately to the crafting plan overview.",
+    "info_book.integratedterminals.storage_terminal.autocrafting.text5": "Ingredients that are being produced by a running crafting job are marked with a spinner in the &lStorage Terminal&r. The color of this spinner indicates the status of the crafting job, which is also shown when hovering over the ingredient, together with the quantity that is still being crafted.",
 
     "info_book.integratedterminals.storage_terminal.power_usage": "Power Users",
     "info_book.integratedterminals.storage_terminal.power_usage.text1": "Power users tend to dislike clicking too much as it takes too much time. The &lStorage Terminal&r offers a couple of &ohotkeys&r to speed up the usage of common tasks such as selecting the search field, browsing through tabs, clearing the crafting grid, and balancing crafting grid slots. These hotkeys are listed at the end of this section.",

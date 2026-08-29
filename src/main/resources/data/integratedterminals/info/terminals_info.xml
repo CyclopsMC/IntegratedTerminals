@@ -40,6 +40,7 @@
             <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text2</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text3</paragraph>
             <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text4</paragraph>
+            <paragraph>info_book.integratedterminals.storage_terminal.autocrafting.text5</paragraph>
         </section>
 
         <section name="info_book.integratedterminals.storage_terminal.power_usage">

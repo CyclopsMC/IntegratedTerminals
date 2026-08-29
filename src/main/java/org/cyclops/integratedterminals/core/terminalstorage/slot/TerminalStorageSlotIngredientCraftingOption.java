@@ -20,6 +20,7 @@ import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTermi
 import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredientsTooltip;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutput;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -46,18 +47,25 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getIngredientComponentViewHandler();
         long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
+        PendingCraftingJobOutput<T> pendingCraftingJobOutput = getPendingCraftingJobOutput(tab, channel, label);
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
             drawCraftLabel(guiGraphics, x, y);
         } else {
             List<List<IPrototypedIngredient<?, ?>>> inputs = getInputs();
             viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY,
-                    getTooltipLines(inputs), inputs.isEmpty() ? null : new CraftingOptionIngredientsTooltip(inputs));
+                    getTooltipLines(pendingCraftingJobOutput, inputs),
+                    inputs.isEmpty() ? null : new CraftingOptionIngredientsTooltip(inputs));
         }
+        drawCraftingJobOverlay(guiGraphics, layer, x, y, pendingCraftingJobOutput);
     }
 
-    protected List<Component> getTooltipLines(List<List<IPrototypedIngredient<?, ?>>> inputs) {
+    protected List<Component> getTooltipLines(@Nullable PendingCraftingJobOutput<T> pendingCraftingJobOutput,
+                                              List<List<IPrototypedIngredient<?, ?>>> inputs) {
         List<Component> tooltipLines = Lists.newArrayList();
+        if (pendingCraftingJobOutput != null) {
+            addCraftingJobTooltipLines(tooltipLines, pendingCraftingJobOutput);
+        }
         if (!inputs.isEmpty()) {
             tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
                     .withStyle(ChatFormatting.YELLOW));
@@ -91,6 +99,17 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
                 inputs.add(nonEmptyAlternatives);
             }
         }
+    }
+
+    @Nullable
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected PendingCraftingJobOutput<T> getPendingCraftingJobOutput(ITerminalStorageTabClient tab, int channel,
+                                                                      @Nullable String label) {
+        // The same instance can also be shown as a stored ingredient.
+        // In that case, only that slot indicates the running crafting jobs, to avoid indicating them twice.
+        return ((TerminalStorageTabIngredientComponentClient<T, M>) tab).isShownAsStoredInstance(channel, getInstance())
+                ? null : super.getPendingCraftingJobOutput(tab, channel, label);
     }
 
     public HandlerWrappedTerminalCraftingOption<T> getCraftingOption() {
