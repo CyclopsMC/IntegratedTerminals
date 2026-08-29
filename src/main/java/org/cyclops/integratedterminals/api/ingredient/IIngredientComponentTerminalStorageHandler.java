@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
@@ -54,9 +55,33 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param mouseY The mouse Y position.
      * @param additionalTooltipLines The additional tooltip lines to add.
      */
+    @Deprecated // TODO: remove in next major
+    @OnlyIn(Dist.CLIENT)
+    public default void drawInstance(GuiGraphics guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
+                                     int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
+        drawInstance(guiGraphics, instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY, additionalTooltipLines, null);
+    }
+
+    /**
+     * Draw the given instance in the given gui.
+     * @param guiGraphics The matrix stack.
+     * @param instance An instance.
+     * @param maxQuantity The maximum allowed quantity of the given instance.
+     * @param label An optional label that should be rendered instead of the quantity.
+     * @param gui A gui to render in.
+     * @param layer The layer to render in.
+     * @param partialTick The partial tick.
+     * @param x The slot X position.
+     * @param y The slot Y position.
+     * @param mouseX The mouse X position.
+     * @param mouseY The mouse Y position.
+     * @param additionalTooltipLines The additional tooltip lines to add.
+     * @param additionalTooltipComponent An optional visual tooltip component to render below the tooltip lines.
+     */
     @OnlyIn(Dist.CLIENT)
     public void drawInstance(GuiGraphics guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines);
+                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
+                             @Nullable TooltipComponent additionalTooltipComponent);
 
     /**
      * Show the quantity of the given instance on the second tooltip line.
