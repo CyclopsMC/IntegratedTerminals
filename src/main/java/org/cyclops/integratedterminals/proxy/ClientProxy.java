@@ -58,6 +58,8 @@ public class ClientProxy extends ClientProxyComponent {
 
     public ClientProxy() {
         super(new CommonProxy());
+
+        getMod().getModEventBus().addListener(this::registerClientTooltipComponentFactories);
     }
 
     @Override
