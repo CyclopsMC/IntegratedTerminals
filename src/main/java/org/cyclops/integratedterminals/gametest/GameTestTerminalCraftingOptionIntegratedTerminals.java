@@ -15,6 +15,7 @@ import org.cyclops.commoncapabilities.api.ingredient.MixedIngredients;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalCraftingOptionInputs;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.TerminalCraftingOptionRecipeDefinition;
 
 import java.util.List;
@@ -80,6 +81,52 @@ public class GameTestTerminalCraftingOptionIntegratedTerminals {
         helper.assertTrue(plainInputs.size() == 2, "Expected two plain inputs");
         helper.assertTrue(ItemStack.isSameItemSameComponents(plainInputs.get(0), new ItemStack(Items.OAK_PLANKS)),
                 "Expected oak planks as first plain input");
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testGroupedInputsEqual(GameTestHelper helper) {
+        // A recipe that requires the same ingredient in multiple slots, like a redstone-based recipe
+        List<List<IPrototypedIngredient<ItemStack, Integer>>> inputs = Lists.newArrayList();
+        inputs.add(alternatives(new ItemStack(Items.REDSTONE)));
+        inputs.add(alternatives(new ItemStack(Items.REDSTONE)));
+        inputs.add(alternatives(new ItemStack(Items.HAY_BLOCK)));
+        inputs.add(alternatives(new ItemStack(Items.REDSTONE, 2)));
+
+        List<List<IPrototypedIngredient<?, ?>>> groupedInputs = TerminalCraftingOptionInputs
+                .getGroupedInputs(createCraftingOption(inputs));
+        helper.assertTrue(groupedInputs.size() == 2, "Expected the equal inputs to be grouped");
+        helper.assertTrue(ItemStack.isSameItemSameComponents((ItemStack) groupedInputs.get(0).get(0).getPrototype(), new ItemStack(Items.REDSTONE)),
+                "Expected redstone as first grouped input");
+        helper.assertTrue(((ItemStack) groupedInputs.get(0).get(0).getPrototype()).getCount() == 4,
+                "Expected the redstone quantities to be summed");
+        helper.assertTrue(ItemStack.isSameItemSameComponents((ItemStack) groupedInputs.get(1).get(0).getPrototype(), new ItemStack(Items.HAY_BLOCK)),
+                "Expected hay as second grouped input");
+        helper.assertTrue(((ItemStack) groupedInputs.get(1).get(0).getPrototype()).getCount() == 1,
+                "Expected the hay quantity to be unchanged");
+
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testGroupedInputsEqualAlternatives(GameTestHelper helper) {
+        // Inputs are only grouped if all their alternatives are equal
+        List<List<IPrototypedIngredient<ItemStack, Integer>>> inputs = Lists.newArrayList();
+        inputs.add(alternatives(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.BIRCH_PLANKS)));
+        inputs.add(alternatives(new ItemStack(Items.OAK_PLANKS), new ItemStack(Items.BIRCH_PLANKS)));
+        inputs.add(alternatives(new ItemStack(Items.OAK_PLANKS)));
+
+        List<List<IPrototypedIngredient<?, ?>>> groupedInputs = TerminalCraftingOptionInputs
+                .getGroupedInputs(createCraftingOption(inputs));
+        helper.assertTrue(groupedInputs.size() == 2, "Expected only the inputs with equal alternatives to be grouped");
+        helper.assertTrue(groupedInputs.get(0).size() == 2, "Expected the grouped input to keep its alternatives");
+        for (IPrototypedIngredient<?, ?> alternative : groupedInputs.get(0)) {
+            helper.assertTrue(((ItemStack) alternative.getPrototype()).getCount() == 2,
+                    "Expected the quantity of every alternative to be summed");
+        }
+        helper.assertTrue(((ItemStack) groupedInputs.get(1).get(0).getPrototype()).getCount() == 1,
+                "Expected the ungrouped input to be unchanged");
 
         helper.succeed();
     }

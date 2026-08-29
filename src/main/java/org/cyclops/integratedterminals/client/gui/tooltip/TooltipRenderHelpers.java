@@ -54,7 +54,7 @@ public final class TooltipRenderHelpers {
                                      @Nullable TooltipComponent visualComponent) {
         if (visualComponent == null) {
             GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, width, height, mouseX, mouseY, linesSupplier);
-        } else if (RenderHelpers.isPointInRegion(x, y, width, height, mouseX - gui.getGuiLeft(), mouseY - gui.getGuiTop())) {
+        } else if (isHovering(gui, x, y, width, height, mouseX, mouseY)) {
             List<Either<FormattedText, TooltipComponent>> elements = Lists.newArrayList();
             for (Component line : linesSupplier.get()) {
                 elements.add(Either.left(line));
@@ -74,6 +74,24 @@ public final class TooltipRenderHelpers {
 
             RenderSystem.enableDepthTest();
         }
+    }
+
+    /**
+     * Check if the mouse hovers over the given region,
+     * which is when {@link #renderTooltip} would show a tooltip for it.
+     *
+     * @param gui The gui that is being rendered in.
+     * @param x The region X position, relative to the gui.
+     * @param y The region Y position, relative to the gui.
+     * @param width The region width.
+     * @param height The region height.
+     * @param mouseX The mouse X position.
+     * @param mouseY The mouse Y position.
+     * @return If the mouse hovers over the region.
+     */
+    public static boolean isHovering(AbstractContainerScreen gui, int x, int y, int width, int height,
+                                     int mouseX, int mouseY) {
+        return RenderHelpers.isPointInRegion(x, y, width, height, mouseX - gui.getGuiLeft(), mouseY - gui.getGuiTop());
     }
 
 }

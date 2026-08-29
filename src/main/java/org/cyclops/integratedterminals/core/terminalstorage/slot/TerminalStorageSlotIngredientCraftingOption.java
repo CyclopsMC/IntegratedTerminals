@@ -8,19 +8,19 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
-import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
+import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredientsTooltip;
+import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutput;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalCraftingOptionInputs;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -52,7 +52,11 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
             viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, null, gui, layer, partialTick, x, y, mouseX, mouseY, null);
             drawCraftLabel(guiGraphics, x, y);
         } else {
-            List<List<IPrototypedIngredient<?, ?>>> inputs = getInputs();
+            // This is called for all visible slots on every frame,
+            // so only determine the requirements when they are actually going to be shown.
+            List<List<IPrototypedIngredient<?, ?>>> inputs = TooltipRenderHelpers.isHovering(gui, x, y,
+                    GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY)
+                    ? getInputs() : List.of();
             viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY,
                     getTooltipLines(pendingCraftingJobOutput, inputs),
                     inputs.isEmpty() ? null : new CraftingOptionIngredientsTooltip(inputs));
@@ -77,28 +81,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
      * @return The inputs that are required by this crafting option, with all their alternatives.
      */
     protected List<List<IPrototypedIngredient<?, ?>>> getInputs() {
-        List<List<IPrototypedIngredient<?, ?>>> inputs = Lists.newArrayList();
-        ITerminalCraftingOption<T> option = getCraftingOption().getCraftingOption();
-        for (IngredientComponent<?, ?> inputComponent : option.getInputComponents()) {
-            addInputs(option, inputComponent, inputs);
-        }
-        return inputs;
-    }
-
-    protected static <T1, M1> void addInputs(ITerminalCraftingOption<?> option, IngredientComponent<T1, M1> inputComponent,
-                                             List<List<IPrototypedIngredient<?, ?>>> inputs) {
-        IIngredientMatcher<T1, M1> matcher = inputComponent.getMatcher();
-        for (List<IPrototypedIngredient<T1, M1>> alternatives : option.getInputAlternatives(inputComponent)) {
-            List<IPrototypedIngredient<?, ?>> nonEmptyAlternatives = Lists.newArrayList();
-            for (IPrototypedIngredient<T1, M1> alternative : alternatives) {
-                if (!matcher.isEmpty(alternative.getPrototype())) {
-                    nonEmptyAlternatives.add(alternative);
-                }
-            }
-            if (!nonEmptyAlternatives.isEmpty()) {
-                inputs.add(nonEmptyAlternatives);
-            }
-        }
+        return TerminalCraftingOptionInputs.getGroupedInputs(getCraftingOption().getCraftingOption());
     }
 
     @Nullable
