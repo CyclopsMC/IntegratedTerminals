@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
@@ -35,6 +36,7 @@ import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackId
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackNameSorter;
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackQuantitySorter;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -71,7 +73,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     public void drawInstance(GuiGraphics guiGraphics, FluidStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
-                             @Nullable List<Component> additionalTooltipLines) {
+                             @Nullable List<Component> additionalTooltipLines,
+                             @Nullable TooltipComponent additionalTooltipComponent) {
         if (instance != null) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
@@ -81,7 +84,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                 GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
                 renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : GuiHelpers.quantityToScaledString(instance.getAmount()), x, y);
             } else {
-                GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
+                TooltipRenderHelpers.renderTooltip(gui, guiGraphics, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY, () -> {
                     List<Component> lines = Lists.newArrayList();
                     lines.add(((MutableComponent) instance.getHoverName()).withStyle(instance.getFluid().getFluidType().getRarity().getStyleModifier().apply(Style.EMPTY)));
                     addQuantityTooltip(lines, instance);
@@ -89,7 +92,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         lines.addAll(additionalTooltipLines);
                     }
                     return lines;
-                });
+                }, additionalTooltipComponent);
             }
         }
     }
