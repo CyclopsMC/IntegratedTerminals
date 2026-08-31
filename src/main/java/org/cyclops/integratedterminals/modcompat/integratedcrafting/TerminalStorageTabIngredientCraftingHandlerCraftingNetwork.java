@@ -438,10 +438,13 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     planStatic.getOutputs(),
                     planStatic.getStatus(),
                     planStatic.getCraftingQuantity(),
+                    planStatic.getCraftingQuantityTotal(),
                     planStatic.getBufferedIngredients(),
                     planStatic.getLastMissingIngredients(),
                     planStatic.getLabel(),
                     planStatic.getTickDuration(),
+                    planStatic.getEstimatedTickDurationTotal(),
+                    planStatic.getEstimatedTickDurationRemaining(),
                     planStatic.getChannel(),
                     planStatic.getInitiatorName(),
                     craftingJobDependencyGraph

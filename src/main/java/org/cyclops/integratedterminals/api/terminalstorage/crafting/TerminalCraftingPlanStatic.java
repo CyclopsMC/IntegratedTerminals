@@ -23,12 +23,15 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     private final List<IPrototypedIngredient<?, ?>> outputs;
     private TerminalCraftingJobStatus status;
     private final long craftingQuantity;
+    private final long craftingQuantityTotal;
     private final List<IPrototypedIngredient<?, ?>> bufferedIngredients;
     private final List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients;
     private TerminalCraftingPlanStatic.Label label;
     @Nullable
     private String unlocalizedLabelOverride;
     private final long tickDuration;
+    private final long estimatedTickDurationTotal;
+    private final long estimatedTickDurationRemaining;
     private final int channel;
     @Nullable
     private final String initiatorName;
@@ -44,16 +47,37 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                                       long tickDuration,
                                       int channel,
                                       @Nullable String initiatorName) {
+        this(id, dependencies, outputs, status, craftingQuantity, craftingQuantity, bufferedIngredients,
+                lastMissingIngredients, label, tickDuration, -1, -1, channel, initiatorName);
+    }
+
+    public TerminalCraftingPlanStatic(I id,
+                                      List<ITerminalCraftingPlan<I>> dependencies,
+                                      List<IPrototypedIngredient<?, ?>> outputs,
+                                      TerminalCraftingJobStatus status,
+                                      long craftingQuantity,
+                                      long craftingQuantityTotal,
+                                      List<IPrototypedIngredient<?, ?>> bufferedIngredients,
+                                      List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
+                                      TerminalCraftingPlanStatic.Label label,
+                                      long tickDuration,
+                                      long estimatedTickDurationTotal,
+                                      long estimatedTickDurationRemaining,
+                                      int channel,
+                                      @Nullable String initiatorName) {
         this.id = id;
         this.dependencies = dependencies;
         this.outputs = outputs;
         this.status = status;
         this.craftingQuantity = craftingQuantity;
+        this.craftingQuantityTotal = craftingQuantityTotal;
         this.bufferedIngredients = bufferedIngredients;
         this.lastMissingIngredients = lastMissingIngredients;
         this.label = label;
         this.unlocalizedLabelOverride = null;
         this.tickDuration = tickDuration;
+        this.estimatedTickDurationTotal = estimatedTickDurationTotal;
+        this.estimatedTickDurationRemaining = estimatedTickDurationRemaining;
         this.channel = channel;
         this.initiatorName = initiatorName;
     }
@@ -81,6 +105,11 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     @Override
     public long getCraftingQuantity() {
         return craftingQuantity;
+    }
+
+    @Override
+    public long getCraftingQuantityTotal() {
+        return craftingQuantityTotal;
     }
 
     @Override
@@ -120,6 +149,16 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
     }
 
     @Override
+    public long getEstimatedTickDurationTotal() {
+        return estimatedTickDurationTotal;
+    }
+
+    @Override
+    public long getEstimatedTickDurationRemaining() {
+        return estimatedTickDurationRemaining;
+    }
+
+    @Override
     public int getChannel() {
         return channel;
     }
@@ -142,6 +181,10 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         IndexedEntries indexedEntries = new IndexedEntries();
         Set<I> handledPlans = new HashSet<>();
         groupDependenciesByPrototype(indexedEntries, handledPlans, this);
+
+        // Sum the crafting quantities of all jobs in this plan
+        CraftingQuantities craftingQuantities = new CraftingQuantities();
+        sumCraftingQuantities(craftingQuantities, new HashSet<>(), this);
 
         // Make plan
         TerminalCraftingPlanFlatStatic<I> planFlat = new TerminalCraftingPlanFlatStatic<>(
@@ -167,6 +210,10 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                 getStatus(),
                 getLabel(),
                 getTickDuration(),
+                craftingQuantities.getTotal(),
+                craftingQuantities.getRemaining(),
+                getEstimatedTickDurationTotal(),
+                getEstimatedTickDurationRemaining(),
                 getChannel(),
                 getInitiatorName()
         );
@@ -242,9 +289,21 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
     }
 
+    /**
+     * Since jobs can have multiple dependents due to job splitting, we only consider each job once during flattening.
+     * Jobs without a proper id, such as invalid jobs, are always considered.
+     *
+     * @param handledPlans The ids of the plans that were handled before.
+     * @param plan A plan.
+     * @return If the given plan was handled before.
+     * @param <I> The type of identifier.
+     */
+    protected static <I> boolean isPlanHandled(Set<I> handledPlans, ITerminalCraftingPlan<I> plan) {
+        return (!(plan.getId() instanceof Integer id) || id > 0) && handledPlans.contains(plan.getId());
+    }
+
     protected static <I> void groupDependenciesByPrototype(IndexedEntries indexedEntries, Set<I> handledPlans, ITerminalCraftingPlan<I> plan) {
-        // Since jobs can have multiple dependents due to job splitting, we only consider each job once during flattening.
-        if ((!(plan.getId() instanceof Integer id) || id > 0) && handledPlans.contains(plan.getId())) {
+        if (isPlanHandled(handledPlans, plan)) {
             return;
         }
         handledPlans.add(plan.getId());
@@ -297,6 +356,49 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
     }
 
+    /**
+     * The number of crafting operations within a plan.
+     */
+    public static class CraftingQuantities {
+
+        private long total;
+        private long remaining;
+
+        /**
+         * @return The number of crafting operations, including the ones that finished already.
+         */
+        public long getTotal() {
+            return total;
+        }
+
+        /**
+         * @return The number of crafting operations that still have to be performed.
+         */
+        public long getRemaining() {
+            return remaining;
+        }
+    }
+
+    protected static <I> void sumCraftingQuantities(CraftingQuantities craftingQuantities, Set<I> handledPlans,
+                                                    ITerminalCraftingPlan<I> plan) {
+        if (isPlanHandled(handledPlans, plan)) {
+            return;
+        }
+        handledPlans.add(plan.getId());
+
+        // Invalid jobs are not counted, as their crafting quantity refers to missing ingredients,
+        // and not to crafting operations that will be performed.
+        if (plan.getStatus().isValid()) {
+            craftingQuantities.total += plan.getCraftingQuantityTotal();
+            craftingQuantities.remaining += plan.getCraftingQuantity();
+        }
+
+        // Recurse into dependencies
+        for (ITerminalCraftingPlan<I> dependency : plan.getDependencies()) {
+            sumCraftingQuantities(craftingQuantities, handledPlans, dependency);
+        }
+    }
+
     public static <I> CompoundTag serialize(HolderLookup.Provider lookupProvider, TerminalCraftingPlanStatic<I> plan,
                                             ITerminalStorageTabIngredientCraftingHandler<?, I> handler) {
         CompoundTag tag = new CompoundTag();
@@ -318,6 +420,8 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         tag.putInt("status", plan.getStatus().ordinal());
 
         tag.putLong("craftingQuantity", plan.getCraftingQuantity());
+
+        tag.putLong("craftingQuantityTotal", plan.getCraftingQuantityTotal());
 
         ListTag bufferedIngredients = new ListTag();
         for (IPrototypedIngredient<?, ?> storageIngredient : plan.getBufferedIngredients()) {
@@ -341,6 +445,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         }
 
         tag.putLong("tickDuration", plan.getTickDuration());
+
+        tag.putLong("estimatedTickDurationTotal", plan.getEstimatedTickDurationTotal());
+        tag.putLong("estimatedTickDurationRemaining", plan.getEstimatedTickDurationRemaining());
 
         tag.putInt("channel", plan.getChannel());
 
@@ -402,6 +509,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         long craftingQuantity = tag.getLong("craftingQuantity");
 
+        long craftingQuantityTotal = tag.contains("craftingQuantityTotal", Tag.TAG_LONG)
+                ? tag.getLong("craftingQuantityTotal") : craftingQuantity;
+
         ListTag bufferedIngredientsTag = tag.getList("bufferedIngredients", Tag.TAG_COMPOUND);
         List<IPrototypedIngredient<?, ?>> bufferedIngredients = Lists.newArrayListWithExpectedSize(bufferedIngredientsTag.size());
         for (Tag nbtBase : bufferedIngredientsTag) {
@@ -428,6 +538,11 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
 
         long tickDuration = tag.getLong("tickDuration");
 
+        long estimatedTickDurationTotal = tag.contains("estimatedTickDurationTotal", Tag.TAG_LONG)
+                ? tag.getLong("estimatedTickDurationTotal") : -1;
+        long estimatedTickDurationRemaining = tag.contains("estimatedTickDurationRemaining", Tag.TAG_LONG)
+                ? tag.getLong("estimatedTickDurationRemaining") : -1;
+
         int channel = tag.getInt("channel");
 
         String initiatorName = null;
@@ -435,8 +550,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             initiatorName = tag.getString("initiatorName");
         }
 
-        TerminalCraftingPlanStatic<I> plan = new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity, bufferedIngredients,
-                lastMissingIngredients, label, tickDuration, channel, initiatorName);
+        TerminalCraftingPlanStatic<I> plan = new TerminalCraftingPlanStatic<>(id, dependencies, outputs, status, craftingQuantity,
+                craftingQuantityTotal, bufferedIngredients, lastMissingIngredients, label, tickDuration,
+                estimatedTickDurationTotal, estimatedTickDurationRemaining, channel, initiatorName);
         if (unlocalizedLabelOverride != null) {
             plan.unlocalizedLabelOverride = unlocalizedLabelOverride;
         }
