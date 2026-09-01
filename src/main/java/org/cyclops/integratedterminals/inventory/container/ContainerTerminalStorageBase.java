@@ -237,7 +237,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         // Update active server tab
         ITerminalStorageTabServer activeServerTab = getTabServer(getSelectedTab());
         if (activeServerTab != null) {
-            activeServerTab.updateActive();
+            activeServerTab.updateActive(getSelectedChannel());
         }
     }
 

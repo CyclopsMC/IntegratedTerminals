@@ -1,12 +1,15 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
+import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +55,15 @@ public class TerminalCraftingOptionRecipeDefinition<T, M> implements ITerminalCr
                 .stream()
                 .filter(prototype -> !prototype.getAlternatives().isEmpty())
                 .map(prototype -> Iterables.getFirst(prototype.getAlternatives(), null).getPrototype())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public <T1, M> List<List<IPrototypedIngredient<T1, M>>> getInputAlternatives(IngredientComponent<T1, M> ingredientComponent) {
+        return prioritizedRecipe.getInputs(ingredientComponent)
+                .stream()
+                .<List<IPrototypedIngredient<T1, M>>>map(input -> Lists.newArrayList(input.getAlternatives()))
+                .filter(alternatives -> !alternatives.isEmpty())
                 .collect(Collectors.toList());
     }
 

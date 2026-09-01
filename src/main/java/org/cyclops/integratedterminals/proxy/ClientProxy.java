@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.client.settings.KeyModifier;
@@ -14,6 +15,8 @@ import org.cyclops.cyclopscore.inventory.PlayerExtendedInventoryIterator;
 import org.cyclops.cyclopscore.proxy.ClientProxyComponent;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.client.gui.tooltip.ClientCraftingOptionIngredientsTooltip;
+import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredientsTooltip;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemOpenGenericPacket;
 import org.lwjgl.glfw.GLFW;
@@ -37,11 +40,17 @@ public class ClientProxy extends ClientProxyComponent {
 
     public ClientProxy() {
         super(new CommonProxy());
+
+        getMod().getModEventBus().addListener(this::registerClientTooltipComponentFactories);
     }
 
     @Override
     public ModBaseNeoForge<IntegratedTerminals> getMod() {
         return IntegratedTerminals._instance;
+    }
+
+    public void registerClientTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(CraftingOptionIngredientsTooltip.class, ClientCraftingOptionIngredientsTooltip::new);
     }
 
     @Override

@@ -133,7 +133,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             int finalX = x;
             ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.getClient().drawInstance(guiGraphics, output.getPrototype(), quantity,
-                            IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null));
+                            IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null, null));
             x += IModHelpers.get().getGuiHelpers().getSlotSizeInner();
         }
 
