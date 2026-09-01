@@ -44,4 +44,14 @@ public class Images {
     public static final Image BUTTON_SMALL_OVERLAY_CROSS = new Image(ICONS, 0, 44, 8, 8);
     public static final Image BUTTON_SMALL_OVERLAY_SQUARE = new Image(ICONS, 8, 44, 8, 8);
 
+    /**
+     * The animation frames of the spinner that is shown on ingredients that are being crafted.
+     */
+    public static final Image[] SPINNER = new Image[8];
+    static {
+        for (int frame = 0; frame < SPINNER.length; frame++) {
+            SPINNER[frame] = new Image(ICONS, frame * 8, 64, 8, 8);
+        }
+    }
+
 }

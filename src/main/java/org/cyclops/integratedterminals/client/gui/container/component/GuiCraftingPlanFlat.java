@@ -144,7 +144,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
             int finalY = y;
             ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.getClient().drawInstance(guiGraphics, output.getPrototype(), quantity,
-                            "", this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
+                            "", this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null, null));
         }
 
         x = xOriginal + width - 50;

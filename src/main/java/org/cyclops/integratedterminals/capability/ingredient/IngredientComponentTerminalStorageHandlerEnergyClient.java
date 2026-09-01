@@ -6,12 +6,14 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.IGuiHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.image.Images;
+import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -32,7 +34,8 @@ public class IngredientComponentTerminalStorageHandlerEnergyClient implements II
     @Override
     public void drawInstance(GuiGraphicsExtractor guiGraphics, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
+                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
+                             @Nullable TooltipComponent additionalTooltipComponent) {
         if (instance > 0) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
 
@@ -56,7 +59,7 @@ public class IngredientComponentTerminalStorageHandlerEnergyClient implements II
                 GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
                 renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance), x, y);
             } else {
-                IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(),
+                TooltipRenderHelpers.renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(),
                         mouseX, mouseY, () -> {
                             List<Component> lines = Lists.newArrayList();
                             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.energy"));
@@ -65,7 +68,7 @@ public class IngredientComponentTerminalStorageHandlerEnergyClient implements II
                                 lines.addAll(additionalTooltipLines);
                             }
                             return lines;
-                        });
+                        }, additionalTooltipComponent);
             }
         }
     }

@@ -5,6 +5,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -12,6 +13,7 @@ import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -34,7 +36,8 @@ public class IngredientComponentTerminalStorageHandlerItemStackClient implements
     @Override
     public void drawInstance(GuiGraphicsExtractor guiGraphics, ItemStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
+                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
+                             @Nullable TooltipComponent additionalTooltipComponent) {
         // Make a copy of the item to make sure that any changes in the NBT tag that the mod may make during rendering
         // does not propagate into our client-side index. Otherwise, the client may think it has different items than
         // the server, which will cause these items not to be extractable by the client from the terminal.
@@ -46,7 +49,7 @@ public class IngredientComponentTerminalStorageHandlerItemStackClient implements
             guiGraphics.item(instanceCopy, x, y);
             renderItem.itemDecorations(Minecraft.getInstance().font, instanceCopy, x, y, label);
         } else {
-            IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
+            TooltipRenderHelpers.renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
                 List<Component> lines = instanceCopy.getTooltipLines(
                         Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()),
                         Minecraft.getInstance().player, Minecraft.getInstance().options.advancedItemTooltips
@@ -56,7 +59,7 @@ public class IngredientComponentTerminalStorageHandlerItemStackClient implements
                 }
                 this.handler.addQuantityTooltip(lines, instanceCopy);
                 return lines;
-            });
+            }, additionalTooltipComponent);
         }
     }
 

@@ -8,12 +8,14 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.cyclopscore.helper.IModHelpersNeoForge;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -36,7 +38,8 @@ public class IngredientComponentTerminalStorageHandlerFluidStackClient implement
     public void drawInstance(GuiGraphicsExtractor guiGraphics, FluidStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
-                             @Nullable List<Component> additionalTooltipLines) {
+                             @Nullable List<Component> additionalTooltipLines,
+                             @Nullable TooltipComponent additionalTooltipComponent) {
         if (instance != null) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
@@ -46,7 +49,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStackClient implement
                 GuiGraphicsExtended renderItem = new GuiGraphicsExtended(guiGraphics);
                 renderItem.drawSlotText(Minecraft.getInstance().font, label != null ? label : IModHelpers.get().getGuiHelpers().quantityToScaledString(instance.getAmount()), x, y);
             } else {
-                IModHelpers.get().getGuiHelpers().renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
+                TooltipRenderHelpers.renderTooltip(gui, guiGraphics, x, y, IModHelpers.get().getGuiHelpers().getSlotSizeInner(), IModHelpers.get().getGuiHelpers().getSlotSizeInner(), mouseX, mouseY, () -> {
                     List<Component> lines = Lists.newArrayList();
                     lines.add(((MutableComponent) instance.getHoverName()).withStyle(instance.getFluid().getFluidType().getRarity().getStyleModifier().apply(Style.EMPTY)));
                     this.handler.addQuantityTooltip(lines, instance);
@@ -54,7 +57,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStackClient implement
                         lines.addAll(additionalTooltipLines);
                     }
                     return lines;
-                });
+                }, additionalTooltipComponent);
             }
         }
     }

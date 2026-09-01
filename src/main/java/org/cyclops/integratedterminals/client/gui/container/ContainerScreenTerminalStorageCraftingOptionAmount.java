@@ -163,7 +163,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
         ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find ingredient terminal storage handler"))
                 .getClient()
-                .drawInstance(guiGraphics, ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null);
+                .drawInstance(guiGraphics, ingredientComponent.getMatcher().withQuantity(instance, quantity), quantity, IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, x, y, mouseX, mouseY, null, null);
     }
 
     private int getAmount() {

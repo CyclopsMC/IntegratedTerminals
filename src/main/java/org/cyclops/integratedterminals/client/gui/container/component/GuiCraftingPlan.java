@@ -181,7 +181,7 @@ public class GuiCraftingPlan extends AbstractWidget {
             int finalY = y;
             ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.getClient().drawInstance(guiGraphics, output.getPrototype(), quantity,
-                            IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null));
+                            IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this.parentGui, layer, partialTick, finalX, finalY, mouseX, mouseY, null, null));
             x += IModHelpers.get().getGuiHelpers().getSlotSizeInner();
         }
 
