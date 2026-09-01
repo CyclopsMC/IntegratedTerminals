@@ -17,6 +17,7 @@ import net.minecraft.server.ServerAdvancementManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -51,7 +52,7 @@ import java.util.UUID;
 @PrefixGameTestTemplate(false)
 public class GameTestAdvancementsIntegratedTerminals {
 
-    private static boolean hasAdvancementUnlocked(ServerPlayer player, String advancementId) {
+    static boolean hasAdvancementUnlocked(ServerPlayer player, String advancementId) {
         ResourceLocation id = ResourceLocation.parse(advancementId);
         ServerAdvancementManager manager = player.server.getAdvancements();
         AdvancementHolder holder = manager.get(id);
@@ -77,13 +78,15 @@ public class GameTestAdvancementsIntegratedTerminals {
      * {@code setValue} here also prevents the packet sends that happen inside the
      * {@link ContainerTerminalStoragePart} constructor (e.g. from {@code setSelectedChannel}).
      */
-    private static ContainerTerminalStoragePart createSilentContainer(ServerPlayer player, PartTarget partTarget) {
+    static ContainerTerminalStoragePart createSilentContainer(ServerPlayer player, PartTarget partTarget) {
         return new ContainerTerminalStoragePart(
                 1, player.getInventory(), partTarget, PartTypes.TERMINAL_STORAGE,
                 Optional.empty(), new TerminalStorageState(() -> {})) {
             @Override
             public void setValue(int valueId, CompoundTag value) {
-                // Suppress cyclopscore:value_notify packet sends in the game test environment.
+                // Store the value without sending a cyclopscore:value_notify packet,
+                // as those fail in the game test environment.
+                onUpdate(valueId, value);
             }
         };
     }
@@ -100,7 +103,7 @@ public class GameTestAdvancementsIntegratedTerminals {
      * been called (enabling the {@code containerListener} that fires advancement criteria), and the
      * player has been added to both the world and the player list.
      */
-    private static ServerPlayer createMockServerPlayer(GameTestHelper helper) {
+    static ServerPlayer createMockServerPlayer(GameTestHelper helper) {
         CommonListenerCookie cookie = CommonListenerCookie.createInitial(
                 new GameProfile(UUID.randomUUID(), "test-mock-player"), false);
         ServerPlayer player = new ServerPlayer(
@@ -253,6 +256,51 @@ public class GameTestAdvancementsIntegratedTerminals {
         helper.succeedWhen(() -> helper.assertTrue(
                 hasAdvancementUnlocked(player, "integratedterminals:storage_terminal_filtering/filter_enchantable"),
                 "filter_enchantable advancement not unlocked"));
+    }
+
+    /**
+     * Tests the ender_upgrade_storage_terminal advancement,
+     * triggered by right-clicking a storage terminal with an eye of ender.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testAdvancementEnderUpgradeStorageTerminal(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        ServerPlayer player = createMockServerPlayer(helper);
+
+        // Place cable block and add terminal_storage part
+        helper.setBlock(pos, RegistryEntries.BLOCK_CABLE.value());
+        NetworkHelpers.initNetwork(helper.getLevel(), helper.absolutePos(pos), Direction.NORTH);
+        PartHelpers.addPart(helper.getLevel(), helper.absolutePos(pos), Direction.NORTH,
+                PartTypes.TERMINAL_STORAGE, new ItemStack(PartTypes.TERMINAL_STORAGE.getItem()));
+
+        // Simulate right-clicking the part with an eye of ender
+        GameTestTerminalStorageEnderChest.enderUpgradePart(helper, pos, player, new ItemStack(Items.ENDER_EYE));
+
+        helper.succeedWhen(() -> helper.assertTrue(
+                hasAdvancementUnlocked(player, "integratedterminals:storage_terminal_ender/ender_upgrade_storage_terminal"),
+                "ender_upgrade_storage_terminal advancement not unlocked"));
+    }
+
+    /**
+     * Negative test: right-clicking a storage terminal without an eye of ender
+     * should NOT trigger the ender_upgrade_storage_terminal advancement.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testAdvancementEnderUpgradeStorageTerminalNegative(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 2, 1);
+        ServerPlayer player = createMockServerPlayer(helper);
+
+        // Place cable block and add terminal_storage part
+        helper.setBlock(pos, RegistryEntries.BLOCK_CABLE.value());
+        NetworkHelpers.initNetwork(helper.getLevel(), helper.absolutePos(pos), Direction.NORTH);
+        PartHelpers.addPart(helper.getLevel(), helper.absolutePos(pos), Direction.NORTH,
+                PartTypes.TERMINAL_STORAGE, new ItemStack(PartTypes.TERMINAL_STORAGE.getItem()));
+
+        // Simulate right-clicking the part with an ender pearl instead of an eye of ender
+        GameTestTerminalStorageEnderChest.enderUpgradePart(helper, pos, player, new ItemStack(Items.ENDER_PEARL));
+
+        helper.succeedWhen(() -> assertAdvancementNotUnlocked(helper, player,
+                "integratedterminals:storage_terminal_ender/ender_upgrade_storage_terminal"));
     }
 
     /**

@@ -114,7 +114,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 Component.translatable("gui.integratedterminals.channel"), true,
                 getMenu().getChannelStrings());
         fieldChannel.setMaxLength(15);
-        fieldChannel.setVisible(true);
+        fieldChannel.setVisible(hasChannelField());
         fieldChannel.setTextColor(16777215);
         fieldChannel.setCanLoseFocus(true);
         fieldChannel.setEditable(true);
@@ -148,7 +148,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().font, leftPos + SEARCH_X,
                 topPos + SEARCH_Y, getSearchWidth() - 10, SEARCH_HEIGHT, Component.translatable("gui.cyclopscore.search"));
         fieldSearch.setMaxLength(50);
-        fieldSearch.setVisible(true);
+        fieldSearch.setVisible(hasSearchField());
         fieldSearch.setTextColor(16777215);
         fieldSearch.setCanLoseFocus(true);
         fieldSearch.setEditable(true);
@@ -215,7 +215,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     @Override
     public void containerTick() {
         super.containerTick();
-        if (!initialized && getSelectedClientTab().isPresent()) {
+        if (!initialized && getSelectedClientTab().isPresent() && hasSearchField()) {
             initialized = true;
             String filter = getSelectedClientTab().get().getInstanceFilter(getMenu().getSelectedChannel());
             if (filter != null && !"".equals(filter)) {
@@ -268,6 +268,24 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 .orElse(0);
     }
 
+    public boolean hasSearchField() {
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::hasSearchField)
+                .orElse(true);
+    }
+
+    public boolean hasChannelField() {
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::hasChannelField)
+                .orElse(true);
+    }
+
+    public boolean hasVariableFilterSlots() {
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::hasVariableFilterSlots)
+                .orElse(true);
+    }
+
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         //super.renderBg(matrixStack, f, mouseX, mouseY);
@@ -275,8 +293,12 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         this.renderBgTab(guiGraphics, f, mouseX, mouseY);
         this.renderBgPlayerInventory(guiGraphics, f, mouseX, mouseY);
 
-        fieldChannel.render(guiGraphics, mouseX, mouseY, f);
-        fieldSearch.render(guiGraphics, mouseX, mouseY, f);
+        if (hasChannelField()) {
+            fieldChannel.render(guiGraphics, mouseX, mouseY, f);
+        }
+        if (hasSearchField()) {
+            fieldSearch.render(guiGraphics, mouseX, mouseY, f);
+        }
         drawTabsBackground(guiGraphics);
         drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
@@ -352,9 +374,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         guiGraphics.blit(this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y + getScrollHeight() - 2, 20, 101, 14, 1); // bottom
 
         // Textbox background
-        guiGraphics.blit(this.texture, leftPos + SEARCH_X - 1, topPos + SEARCH_Y - 2, 28, 0, 1, SEARCH_HEIGHT - 8); // left
-        blitRescalable(guiGraphics, this.texture, leftPos + SEARCH_X, topPos + SEARCH_Y - 2, blitOffset, 29, 0, 1, SEARCH_HEIGHT - 8, 256, 256, getSearchWidth(), SEARCH_HEIGHT - 8); // middle
-        guiGraphics.blit(this.texture, leftPos + SEARCH_X + getSearchWidth() - 1, topPos + SEARCH_Y - 2, 117, 0, 1, SEARCH_HEIGHT - 8); // right
+        if (hasSearchField()) {
+            guiGraphics.blit(this.texture, leftPos + SEARCH_X - 1, topPos + SEARCH_Y - 2, 28, 0, 1, SEARCH_HEIGHT - 8); // left
+            blitRescalable(guiGraphics, this.texture, leftPos + SEARCH_X, topPos + SEARCH_Y - 2, blitOffset, 29, 0, 1, SEARCH_HEIGHT - 8, 256, 256, getSearchWidth(), SEARCH_HEIGHT - 8); // middle
+            guiGraphics.blit(this.texture, leftPos + SEARCH_X + getSearchWidth() - 1, topPos + SEARCH_Y - 2, 117, 0, 1, SEARCH_HEIGHT - 8); // right
+        }
 
         // Render tab-specific things
         getSelectedClientTab().ifPresent(tab -> tab.onTabBackgroundRender(this, guiGraphics, f, mouseX, mouseY));
@@ -368,8 +392,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         // Render player inventory
         guiGraphics.blit(this.texture, leftPos + (getGridXSize() / 2) - (9 * GuiHelpers.SLOT_SIZE / 2) + getPlayerInventoryOffsetX() + 3, topPos + 52 + getGridYSize() + getPlayerInventoryOffsetY() , 34, 24, 216, 93);
 
-        // Auxiliary slots
-        guiGraphics.blit(this.texture, leftPos + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + getPlayerInventoryOffsetX() + 57, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57);
+        // Variable-based filter slots
+        if (hasVariableFilterSlots()) {
+            guiGraphics.blit(this.texture, leftPos + (getGridXSize() / 2) + (9 * GuiHelpers.SLOT_SIZE / 2) + getPlayerInventoryOffsetX() + 57, topPos + 61 + getGridYSize() + getPlayerInventoryOffsetY(), 0, 12, 20, 57);
+        }
     }
 
     @Override
@@ -528,7 +554,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         // Update channel when changing channel field
-        if (this.fieldChannel.mouseClicked(mouseX, mouseY, mouseButton)) {
+        if (hasChannelField() && this.fieldChannel.mouseClicked(mouseX, mouseY, mouseButton)) {
             int channel;
             try {
                 channel = Integer.parseInt(this.fieldChannel.getActiveElement());
@@ -578,7 +604,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         // Click in search field
-        fieldSearch.mouseClicked(mouseX, mouseY, mouseButton);
+        if (hasSearchField()) {
+            fieldSearch.mouseClicked(mouseX, mouseY, mouseButton);
+        }
 
         // Handle buttons clicks
         tabOptional.ifPresent(tab -> {
@@ -735,6 +763,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     protected boolean handleKeyCodeFirst(int keyCode, int scanCode) {
         InputConstants.Key inputCode = InputConstants.getKey(keyCode, scanCode);
         if (org.cyclops.integrateddynamics.proxy.ClientProxy.FOCUS_LP_SEARCH.isActiveAndMatches(inputCode)) {
+            if (!hasSearchField()) {
+                return false;
+            }
             fieldSearch.setFocused(true);
             swallowNextCharacter = true;
             return true;
@@ -879,7 +910,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         int offsetX = TAB_OFFSET_X;
 
         // Draw channels label
-        guiGraphics.drawString(font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
+        if (hasChannelField()) {
+            guiGraphics.drawString(font, L10NHelpers.localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, 16777215);
+        }
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getMenu().getTabsClient().values()) {

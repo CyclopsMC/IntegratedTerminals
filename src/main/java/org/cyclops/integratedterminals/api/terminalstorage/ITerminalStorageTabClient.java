@@ -188,6 +188,27 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      */
     public List<ITerminalButton<?, ?, ?>> getButtons();
 
+    /**
+     * @return If the search field should be shown for this tab.
+     */
+    public default boolean hasSearchField() {
+        return true;
+    }
+
+    /**
+     * @return If the channel field should be shown for this tab.
+     */
+    public default boolean hasChannelField() {
+        return true;
+    }
+
+    /**
+     * @return If the variable-based filter slots should be shown for this tab.
+     */
+    public default boolean hasVariableFilterSlots() {
+        return true;
+    }
+
     public default int getSlotOffsetX() {
         return DEFAULT_SLOT_OFFSET_X;
     }
