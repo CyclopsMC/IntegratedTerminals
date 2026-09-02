@@ -45,8 +45,8 @@ public class CraftingJobFinishedToastListener {
 
         // Jobs that were scheduled before the initial amount was tracked report an amount of 0
         int amount = Math.max(1, craftingJob.getInitialAmount());
-        List<IPrototypedIngredient<?, ?>> outputs = CraftingHelpers.multiplyPrototypedIngredients(
-                IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getOutput()), amount);
+        List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getOutput());
+        List<IPrototypedIngredient<?, ?>> outputs = CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, amount);
         if (outputs.isEmpty()) {
             return;
         }
