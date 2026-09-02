@@ -121,14 +121,17 @@ public class TerminalButtonFilterCrafting<T>
                 i -> i.getCraftingOption() != null,
                 0);
 
-        private static final String NBT_ACTIVE = "active";
         private static final String NBT_ACTIVE_NAME = "activeName";
+
+        // TODO: rm in next major: the legacy key that held the filter type as an ordinal.
+        private static final String NBT_ACTIVE = "active";
 
         /**
          * The order in which the filter types were declared before {@link #ALL_CRAFTABLE_FIRST} was introduced.
          * This is only used for reading states that were persisted by older versions,
          * which stored the filter type by its ordinal.
          */
+        // TODO: rm in next major, together with NBT_ACTIVE and its uses in read and write.
         private static final FilterType[] LEGACY_ORDINALS = { ALL, STORAGE, CRAFTABLE };
 
         @Nullable
@@ -198,6 +201,8 @@ public class TerminalButtonFilterCrafting<T>
          */
         public void write(CompoundTag tag) {
             tag.putString(NBT_ACTIVE_NAME, name());
+
+            // TODO: rm in next major: drop everything below, so that only the name is written.
             int legacyOrdinal = 0;
             for (int i = 0; i < LEGACY_ORDINALS.length; i++) {
                 if (LEGACY_ORDINALS[i] == this) {
@@ -218,6 +223,8 @@ public class TerminalButtonFilterCrafting<T>
          * @return The persisted filter type, or the default if none could be read.
          */
         public static FilterType read(CompoundTag tag) {
+            // TODO: rm in next major: drop this if-wrapper, and read the name unconditionally,
+            //       so that a tag without a name falls through to the default below.
             if (tag.contains(NBT_ACTIVE_NAME)) {
                 String name = tag.getString(NBT_ACTIVE_NAME);
                 for (FilterType filterType : values()) {
@@ -228,6 +235,7 @@ public class TerminalButtonFilterCrafting<T>
                 return getDefault();
             }
 
+            // TODO: rm in next major: drop everything below, together with LEGACY_ORDINALS.
             int legacyOrdinal = tag.getInt(NBT_ACTIVE);
             if (legacyOrdinal < 0 || legacyOrdinal >= LEGACY_ORDINALS.length) {
                 return getDefault();
