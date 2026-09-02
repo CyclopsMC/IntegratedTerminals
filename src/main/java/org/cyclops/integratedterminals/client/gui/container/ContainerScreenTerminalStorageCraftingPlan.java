@@ -119,20 +119,20 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
         this.guiCraftingPlanToggler.init();
 
-        addRenderableWidget(new ButtonText(leftPos + 132, topPos + 198, 50, 20,
+        addRenderableWidget(new ButtonText(leftPos + 221 + 10 - 50 - 55, topPos + 198, 50, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
                 Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
                 (b) -> returnToCraftingOptionAmount(),
                 true));
 
         addRenderableWidget(Checkbox.builder(Component.translatable("gui.integratedterminals.terminal_storage.step.craft.notify"), font)
-                .pos(leftPos + 75, topPos + 200)
+                .pos(leftPos + 72, topPos + 200)
                 .selected(this.notifyOnCompletion)
                 .tooltip(Tooltip.create(Component.translatable("gui.integratedterminals.terminal_storage.step.craft.notify.info")))
                 .onValueChange((widget, selected) -> setNotifyOnCompletion(selected))
                 .build());
 
-        addRenderableWidget(buttonConfirm = new ButtonText(leftPos + 187, topPos + 198, 50, 20,
+        addRenderableWidget(buttonConfirm = new ButtonText(leftPos + 221 + 10 - 50, topPos + 198, 50, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.craft"),
                 Component.translatable("gui.integratedterminals.terminal_storage.step.craft").withStyle(ChatFormatting.YELLOW),
                 createServerPressable(ContainerTerminalStorageCraftingPlanBase.BUTTON_START, (b) -> {}),
