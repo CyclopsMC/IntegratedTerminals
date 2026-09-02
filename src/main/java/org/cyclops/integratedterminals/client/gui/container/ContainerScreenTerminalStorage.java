@@ -72,7 +72,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     private static int TAB_SELECTED_TEXTURE_Y = 0;
     private static int SCROLL_Y = 40;
     private static int HINT_PADDING = 4;
-    private static int HINT_BACKGROUND_COLOR = 0xCC000000;
+    private static int HINT_BACKGROUND_COLOR = 0x99000000;
 
     private static int SEARCH_X = 103;
     private static int SEARCH_Y = 27;
@@ -1068,18 +1068,21 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         Component message = Component.translatable(getMenu().getTabsClientCount() > 0
                 ? "gui.integratedterminals.terminal_storage.no_tab_selected"
                 : "gui.integratedterminals.terminal_storage.no_tabs");
-        int gridWidth = getGridXSize();
-        List<FormattedCharSequence> lines = font.split(message, gridWidth - HINT_PADDING * 2);
-        int x = getSlotsOffsetX() + gridWidth / 2;
-        int y = getSlotsOffsetY() + (getGridYSize() - lines.size() * font.lineHeight) / 2;
 
-        // Darken the empty grid, so that the hint remains readable on top of the slots
-        guiGraphics.fill(getSlotsOffsetX() - 1, y - HINT_PADDING, getSlotsOffsetX() - 1 + gridWidth,
-                y + lines.size() * font.lineHeight + HINT_PADDING - 1, HINT_BACKGROUND_COLOR);
+        // Darken the whole empty grid, so that the hint remains readable on top of the slots.
+        // The slot backgrounds start one pixel before their contents, and their bottom-right
+        // highlight is left uncovered, so that this aligns with the grid's borders.
+        int x = getSlotsOffsetX() - 1;
+        int y = getSlotsOffsetY() - 1;
+        int width = getGridXSize() - 1;
+        int height = getGridYSize() - 1;
+        guiGraphics.fill(x, y, x + width, y + height, HINT_BACKGROUND_COLOR);
 
+        List<FormattedCharSequence> lines = font.split(message, width - HINT_PADDING * 2);
+        int lineY = y + (height - lines.size() * font.lineHeight) / 2;
         for (FormattedCharSequence line : lines) {
-            guiGraphics.drawCenteredString(font, line, x, y, 16777215);
-            y += font.lineHeight;
+            guiGraphics.drawCenteredString(font, line, x + width / 2, lineY, 16777215);
+            lineY += font.lineHeight;
         }
     }
 
