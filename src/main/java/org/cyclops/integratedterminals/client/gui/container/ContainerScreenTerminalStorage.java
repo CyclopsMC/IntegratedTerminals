@@ -1070,12 +1070,12 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 : "gui.integratedterminals.terminal_storage.no_tabs");
 
         // Darken the whole empty grid, so that the hint remains readable on top of the slots.
-        // The slot backgrounds start one pixel before their contents, and their bottom-right
-        // highlight is left uncovered, so that this aligns with the grid's borders.
+        // The slot backgrounds start one pixel before their contents, so that this covers
+        // exactly the grid, up to and including its borders.
         int x = getSlotsOffsetX() - 1;
         int y = getSlotsOffsetY() - 1;
-        int width = getGridXSize() - 1;
-        int height = getGridYSize() - 1;
+        int width = getGridXSize();
+        int height = getGridYSize();
         guiGraphics.fill(x, y, x + width, y + height, HINT_BACKGROUND_COLOR);
 
         List<FormattedCharSequence> lines = font.split(message, width - HINT_PADDING * 2);
