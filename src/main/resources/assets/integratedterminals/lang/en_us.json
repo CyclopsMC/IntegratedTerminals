@@ -78,7 +78,9 @@
     "gui.integratedterminals.terminal_crafting_job.craftingplan.duration": "Duration: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate": "Estimated: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining": "Remaining: %s",
+  "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown": "?",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.progress": "Progress: %s%%",
+  "gui.integratedterminals.terminal_crafting_job.craftingplan.progress.short": "%s%%",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel": "Channel: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.owner": "Owner: %s",
 

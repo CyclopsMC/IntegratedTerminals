@@ -74,6 +74,7 @@ public class GuiCraftingPlan extends AbstractWidget {
     private final long tickDuration;
     private final long estimatedTickDuration;
     private final boolean estimatedTickDurationRemaining;
+    private final boolean showEstimatedTickDuration;
     private final int channel;
     @Nullable
     private final String initiatorName;
@@ -96,6 +97,8 @@ public class GuiCraftingPlan extends AbstractWidget {
         this.estimatedTickDurationRemaining = craftingPlan.getStatus() != TerminalCraftingJobStatus.UNSTARTED;
         this.estimatedTickDuration = this.estimatedTickDurationRemaining
                 ? craftingPlan.getEstimatedTickDurationRemaining() : craftingPlan.getEstimatedTickDurationTotal();
+        // Jobs that can not be crafted have nothing to estimate, other jobs show a placeholder until they are measured
+        this.showEstimatedTickDuration = craftingPlan.getStatus().isValid();
         this.channel = craftingPlan.getChannel();
         this.initiatorName = craftingPlan.getInitiatorName();
     }
@@ -258,9 +261,19 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     public static String getDurationString(String unlocalizedName, long tickDuration) {
+        return L10NHelpers.localize(unlocalizedName, getDurationValue(tickDuration));
+    }
+
+    /**
+     * @param tickDuration A tick duration, where -1 indicates an unknown duration.
+     * @return The duration as H:mm:ss, or a placeholder if it is unknown.
+     */
+    public static String getDurationValue(long tickDuration) {
+        if (tickDuration < 0) {
+            return L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown");
+        }
         long durationMs = tickDuration * 1000 / MinecraftHelpers.SECOND_IN_TICKS;
-        return L10NHelpers.localize(unlocalizedName,
-                DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
+        return DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true);
     }
 
     /**
@@ -301,7 +314,7 @@ public class GuiCraftingPlan extends AbstractWidget {
         }
 
         // Draw estimated duration
-        if (estimatedTickDuration >= 0) {
+        if (showEstimatedTickDuration) {
             String estimatedDurationString = getDurationString(estimatedTickDurationRemaining
                     ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
                     : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
