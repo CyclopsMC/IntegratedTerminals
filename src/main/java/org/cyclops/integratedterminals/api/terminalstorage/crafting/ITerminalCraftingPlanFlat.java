@@ -51,17 +51,13 @@ public interface ITerminalCraftingPlanFlat<I> {
      * @return The number of crafting operations in this plan, including the ones that finished already.
      *         0 indicates an unknown quantity.
      */
-    public default long getCraftingQuantityTotal() {
-        return 0;
-    }
+    public long getCraftingQuantityTotal();
 
     /**
      * @return The number of crafting operations in this plan that still have to be performed.
      *         0 indicates an unknown quantity, or a plan without remaining operations.
      */
-    public default long getCraftingQuantityRemaining() {
-        return 0;
-    }
+    public long getCraftingQuantityRemaining();
 
     /**
      * Contrary to {@link #getTickDuration()}, which indicates how long this job has been running already,
@@ -69,16 +65,12 @@ public interface ITerminalCraftingPlanFlat<I> {
      *
      * @return The estimated total tick duration for this job. -1 indicates an unknown duration.
      */
-    public default long getEstimatedTickDurationTotal() {
-        return -1;
-    }
+    public long getEstimatedTickDurationTotal();
 
     /**
      * @return The estimated tick duration until this job is finished. -1 indicates an unknown duration.
      */
-    public default long getEstimatedTickDurationRemaining() {
-        return -1;
-    }
+    public long getEstimatedTickDurationRemaining();
 
     /**
      * @return The channel id, or -1 for non-applicable.
