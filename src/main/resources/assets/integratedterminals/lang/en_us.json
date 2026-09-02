@@ -12,6 +12,8 @@
     "gui.integratedterminals.terminal_storage.storage_name": "%s Storage",
     "gui.integratedterminals.terminal_storage.crafting_name": "%s Crafting",
     "gui.integratedterminals.terminal_storage.channel": "Chan:",
+    "gui.integratedterminals.terminal_storage.no_tab_selected": "Click a tab above to view the network's contents.",
+    "gui.integratedterminals.terminal_storage.no_tabs": "No tabs available. Connect storage to this network with an interface.",
     "gui.integratedterminals.terminal_storage.craft": "craft",
     "gui.integratedterminals.terminal_storage.tooltip.requirements": "Crafting Requirements:",
     "gui.integratedterminals.terminal_storage.tooltip.crafting": "Being crafted: %s",
