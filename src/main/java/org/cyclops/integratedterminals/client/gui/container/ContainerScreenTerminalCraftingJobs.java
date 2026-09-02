@@ -45,7 +45,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     // Offsets from the end of a line for the two columns of half-scale info text.
     // The left column has to fit the longest status label, the right one the longest duration.
-    private static final int COLUMN_LEFT = 124;
+    private static final int COLUMN_LEFT = 132;
     private static final int COLUMN_RIGHT = 48;
 
     private final Player player;
