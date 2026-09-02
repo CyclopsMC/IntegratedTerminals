@@ -17,6 +17,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -70,6 +71,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     private static int TAB_UNSELECTED_TEXTURE_Y = 0;
     private static int TAB_SELECTED_TEXTURE_Y = 0;
     private static int SCROLL_Y = 40;
+    private static int HINT_PADDING = 4;
+    private static int HINT_BACKGROUND_COLOR = 0xCC000000;
 
     private static int SEARCH_X = 103;
     private static int SEARCH_Y = 27;
@@ -376,6 +379,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         drawTabsForeground(guiGraphics, mouseX, mouseY);
+        drawNoTabSelectedHint(guiGraphics);
         drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.FOREGROUND,
                 0, getSlotsOffsetX(), getSlotsOffsetY(), mouseX, mouseY);
         drawActiveStorageSlotItem(guiGraphics, mouseX, mouseY);
@@ -1049,6 +1053,33 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             int tabIndex = (mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH;
             getTabByIndex(tabIndex)
                     .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), guiGraphics.pose(), mouseX - getGuiLeft(), mouseY - getGuiTop()));
+        }
+    }
+
+    /**
+     * Explain in the empty storage grid what to do, as no tab is selected when the terminal is opened.
+     * @param guiGraphics The gui graphics, translated to the gui's top-left corner.
+     */
+    protected void drawNoTabSelectedHint(GuiGraphics guiGraphics) {
+        if (getSelectedClientTab().isPresent()) {
+            return;
+        }
+
+        Component message = Component.translatable(getMenu().getTabsClientCount() > 0
+                ? "gui.integratedterminals.terminal_storage.no_tab_selected"
+                : "gui.integratedterminals.terminal_storage.no_tabs");
+        int gridWidth = getGridXSize();
+        List<FormattedCharSequence> lines = font.split(message, gridWidth - HINT_PADDING * 2);
+        int x = getSlotsOffsetX() + gridWidth / 2;
+        int y = getSlotsOffsetY() + (getGridYSize() - lines.size() * font.lineHeight) / 2;
+
+        // Darken the empty grid, so that the hint remains readable on top of the slots
+        guiGraphics.fill(getSlotsOffsetX() - 1, y - HINT_PADDING, getSlotsOffsetX() - 1 + gridWidth,
+                y + lines.size() * font.lineHeight + HINT_PADDING - 1, HINT_BACKGROUND_COLOR);
+
+        for (FormattedCharSequence line : lines) {
+            guiGraphics.drawCenteredString(font, line, x, y, 16777215);
+            y += font.lineHeight;
         }
     }
 
