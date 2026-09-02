@@ -36,6 +36,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     private boolean calculatedCraftingPlan;
     private ITerminalCraftingPlan craftingPlan;
+    private boolean notifyOnCompletion = true;
 
     public ContainerTerminalStorageCraftingPlanBase(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                                     CraftingOptionGuiData craftingOptionGuiData) {
@@ -57,6 +58,17 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
 
     public CraftingOptionGuiData getCraftingOptionGuiData() {
         return craftingOptionGuiData;
+    }
+
+    /**
+     * @return If the player wants to be notified once the crafting job is completed.
+     */
+    public boolean isNotifyOnCompletion() {
+        return notifyOnCompletion;
+    }
+
+    public void setNotifyOnCompletion(boolean notifyOnCompletion) {
+        this.notifyOnCompletion = notifyOnCompletion;
     }
 
     @Override
@@ -123,7 +135,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
                 getNetwork().ifPresent(network -> {
                     try {
                         craftingOptionGuiData.getCraftingOption().getHandler()
-                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayer) player);
+                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayer) player, this.notifyOnCompletion);
 
                         // Re-open terminal gui
                         craftingOptionGuiData.getLocation()

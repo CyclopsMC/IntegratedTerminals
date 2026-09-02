@@ -157,8 +157,22 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param player The player that started the crafting job.
      * @throws CraftingJobStartException If the crafting job failed to start.
      */
+    public default void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan,
+                                         ServerPlayer player) throws CraftingJobStartException {
+        startCraftingJob(network, channel, craftingPlan, player, true);
+    }
+
+    /**
+     * Start the given crafting plan.
+     * @param network The network in which the plan should be started.
+     * @param channel The channel to get the options for.
+     * @param craftingPlan A crafting plan.
+     * @param player The player that started the crafting job.
+     * @param notifyOnCompletion If the player wants to be notified once the crafting job is completed.
+     * @throws CraftingJobStartException If the crafting job failed to start.
+     */
     public void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan,
-                                 ServerPlayer player) throws CraftingJobStartException;
+                                 ServerPlayer player, boolean notifyOnCompletion) throws CraftingJobStartException;
 
     /**
      * @param network The network in which the plan should be started.

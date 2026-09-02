@@ -2,6 +2,8 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -18,6 +20,7 @@ import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftin
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanToggler;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanBase;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageCraftingPlanSetNotifyPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
 import org.lwjgl.glfw.GLFW;
 
@@ -39,6 +42,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
     private ITerminalCraftingPlan craftingPlan;
     private ITerminalCraftingPlanFlat craftingPlanFlat;
     private ButtonText buttonConfirm;
+    private boolean notifyOnCompletion = true;
 
     public ContainerScreenTerminalStorageCraftingPlan(C container, Inventory inventory, Component title) {
         super(container, inventory, title);
@@ -121,12 +125,26 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
                 (b) -> returnToCraftingOptionAmount(),
                 true));
 
+        Checkbox checkboxNotify = Checkbox.builder(Component.empty(), font)
+                .pos(leftPos + 97, topPos + 202)
+                .selected(this.notifyOnCompletion)
+                .tooltip(Tooltip.create(Component.translatable("gui.integratedterminals.terminal_storage.step.craft.notify")))
+                .onValueChange((widget, selected) -> setNotifyOnCompletion(selected))
+                .build();
+        addRenderableWidget(checkboxNotify);
+
         addRenderableWidget(buttonConfirm = new ButtonText(leftPos + 221 + 10 - 50, topPos + 198, 50, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.craft"),
                 Component.translatable("gui.integratedterminals.terminal_storage.step.craft").withStyle(ChatFormatting.YELLOW),
                 createServerPressable(ContainerTerminalStorageCraftingPlanBase.BUTTON_START, (b) -> {}),
                 true));
         buttonConfirm.active = (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()) || (this.guiCraftingPlanFlat != null && this.guiCraftingPlanFlat.isValid());
+    }
+
+    private void setNotifyOnCompletion(boolean notifyOnCompletion) {
+        this.notifyOnCompletion = notifyOnCompletion;
+        IntegratedTerminals._instance.getPacketHandler().sendToServer(
+                new TerminalStorageCraftingPlanSetNotifyPacket(notifyOnCompletion));
     }
 
     @Override

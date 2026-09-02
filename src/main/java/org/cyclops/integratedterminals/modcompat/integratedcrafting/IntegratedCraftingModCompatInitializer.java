@@ -11,5 +11,6 @@ public class IntegratedCraftingModCompatInitializer implements ICompatInitialize
     public void initialize() {
         TerminalStorageTabIngredientCraftingHandlers.REGISTRY.register(
                 new TerminalStorageTabIngredientCraftingHandlerCraftingNetwork());
+        CraftingJobFinishedToastListener.register();
     }
 }
