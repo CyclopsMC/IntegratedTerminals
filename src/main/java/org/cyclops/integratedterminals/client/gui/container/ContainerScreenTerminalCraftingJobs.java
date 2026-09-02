@@ -43,6 +43,11 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     public static int LINE_WIDTH = 221;
 
+    // Offsets from the end of a line for the two columns of half-scale info text.
+    // The left column has to fit the longest status label, the right one the longest duration.
+    private static final int COLUMN_LEFT = 124;
+    private static final int COLUMN_RIGHT = 48;
+
     private final Player player;
 
     private WidgetScrollBar scrollBar;
@@ -142,27 +147,27 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
             String statusString = L10NHelpers.localize("gui.integratedterminals.craftingplan.status",
                     L10NHelpers.localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, statusString, xOriginal + LINE_WIDTH - COLUMN_LEFT, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
 
             int dependencies = plan.getEntries().size();
             String dependenciesString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, dependenciesString, xOriginal + LINE_WIDTH - COLUMN_LEFT, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
 
             if (plan.getChannel() != -1) {
                 String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", plan.getChannel());
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, channelString, xOriginal + LINE_WIDTH - COLUMN_RIGHT, y + 7, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
 
             long tickDuration = plan.getTickDuration();
             if (tickDuration >= 0) {
                 String durationString = GuiCraftingPlan.getDurationString(tickDuration);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, durationString, xOriginal + LINE_WIDTH - COLUMN_LEFT, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
 
             int progress = GuiCraftingPlan.getProgress(plan);
             if (progress >= 0) {
                 String progressString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.progress", progress);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, progressString, xOriginal + LINE_WIDTH - 40, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, progressString, xOriginal + LINE_WIDTH - COLUMN_RIGHT, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
 
             long estimatedTickDurationRemaining = plan.getEstimatedTickDurationRemaining();
@@ -170,7 +175,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                 String remainingString = GuiCraftingPlan.getDurationString(
                         "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining",
                         estimatedTickDurationRemaining);
-                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, remainingString, xOriginal + LINE_WIDTH - 40, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, remainingString, xOriginal + LINE_WIDTH - COLUMN_RIGHT, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
         }
     }
