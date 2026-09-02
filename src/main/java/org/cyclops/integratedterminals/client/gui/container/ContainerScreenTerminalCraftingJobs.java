@@ -154,7 +154,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             int finalX = x;
             ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity,
-                            GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, tooltipLines));
+                            GuiHelpers.quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, tooltipLines, null));
             x += GuiHelpers.SLOT_SIZE_INNER;
         }
 
