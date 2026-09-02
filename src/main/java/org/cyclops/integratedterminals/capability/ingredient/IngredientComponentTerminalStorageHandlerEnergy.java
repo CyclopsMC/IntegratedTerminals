@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -28,6 +29,7 @@ import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTermin
 import org.cyclops.integratedterminals.api.ingredient.IIngredientInstanceSorter;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.image.Images;
+import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -64,7 +66,8 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     @OnlyIn(Dist.CLIENT)
     public void drawInstance(GuiGraphics guiGraphics, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
-                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines) {
+                             int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
+                             @Nullable TooltipComponent additionalTooltipComponent) {
         if (instance > 0) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
 
@@ -91,7 +94,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
 
                 Lighting.setupFor3DItems();
             } else {
-                GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
+                TooltipRenderHelpers.renderTooltip(gui, guiGraphics, x, y, GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER,
                         mouseX, mouseY, () -> {
                             List<Component> lines = Lists.newArrayList();
                             lines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.energy"));
@@ -100,7 +103,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                                 lines.addAll(additionalTooltipLines);
                             }
                             return lines;
-                        });
+                        }, additionalTooltipComponent);
             }
         }
     }

@@ -58,6 +58,9 @@ import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButto
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonScaleGui;
 import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButtonSort;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutput;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputEntry;
+import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
@@ -106,6 +109,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> lastFilteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
+    private PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs;
 
     private final Int2LongMap maxQuantities;
     private final Int2LongMap totalQuantities;
@@ -152,6 +156,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.lastFilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
+        this.pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent,
+                IPositionedAddonsNetwork.WILDCARD_CHANNEL);
 
         this.maxQuantities = new Int2LongOpenHashMap();
         this.totalQuantities = new Int2LongOpenHashMap();
@@ -233,6 +239,21 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return Predicates.alwaysTrue();
     }
 
+    /**
+     * @return The comparator for grouping stored and craftable ingredients,
+     *         or null if they should not be grouped.
+     */
+    @Nullable
+    public Comparator<InstanceWithMetadata<T>> getCraftingOrder() {
+        for (ITerminalButton<?, ?, ?> button : this.buttons) {
+            if (button instanceof TerminalButtonFilterCrafting) {
+                return ((TerminalButtonFilterCrafting<T>) button).getEffectiveOrder();
+            }
+        }
+
+        return null;
+    }
+
     public void resetFilteredIngredientsViews(int channel) {
         resetFilteredIngredientsViews(channel, true);
     }
@@ -305,6 +326,53 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return craftingOptions.get(channel);
     }
 
+    /**
+     * Called by the server when the outputs that running crafting jobs are still expected to produce have changed.
+     * @param channel The channel the outputs were collected for.
+     * @param entries All pending crafting job outputs of all ingredient components.
+     */
+    public synchronized void setPendingCraftingJobOutputs(int channel, List<PendingCraftingJobOutputEntry> entries) {
+        PendingCraftingJobOutputs<T, M> pendingCraftingJobOutputs = new PendingCraftingJobOutputs<>(this.ingredientComponent, channel);
+        for (PendingCraftingJobOutputEntry entry : entries) {
+            if (entry.ingredient().getComponent() == this.ingredientComponent) {
+                pendingCraftingJobOutputs.add((T) entry.ingredient().getPrototype(), entry.status());
+            }
+        }
+        this.pendingCraftingJobOutputs = pendingCraftingJobOutputs;
+    }
+
+    /**
+     * Get the quantity and status of the running crafting jobs that will produce the given instance.
+     * @param channel A channel id.
+     * @param instance An instance.
+     * @return The pending crafting job output, or null if the given instance is not being crafted.
+     */
+    @Nullable
+    public PendingCraftingJobOutput<T> getPendingCraftingJobOutput(int channel, T instance) {
+        // The outputs are collected for the channel that is shown in the terminal,
+        // so they don't apply anymore right after the shown channel has changed.
+        return this.pendingCraftingJobOutputs.getChannel() == channel
+                ? this.pendingCraftingJobOutputs.get(instance) : null;
+    }
+
+    /**
+     * Check if the given instance is currently shown as a stored ingredient in the given channel.
+     *
+     * An instance can be shown twice: once as a stored ingredient, and once for each crafting option producing it.
+     * This allows crafting option slots to defer to the stored ingredient slot for things
+     * that apply to the instance as a whole, such as the indication of running crafting jobs.
+     *
+     * @param channel A channel id.
+     * @param instance An instance.
+     * @return If a stored ingredient slot is shown for the given instance.
+     */
+    public boolean isShownAsStoredInstance(int channel, T instance) {
+        IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+        return getInstanceFilterMetadata().test(new InstanceWithMetadata<>(instance, null))
+                && getRawUnfilteredIngredientsView(channel)
+                .contains(instance, matcher.getExactMatchNoQuantityCondition());
+    }
+
     public List<InstanceWithMetadata<T>> createUnfilteredIngredientsView(int channel) {
         // Convert raw ingredients view to list
         List<InstanceWithMetadata<T>> enrichedIngredients = Lists.newArrayList();
@@ -348,7 +416,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                             .collect(Collectors.toList()));
 
             // Sort
-            Comparator<T> sorter = getInstanceSorter();
+            Comparator<InstanceWithMetadata<T>> sorter = getInstanceMetadataSorter();
             List<InstanceWithMetadata<T>> pausedOrder = this.sortingPaused
                     ? lastFilteredIngredientsViews.get(channel) : null;
             try {
@@ -356,7 +424,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     // Sorting is paused, so keep the positions of the previously shown ingredients
                     sortByPreviousOrder(ingredientsView, pausedOrder, sorter);
                 } else if (sorter != null) {
-                    ingredientsView.sort(InstanceWithMetadata.createComparator(sorter));
+                    ingredientsView.sort(sorter);
                 }
             } catch (IllegalArgumentException e) {
                 // We deliberately ignore comparison violations
@@ -382,7 +450,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      */
     protected void sortByPreviousOrder(List<InstanceWithMetadata<T>> ingredientsView,
                                        List<InstanceWithMetadata<T>> previousView,
-                                       @Nullable Comparator<T> sorter) {
+                                       @Nullable Comparator<InstanceWithMetadata<T>> sorter) {
         IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
 
         // Determine the position of all previously shown ingredients, while ignoring their quantities.
@@ -402,9 +470,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     .getOrDefault(withoutQuantity(instanceWithMetadata), Integer.MAX_VALUE));
         }
 
+        Comparator<InstanceWithMetadata<T>> effectiveSorter = sorter != null
+                ? sorter : InstanceWithMetadata.createComparator(matcher);
         ingredientsView.sort(Comparator
                 .<InstanceWithMetadata<T>>comparingInt(positions::get)
-                .thenComparing(InstanceWithMetadata.createComparator(sorter != null ? sorter : matcher)));
+                .thenComparing(effectiveSorter));
     }
 
     /**
@@ -882,6 +952,28 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         if (sorter != null) {
             // Make comparators 0-equals-safe
             sorter = sorter.thenComparing(ingredientComponent.getMatcher());
+        }
+
+        return sorter;
+    }
+
+    /**
+     * The effective sorter for the shown ingredients,
+     * which combines the grouping of stored and craftable ingredients with {@link #getInstanceSorter()}.
+     *
+     * Grouping always takes precedence over the active instance sorters.
+     *
+     * @return The comparator that should be used for sorting, or null if no sorting should be applied.
+     */
+    @Nullable
+    public Comparator<InstanceWithMetadata<T>> getInstanceMetadataSorter() {
+        Comparator<InstanceWithMetadata<T>> sorter = getCraftingOrder();
+
+        Comparator<T> instanceSorter = getInstanceSorter();
+        if (instanceSorter != null) {
+            Comparator<InstanceWithMetadata<T>> instanceSorterMetadata = InstanceWithMetadata
+                    .createComparator(instanceSorter);
+            sorter = sorter == null ? instanceSorterMetadata : sorter.thenComparing(instanceSorterMetadata);
         }
 
         return sorter;
