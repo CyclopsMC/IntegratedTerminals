@@ -157,6 +157,7 @@ public interface ITerminalStorageTabIngredientCraftingHandler<O extends ITermina
      * @param player The player that started the crafting job.
      * @throws CraftingJobStartException If the crafting job failed to start.
      */
+    @Deprecated // TODO: rm in next major
     public default void startCraftingJob(INetwork network, int channel, ITerminalCraftingPlan<I> craftingPlan,
                                          ServerPlayer player) throws CraftingJobStartException {
         startCraftingJob(network, channel, craftingPlan, player, true);
