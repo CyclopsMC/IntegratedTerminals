@@ -14,17 +14,16 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
-import org.cyclops.cyclopscore.helper.MinecraftHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.lwjgl.opengl.GL11;
@@ -63,6 +62,8 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     private final WidgetScrollBar scrollBar;
     private final String label;
     private final long tickDuration;
+    private final long estimatedTickDuration;
+    private final boolean estimatedTickDurationRemaining;
     private final int channel;
     @Nullable
     private final String initiatorName;
@@ -81,6 +82,10 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         refreshList();
         this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
+        // Jobs that have not started yet can only show a total estimation, running jobs show what is left of it
+        this.estimatedTickDurationRemaining = craftingPlan.getStatus() != TerminalCraftingJobStatus.UNSTARTED;
+        this.estimatedTickDuration = this.estimatedTickDurationRemaining
+                ? craftingPlan.getEstimatedTickDurationRemaining() : craftingPlan.getEstimatedTickDurationTotal();
         this.channel = craftingPlan.getChannel();
         this.initiatorName = craftingPlan.getInitiatorName();
     }
@@ -210,9 +215,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     }
 
     public static String getDurationString(long tickDuration) {
-        long durationMs = tickDuration * 1000 / MinecraftHelpers.SECOND_IN_TICKS;
-        return L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
-                DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
+        return GuiCraftingPlan.getDurationString(tickDuration);
     }
 
     public void drawGuiContainerBackgroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
@@ -237,6 +240,14 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
             RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+        }
+
+        // Draw estimated duration
+        if (estimatedTickDuration >= 0) {
+            String estimatedDurationString = GuiCraftingPlan.getDurationString(estimatedTickDurationRemaining
+                    ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
+                    : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, estimatedDurationString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);

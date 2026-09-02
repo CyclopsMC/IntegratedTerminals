@@ -158,6 +158,20 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                 String durationString = GuiCraftingPlan.getDurationString(tickDuration);
                 RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
             }
+
+            int progress = GuiCraftingPlan.getProgress(plan);
+            if (progress >= 0) {
+                String progressString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.progress", progress);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, progressString, xOriginal + LINE_WIDTH - 40, y + 1, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            }
+
+            long estimatedTickDurationRemaining = plan.getEstimatedTickDurationRemaining();
+            if (estimatedTickDurationRemaining >= 0) {
+                String remainingString = GuiCraftingPlan.getDurationString(
+                        "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining",
+                        estimatedTickDurationRemaining);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, remainingString, xOriginal + LINE_WIDTH - 40, y + 13, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            }
         }
     }
 

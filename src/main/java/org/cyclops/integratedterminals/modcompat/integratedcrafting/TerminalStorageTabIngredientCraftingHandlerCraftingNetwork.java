@@ -28,6 +28,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIn
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.ToLongFunction;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -91,26 +92,68 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         TerminalCraftingOptionRecipeDefinition<?, ?> safeCraftingOption = (TerminalCraftingOptionRecipeDefinition<?, ?>) craftingOption;
         IRecipeDefinition recipe = safeCraftingOption.getRecipe();
 
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(network).orElse(null);
         CraftingJobDependencyGraph dependencyGraph = new CraftingJobDependencyGraph();
         try {
             CraftingJob rootJob = CraftingHelpers.calculateCraftingJobs(network, channel, recipe, (int) quantity,
                     true, CraftingHelpers.getGlobalCraftingJobIdentifier(), dependencyGraph, true);
-            return newCraftingPlan(rootJob, dependencyGraph, true);
+            return newCraftingPlan(craftingNetwork, rootJob, dependencyGraph, true);
         } catch (FailedCraftingRecipeException e) {
-            return newCraftingPlanFailed(e, dependencyGraph);
+            return newCraftingPlanFailed(craftingNetwork, e, dependencyGraph);
         } catch (RecursiveCraftingRecipeException e) {
             return newCraftingPlanErrorRecursive(Lists.reverse(e.getRecipeStack()));
         }
     }
 
-    protected static ITerminalCraftingPlan<Integer> newCraftingPlan(CraftingJob craftingJob,
+    /**
+     * Estimate how long the given job takes, including the jobs it depends on.
+     *
+     * Dependencies have to finish before the job itself can start,
+     * so their estimations are added to the estimation of the job itself.
+     * Dependencies of the same job can be crafted simultaneously, so only the longest one is counted.
+     * Note that this does not take into account that a job can be distributed over multiple crafting interfaces.
+     *
+     * @param craftingNetwork The crafting network, or null if unavailable.
+     * @param craftingJob A crafting job.
+     * @param amount The number of crafting operations to estimate for.
+     * @param dependencies The plans of the jobs that the given job depends on.
+     * @return The estimated tick duration, or -1 if nothing within this plan was measured before.
+     */
+    protected static long estimateTickDuration(@Nullable ICraftingNetwork craftingNetwork, CraftingJob craftingJob,
+                                               long amount, List<ITerminalCraftingPlan<Integer>> dependencies) {
+        return estimateTickDuration(craftingNetwork, craftingJob, amount, dependencies,
+                ITerminalCraftingPlan::getEstimatedTickDurationTotal);
+    }
+
+    protected static long estimateTickDuration(@Nullable ICraftingNetwork craftingNetwork, CraftingJob craftingJob,
+                                               long amount, List<ITerminalCraftingPlan<Integer>> dependencies,
+                                               ToLongFunction<ITerminalCraftingPlan<Integer>> dependencyDuration) {
+        long dependenciesDuration = -1;
+        for (ITerminalCraftingPlan<Integer> dependency : dependencies) {
+            dependenciesDuration = Math.max(dependenciesDuration, dependencyDuration.applyAsLong(dependency));
+        }
+
+        long recipeDuration = craftingNetwork == null ? -1 : craftingNetwork
+                .getEstimatedRecipeDuration(craftingJob.getChannel(), craftingJob.getRecipe());
+        if (recipeDuration < 0 && dependenciesDuration < 0) {
+            return -1;
+        }
+
+        return Math.max(recipeDuration, 0) * amount + Math.max(dependenciesDuration, 0);
+    }
+
+    protected static ITerminalCraftingPlan<Integer> newCraftingPlan(@Nullable ICraftingNetwork craftingNetwork,
+                                                                    CraftingJob craftingJob,
                                                                     CraftingJobDependencyGraph dependencyGraph,
                                                                     boolean root) {
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getRecipe().getOutput());
         List<ITerminalCraftingPlan<Integer>> dependencies = dependencyGraph.getDependencies(craftingJob)
                 .stream()
-                .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false))
+                .map(subCraftingJob -> newCraftingPlan(craftingNetwork, subCraftingJob, dependencyGraph, false))
                 .collect(Collectors.toList());
+        // The job has not started yet, so its remaining duration is equal to its total duration
+        long estimatedTickDuration = estimateTickDuration(craftingNetwork, craftingJob,
+                craftingJob.getAmountTotal(), dependencies);
         if (root) {
             return new TerminalCraftingPlanCraftingJobDependencyGraph(
                     craftingJob.getId(),
@@ -118,10 +161,13 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
                     TerminalCraftingJobStatus.UNSTARTED,
                     craftingJob.getAmount(),
+                    craftingJob.getAmountTotal(),
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
                     Collections.emptyList(),
                     TerminalCraftingPlanStatic.Label.VALID,
                     -1,
+                    estimatedTickDuration,
+                    estimatedTickDuration,
                     craftingJob.getChannel(),
                     null,
                     dependencyGraph);
@@ -132,26 +178,29 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     CraftingHelpers.multiplyPrototypedIngredients(recipeOutputs, craftingJob.getAmount()),
                     TerminalCraftingJobStatus.UNSTARTED,
                     craftingJob.getAmount(),
+                    craftingJob.getAmountTotal(),
                     IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
                     Collections.emptyList(),
                     TerminalCraftingPlanStatic.Label.VALID,
                     -1,
+                    estimatedTickDuration,
+                    estimatedTickDuration,
                     craftingJob.getChannel(), null);
         }
     }
 
-    protected static ITerminalCraftingPlan<Integer> newCraftingPlanUnknown(UnknownCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
+    protected static ITerminalCraftingPlan<Integer> newCraftingPlanUnknown(@Nullable ICraftingNetwork craftingNetwork, UnknownCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
         List<ITerminalCraftingPlan<Integer>> dependencies = Lists.newArrayList();
         // Add all valid jobs
         dependencies.addAll(
                 exception.getPartialCraftingJobs()
                         .stream()
-                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false))
+                        .map(subCraftingJob -> newCraftingPlan(craftingNetwork, subCraftingJob, dependencyGraph, false))
                         .collect(Collectors.toList()));
         // Add all sub-unknown jobs
         dependencies.addAll(exception.getMissingChildRecipes()
                 .stream()
-                .map(subCraftingJob -> newCraftingPlanUnknown(subCraftingJob, dependencyGraph))
+                .map(subCraftingJob -> newCraftingPlanUnknown(craftingNetwork, subCraftingJob, dependencyGraph))
                 .collect(Collectors.toList()));
         return new TerminalCraftingPlanStatic<>(
                 0,
@@ -166,18 +215,18 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 -1, null);
     }
 
-    protected static ITerminalCraftingPlan<Integer> newCraftingPlanFailed(FailedCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
+    protected static ITerminalCraftingPlan<Integer> newCraftingPlanFailed(@Nullable ICraftingNetwork craftingNetwork, FailedCraftingRecipeException exception, CraftingJobDependencyGraph dependencyGraph) {
         List<ITerminalCraftingPlan<Integer>> dependencies = Lists.newArrayList();
         // Add all valid jobs
         dependencies.addAll(
                 exception.getPartialCraftingJobs()
                         .stream()
-                        .map(subCraftingJob -> newCraftingPlan(subCraftingJob, dependencyGraph, false))
+                        .map(subCraftingJob -> newCraftingPlan(craftingNetwork, subCraftingJob, dependencyGraph, false))
                         .collect(Collectors.toList()));
         // Add all sub-unknown jobs
         dependencies.addAll(exception.getMissingChildRecipes()
                 .stream()
-                .map(subCraftingJob -> newCraftingPlanUnknown(subCraftingJob, dependencyGraph))
+                .map(subCraftingJob -> newCraftingPlanUnknown(craftingNetwork, subCraftingJob, dependencyGraph))
                 .collect(Collectors.toList()));
         List recipeOutputs = IntegratedCraftingHelpers.getPrototypesFromIngredients(exception.getRecipe().getOutput());
         return new TerminalCraftingPlanStatic<Integer>(
@@ -352,16 +401,32 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
             }
         }
 
+        long estimatedTickDurationTotal = estimateTickDuration(craftingNetwork, craftingJob,
+                craftingJob.getAmountTotal(), dependencies);
+        long estimatedTickDurationRemaining = estimateTickDuration(craftingNetwork, craftingJob,
+                craftingJob.getAmount(), dependencies, ITerminalCraftingPlan::getEstimatedTickDurationRemaining);
+        if (estimatedTickDurationRemaining > 0) {
+            // Subtract the time that the currently running crafting operation has been going on already
+            long entryStartTick = craftingInterface.getCraftingJobEntryStartTick(craftingJobId);
+            if (entryStartTick >= 0) {
+                long entryTickDuration = Math.max(0, CraftingHelpers.getCurrentTick() - entryStartTick);
+                estimatedTickDurationRemaining = Math.max(0, estimatedTickDurationRemaining - entryTickDuration);
+            }
+        }
+
         return new TerminalCraftingPlanStatic<>(
                 craftingJob.getId(),
                 dependencies,
                 pendingOutputs,
                 jobStatus,
                 craftingJob.getAmount(),
+                craftingJob.getAmountTotal(),
                 IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
                 lastMissingIngredients,
                 TerminalCraftingPlanStatic.Label.RUNNING,
                 craftingNetwork.getRunningTicks(craftingJob),
+                estimatedTickDurationTotal,
+                estimatedTickDurationRemaining,
                 craftingJob.getChannel(), uuidToName(craftingJob.getInitiatorUuid()));
     }
 
