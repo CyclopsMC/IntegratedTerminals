@@ -239,6 +239,21 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         return Predicates.alwaysTrue();
     }
 
+    /**
+     * @return The comparator for grouping stored and craftable ingredients,
+     *         or null if they should not be grouped.
+     */
+    @Nullable
+    public Comparator<InstanceWithMetadata<T>> getCraftingOrder() {
+        for (ITerminalButton<?, ?, ?> button : this.buttons) {
+            if (button instanceof TerminalButtonFilterCrafting) {
+                return ((TerminalButtonFilterCrafting<T>) button).getEffectiveOrder();
+            }
+        }
+
+        return null;
+    }
+
     public void resetFilteredIngredientsViews(int channel) {
         resetFilteredIngredientsViews(channel, true);
     }
@@ -401,7 +416,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                             .collect(Collectors.toList()));
 
             // Sort
-            Comparator<T> sorter = getInstanceSorter();
+            Comparator<InstanceWithMetadata<T>> sorter = getInstanceMetadataSorter();
             List<InstanceWithMetadata<T>> pausedOrder = this.sortingPaused
                     ? lastFilteredIngredientsViews.get(channel) : null;
             try {
@@ -409,7 +424,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     // Sorting is paused, so keep the positions of the previously shown ingredients
                     sortByPreviousOrder(ingredientsView, pausedOrder, sorter);
                 } else if (sorter != null) {
-                    ingredientsView.sort(InstanceWithMetadata.createComparator(sorter));
+                    ingredientsView.sort(sorter);
                 }
             } catch (IllegalArgumentException e) {
                 // We deliberately ignore comparison violations
@@ -435,7 +450,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
      */
     protected void sortByPreviousOrder(List<InstanceWithMetadata<T>> ingredientsView,
                                        List<InstanceWithMetadata<T>> previousView,
-                                       @Nullable Comparator<T> sorter) {
+                                       @Nullable Comparator<InstanceWithMetadata<T>> sorter) {
         IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
 
         // Determine the position of all previously shown ingredients, while ignoring their quantities.
@@ -455,9 +470,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     .getOrDefault(withoutQuantity(instanceWithMetadata), Integer.MAX_VALUE));
         }
 
+        Comparator<InstanceWithMetadata<T>> effectiveSorter = sorter != null
+                ? sorter : InstanceWithMetadata.createComparator(matcher);
         ingredientsView.sort(Comparator
                 .<InstanceWithMetadata<T>>comparingInt(positions::get)
-                .thenComparing(InstanceWithMetadata.createComparator(sorter != null ? sorter : matcher)));
+                .thenComparing(effectiveSorter));
     }
 
     /**
@@ -935,6 +952,28 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         if (sorter != null) {
             // Make comparators 0-equals-safe
             sorter = sorter.thenComparing(ingredientComponent.getMatcher());
+        }
+
+        return sorter;
+    }
+
+    /**
+     * The effective sorter for the shown ingredients,
+     * which combines the grouping of stored and craftable ingredients with {@link #getInstanceSorter()}.
+     *
+     * Grouping always takes precedence over the active instance sorters.
+     *
+     * @return The comparator that should be used for sorting, or null if no sorting should be applied.
+     */
+    @Nullable
+    public Comparator<InstanceWithMetadata<T>> getInstanceMetadataSorter() {
+        Comparator<InstanceWithMetadata<T>> sorter = getCraftingOrder();
+
+        Comparator<T> instanceSorter = getInstanceSorter();
+        if (instanceSorter != null) {
+            Comparator<InstanceWithMetadata<T>> instanceSorterMetadata = InstanceWithMetadata
+                    .createComparator(instanceSorter);
+            sorter = sorter == null ? instanceSorterMetadata : sorter.thenComparing(instanceSorterMetadata);
         }
 
         return sorter;
