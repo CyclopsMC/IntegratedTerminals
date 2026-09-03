@@ -36,7 +36,7 @@ public class CraftingJobToast<T, M> implements Toast {
 
     private final Object token;
     private final IngredientComponent<T, M> ingredientComponent;
-    private final T instance;
+    private T instance;
     private Component title;
     private List<FormattedCharSequence> subtitleLines;
     private long lastChangedAt = Long.MIN_VALUE;
@@ -51,12 +51,25 @@ public class CraftingJobToast<T, M> implements Toast {
         this.subtitleLines = splitSubtitle(subtitle);
     }
 
+    public IngredientComponent<T, M> getIngredientComponent() {
+        return ingredientComponent;
+    }
+
+    /**
+     * @return The shown output, where the quantity is the total that was crafted.
+     */
+    public T getInstance() {
+        return instance;
+    }
+
     /**
      * Update the contents of this toast in-place, without queueing a new one.
+     * @param newInstance The new output.
      * @param newTitle The new title.
      * @param newSubtitle The new subtitle.
      */
-    public void reset(Component newTitle, Component newSubtitle) {
+    public void reset(T newInstance, Component newTitle, Component newSubtitle) {
+        this.instance = newInstance;
         this.title = newTitle;
         this.subtitleLines = splitSubtitle(newSubtitle);
         this.changed = true;

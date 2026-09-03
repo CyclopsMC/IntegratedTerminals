@@ -13,6 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
@@ -71,29 +72,45 @@ public class CraftingJobFinishedToastPacket<T, M> extends PacketCodec<CraftingJo
         if (ingredientComponent == null) {
             return;
         }
+        IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
         IIngredientSerializer<T, M> serializer = ingredientComponent.getSerializer();
         T instance = serializer.deserializeInstance(world.registryAccess(), this.instanceData.get("i"));
 
+        // Group by output, so that repeated crafts of the same thing don't pile up.
+        // A job that was distributed over multiple crafting interfaces completes as several jobs,
+        // so their quantities are summed into a single toast.
+        Object token = this.ingredientName + "|" + matcher.getDisplayName(instance).getString();
+        var toasts = Minecraft.getInstance().getToasts();
+        CraftingJobToast<T, M> existing = (CraftingJobToast<T, M>) toasts.getToast(CraftingJobToast.class, token);
+        if (existing != null) {
+            instance = matcher.withQuantity(instance, addQuantities(matcher,
+                    matcher.getQuantity(existing.getInstance()), matcher.getQuantity(instance)));
+        }
+
         // The quantity is formatted by the component's own handler, so that fluids, energy,
         // and ingredient components from other mods all read naturally.
+        T shownInstance = instance;
         String quantity = ingredientComponent
                 .getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
-                .map(handler -> handler.formatQuantity(instance))
-                .orElseGet(() -> String.valueOf(ingredientComponent.getMatcher().getQuantity(instance)));
+                .map(handler -> handler.formatQuantity(shownInstance))
+                .orElseGet(() -> String.valueOf(matcher.getQuantity(shownInstance)));
         Component title = Component.translatable("gui.integratedterminals.crafting_job.finished.title")
                 .withStyle(ChatFormatting.GREEN);
         Component subtitle = Component.translatable("gui.integratedterminals.crafting_job.finished",
-                quantity, ingredientComponent.getMatcher().getDisplayName(instance));
+                quantity, matcher.getDisplayName(shownInstance));
 
-        // Group by output, so that repeated crafts of the same thing don't pile up
-        Object token = this.ingredientName + "|"
-                + ingredientComponent.getMatcher().getDisplayName(instance).getString();
-        var toasts = Minecraft.getInstance().getToasts();
-        CraftingJobToast<?, ?> existing = toasts.getToast(CraftingJobToast.class, token);
         if (existing != null) {
-            existing.reset(title, subtitle);
+            existing.reset(shownInstance, title, subtitle);
         } else {
-            toasts.addToast(new CraftingJobToast<>(token, ingredientComponent, instance, title, subtitle));
+            toasts.addToast(new CraftingJobToast<>(token, ingredientComponent, shownInstance, title, subtitle));
+        }
+    }
+
+    protected static <T, M> long addQuantities(IIngredientMatcher<T, M> matcher, long quantity, long quantityToAdd) {
+        try {
+            return Math.min(matcher.getMaximumQuantity(), Math.addExact(quantity, quantityToAdd));
+        } catch (ArithmeticException e) {
+            return matcher.getMaximumQuantity();
         }
     }
 
