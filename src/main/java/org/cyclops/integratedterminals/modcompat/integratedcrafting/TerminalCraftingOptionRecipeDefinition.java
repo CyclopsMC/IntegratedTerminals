@@ -24,6 +24,7 @@ public class TerminalCraftingOptionRecipeDefinition<T, M> implements ITerminalCr
     private final IRecipeDefinition prioritizedRecipe;
     private final long estimatedTickDuration;
 
+    @Deprecated // TODO: rm in next major
     public TerminalCraftingOptionRecipeDefinition(IngredientComponent<T, M> ingredientComponent,
                                                   IRecipeDefinition prioritizedRecipe) {
         this(ingredientComponent, prioritizedRecipe, -1);

@@ -10,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 public class TestTerminalCraftingOptionRecipeDefinition {
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testDurationIsUnknownByDefault() {
         assertEquals(-1, new TerminalCraftingOptionRecipeDefinition<>(null, null).getEstimatedTickDuration());
     }

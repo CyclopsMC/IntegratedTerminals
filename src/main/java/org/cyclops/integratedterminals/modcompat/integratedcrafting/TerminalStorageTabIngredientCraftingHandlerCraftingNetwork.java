@@ -73,7 +73,6 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(tab.getNetwork()).orElse(null);
         Iterable<IRecipeDefinition> recipes = () -> recipeIndex.getRecipes(ingredientComponent, instance, matchCondition);
         return StreamSupport.stream(recipes.spliterator(), false)
-                // The duration is only a lookup of what the interfaces measured, so it can be sent along with the option
                 .map((recipe) -> new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, recipe,
                         craftingNetwork == null ? -1 : craftingNetwork.getEstimatedRecipeDuration(channel, recipe)))
                 .collect(Collectors.toList());

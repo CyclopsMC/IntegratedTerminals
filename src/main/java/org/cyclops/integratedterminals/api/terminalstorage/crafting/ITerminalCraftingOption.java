@@ -43,9 +43,7 @@ public interface ITerminalCraftingOption<T> extends Comparable<ITerminalCrafting
      *
      * @return The estimated tick duration of one crafting operation. -1 indicates an unknown duration.
      */
-    public default long getEstimatedTickDuration() {
-        return -1;
-    }
+    public long getEstimatedTickDuration();
 
     /**
      * @return All input components.
