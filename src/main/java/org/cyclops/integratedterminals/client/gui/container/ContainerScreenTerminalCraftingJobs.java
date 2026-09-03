@@ -7,6 +7,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -52,6 +53,9 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     private static final int COLUMN_INFO_SPACING = 6;
     private static final int PROGRESS_BAR_OFFSET_Y = 8;
     private static final int PROGRESS_BAR_HEIGHT = 8;
+
+    private static final int TRACK_COLOR = Helpers.RGBAToInt(0, 0, 0, 100);
+    private static final int FILL_COLOR = TerminalCraftingJobStatus.CRAFTING.getColor() | 0xFF000000;
 
     private final Player player;
 
@@ -197,12 +201,10 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
      */
     protected void drawProgressBar(GuiGraphics guiGraphics, ITerminalCraftingPlanFlat<?> plan, int x, int y, int width) {
         int progress = GuiCraftingPlan.getProgress(plan);
+        int filled = progress > 0 ? width * progress / 100 : 0;
 
-        guiGraphics.fill(x, y, x + width, y + PROGRESS_BAR_HEIGHT, Helpers.RGBAToInt(0, 0, 0, 100));
-        if (progress > 0) {
-            guiGraphics.fill(x, y, x + width * progress / 100, y + PROGRESS_BAR_HEIGHT,
-                    TerminalCraftingJobStatus.CRAFTING.getColor());
-        }
+        guiGraphics.fill(x, y, x + width, y + PROGRESS_BAR_HEIGHT, TRACK_COLOR);
+        guiGraphics.fill(x, y, x + filled, y + PROGRESS_BAR_HEIGHT, FILL_COLOR);
 
         long tickDuration = plan.getTickDuration();
         if (tickDuration >= 0) {
@@ -229,38 +231,55 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     protected List<Component> getPlanTooltipLines(ITerminalCraftingPlanFlat<?> plan) {
         List<Component> lines = Lists.newArrayList();
+
+        // The status is shown in the same color that the plan guis use for it
         String status = plan.getStatus().name().toLowerCase(Locale.ENGLISH);
         lines.add(Component.translatable("gui.integratedterminals.craftingplan.status",
-                Component.translatable("gui.integratedterminals.craftingplan.status." + status)));
-        lines.add(Component.translatable("gui.integratedterminals.craftingplan.status." + status + ".desc")
+                        Component.translatable("gui.integratedterminals.craftingplan.status." + status)
+                                .withStyle(Style.EMPTY.withColor(plan.getStatus().getColor() & 0xFFFFFF)))
                 .withStyle(ChatFormatting.GRAY));
-        lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies",
-                plan.getEntries().size()));
-        if (plan.getChannel() != -1) {
-            lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel",
-                    plan.getChannel()));
-        }
+        lines.add(Component.translatable("gui.integratedterminals.craftingplan.status." + status + ".desc")
+                .withStyle(ChatFormatting.DARK_GRAY));
+
+        // Durations are what this tooltip is here for, so they get the brightest colors
         int progress = GuiCraftingPlan.getProgress(plan);
         if (progress >= 0) {
-            lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.progress", progress));
+            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.progress",
+                    String.valueOf(progress), ChatFormatting.WHITE));
         }
         long tickDuration = plan.getTickDuration();
         if (tickDuration >= 0) {
-            lines.add(Component.literal(GuiCraftingPlan.getDurationString(tickDuration)));
+            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
+                    GuiCraftingPlan.getDurationValue(tickDuration), ChatFormatting.WHITE));
         }
         if (plan.getStatus().isValid()) {
-            lines.add(Component.literal(GuiCraftingPlan.getDurationString(
-                    "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining",
-                    plan.getEstimatedTickDurationRemaining())));
-            lines.add(Component.literal(GuiCraftingPlan.getDurationString(
-                    "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate",
-                    plan.getEstimatedTickDurationTotal())));
+            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining",
+                    GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationRemaining()), ChatFormatting.AQUA));
+            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate",
+                    GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationTotal()), ChatFormatting.WHITE));
+        }
+
+        // Everything that is only occasionally interesting stays in the background
+        lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies",
+                plan.getEntries().size()).withStyle(ChatFormatting.DARK_GRAY));
+        if (plan.getChannel() != -1) {
+            lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel",
+                    plan.getChannel()).withStyle(ChatFormatting.DARK_GRAY));
         }
         if (plan.getInitiatorName() != null) {
             lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.owner",
-                    plan.getInitiatorName()));
+                    plan.getInitiatorName()).withStyle(ChatFormatting.DARK_GRAY));
         }
+
         return lines;
+    }
+
+    /**
+     * @return A tooltip line with a dimmed label, so that its value stands out.
+     */
+    protected static Component tooltipLine(String unlocalizedName, String value, ChatFormatting valueColor) {
+        return Component.translatable(unlocalizedName, Component.literal(value).withStyle(valueColor))
+                .withStyle(ChatFormatting.GRAY);
     }
 
     private void cancelCraftingJobs() {
