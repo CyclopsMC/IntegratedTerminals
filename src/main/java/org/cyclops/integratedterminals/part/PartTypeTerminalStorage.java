@@ -15,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -28,12 +29,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.PartStateException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.network.INetwork;
+import org.cyclops.integrateddynamics.api.network.INetworkElement;
 import org.cyclops.integrateddynamics.api.network.IPartNetwork;
+import org.cyclops.integrateddynamics.api.network.IPartNetworkElement;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartStateEmpty;
 import org.cyclops.integrateddynamics.core.part.PartTypeBase;
@@ -57,6 +62,7 @@ import java.util.Optional;
 public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalStorage, PartTypeTerminalStorage.State> {
 
     private static final int PARTICLE_INTERVAL = 5;
+    private static final double FACE_OFFSET = 0.4D;
 
     public PartTypeTerminalStorage(String name) {
         super(name);
@@ -84,6 +90,7 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
                 }
                 world.playSound(null, pos, SoundEvents.END_PORTAL_FRAME_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
                 TerminalStorageEnderUpgradedTrigger.onEnderUpgraded((ServerPlayer) player);
+                refreshNetworkElementUpdateable(world, pos, partState);
             }
             return InteractionResult.sidedSuccess(world.isClientSide());
         }
@@ -91,31 +98,78 @@ public class PartTypeTerminalStorage extends PartTypeTerminal<PartTypeTerminalSt
         return super.onPartActivated(partState, pos, world, player, hand, heldItem, hit);
     }
 
+    /**
+     * Make the network re-check if the part at the given position needs update ticks.
+     *
+     * A network only calls {@link INetwork#addNetworkElementUpdateable} when an element is added to it,
+     * so a part that only starts needing update ticks later on
+     * would otherwise not receive any until its network is reloaded.
+     */
+    protected void refreshNetworkElementUpdateable(Level world, BlockPos pos, State partState) {
+        NetworkHelpers.getNetwork(world, pos, null).ifPresent(network -> {
+            for (INetworkElement element : network.getElements()) {
+                if (element instanceof IPartNetworkElement<?, ?> partNetworkElement) {
+                    try {
+                        if (partNetworkElement.getPartState() == partState) {
+                            network.addNetworkElementUpdateable(element);
+                            return;
+                        }
+                    } catch (PartStateException e) {
+                        // This element's part was removed in the meantime
+                    }
+                }
+            }
+        });
+    }
+
     @Override
     public boolean isUpdate(State state) {
         // Ender-upgraded terminals need updates for spawning particles, even if energy consumption is disabled
-        return super.isUpdate(state) || state.isEnderUpgraded();
+        return super.isUpdate(state) || (GeneralConfig.terminalStorageEnderParticles && state.isEnderUpgraded());
     }
 
     @Override
     public void update(INetwork network, IPartNetwork partNetwork, PartTarget target, State state) {
         super.update(network, partNetwork, target, state);
 
-        if (state.isEnderUpgraded()) {
+        if (GeneralConfig.terminalStorageEnderParticles && state.isEnderUpgraded()) {
             spawnEnderParticles(target);
         }
     }
 
+    /**
+     * Spawn ender particles in front of the terminal.
+     *
+     * This uses the same particle motion as {@link net.minecraft.world.level.block.EnderChestBlock#animateTick},
+     * with the spawn area shifted from the center of the block onto the face that the terminal is placed on.
+     *
+     * Unlike an ender chest, a terminal is not a block of its own, so its particles can not be spawned
+     * from a client-side {@code animateTick}. They are sent from here instead,
+     * which is why they are spawned once every {@link #PARTICLE_INTERVAL} ticks rather than on every tick.
+     */
     protected void spawnEnderParticles(PartTarget target) {
         Level level = target.getCenter().getPos().getLevel(false);
-        if (level instanceof ServerLevel serverLevel && serverLevel.getGameTime() % PARTICLE_INTERVAL == 0) {
-            BlockPos pos = target.getCenter().getPos().getBlockPos();
-            Direction side = target.getCenter().getSide();
-            serverLevel.sendParticles(ParticleTypes.PORTAL,
-                    pos.getX() + 0.5D + side.getStepX() * 0.4D,
-                    pos.getY() + 0.5D + side.getStepY() * 0.4D,
-                    pos.getZ() + 0.5D + side.getStepZ() * 0.4D,
-                    2, 0.2D, 0.2D, 0.2D, 0.05D);
+        if (!(level instanceof ServerLevel serverLevel) || serverLevel.getGameTime() % PARTICLE_INTERVAL != 0) {
+            return;
+        }
+
+        BlockPos pos = target.getCenter().getPos().getBlockPos();
+        Direction side = target.getCenter().getSide();
+        RandomSource random = serverLevel.getRandom();
+
+        for (int i = 0; i < 3; i++) {
+            int j = random.nextInt(2) * 2 - 1;
+            int k = random.nextInt(2) * 2 - 1;
+            double x = pos.getX() + 0.5D + 0.25D * j + side.getStepX() * FACE_OFFSET;
+            double y = pos.getY() + random.nextFloat() + side.getStepY() * FACE_OFFSET;
+            double z = pos.getZ() + 0.5D + 0.25D * k + side.getStepZ() * FACE_OFFSET;
+            double motionX = random.nextFloat() * j;
+            double motionY = (random.nextFloat() - 0.5D) * 0.125D;
+            double motionZ = random.nextFloat() * k;
+
+            // A count of 0 makes the offsets be interpreted as the exact motion of a single particle,
+            // just like the client-side particles of an ender chest
+            serverLevel.sendParticles(ParticleTypes.PORTAL, x, y, z, 0, motionX, motionY, motionZ, 1.0D);
         }
     }
 

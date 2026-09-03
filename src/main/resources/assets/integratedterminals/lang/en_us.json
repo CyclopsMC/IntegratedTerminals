@@ -189,7 +189,7 @@
     "info_book.integratedterminals.storage_terminal.power_usage.text3": "If you are not satisfied with the provided text-based filtering options, you can insert your own &lPredicates&r via &lVariable Cards&r. These should accept the ingredient type as input, and a &9Boolean&0 as ouput.",
 
     "info_book.integratedterminals.storage_terminal.ender_storage": "Ender Storage",
-    "info_book.integratedterminals.storage_terminal.ender_storage.text1": "&lStorage Terminals&r can be &oender-upgraded&r by right-clicking them with an &lEye of Ender&r. Upgraded terminals emit &oender particles&r, so you can tell them apart at a glance.",
+    "info_book.integratedterminals.storage_terminal.ender_storage.text1": "&lStorage Terminals&r can be &oender-upgraded&r by right-clicking them with an &lEye of Ender&r. Optionally, upgraded terminals can emit &oender particles&r so that you can tell them apart at a glance. This can be enabled in the server-side config file, where it is disabled by default.",
     "info_book.integratedterminals.storage_terminal.ender_storage.text2": "An ender-upgraded terminal gains an additional &lEnder Storage&r tab, which shows the contents of your personal &lEnder Chest&r. Just like with a regular &lEnder Chest&r, you can insert and extract items there, including by shift-clicking.",
     "info_book.integratedterminals.storage_terminal.ender_storage.text3": "Because the &lEnder Chest&r is bound to you instead of to the network, this tab has no channel selector, search field or &lVariable&r filter slots.",
     "info_book.integratedterminals.storage_terminal.ender_storage.text4": "Breaking an ender-upgraded &lStorage Terminal&r will give you back the &lEye of Ender&r that was used to upgrade it.",
@@ -217,7 +217,7 @@
 
     "info_book.integratedterminals.tutorials.storage_terminal_ender": "Ender-upgraded Storage Terminal",
     "info_book.integratedterminals.tutorials.storage_terminal_ender.text1": "Next to the storage of your network, a &lStorage Terminal&r can also give you access to your personal &lEnder Chest&r. For that, the terminal first needs to be &oender-upgraded&r.",
-    "info_book.integratedterminals.tutorials.storage_terminal_ender.text2": "In order to complete this tutorial, place a &lStorage Terminal&r on a &lCable&r, and right-click it with an &lEye of Ender&r. The &lEye of Ender&r will be consumed, the terminal will start emitting &oender particles&r, and a new &lEnder Storage&r tab will show up in its gui. You will get the &lEye of Ender&r back when you break the terminal again.",
+    "info_book.integratedterminals.tutorials.storage_terminal_ender.text2": "In order to complete this tutorial, place a &lStorage Terminal&r on a &lCable&r, and right-click it with an &lEye of Ender&r. The &lEye of Ender&r will be consumed, and a new &lEnder Storage&r tab will show up in its gui. You will get the &lEye of Ender&r back when you break the terminal again.",
     "info_book.integratedterminals.tutorials.storage_terminal_ender.text3": "The same can be done with a &lPortable Storage Terminal&r, by combining it with an &lEye of Ender&r in a crafting grid.",
 
     "info_book.integratedterminals.tutorials.storage_terminal_filtering": "Storage Terminal Filtering",

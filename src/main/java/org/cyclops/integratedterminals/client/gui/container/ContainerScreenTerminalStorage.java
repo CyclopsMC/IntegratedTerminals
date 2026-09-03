@@ -143,7 +143,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 return getSlotVisibleRows();
             }
         };
-        addWidget(this.scrollBar);
+        if (hasScrollbar()) {
+            addWidget(this.scrollBar);
+        }
 
         fieldSearch = new WidgetTextFieldExtended(Minecraft.getInstance().font, leftPos + SEARCH_X,
                 topPos + SEARCH_Y, getSearchWidth() - 10, SEARCH_HEIGHT, Component.translatable("gui.cyclopscore.search"));
@@ -286,6 +288,12 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 .orElse(true);
     }
 
+    public boolean hasScrollbar() {
+        return getSelectedClientTab()
+                .map(ITerminalStorageTabClient::hasScrollbar)
+                .orElse(true);
+    }
+
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         //super.renderBg(matrixStack, f, mouseX, mouseY);
@@ -302,7 +310,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         drawTabsBackground(guiGraphics);
         drawTabContents(guiGraphics, getMenu().getSelectedTab(), getMenu().getSelectedChannel(), DrawLayer.BACKGROUND,
                 f, getGuiLeftTotal() + getSlotsOffsetX(), getGuiTopTotal() + getSlotsOffsetY(), mouseX, mouseY);
-        scrollBar.render(guiGraphics, mouseX, mouseY, f);
+        if (hasScrollbar()) {
+            scrollBar.render(guiGraphics, mouseX, mouseY, f);
+        }
 
         Optional<ITerminalStorageTabClient<?>> tabOptional = getSelectedClientTab();
         tabOptional.ifPresent(tab -> {
@@ -369,9 +379,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         // Scrollbar background
-        guiGraphics.blit(this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y - 1, 20, 12, 14, 1); // top
-        blitRescalable(guiGraphics, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y, blitOffset, 20, 13, 14, 1, 256, 256, 14, getScrollHeight() - 2); // middle
-        guiGraphics.blit(this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y + getScrollHeight() - 2, 20, 101, 14, 1); // bottom
+        if (hasScrollbar()) {
+            guiGraphics.blit(this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y - 1, 20, 12, 14, 1); // top
+            blitRescalable(guiGraphics, this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y, blitOffset, 20, 13, 14, 1, 256, 256, 14, getScrollHeight() - 2); // middle
+            guiGraphics.blit(this.texture, leftPos + getGridXSize() + 32, topPos + SCROLL_Y + getScrollHeight() - 2, 20, 101, 14, 1); // bottom
+        }
 
         // Textbox background
         if (hasSearchField()) {
@@ -452,7 +464,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     @Override
     protected void drawCurrentScreen(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
+        if (hasScrollbar()) {
+            scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
+        }
 
         ResourceLocation oldTexture = this.texture;
         getSelectedClientTab().ifPresent(tab -> {

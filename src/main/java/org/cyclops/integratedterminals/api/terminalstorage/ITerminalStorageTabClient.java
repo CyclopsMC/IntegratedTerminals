@@ -209,6 +209,13 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
         return true;
     }
 
+    /**
+     * @return If the scrollbar next to the storage grid should be shown for this tab.
+     */
+    public default boolean hasScrollbar() {
+        return true;
+    }
+
     public default int getSlotOffsetX() {
         return DEFAULT_SLOT_OFFSET_X;
     }

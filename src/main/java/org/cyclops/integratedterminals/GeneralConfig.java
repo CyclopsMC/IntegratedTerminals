@@ -29,6 +29,8 @@ public class GeneralConfig extends DummyConfig {
     public static int terminalStorageMaxTreePlanSize = 64;
     @ConfigurableProperty(category = "core", comment = "If storage terminals can be ender-upgraded with an eye of ender to gain a tab with the player's ender chest contents.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static boolean terminalStorageTabEnderChestEnabled = true;
+    @ConfigurableProperty(category = "core", comment = "If ender-upgraded storage terminals should emit ender particles.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
+    public static boolean terminalStorageEnderParticles = false;
 
     @ConfigurableProperty(category = "machine", comment = "The number of items that should be selected when clicking on an item in the storage terminal.", isCommandable = true)
     public static int guiStorageItemInitialQuantity = 64;

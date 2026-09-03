@@ -169,6 +169,12 @@ public class TerminalStorageTabEnderChestClient implements ITerminalStorageTabCl
     }
 
     @Override
+    public boolean hasScrollbar() {
+        // All ender chest slots fit on screen at once
+        return false;
+    }
+
+    @Override
     public boolean isSlotValidForDraggingInto(int channel, Slot slot) {
         return false;
     }
