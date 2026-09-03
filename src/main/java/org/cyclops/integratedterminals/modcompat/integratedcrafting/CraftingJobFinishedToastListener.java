@@ -1,10 +1,8 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
@@ -50,22 +48,14 @@ public class CraftingJobFinishedToastListener {
             return;
         }
 
-        IPrototypedIngredient<?, ?> output = outputs.get(0);
-        ItemStack outputItem = output.getPrototype() instanceof ItemStack itemStack ? itemStack : ItemStack.EMPTY;
-        IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                new CraftingJobFinishedToastPacket(outputItem, outputItem.isEmpty() ? formatOutput(output) : ""), player);
+        sendToast(player, outputs.get(0));
     }
 
-    /**
-     * Describe an output that can not be sent to the client as an item stack.
-     */
-    protected static <T, M> String formatOutput(IPrototypedIngredient<T, M> output) {
-        T prototype = output.getPrototype();
-        if (prototype instanceof FluidStack fluidStack) {
-            return fluidStack.getAmount() + "x " + fluidStack.getHoverName().getString();
-        }
-        IngredientComponent<T, M> component = output.getComponent();
-        return component.getMatcher().getQuantity(prototype) + "x " + component.getName();
+    protected static <T, M> void sendToast(ServerPlayer player, IPrototypedIngredient<T, M> output) {
+        IngredientComponent<T, M> ingredientComponent = output.getComponent();
+        IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                new CraftingJobFinishedToastPacket<>(player.registryAccess(), ingredientComponent,
+                        output.getPrototype()), player);
     }
 
     @Nullable

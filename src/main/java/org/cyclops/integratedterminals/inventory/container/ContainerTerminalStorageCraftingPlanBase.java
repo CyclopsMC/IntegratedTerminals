@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
+import org.cyclops.cyclopscore.helper.ValueNotifierHelpers;
 import org.cyclops.cyclopscore.inventory.container.InventoryContainer;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integratedterminals.GeneralConfig;
@@ -32,11 +33,11 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
     private final CraftingOptionGuiData craftingOptionGuiData;
     private final int craftingPlanNotifierId;
     private final int craftingPlanFlatNotifierId;
+    private final int notifyOnCompletionValueId;
     private final Level world;
 
     private boolean calculatedCraftingPlan;
     private ITerminalCraftingPlan craftingPlan;
-    private boolean notifyOnCompletion = true;
 
     public ContainerTerminalStorageCraftingPlanBase(@Nullable MenuType<?> type, int id, Inventory playerInventory,
                                                     CraftingOptionGuiData craftingOptionGuiData) {
@@ -45,6 +46,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         this.craftingOptionGuiData = craftingOptionGuiData;
         this.craftingPlanNotifierId = getNextValueId();
         this.craftingPlanFlatNotifierId = getNextValueId();
+        this.notifyOnCompletionValueId = getNextValueId();
         this.world = playerInventory.player.level();
 
         putButtonAction(BUTTON_START, (buttonId, container) -> startCraftingJob());
@@ -60,15 +62,20 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
         return craftingOptionGuiData;
     }
 
+    public int getNotifyOnCompletionValueId() {
+        return notifyOnCompletionValueId;
+    }
+
     /**
      * @return If the player wants to be notified once the crafting job is completed.
+     *         Disabled by default.
      */
     public boolean isNotifyOnCompletion() {
-        return notifyOnCompletion;
+        return ValueNotifierHelpers.getValueBoolean(this, notifyOnCompletionValueId);
     }
 
     public void setNotifyOnCompletion(boolean notifyOnCompletion) {
-        this.notifyOnCompletion = notifyOnCompletion;
+        ValueNotifierHelpers.setValue(this, notifyOnCompletionValueId, notifyOnCompletion);
     }
 
     @Override
@@ -135,7 +142,7 @@ public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends Invent
                 getNetwork().ifPresent(network -> {
                     try {
                         craftingOptionGuiData.getCraftingOption().getHandler()
-                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayer) player, this.notifyOnCompletion);
+                                .startCraftingJob(network, craftingOptionGuiData.getChannel(), craftingPlan, (ServerPlayer) player, isNotifyOnCompletion());
 
                         // Re-open terminal gui
                         craftingOptionGuiData.getLocation()

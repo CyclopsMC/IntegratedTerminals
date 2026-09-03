@@ -7,7 +7,7 @@
     "gui.integratedterminals.amount": "Amount",
     "gui.integratedterminals.channel": "Channel",
     "gui.integratedterminals.crafting_job.finished.title": "Crafting Job Completed",
-    "gui.integratedterminals.crafting_job.finished": "Crafted %s",
+    "gui.integratedterminals.crafting_job.finished": "Crafted %s %s",
     "gui.integratedterminals.terminal_storage.tooltip.energy": "Energy",
     "gui.integratedterminals.terminal_storage.tooltip.energy.amount": "%s FE",
     "gui.integratedterminals.terminal_storage.tooltip.fluid.amount": "%s mB",
