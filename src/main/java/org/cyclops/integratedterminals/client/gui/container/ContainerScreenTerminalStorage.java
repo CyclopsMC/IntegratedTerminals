@@ -80,6 +80,9 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     private static int CHANNEL_WIDTH = 42;
     private static int CHANNEL_HEIGHT = 15;
 
+    private static int TAB_BACKGROUND_OFFSET = 21;
+    private static int TAB_BACKGROUND_GRID_PADDING = 7;
+
     private static int BUTTONS_OFFSET_X = 0;
     private static int BUTTONS_OFFSET_Y = 22;
     private static int BUTTONS_OFFSET = 4;
@@ -294,6 +297,25 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 .orElse(true);
     }
 
+    /**
+     * @return The horizontal offset of the tab background within the gui.
+     */
+    protected int getTabBackgroundOffsetX() {
+        // Without a scrollbar, the background hugs the storage grid, just like a vanilla container gui does
+        return hasScrollbar()
+                ? TAB_BACKGROUND_OFFSET
+                : getSlotsOffsetX() - 1 - TAB_BACKGROUND_GRID_PADDING;
+    }
+
+    /**
+     * @return The width of the tab background.
+     */
+    protected int getTabBackgroundWidth() {
+        return hasScrollbar()
+                ? getGridXSize() + 29
+                : getGridXSize() + TAB_BACKGROUND_GRID_PADDING * 2;
+    }
+
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
         //super.renderBg(matrixStack, f, mouseX, mouseY);
@@ -343,36 +365,37 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     protected void renderBgTab(GuiGraphics guiGraphics, float f, int mouseX, int mouseY) {
-        int tabWidth = getGridXSize() + 29;
+        int tabWidth = getTabBackgroundWidth();
         int tabHeight = getGridYSize() + 40;
-        int offset = 21;
+        int offsetX = getTabBackgroundOffsetX();
+        int offsetY = TAB_BACKGROUND_OFFSET;
         int blitOffset = 0;
         int cornerSize = 7;
         int columns = getSlotRowLength();
         int rows = getSlotVisibleRows();
 
         // Corners
-        //blit(matrixStack, leftPos + offsetX, topPos + offsetY, 0, 0, imageWidth - 2 * offsetX, imageHeight - 2 * offsetY); // top-left
-        guiGraphics.blit(this.texture, leftPos + offset, topPos + offset, cornerSize, 0, cornerSize, cornerSize); // top-left
-        guiGraphics.blit(this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset, 0, 0, cornerSize, cornerSize); // top-right
-        guiGraphics.blit(this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset + tabHeight - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize); // bottom-right
-        guiGraphics.blit(this.texture, leftPos + offset, topPos + offset + tabHeight - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize); // bottom-left
+        //blit(matrixStack, leftPos + offsetXX, topPos + offsetYY, 0, 0, imageWidth - 2 * offsetX, imageHeight - 2 * offsetY); // top-left
+        guiGraphics.blit(this.texture, leftPos + offsetX, topPos + offsetY, cornerSize, 0, cornerSize, cornerSize); // top-left
+        guiGraphics.blit(this.texture, leftPos + offsetX + tabWidth - cornerSize, topPos + offsetY, 0, 0, cornerSize, cornerSize); // top-right
+        guiGraphics.blit(this.texture, leftPos + offsetX + tabWidth - cornerSize, topPos + offsetY + tabHeight - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize); // bottom-right
+        guiGraphics.blit(this.texture, leftPos + offsetX, topPos + offsetY + tabHeight - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize); // bottom-left
 
         // Sides
-        blitRescalable(guiGraphics, this.texture, leftPos + offset + cornerSize, topPos + offset, blitOffset, cornerSize + 4, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // top
-        blitRescalable(guiGraphics, this.texture, leftPos + offset + tabWidth - cornerSize, topPos + offset + cornerSize, blitOffset, 0, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // right
-        blitRescalable(guiGraphics, this.texture, leftPos + offset + cornerSize, topPos + offset + tabHeight - cornerSize, blitOffset, 25, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // bottom
-        blitRescalable(guiGraphics, this.texture, leftPos + offset, topPos + offset + cornerSize, blitOffset, cornerSize, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // left
+        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + cornerSize, topPos + offsetY, blitOffset, cornerSize + 4, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // top
+        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + tabWidth - cornerSize, topPos + offsetY + cornerSize, blitOffset, 0, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // right
+        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + cornerSize, topPos + offsetY + tabHeight - cornerSize, blitOffset, 25, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize); // bottom
+        blitRescalable(guiGraphics, this.texture, leftPos + offsetX, topPos + offsetY + cornerSize, blitOffset, cornerSize, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2); // left
 
         // Background
-        blitRescalable(guiGraphics, this.texture, leftPos + offset + cornerSize, topPos + offset + cornerSize, blitOffset, 0, 3, 1, 1, 256, 256, tabWidth - cornerSize * 2, tabHeight - cornerSize * 2);
+        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + cornerSize, topPos + offsetY + cornerSize, blitOffset, 0, 3, 1, 1, 256, 256, tabWidth - cornerSize * 2, tabHeight - cornerSize * 2);
 
         // Slots
         for (int j = 0; j < rows; j++) {
             int renderRows = Math.min(3, rows - j); // Try rendering multiple rows for optimizing efficiency (if possible)
             for (int i = 0; i < columns; i++) {
                 int renderColumns = Math.min(9, columns - i); // Try rendering multiple columns for optimizing efficiency (if possible)
-                guiGraphics.blit(this.texture, leftPos + offset + 10 + i * GuiHelpers.SLOT_SIZE, topPos + offset + 18 + j * GuiHelpers.SLOT_SIZE, 80, 34, GuiHelpers.SLOT_SIZE * renderColumns, GuiHelpers.SLOT_SIZE * renderRows);
+                guiGraphics.blit(this.texture, leftPos + getSlotsOffsetX() - 1 + i * GuiHelpers.SLOT_SIZE, topPos + getSlotsOffsetY() - 1 + j * GuiHelpers.SLOT_SIZE, 80, 34, GuiHelpers.SLOT_SIZE * renderColumns, GuiHelpers.SLOT_SIZE * renderRows);
                 i += renderColumns - 1;
             }
             j += renderRows - 1;
