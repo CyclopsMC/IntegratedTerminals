@@ -17,6 +17,7 @@
     "gui.integratedterminals.terminal_storage.craft": "craft",
     "gui.integratedterminals.terminal_storage.tooltip.requirements": "Crafting Requirements:",
     "gui.integratedterminals.terminal_storage.tooltip.crafting": "Being crafted: %s",
+    "gui.integratedterminals.terminal_storage.tooltip.duration": "Estimated: %s per craft",
     "gui.integratedterminals.terminal_storage.start_crafting_job": "Start crafting job",
     "gui.integratedterminals.terminal_storage.craftingplan.label.valid": "Crafting plan - Valid",
     "gui.integratedterminals.terminal_storage.craftingplan.label.failed.incomplete": "Crafting plan - Incomplete",

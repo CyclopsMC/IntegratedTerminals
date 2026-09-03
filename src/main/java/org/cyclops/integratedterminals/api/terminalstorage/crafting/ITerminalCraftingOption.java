@@ -38,6 +38,16 @@ public interface ITerminalCraftingOption<T> extends Comparable<ITerminalCrafting
     public <T, M> Collection<T> getOutputs(IngredientComponent<T, M> ingredientComponent);
 
     /**
+     * An estimation of how long a single crafting operation of this option takes,
+     * based on how long the crafting interfaces of the network needed for it before.
+     *
+     * @return The estimated tick duration of one crafting operation. -1 indicates an unknown duration.
+     */
+    public default long getEstimatedTickDuration() {
+        return -1;
+    }
+
+    /**
      * @return All input components.
      */
     public Collection<IngredientComponent<?, ?>> getInputComponents();

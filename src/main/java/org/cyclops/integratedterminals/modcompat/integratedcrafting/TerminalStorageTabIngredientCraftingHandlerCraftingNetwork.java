@@ -70,20 +70,27 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
     public <T, M> Collection<TerminalCraftingOptionRecipeDefinition<?, ?>> getCraftingOptionsWithOutput(TerminalStorageTabIngredientComponentServer<T, M> tab, int channel, T instance, M matchCondition) {
         IngredientComponent<T, M> ingredientComponent = tab.getIngredientNetwork().getComponent();
         IRecipeIndex recipeIndex = getRecipeIndex(tab.getNetwork(), channel);
+        ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(tab.getNetwork()).orElse(null);
         Iterable<IRecipeDefinition> recipes = () -> recipeIndex.getRecipes(ingredientComponent, instance, matchCondition);
         return StreamSupport.stream(recipes.spliterator(), false)
-                .map((recipe) -> new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, recipe))
+                // The duration is only a lookup of what the interfaces measured, so it can be sent along with the option
+                .map((recipe) -> new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, recipe,
+                        craftingNetwork == null ? -1 : craftingNetwork.getEstimatedRecipeDuration(channel, recipe)))
                 .collect(Collectors.toList());
     }
 
     @Override
     public CompoundTag serializeCraftingOption(HolderLookup.Provider lookupProvider, TerminalCraftingOptionRecipeDefinition craftingOption) {
-        return IRecipeDefinition.serialize(lookupProvider, craftingOption.getRecipe());
+        CompoundTag tag = IRecipeDefinition.serialize(lookupProvider, craftingOption.getRecipe());
+        tag.putLong("estimatedTickDuration", craftingOption.getEstimatedTickDuration());
+        return tag;
     }
 
     @Override
     public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException {
-        return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, IRecipeDefinition.deserialize(lookupProvider, tag));
+        return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent,
+                IRecipeDefinition.deserialize(lookupProvider, tag),
+                tag.contains("estimatedTickDuration", Tag.TAG_LONG) ? tag.getLong("estimatedTickDuration") : -1);
     }
 
     @Override
