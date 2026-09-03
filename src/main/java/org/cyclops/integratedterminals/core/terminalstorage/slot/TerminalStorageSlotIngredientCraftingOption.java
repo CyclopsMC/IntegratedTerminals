@@ -72,8 +72,12 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         if (pendingCraftingJobOutput != null) {
             addCraftingJobTooltipLines(tooltipLines, pendingCraftingJobOutput);
         }
-        tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.duration",
-                GuiCraftingPlan.getDurationValue(getCraftingOption().getCraftingOption().getEstimatedTickDuration())));
+        // An unknown duration says nothing here, so it is left out rather than shown as a placeholder
+        long estimatedTickDuration = getCraftingOption().getCraftingOption().getEstimatedTickDuration();
+        if (estimatedTickDuration >= 0) {
+            tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.duration",
+                    GuiCraftingPlan.getDurationValue(estimatedTickDuration)));
+        }
         if (!inputs.isEmpty()) {
             tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
                     .withStyle(ChatFormatting.YELLOW));

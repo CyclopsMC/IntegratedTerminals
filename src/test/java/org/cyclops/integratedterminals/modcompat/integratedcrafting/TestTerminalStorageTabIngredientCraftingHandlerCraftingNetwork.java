@@ -94,4 +94,22 @@ public class TestTerminalStorageTabIngredientCraftingHandlerCraftingNetwork {
                 .estimateTickDuration(-1, 0, Collections.emptyList()));
     }
 
+    @Test
+    public void testOverheadRaisesAnInstantRecipeToOneUpdate() {
+        assertEquals(5, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .withCraftingInterfaceOverhead(0, 5));
+    }
+
+    @Test
+    public void testOverheadKeepsARecipeThatIsSlowerThanOneUpdate() {
+        assertEquals(200, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .withCraftingInterfaceOverhead(200, 5));
+    }
+
+    @Test
+    public void testOverheadKeepsAnUnknownRecipeUnknown() {
+        assertEquals(-1, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .withCraftingInterfaceOverhead(-1, 5));
+    }
+
 }

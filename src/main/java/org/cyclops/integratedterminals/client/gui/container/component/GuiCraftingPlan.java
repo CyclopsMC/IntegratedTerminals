@@ -65,6 +65,8 @@ public class GuiCraftingPlan extends AbstractWidget {
     protected static final int TICK_DELAY = 30;
 
     private static final int DURATION_LINE_HEIGHT = 6;
+    private static final int SECONDS_IN_MINUTE = 60;
+    private static final int SECONDS_IN_HOUR = 60 * 60;
 
     private final AbstractContainerScreen parentGui;
     private final int guiLeft;
@@ -269,14 +271,39 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     /**
      * @param tickDuration A tick duration, where -1 indicates an unknown duration.
-     * @return The duration as H:mm:ss, or a placeholder if it is unknown.
+     * @return The duration in the coarsest unit that still shows it, or a placeholder if it is unknown.
      */
     public static String getDurationValue(long tickDuration) {
         if (tickDuration < 0) {
             return L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown");
         }
+
+        // A clock would round most crafting jobs away to zero, so short durations are shown in seconds
+        if (tickDuration < MinecraftHelpers.SECOND_IN_TICKS * SECONDS_IN_MINUTE) {
+            return L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.seconds",
+                    getDurationSeconds(tickDuration));
+        }
+        return getDurationClock(tickDuration);
+    }
+
+    /**
+     * @param tickDuration A tick duration below a minute.
+     * @return The duration in seconds, with the decimals that are still meaningful at that magnitude.
+     */
+    public static String getDurationSeconds(long tickDuration) {
+        String format = tickDuration < MinecraftHelpers.SECOND_IN_TICKS
+                ? "%.2f" : (tickDuration < MinecraftHelpers.SECOND_IN_TICKS * 10 ? "%.1f" : "%.0f");
+        return String.format(Locale.ROOT, format, (double) tickDuration / MinecraftHelpers.SECOND_IN_TICKS);
+    }
+
+    /**
+     * @param tickDuration A tick duration of at least a minute.
+     * @return The duration as m:ss, or as H:mm:ss from an hour onwards.
+     */
+    public static String getDurationClock(long tickDuration) {
         long durationMs = tickDuration * 1000 / MinecraftHelpers.SECOND_IN_TICKS;
-        return DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true);
+        return DurationFormatUtils.formatDuration(durationMs,
+                tickDuration < MinecraftHelpers.SECOND_IN_TICKS * SECONDS_IN_HOUR ? "m:ss" : "H:mm:ss", true);
     }
 
     /**
@@ -313,12 +340,12 @@ public class GuiCraftingPlan extends AbstractWidget {
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw estimated duration
         if (showEstimatedTickDuration) {
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
@@ -329,7 +356,7 @@ public class GuiCraftingPlan extends AbstractWidget {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
         if (showEstimatedTickDuration) {
             drawUnknownDurationTooltip(this.parentGui, guiGraphics, getEstimatedDurationString(), estimatedTickDuration,
-                    getX() - 4, getY() - 8, mouseX, mouseY);
+                    getX() - 4, getY() - 14, mouseX, mouseY);
         }
     }
 

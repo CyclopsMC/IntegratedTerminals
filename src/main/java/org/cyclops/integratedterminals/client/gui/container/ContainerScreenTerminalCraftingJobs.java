@@ -257,11 +257,16 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
                     GuiCraftingPlan.getDurationValue(tickDuration), ChatFormatting.WHITE));
         }
+        // An unknown duration says nothing here, so it is left out rather than shown as a placeholder
         if (plan.getStatus().isValid()) {
-            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining",
-                    GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationRemaining()), ChatFormatting.AQUA));
-            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate",
-                    GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationTotal()), ChatFormatting.WHITE));
+            if (plan.getEstimatedTickDurationRemaining() >= 0) {
+                lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining",
+                        GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationRemaining()), ChatFormatting.AQUA));
+            }
+            if (plan.getEstimatedTickDurationTotal() >= 0) {
+                lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate",
+                        GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationTotal()), ChatFormatting.WHITE));
+            }
         }
 
         // Everything that is only occasionally interesting stays in the background

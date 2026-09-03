@@ -15,6 +15,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
+import org.cyclops.integratedcrafting.GeneralConfig;
 import org.cyclops.integratedcrafting.api.crafting.*;
 import org.cyclops.integratedcrafting.api.network.ICraftingNetwork;
 import org.cyclops.integratedcrafting.api.recipe.IRecipeIndex;
@@ -74,7 +75,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         Iterable<IRecipeDefinition> recipes = () -> recipeIndex.getRecipes(ingredientComponent, instance, matchCondition);
         return StreamSupport.stream(recipes.spliterator(), false)
                 .map((recipe) -> new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, recipe,
-                        craftingNetwork == null ? -1 : craftingNetwork.getEstimatedRecipeDuration(channel, recipe)))
+                        craftingNetwork == null ? -1 : getEstimatedRecipeDuration(craftingNetwork, channel, recipe)))
                 .collect(Collectors.toList());
     }
 
@@ -156,8 +157,37 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
      *         or -1 if that is unknown.
      */
     protected static long getEstimatedRecipeDuration(@Nullable ICraftingNetwork craftingNetwork, CraftingJob craftingJob) {
-        return craftingNetwork == null ? -1 : craftingNetwork
-                .getEstimatedRecipeDuration(craftingJob.getChannel(), craftingJob.getRecipe());
+        return craftingNetwork == null ? -1 : getEstimatedRecipeDuration(craftingNetwork,
+                craftingJob.getChannel(), craftingJob.getRecipe());
+    }
+
+    /**
+     * @param craftingNetwork A crafting network.
+     * @param channel A crafting channel.
+     * @param recipe A recipe.
+     * @return How long one crafting operation of the given recipe is estimated to take,
+     *         or -1 if that is unknown.
+     */
+    protected static long getEstimatedRecipeDuration(ICraftingNetwork craftingNetwork, int channel, IRecipeDefinition recipe) {
+        return withCraftingInterfaceOverhead(craftingNetwork.getEstimatedRecipeDuration(channel, recipe),
+                GeneralConfig.minCraftingInterfaceUpdateFreq);
+    }
+
+    /**
+     * Crafting interfaces only measure how long a recipe takes to produce its outputs after being started.
+     * Recipes that are done within the tick they are started in, such as regular crafting recipes,
+     * are therefore measured as taking no time at all, which would estimate whole jobs away.
+     *
+     * A crafting interface performs at most one crafting operation per update though,
+     * so no recipe can go faster than that, which makes it a lower bound for those recipes.
+     *
+     * @param recipeDuration The measured duration of one crafting operation,
+     *                       where -1 indicates an unknown duration.
+     * @param updateInterval The number of ticks between two updates of a crafting interface.
+     * @return The duration that one crafting operation takes at the very least.
+     */
+    protected static long withCraftingInterfaceOverhead(long recipeDuration, long updateInterval) {
+        return recipeDuration < 0 ? -1 : Math.max(recipeDuration, updateInterval);
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlan(@Nullable ICraftingNetwork craftingNetwork,

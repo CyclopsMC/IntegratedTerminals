@@ -242,12 +242,12 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw estimated duration
         if (showEstimatedTickDuration) {
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
@@ -258,7 +258,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
         if (showEstimatedTickDuration) {
             GuiCraftingPlan.drawUnknownDurationTooltip(this.parentGui, guiGraphics, getEstimatedDurationString(),
-                    estimatedTickDuration, getX() - 4, getY() - 8, mouseX, mouseY);
+                    estimatedTickDuration, getX() - 4, getY() - 14, mouseX, mouseY);
         }
     }
 
