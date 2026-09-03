@@ -84,6 +84,8 @@
     "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate": "Estimated: %s",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining": "Remaining: %s",
   "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown": "?",
+  "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown.title": "No estimate yet",
+  "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown.desc": "The crafting interfaces have not crafted these recipes before.",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.progress": "Progress: %s%%",
   "gui.integratedterminals.terminal_crafting_job.craftingplan.progress.short": "%s%%",
     "gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel": "Channel: %s",

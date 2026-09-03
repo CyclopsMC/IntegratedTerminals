@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -62,6 +63,8 @@ public class GuiCraftingPlan extends AbstractWidget {
     private static final int ELEMENT_HEIGHT_TOTAL = 18;
 
     protected static final int TICK_DELAY = 30;
+
+    private static final int DURATION_LINE_HEIGHT = 6;
 
     private final AbstractContainerScreen parentGui;
     private final int guiLeft;
@@ -315,10 +318,7 @@ public class GuiCraftingPlan extends AbstractWidget {
 
         // Draw estimated duration
         if (showEstimatedTickDuration) {
-            String estimatedDurationString = getDurationString(estimatedTickDurationRemaining
-                    ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
-                    : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, estimatedDurationString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
@@ -327,6 +327,43 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     public void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
+        if (showEstimatedTickDuration) {
+            drawUnknownDurationTooltip(this.parentGui, guiGraphics, getEstimatedDurationString(), estimatedTickDuration,
+                    getX() - 4, getY() - 8, mouseX, mouseY);
+        }
+    }
+
+    protected String getEstimatedDurationString() {
+        return getDurationString(estimatedTickDurationRemaining
+                ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
+                : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
+    }
+
+    /**
+     * Explain an estimated duration that could not be determined, when the mouse hovers over it.
+     *
+     * @param parentGui The gui that the duration is drawn in.
+     * @param guiGraphics The gui graphics.
+     * @param durationString The duration line as it is drawn, to derive its width from.
+     * @param tickDuration The estimated duration, where only an unknown one is explained.
+     * @param x The X position of the duration line, relative to the gui.
+     * @param y The Y position of the duration line, relative to the gui.
+     * @param mouseX The mouse X position.
+     * @param mouseY The mouse Y position.
+     */
+    public static void drawUnknownDurationTooltip(AbstractContainerScreen parentGui, GuiGraphics guiGraphics,
+                                                  String durationString, long tickDuration,
+                                                  int x, int y, int mouseX, int mouseY) {
+        if (tickDuration >= 0) {
+            return;
+        }
+        // The line is drawn at half scale, so it only takes up half of the font's width
+        int width = Minecraft.getInstance().font.width(durationString) / 2;
+        GuiHelpers.renderTooltipOptional(parentGui, guiGraphics.pose(), x, y, width, DURATION_LINE_HEIGHT,
+                mouseX, mouseY, () -> Optional.of(Lists.newArrayList(
+                        Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown.title"),
+                        Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown.desc")
+                                .withStyle(ChatFormatting.GRAY))));
     }
 
     @Override

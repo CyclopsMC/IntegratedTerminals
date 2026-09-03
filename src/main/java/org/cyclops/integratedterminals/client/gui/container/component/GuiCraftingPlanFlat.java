@@ -247,10 +247,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
 
         // Draw estimated duration
         if (showEstimatedTickDuration) {
-            String estimatedDurationString = GuiCraftingPlan.getDurationString(estimatedTickDurationRemaining
-                    ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
-                    : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, estimatedDurationString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
@@ -259,6 +256,16 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
 
     public void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
+        if (showEstimatedTickDuration) {
+            GuiCraftingPlan.drawUnknownDurationTooltip(this.parentGui, guiGraphics, getEstimatedDurationString(),
+                    estimatedTickDuration, getX() - 4, getY() - 8, mouseX, mouseY);
+        }
+    }
+
+    protected String getEstimatedDurationString() {
+        return GuiCraftingPlan.getDurationString(estimatedTickDurationRemaining
+                ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
+                : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
     }
 
     @Override
