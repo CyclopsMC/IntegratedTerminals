@@ -54,6 +54,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     private static final int PROGRESS_BAR_OFFSET_Y = 8;
     private static final int PROGRESS_BAR_HEIGHT = 8;
 
+    private static final int BORDER_COLOR = Helpers.RGBAToInt(0, 0, 0, 180);
     private static final int TRACK_COLOR = Helpers.RGBAToInt(0, 0, 0, 100);
     private static final int FILL_COLOR = TerminalCraftingJobStatus.CRAFTING.getColor() | 0xFF000000;
 
@@ -203,8 +204,12 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
         int progress = GuiCraftingPlan.getProgress(plan);
         int filled = progress > 0 ? width * progress / 100 : 0;
 
-        guiGraphics.fill(x, y, x + width, y + PROGRESS_BAR_HEIGHT, TRACK_COLOR);
-        guiGraphics.fill(x, y, x + filled, y + PROGRESS_BAR_HEIGHT, FILL_COLOR);
+        // A sunken track, so that the numbers inside the bar stay readable over both the track and the fill
+        guiGraphics.fill(x, y, x + width, y + PROGRESS_BAR_HEIGHT, BORDER_COLOR);
+        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + PROGRESS_BAR_HEIGHT - 1, TRACK_COLOR);
+        if (filled > 1) {
+            guiGraphics.fill(x + 1, y + 1, x + filled - 1, y + PROGRESS_BAR_HEIGHT - 1, FILL_COLOR);
+        }
 
         long tickDuration = plan.getTickDuration();
         if (tickDuration >= 0) {
