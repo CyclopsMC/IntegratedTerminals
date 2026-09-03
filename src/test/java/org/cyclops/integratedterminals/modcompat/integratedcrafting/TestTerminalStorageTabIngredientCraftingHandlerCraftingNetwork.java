@@ -1,13 +1,9 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.cyclops.commoncapabilities.api.ingredient.MixedIngredients;
-import org.cyclops.integratedcrafting.api.crafting.CraftingJob;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -20,13 +16,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class TestTerminalStorageTabIngredientCraftingHandlerCraftingNetwork {
 
-    private CraftingJob craftingJob;
-
-    @Before
-    public void beforeEach() {
-        this.craftingJob = new CraftingJob(1, 0, null, 3, new MixedIngredients(Maps.newIdentityHashMap()));
-    }
-
     protected static ITerminalCraftingPlan<Integer> planWithEstimations(long total, long remaining) {
         return new TerminalCraftingPlanStatic<>(1, Collections.emptyList(), Collections.emptyList(),
                 TerminalCraftingJobStatus.CRAFTING, 1, 1, Collections.emptyList(), Collections.emptyList(),
@@ -34,10 +23,16 @@ public class TestTerminalStorageTabIngredientCraftingHandlerCraftingNetwork {
     }
 
     @Test
+    public void testEstimateWithoutDependencies() {
+        assertEquals(150, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .estimateTickDuration(50, 3, Collections.emptyList()));
+    }
+
+    @Test
     public void testEstimateWithoutMeasurements() {
-        // Without a crafting network, no recipe durations are known
+        // Without a measured recipe duration, there is nothing to base the estimation on
         assertEquals(-1, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
-                .estimateTickDuration(null, craftingJob, 3, Collections.emptyList()));
+                .estimateTickDuration(-1, 3, Collections.emptyList()));
     }
 
     @Test
@@ -47,8 +42,8 @@ public class TestTerminalStorageTabIngredientCraftingHandlerCraftingNetwork {
                 planWithEstimations(100, 40),
                 planWithEstimations(250, 90));
 
-        assertEquals(250, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
-                .estimateTickDuration(null, craftingJob, 3, dependencies));
+        assertEquals(400, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .estimateTickDuration(50, 3, dependencies));
     }
 
     @Test
@@ -57,19 +52,46 @@ public class TestTerminalStorageTabIngredientCraftingHandlerCraftingNetwork {
                 planWithEstimations(100, 40),
                 planWithEstimations(250, 90));
 
-        assertEquals(90, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
-                .estimateTickDuration(null, craftingJob, 3, dependencies,
+        assertEquals(240, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .estimateTickDuration(50, 3, dependencies,
                         ITerminalCraftingPlan::getEstimatedTickDurationRemaining));
     }
 
     @Test
     public void testEstimateWithUnknownDependencies() {
+        // An unknown dependency only lowers the maximum, which the other dependency still wins
         List<ITerminalCraftingPlan<Integer>> dependencies = Lists.newArrayList(
                 planWithEstimations(-1, -1),
                 planWithEstimations(250, 90));
 
+        assertEquals(400, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .estimateTickDuration(50, 3, dependencies));
+    }
+
+    @Test
+    public void testEstimateWithUnknownRecipeButKnownDependencies() {
+        // The operations of the job itself are missing from the estimation, so it can not be given
+        List<ITerminalCraftingPlan<Integer>> dependencies = Lists.newArrayList(
+                planWithEstimations(250, 90));
+
+        assertEquals(-1, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .estimateTickDuration(-1, 3, dependencies));
+    }
+
+    @Test
+    public void testEstimateWithUnknownRecipeWithoutOperationsLeft() {
+        // Without operations left, the unknown recipe duration does not contribute anything anyway
+        List<ITerminalCraftingPlan<Integer>> dependencies = Lists.newArrayList(
+                planWithEstimations(250, 90));
+
         assertEquals(250, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
-                .estimateTickDuration(null, craftingJob, 3, dependencies));
+                .estimateTickDuration(-1, 0, dependencies));
+    }
+
+    @Test
+    public void testEstimateWithoutOperationsLeftAndUnknownDependencies() {
+        assertEquals(-1, TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
+                .estimateTickDuration(-1, 0, Collections.emptyList()));
     }
 
 }

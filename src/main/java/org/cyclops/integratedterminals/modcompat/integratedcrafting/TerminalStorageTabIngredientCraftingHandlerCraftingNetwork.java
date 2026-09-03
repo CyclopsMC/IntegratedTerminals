@@ -120,33 +120,45 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
      * Dependencies of the same job can be crafted simultaneously, so only the longest one is counted.
      * Note that this does not take into account that a job can be distributed over multiple crafting interfaces.
      *
-     * @param craftingNetwork The crafting network, or null if unavailable.
-     * @param craftingJob A crafting job.
+     * @param recipeDuration The estimated duration of one crafting operation of the job,
+     *                       where -1 indicates an unknown duration.
      * @param amount The number of crafting operations to estimate for.
      * @param dependencies The plans of the jobs that the given job depends on.
-     * @return The estimated tick duration, or -1 if nothing within this plan was measured before.
+     * @return The estimated tick duration, or -1 if it can not be determined.
      */
-    protected static long estimateTickDuration(@Nullable ICraftingNetwork craftingNetwork, CraftingJob craftingJob,
-                                               long amount, List<ITerminalCraftingPlan<Integer>> dependencies) {
-        return estimateTickDuration(craftingNetwork, craftingJob, amount, dependencies,
+    protected static long estimateTickDuration(long recipeDuration, long amount,
+                                               List<ITerminalCraftingPlan<Integer>> dependencies) {
+        return estimateTickDuration(recipeDuration, amount, dependencies,
                 ITerminalCraftingPlan::getEstimatedTickDurationTotal);
     }
 
-    protected static long estimateTickDuration(@Nullable ICraftingNetwork craftingNetwork, CraftingJob craftingJob,
-                                               long amount, List<ITerminalCraftingPlan<Integer>> dependencies,
+    protected static long estimateTickDuration(long recipeDuration, long amount,
+                                               List<ITerminalCraftingPlan<Integer>> dependencies,
                                                ToLongFunction<ITerminalCraftingPlan<Integer>> dependencyDuration) {
         long dependenciesDuration = -1;
         for (ITerminalCraftingPlan<Integer> dependency : dependencies) {
             dependenciesDuration = Math.max(dependenciesDuration, dependencyDuration.applyAsLong(dependency));
         }
 
-        long recipeDuration = craftingNetwork == null ? -1 : craftingNetwork
-                .getEstimatedRecipeDuration(craftingJob.getChannel(), craftingJob.getRecipe());
-        if (recipeDuration < 0 && dependenciesDuration < 0) {
+        // The operations of the job itself are added to the estimation, so leaving them out when they are
+        // unknown would silently drop them. An unknown dependency only lowers a maximum that the others
+        // can still win, so those are skipped instead.
+        if (amount > 0 ? recipeDuration < 0 : dependenciesDuration < 0) {
             return -1;
         }
 
         return Math.max(recipeDuration, 0) * amount + Math.max(dependenciesDuration, 0);
+    }
+
+    /**
+     * @param craftingNetwork The crafting network, or null if unavailable.
+     * @param craftingJob A crafting job.
+     * @return How long one crafting operation of the given job is estimated to take,
+     *         or -1 if that is unknown.
+     */
+    protected static long getEstimatedRecipeDuration(@Nullable ICraftingNetwork craftingNetwork, CraftingJob craftingJob) {
+        return craftingNetwork == null ? -1 : craftingNetwork
+                .getEstimatedRecipeDuration(craftingJob.getChannel(), craftingJob.getRecipe());
     }
 
     protected static ITerminalCraftingPlan<Integer> newCraftingPlan(@Nullable ICraftingNetwork craftingNetwork,
@@ -159,7 +171,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 .map(subCraftingJob -> newCraftingPlan(craftingNetwork, subCraftingJob, dependencyGraph, false))
                 .collect(Collectors.toList());
         // The job has not started yet, so its remaining duration is equal to its total duration
-        long estimatedTickDuration = estimateTickDuration(craftingNetwork, craftingJob,
+        long estimatedTickDuration = estimateTickDuration(getEstimatedRecipeDuration(craftingNetwork, craftingJob),
                 craftingJob.getAmountTotal(), dependencies);
         if (root) {
             return new TerminalCraftingPlanCraftingJobDependencyGraph(
@@ -408,9 +420,10 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
             }
         }
 
-        long estimatedTickDurationTotal = estimateTickDuration(craftingNetwork, craftingJob,
+        long recipeDuration = getEstimatedRecipeDuration(craftingNetwork, craftingJob);
+        long estimatedTickDurationTotal = estimateTickDuration(recipeDuration,
                 craftingJob.getAmountTotal(), dependencies);
-        long estimatedTickDurationRemaining = estimateTickDuration(craftingNetwork, craftingJob,
+        long estimatedTickDurationRemaining = estimateTickDuration(recipeDuration,
                 craftingJob.getAmount(), dependencies, ITerminalCraftingPlan::getEstimatedTickDurationRemaining);
         if (estimatedTickDurationRemaining > 0) {
             // Subtract the time that the currently running crafting operation has been going on already
