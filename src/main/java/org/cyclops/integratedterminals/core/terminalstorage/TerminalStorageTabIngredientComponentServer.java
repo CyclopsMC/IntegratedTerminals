@@ -512,5 +512,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         if (updateActivePlayerStack) {
             player.connection.send(new ClientboundContainerSetSlotPacket(-1, 0, 0, container.getCarried()));
         }
+
+        // Send the container state as we know it, so that a client that predicted this click
+        // is corrected when its prediction was wrong.
+        // Without this, a slot that the client changed but the server did not would stay wrong,
+        // as only slots that changed server-side are sent otherwise.
+        container.broadcastFullState();
     }
 }

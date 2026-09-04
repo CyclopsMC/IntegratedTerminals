@@ -106,6 +106,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final List<ITerminalButton<?, ?, ?>> buttons;
 
     private final Int2ObjectMap<IIngredientCollapsedCollectionMutable<T, M>> ingredientsUnsortedViews;
+    private final TerminalStorageIngredientPredictions<T, M> predictions;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> lastFilteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
@@ -153,6 +154,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.buttons = event.getButtons();
 
         this.ingredientsUnsortedViews = new Int2ObjectOpenHashMap<>();
+        this.predictions = new TerminalStorageIngredientPredictions<>(this.ingredientComponent);
         this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.lastFilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
@@ -380,6 +382,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             enrichedIngredients.add(new InstanceWithMetadata<>(persistedIngredient, null));
         }
 
+        // Show the effect of clicks that the server has not confirmed yet
+        this.predictions.apply(channel, enrichedIngredients);
+
         // Add all crafting option outputs
         Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions = getCraftingOptions(channel);
         if (craftingOptions != null) {
@@ -404,14 +409,19 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     protected List<InstanceWithMetadata<T>> getFilteredIngredientsView(int channel) {
         updateSortingPausedState(channel);
+        if (this.predictions.removeExpired()) {
+            // Predictions are applied to all channel views, so all of them have to be rebuilt
+            this.filteredIngredientsViews.clear();
+        }
         List<InstanceWithMetadata<T>> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = createUnfilteredIngredientsView(channel);
 
             // Filter
+            IIngredientQuery<T> query = IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel));
             ingredientsView = Lists.newArrayList(
                     this.transformIngredientsView(ingredientsView.stream())
-                            .filter(im -> IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)).test(im.getInstance()))
+                            .filter(im -> query.test(im.getInstance()))
                             .filter(getInstanceFilterMetadata())
                             .collect(Collectors.toList()));
 
@@ -585,6 +595,15 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
         long newQuantity = totalQuantities.get(channel) + quantity;
         totalQuantities.put(channel, newQuantity);
+
+        // Confirm the predictions that this change covers.
+        // This is deliberately skipped for the wildcard channel, as that one is a copy of this same change.
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL
+                && this.predictions.consume(ingredients,
+                        changeType == IIngredientComponentStorageObservable.Change.ADDITION)) {
+            // Predictions are applied to all channel views, so all of them have to be rebuilt
+            this.filteredIngredientsViews.clear();
+        }
 
         // Apply diff
         IIngredientCollapsedCollectionMutable<T, M> rawPersistedIngredients = getRawUnfilteredIngredientsView(channel);
@@ -857,6 +876,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         this.getName().toString(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
                         hoveredContainerSlot, movePlayerQuantity, activeInstance, transferFullSelection));
+                predictClick(container, clickType, channel, hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
+                        hoveredContainerSlot, activeInstance, transferFullSelection);
                 if (reset) {
                     resetActiveSlot();
                 }
@@ -865,6 +886,113 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
 
         return false;
+    }
+
+    /**
+     * Show the effect of the given click before the server has confirmed it.
+     *
+     * The server remains the only source of truth: predictions are shown on top of the server-sent state,
+     * and are dropped again as soon as the server has sent a change for the predicted instance.
+     * A prediction that the server does not confirm expires by itself.
+     *
+     * @param container The active container.
+     * @param clickType The click that was sent to the server.
+     * @param channel The active channel.
+     * @param hoveringStorageInstance The storage instance that is being hovered.
+     * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
+     * @param activeInstance The selected storage instance, with the quantity that is being moved.
+     * @param transferFullSelection If the selected stack should be moved fully.
+     */
+    protected void predictClick(AbstractContainerMenu container, TerminalClickType clickType, int channel,
+                                T hoveringStorageInstance, int hoveredContainerSlot, T activeInstance,
+                                boolean transferFullSelection) {
+        if (!GeneralConfig.guiStoragePredictInteractions) {
+            return;
+        }
+
+        IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getViewHandler();
+        switch (clickType) {
+            case STORAGE_QUICK_MOVE:
+            case STORAGE_QUICK_MOVE_INCREMENTAL: {
+                T requested = clickType == TerminalClickType.STORAGE_QUICK_MOVE
+                        ? hoveringStorageInstance
+                        : matcher.withQuantity(hoveringStorageInstance, Math.min(
+                                viewHandler.getIncrementalInstanceMovementQuantity(),
+                                matcher.getQuantity(hoveringStorageInstance)));
+                addPrediction(channel, viewHandler.predictInsertMaxIntoContainer(container, 0, 4 * 9, requested,
+                        getPredictedQuantity(channel, requested)), false);
+                break;
+            }
+            case STORAGE_PLACE_PLAYER:
+                addPrediction(channel, viewHandler.predictInsertIntoContainer(container, hoveredContainerSlot,
+                        activeInstance, transferFullSelection,
+                        getPredictedQuantity(channel, activeInstance)), false);
+                break;
+            case STORAGE_PLACE_WORLD:
+                // The server throws the full selection, or nothing at all
+                if (getPredictedQuantity(channel, activeInstance) >= matcher.getQuantity(activeInstance)) {
+                    addPrediction(channel, activeInstance, false);
+                }
+                break;
+            case PLAYER_QUICK_MOVE:
+            case PLAYER_QUICK_MOVE_INCREMENTAL:
+                if (hasStorageSpaceFor(channel, container.getSlot(hoveredContainerSlot).getItem())) {
+                    addPrediction(channel, viewHandler.predictExtractMaxFromContainerSlot(container,
+                            hoveredContainerSlot, Minecraft.getInstance().player.getInventory(),
+                            clickType == TerminalClickType.PLAYER_QUICK_MOVE
+                                    ? -1 : viewHandler.getIncrementalInstanceMovementQuantity()), true);
+                }
+                break;
+            case PLAYER_PLACE_STORAGE:
+                // The moved instance is drained from the player's cursor client-side already,
+                // its arrival in the storage is left to the server.
+                break;
+        }
+    }
+
+    protected synchronized void addPrediction(int channel, T instance, boolean addition) {
+        if (!this.ingredientComponent.getMatcher().isEmpty(instance)) {
+            // Remember the selected instance, as this change might change its position or quantity.
+            Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
+
+            this.predictions.add(channel, instance, addition);
+            this.lastChangeId++;
+            // Predictions are applied to all channel views, so all of them have to be rebuilt.
+            // The sorting order that is kept while sorting is paused is deliberately not reset,
+            // just like for the changes that are sent by the server.
+            this.filteredIngredientsViews.clear();
+
+            // Update the active instance by searching for its new position in the slots
+            updateActiveInstance(lastInstance, channel);
+        }
+    }
+
+    /**
+     * @param channel A channel id.
+     * @param instance An instance.
+     * @return The quantity of the given instance that is currently being shown, predictions included.
+     */
+    protected long getPredictedQuantity(int channel, T instance) {
+        return Math.max(0, getRawUnfilteredIngredientsView(channel).getQuantity(instance)
+                + this.predictions.getDelta(channel, instance));
+    }
+
+    protected boolean hasStorageSpaceFor(int channel, ItemStack stack) {
+        long maxQuantity = getMaxQuantity(channel);
+        if (maxQuantity <= 0) {
+            // The capacity is unknown, so just assume that it fits
+            return true;
+        }
+        T instance = getViewHandler().getInstance(stack);
+        return getTotalQuantity(channel) + this.ingredientComponent.getMatcher().getQuantity(instance) <= maxQuantity;
+    }
+
+    @Override
+    public boolean isClickHandledOnPress(int channel, int hoveringStorageSlot) {
+        // Clicks that can not start a drag over the player inventory are applied as soon as the button goes down,
+        // just like vanilla containers do when the cursor is empty.
+        return hoveringStorageSlot >= 0 && getActiveSlotId() < 0;
     }
 
     @Override

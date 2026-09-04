@@ -37,6 +37,7 @@ import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackNa
 import org.cyclops.integratedterminals.capability.ingredient.sorter.FluidStackQuantitySorter;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
+import org.cyclops.integratedterminals.core.terminalstorage.query.IngredientQueryMatchers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -233,14 +234,15 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
     @Override
     @OnlyIn(Dist.CLIENT)
     public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
+        Predicate<String> matcher = IngredientQueryMatchers.containsQuery(query);
         return switch (searchMode) {
-            case MOD -> i -> BuiltInRegistries.FLUID.getKey(i.getFluid()).getNamespace()
-                    .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case MOD -> i -> matcher.test(BuiltInRegistries.FLUID.getKey(i.getFluid()).getNamespace()
+                    .toLowerCase(Locale.ENGLISH));
             case TOOLTIP -> i -> false; // Fluids have no tooltip
             case TAG -> i -> i.getFluid().builtInRegistryHolder().tags()
-                    .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                    .filter(tag -> matcher.test(tag.location().toString().toLowerCase(Locale.ENGLISH)))
                     .anyMatch(tag -> !BuiltInRegistries.FLUID.getTag(tag).isEmpty());
-            case DEFAULT -> i -> i != null && i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case DEFAULT -> i -> i != null && matcher.test(i.getHoverName().getString().toLowerCase(Locale.ENGLISH));
         };
     }
 
