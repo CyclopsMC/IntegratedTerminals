@@ -24,6 +24,10 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
     @Nullable
     private String unlocalizedLabelOverride;
     private final long tickDuration;
+    private final long craftingQuantityTotal;
+    private final long craftingQuantityRemaining;
+    private final long estimatedTickDurationTotal;
+    private final long estimatedTickDurationRemaining;
     private final int channel;
     @Nullable
     private final String initiatorName;
@@ -36,6 +40,21 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
                                           long tickDuration,
                                           int channel,
                                           @Nullable String initiatorName) {
+        this(id, entries, outputs, status, label, tickDuration, 0, 0, -1, -1, channel, initiatorName);
+    }
+
+    public TerminalCraftingPlanFlatStatic(I id,
+                                          List<TerminalCraftingPlanFlatStatic.Entry> entries,
+                                          List<IPrototypedIngredient<?, ?>> outputs,
+                                          TerminalCraftingJobStatus status,
+                                          TerminalCraftingPlanStatic.Label label,
+                                          long tickDuration,
+                                          long craftingQuantityTotal,
+                                          long craftingQuantityRemaining,
+                                          long estimatedTickDurationTotal,
+                                          long estimatedTickDurationRemaining,
+                                          int channel,
+                                          @Nullable String initiatorName) {
         this.id = id;
         this.entries = entries;
         this.outputs = outputs;
@@ -43,6 +62,10 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
         this.label = label;
         this.unlocalizedLabelOverride = null;
         this.tickDuration = tickDuration;
+        this.craftingQuantityTotal = craftingQuantityTotal;
+        this.craftingQuantityRemaining = craftingQuantityRemaining;
+        this.estimatedTickDurationTotal = estimatedTickDurationTotal;
+        this.estimatedTickDurationRemaining = estimatedTickDurationRemaining;
         this.channel = channel;
         this.initiatorName = initiatorName;
     }
@@ -94,6 +117,26 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
     }
 
     @Override
+    public long getCraftingQuantityTotal() {
+        return craftingQuantityTotal;
+    }
+
+    @Override
+    public long getCraftingQuantityRemaining() {
+        return craftingQuantityRemaining;
+    }
+
+    @Override
+    public long getEstimatedTickDurationTotal() {
+        return estimatedTickDurationTotal;
+    }
+
+    @Override
+    public long getEstimatedTickDurationRemaining() {
+        return estimatedTickDurationRemaining;
+    }
+
+    @Override
     public int getChannel() {
         return channel;
     }
@@ -136,6 +179,12 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
         }
 
         tag.putLong("tickDuration", plan.getTickDuration());
+
+        tag.putLong("craftingQuantityTotal", plan.getCraftingQuantityTotal());
+        tag.putLong("craftingQuantityRemaining", plan.getCraftingQuantityRemaining());
+
+        tag.putLong("estimatedTickDurationTotal", plan.getEstimatedTickDurationTotal());
+        tag.putLong("estimatedTickDurationRemaining", plan.getEstimatedTickDurationRemaining());
 
         tag.putInt("channel", plan.getChannel());
 
@@ -195,6 +244,14 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
 
         long tickDuration = tag.getLong("tickDuration");
 
+        long craftingQuantityTotal = tag.getLong("craftingQuantityTotal");
+        long craftingQuantityRemaining = tag.getLong("craftingQuantityRemaining");
+
+        long estimatedTickDurationTotal = tag.contains("estimatedTickDurationTotal", Tag.TAG_LONG)
+                ? tag.getLong("estimatedTickDurationTotal") : -1;
+        long estimatedTickDurationRemaining = tag.contains("estimatedTickDurationRemaining", Tag.TAG_LONG)
+                ? tag.getLong("estimatedTickDurationRemaining") : -1;
+
         int channel = tag.getInt("channel");
 
         String initiatorName = null;
@@ -202,7 +259,9 @@ public class TerminalCraftingPlanFlatStatic<I> implements ITerminalCraftingPlanF
             initiatorName = tag.getString("initiatorName");
         }
 
-        TerminalCraftingPlanFlatStatic<I> plan = new TerminalCraftingPlanFlatStatic<>(id, entries, outputs, status, label, tickDuration, channel, initiatorName);
+        TerminalCraftingPlanFlatStatic<I> plan = new TerminalCraftingPlanFlatStatic<>(id, entries, outputs, status, label,
+                tickDuration, craftingQuantityTotal, craftingQuantityRemaining,
+                estimatedTickDurationTotal, estimatedTickDurationRemaining, channel, initiatorName);
         if (unlocalizedLabelOverride != null) {
             plan.unlocalizedLabelOverride = unlocalizedLabelOverride;
         }
