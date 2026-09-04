@@ -53,6 +53,9 @@ public class GeneralConfig extends DummyConfig {
     @ConfigurableProperty(category = "machine", comment = "The update frequency in milliseconds for the crafting jobs gui.", isCommandable = true)
     public static int guiTerminalCraftingJobsUpdateFrequency = 1000;
 
+    @ConfigurableProperty(category = "machine", comment = "If a toast should be shown when a crafting job that you requested has been completed.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean craftingJobFinishedToast = true;
+
     @ConfigurableProperty(category = "core", comment = "The number of threads that the crafting plan calculator can use.", minimalValue = 1, requiresMcRestart = true, configLocation = ModConfig.Type.SERVER)
     public static int craftingPlannerThreads = 2;
 
