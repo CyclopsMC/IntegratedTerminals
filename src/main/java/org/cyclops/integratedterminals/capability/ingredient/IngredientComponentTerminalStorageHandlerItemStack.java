@@ -12,6 +12,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import com.mojang.datafixers.util.Either;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -70,7 +72,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     public void drawInstance(GuiGraphics guiGraphics, ItemStack instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
-                             @Nullable TooltipComponent additionalTooltipComponent) {
+                             @Nullable List<Either<FormattedText, TooltipComponent>> additionalTooltipElements) {
         // Make a copy of the item to make sure that any changes in the NBT tag that the mod may make during rendering
         // does not propagate into our client-side index. Otherwise, the client may think it has different items than
         // the server, which will cause these items not to be extractable by the client from the terminal.
@@ -98,7 +100,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                 }
                 addQuantityTooltip(lines, instanceCopy);
                 return lines;
-            }, additionalTooltipComponent);
+            }, additionalTooltipElements);
         }
         Lighting.setupForFlatItems();
     }

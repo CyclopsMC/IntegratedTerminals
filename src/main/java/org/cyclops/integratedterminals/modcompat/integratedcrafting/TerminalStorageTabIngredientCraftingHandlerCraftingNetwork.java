@@ -1,13 +1,18 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.logging.log4j.Level;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
@@ -71,25 +76,64 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         IngredientComponent<T, M> ingredientComponent = tab.getIngredientNetwork().getComponent();
         IRecipeIndex recipeIndex = getRecipeIndex(tab.getNetwork(), channel);
         ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(tab.getNetwork()).orElse(null);
+        Multimap<IRecipeDefinition, ICraftingInterface> recipeCraftingInterfaces = craftingNetwork == null
+                ? ImmutableMultimap.of() : craftingNetwork.getRecipeCraftingInterfaces(channel);
+        // Multiple recipes are commonly exposed by the same crafting interface,
+        // so only resolve the machine of each interface once.
+        Map<ICraftingInterface, ItemStack> machineCache = Maps.newIdentityHashMap();
         Iterable<IRecipeDefinition> recipes = () -> recipeIndex.getRecipes(ingredientComponent, instance, matchCondition);
         return StreamSupport.stream(recipes.spliterator(), false)
                 .map((recipe) -> new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, recipe,
-                        craftingNetwork == null ? -1 : craftingNetwork.getEstimatedRecipeDuration(channel, recipe)))
+                        craftingNetwork == null ? -1 : craftingNetwork.getEstimatedRecipeDuration(channel, recipe),
+                        getCraftingMachines(recipeCraftingInterfaces.get(recipe), machineCache)))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Determine the distinct machines that are targeted by the given crafting interfaces.
+     * @param craftingInterfaces The crafting interfaces that expose a recipe.
+     * @param machineCache A cache of machines by crafting interface.
+     * @return The machines, without duplicates.
+     */
+    public static List<ItemStack> getCraftingMachines(Collection<ICraftingInterface> craftingInterfaces,
+                                                      Map<ICraftingInterface, ItemStack> machineCache) {
+        List<ItemStack> craftingMachines = Lists.newArrayList();
+        for (ICraftingInterface craftingInterface : craftingInterfaces) {
+            ItemStack machine = machineCache.computeIfAbsent(craftingInterface, ICraftingInterface::getTargetMachineItem);
+            // Different interfaces can target the same machine type, which we only want to show once
+            if (!machine.isEmpty() && craftingMachines.stream()
+                    .noneMatch(existing -> ItemStack.isSameItemSameComponents(existing, machine))) {
+                craftingMachines.add(machine);
+            }
+        }
+        return craftingMachines;
     }
 
     @Override
     public CompoundTag serializeCraftingOption(HolderLookup.Provider lookupProvider, TerminalCraftingOptionRecipeDefinition craftingOption) {
         CompoundTag tag = IRecipeDefinition.serialize(lookupProvider, craftingOption.getRecipe());
         tag.putLong("estimatedTickDuration", craftingOption.getEstimatedTickDuration());
+        List<ItemStack> craftingMachines = craftingOption.getCraftingMachines();
+        if (!craftingMachines.isEmpty()) {
+            ListTag craftingMachinesTag = new ListTag();
+            for (ItemStack craftingMachine : craftingMachines) {
+                craftingMachinesTag.add(craftingMachine.save(lookupProvider));
+            }
+            tag.put("craftingMachines", craftingMachinesTag);
+        }
         return tag;
     }
 
     @Override
     public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(HolderLookup.Provider lookupProvider, IngredientComponent<T, M> ingredientComponent, CompoundTag tag) throws IllegalArgumentException {
+        List<ItemStack> craftingMachines = Lists.newArrayList();
+        for (Tag craftingMachineTag : tag.getList("craftingMachines", Tag.TAG_COMPOUND)) {
+            ItemStack.parse(lookupProvider, craftingMachineTag).ifPresent(craftingMachines::add);
+        }
         return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent,
                 IRecipeDefinition.deserialize(lookupProvider, tag),
-                tag.contains("estimatedTickDuration", Tag.TAG_LONG) ? tag.getLong("estimatedTickDuration") : -1);
+                tag.contains("estimatedTickDuration", Tag.TAG_LONG) ? tag.getLong("estimatedTickDuration") : -1,
+                craftingMachines);
     }
 
     @Override
