@@ -1,10 +1,15 @@
 package org.cyclops.integratedterminals.core.terminalstorage.slot;
 
+import com.google.common.collect.Lists;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
@@ -16,6 +21,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredientsTooltip;
+import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionMachinesTooltip;
 import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageChannels;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
@@ -59,16 +65,16 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
             boolean hovering = TooltipRenderHelpers.isHovering(gui, x, y,
                     GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY);
             List<List<IPrototypedIngredient<?, ?>>> inputs = hovering ? getInputs() : List.of();
+            List<ItemStack> machines = hovering ? getCraftingOption().getCraftingOption().getCraftingMachines() : List.of();
             viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY,
-                    hovering ? getTooltipLines(pendingCraftingJobOutput, inputs, tab, channel, label) : null,
-                    inputs.isEmpty() ? null : new CraftingOptionIngredientsTooltip(inputs));
+                    hovering ? getTooltipLines(pendingCraftingJobOutput, tab, channel, label) : null,
+                    getTooltipElements(machines, inputs));
         }
         drawCraftingJobOverlay(guiGraphics, layer, x, y, pendingCraftingJobOutput);
     }
 
     @OnlyIn(Dist.CLIENT)
     protected List<Component> getTooltipLines(@Nullable PendingCraftingJobOutput<T> pendingCraftingJobOutput,
-                                              List<List<IPrototypedIngredient<?, ?>>> inputs,
                                               ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         List<Component> tooltipLines = createTooltipLines(pendingCraftingJobOutput, tab, channel, label);
         // An unknown duration says nothing here, so it is left out rather than shown as a placeholder
@@ -76,10 +82,6 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         if (estimatedTickDuration >= 0) {
             tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.duration",
                     GuiCraftingPlan.getDurationValue(estimatedTickDuration)));
-        }
-        if (!inputs.isEmpty()) {
-            tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
-                    .withStyle(ChatFormatting.YELLOW));
         }
         return tooltipLines;
     }
@@ -93,6 +95,36 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         return channel.isPresent()
                 ? List.of(TerminalStorageChannels.createChannelLine(channel.getAsInt()))
                 : List.of();
+    }
+
+    /**
+     * Show the machines that this crafting option is crafted in, and the inputs that it requires,
+     * each as a labelled grid of icons.
+     *
+     * @param machines The crafting machines.
+     * @param inputs The required inputs, with their alternatives.
+     * @return The tooltip elements.
+     */
+    @OnlyIn(Dist.CLIENT)
+    protected List<Either<FormattedText, TooltipComponent>> getTooltipElements(List<ItemStack> machines,
+                                                                              List<List<IPrototypedIngredient<?, ?>>> inputs) {
+        List<Either<FormattedText, TooltipComponent>> tooltipElements = Lists.newArrayList();
+        if (!machines.isEmpty()) {
+            // Only a single machine can be named on the label, otherwise the icons have to speak for themselves
+            tooltipElements.add(Either.left(machines.size() == 1
+                    ? Component.translatable("gui.integratedterminals.terminal_storage.tooltip.crafting_machine",
+                            machines.get(0).getHoverName()).withStyle(ChatFormatting.YELLOW)
+                    : Component.translatable("gui.integratedterminals.terminal_storage.tooltip.crafting_machines")
+                            .withStyle(ChatFormatting.YELLOW)));
+            tooltipElements.add(Either.right(new CraftingOptionMachinesTooltip(machines)));
+        }
+        if (!inputs.isEmpty()) {
+            tooltipElements.add(Either.left(Component
+                    .translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
+                    .withStyle(ChatFormatting.YELLOW)));
+            tooltipElements.add(Either.right(new CraftingOptionIngredientsTooltip(inputs)));
+        }
+        return tooltipElements;
     }
 
     /**
