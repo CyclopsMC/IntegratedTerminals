@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -159,6 +160,43 @@ public class GameTestCraftingJobNotify {
                     helper.assertTrue(collector.notified.size() == 1,
                             "Expected exactly one notification for a nested job, but got "
                                     + collector.notified.size());
+                    collector.stop();
+                })
+                .thenSucceed();
+    }
+
+    /**
+     * A job that is distributed over several crafting interfaces notifies for each of its split jobs,
+     * together accounting for the full requested amount. The toast groups them into a single one.
+     */
+    @GameTest(template = "empty10", templateNamespace = Reference.MOD_ID, timeoutTicks = 4000)
+    public void testDistributedJobNotifiesForWholeRequest(GameTestHelper helper) {
+        GameTestHelpersIntegratedCrafting.INetworkPositions<PartTypeInterfaceCrafting.State> positions =
+                GameTestHelpersIntegratedCrafting.createBasicNetwork(helper, POS, false,
+                        Blocks.CRAFTING_TABLE, Blocks.CRAFTING_TABLE);
+
+        ChestBlockEntity chest = helper.getBlockEntity(POS.east());
+        chest.setItem(0, new ItemStack(Items.OAK_PLANKS, 64));
+        // Both interfaces know the recipe, so the job is split over the two of them
+        for (int i = 0; i < positions.interfaceRecipeAdders().size(); i++) {
+            positions.interfaceRecipeAdders().get(i).accept(Triple.of(0, RecipeType.CRAFTING,
+                    ResourceLocation.fromNamespaceAndPath("minecraft", "chest")));
+        }
+
+        UUID initiator = UUID.randomUUID();
+        NotifyCollector collector = NotifyCollector.start(initiator);
+        helper.startSequence()
+                .thenIdle(20)
+                .thenExecute(() -> startJob(helper, initiator, new ItemStack(Items.CHEST, 4)))
+                .thenWaitUntil(() -> helper.assertTrue(!hasRunningJobs(helper),
+                        "The crafting jobs did not finish"))
+                .thenExecute(() -> {
+                    helper.assertTrue(collector.notified.size() > 1,
+                            "Expected the job to be split over both crafting interfaces, but got "
+                                    + collector.notified.size() + " notification(s)");
+                    int total = collector.notified.stream().mapToInt(CraftingJob::getAmountTotal).sum();
+                    helper.assertTrue(total == 4,
+                            "Expected the notifications to account for all 4 crafted chests, but got " + total);
                     collector.stop();
                 })
                 .thenSucceed();
