@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.NeoForge;
+import org.cyclops.integrateddynamics.api.PartStateException;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.network.INetwork;
@@ -84,6 +85,20 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
 
     public Optional<IPartContainer> getPartContainer() {
         return partContainer;
+    }
+
+    @Override
+    public boolean isEnderUpgraded() {
+        if (this.partContainer == null) {
+            // This can be called from the super constructor, before this field is assigned
+            return false;
+        }
+        try {
+            return getPartState().map(PartTypeTerminalStorage.State::isEnderUpgraded).orElse(false);
+        } catch (PartStateException e) {
+            // The part was removed while its gui was open
+            return false;
+        }
     }
 
     @Override

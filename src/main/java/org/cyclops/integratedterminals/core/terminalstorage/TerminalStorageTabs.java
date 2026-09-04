@@ -38,6 +38,11 @@ public class TerminalStorageTabs {
                 && ingredientComponentItemStack.getCapability(Capabilities.PositionedAddonsNetworkIngredientsHandler.INGREDIENT).isPresent()) {
             TerminalStorageTabs.REGISTRY.register(new TerminalStorageTabIngredientComponentItemStackCrafting(ingredientComponentItemStack));
         }
+
+        // The ender chest tab is only shown in terminals that have been ender-upgraded.
+        // This event is fired once per ingredient component,
+        // so re-register the tab to keep it after all ingredient component tabs.
+        TerminalStorageTabs.REGISTRY.registerLast(new TerminalStorageTabEnderChest());
     }
 
 }
