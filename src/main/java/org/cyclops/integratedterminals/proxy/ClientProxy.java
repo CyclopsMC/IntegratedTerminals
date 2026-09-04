@@ -16,7 +16,9 @@ import org.cyclops.cyclopscore.proxy.ClientProxyComponent;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.client.gui.tooltip.ClientCraftingOptionIngredientsTooltip;
+import org.cyclops.integratedterminals.client.gui.tooltip.ClientCraftingOptionMachinesTooltip;
 import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredientsTooltip;
+import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionMachinesTooltip;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemOpenGenericPacket;
 import org.lwjgl.glfw.GLFW;
@@ -69,6 +71,7 @@ public class ClientProxy extends ClientProxyComponent {
 
     public void registerClientTooltipComponentFactories(RegisterClientTooltipComponentFactoriesEvent event) {
         event.register(CraftingOptionIngredientsTooltip.class, ClientCraftingOptionIngredientsTooltip::new);
+        event.register(CraftingOptionMachinesTooltip.class, ClientCraftingOptionMachinesTooltip::new);
     }
 
     @Override

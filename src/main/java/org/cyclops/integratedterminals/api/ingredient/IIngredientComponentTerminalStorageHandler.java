@@ -5,6 +5,8 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import com.mojang.datafixers.util.Either;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.network.chat.Component;
@@ -76,12 +78,13 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @param mouseX The mouse X position.
      * @param mouseY The mouse Y position.
      * @param additionalTooltipLines The additional tooltip lines to add.
-     * @param additionalTooltipComponent An optional visual tooltip component to render below the tooltip lines.
+     * @param additionalTooltipElements Optional elements to render below the tooltip lines,
+     *                                   which can mix text and visual components.
      */
     @OnlyIn(Dist.CLIENT)
     public void drawInstance(GuiGraphics guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
-                             @Nullable TooltipComponent additionalTooltipComponent);
+                             @Nullable List<Either<FormattedText, TooltipComponent>> additionalTooltipElements);
 
     /**
      * Show the quantity of the given instance on the second tooltip line.

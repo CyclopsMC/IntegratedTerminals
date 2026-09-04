@@ -18,6 +18,8 @@
     "gui.integratedterminals.terminal_storage.no_tabs": "No tabs available. Connect storage to this network with an interface.",
     "gui.integratedterminals.terminal_storage.ender_chest": "Ender Storage",
     "gui.integratedterminals.terminal_storage.craft": "craft",
+    "gui.integratedterminals.terminal_storage.tooltip.crafting_machine": "Crafted In: %s",
+    "gui.integratedterminals.terminal_storage.tooltip.crafting_machines": "Crafted In:",
     "gui.integratedterminals.terminal_storage.tooltip.requirements": "Crafting Requirements:",
     "gui.integratedterminals.terminal_storage.tooltip.crafting": "Being crafted: %s",
     "gui.integratedterminals.terminal_storage.tooltip.duration": "Estimated: %s per craft",

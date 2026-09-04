@@ -31,9 +31,9 @@ public final class TooltipRenderHelpers {
     /**
      * Render a tooltip if the mouse hovers over the given region.
      *
-     * If no visual component is given, this is equivalent to {@link GuiHelpers}'s tooltip rendering.
+     * If no additional elements are given, this is equivalent to {@link GuiHelpers}'s tooltip rendering.
      * Otherwise, the tooltip is rendered by vanilla,
-     * so that the visual component can be rendered below the tooltip lines.
+     * so that visual components can be rendered below the tooltip lines.
      *
      * This must be called while rendering the foreground layer of the given gui,
      * as the given position is expected to be relative to the gui.
@@ -47,19 +47,20 @@ public final class TooltipRenderHelpers {
      * @param mouseX The mouse X position.
      * @param mouseY The mouse Y position.
      * @param linesSupplier A supplier of the tooltip lines.
-     * @param visualComponent An optional visual tooltip component.
+     * @param additionalElements Optional elements to append below the tooltip lines,
+     *                           which can mix text and visual components.
      */
     public static void renderTooltip(AbstractContainerScreen gui, GuiGraphics guiGraphics, int x, int y, int width, int height,
                                      int mouseX, int mouseY, Supplier<List<Component>> linesSupplier,
-                                     @Nullable TooltipComponent visualComponent) {
-        if (visualComponent == null) {
+                                     @Nullable List<Either<FormattedText, TooltipComponent>> additionalElements) {
+        if (additionalElements == null || additionalElements.isEmpty()) {
             GuiHelpers.renderTooltip(gui, guiGraphics.pose(), x, y, width, height, mouseX, mouseY, linesSupplier);
         } else if (isHovering(gui, x, y, width, height, mouseX, mouseY)) {
             List<Either<FormattedText, TooltipComponent>> elements = Lists.newArrayList();
             for (Component line : linesSupplier.get()) {
                 elements.add(Either.left(line));
             }
-            elements.add(Either.right(visualComponent));
+            elements.addAll(additionalElements);
 
             // Just like GuiHelpers#renderTooltip, don't write to the depth buffer,
             // so that anything that is drawn after this tooltip is not occluded by it.
