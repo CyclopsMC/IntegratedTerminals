@@ -87,7 +87,7 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     }
 
     /**
-     * Show the machines that this crafting option is crafted in, and the inputs that it requires,
+     * Show the inputs that this crafting option requires, and the machines that it is crafted in,
      * each as a labelled grid of icons.
      *
      * @param machines The crafting machines.
@@ -98,6 +98,12 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
     protected List<Either<FormattedText, TooltipComponent>> getTooltipElements(List<ItemStack> machines,
                                                                               List<List<IPrototypedIngredient<?, ?>>> inputs) {
         List<Either<FormattedText, TooltipComponent>> tooltipElements = Lists.newArrayList();
+        if (!inputs.isEmpty()) {
+            tooltipElements.add(Either.left(Component
+                    .translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
+                    .withStyle(ChatFormatting.YELLOW)));
+            tooltipElements.add(Either.right(new CraftingOptionIngredientsTooltip(inputs)));
+        }
         if (!machines.isEmpty()) {
             // Only a single machine can be named on the label, otherwise the icons have to speak for themselves
             tooltipElements.add(Either.left(machines.size() == 1
@@ -106,12 +112,6 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
                     : Component.translatable("gui.integratedterminals.terminal_storage.tooltip.crafting_machines")
                             .withStyle(ChatFormatting.YELLOW)));
             tooltipElements.add(Either.right(new CraftingOptionMachinesTooltip(machines)));
-        }
-        if (!inputs.isEmpty()) {
-            tooltipElements.add(Either.left(Component
-                    .translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
-                    .withStyle(ChatFormatting.YELLOW)));
-            tooltipElements.add(Either.right(new CraftingOptionIngredientsTooltip(inputs)));
         }
         return tooltipElements;
     }
