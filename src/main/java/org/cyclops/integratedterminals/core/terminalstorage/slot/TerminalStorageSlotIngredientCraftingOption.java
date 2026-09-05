@@ -1,6 +1,5 @@
 package org.cyclops.integratedterminals.core.terminalstorage.slot;
 
-import com.google.common.collect.Lists;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,6 +16,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCl
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredientsTooltip;
 import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageChannels;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutput;
@@ -24,6 +24,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalCra
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.OptionalInt;
 
 /**
  * An ingredient slot for a crafting option.
@@ -53,28 +54,37 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
             drawCraftLabel(guiGraphics, x, y);
         } else {
             // This is called for all visible slots on every frame,
-            // so only determine the requirements when they are actually going to be shown.
-            List<List<IPrototypedIngredient<?, ?>>> inputs = TooltipRenderHelpers.isHovering(gui, x, y,
-                    GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY)
-                    ? getInputs() : List.of();
+            // so only determine the tooltip contents when they are actually going to be shown.
+            boolean hovering = TooltipRenderHelpers.isHovering(gui, x, y,
+                    GuiHelpers.SLOT_SIZE_INNER, GuiHelpers.SLOT_SIZE_INNER, mouseX, mouseY);
+            List<List<IPrototypedIngredient<?, ?>>> inputs = hovering ? getInputs() : List.of();
             viewHandler.drawInstance(guiGraphics, getInstance(), maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY,
-                    getTooltipLines(pendingCraftingJobOutput, inputs),
+                    hovering ? getTooltipLines(pendingCraftingJobOutput, inputs, tab, channel, label) : null,
                     inputs.isEmpty() ? null : new CraftingOptionIngredientsTooltip(inputs));
         }
         drawCraftingJobOverlay(guiGraphics, layer, x, y, pendingCraftingJobOutput);
     }
 
     protected List<Component> getTooltipLines(@Nullable PendingCraftingJobOutput<T> pendingCraftingJobOutput,
-                                              List<List<IPrototypedIngredient<?, ?>>> inputs) {
-        List<Component> tooltipLines = Lists.newArrayList();
-        if (pendingCraftingJobOutput != null) {
-            addCraftingJobTooltipLines(tooltipLines, pendingCraftingJobOutput);
-        }
+                                              List<List<IPrototypedIngredient<?, ?>>> inputs,
+                                              ITerminalStorageTabClient tab, int channel, @Nullable String label) {
+        List<Component> tooltipLines = createTooltipLines(pendingCraftingJobOutput, tab, channel, label);
         if (!inputs.isEmpty()) {
             tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
                     .withStyle(ChatFormatting.YELLOW));
         }
         return tooltipLines;
+    }
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    protected List<Component> createChannelTooltipLines(ITerminalStorageTabClient tab) {
+        // Contrary to stored ingredients, a crafting option is only available in a single channel.
+        OptionalInt channel = ((TerminalStorageTabIngredientComponentClient<T, M>) tab)
+                .getCraftingOptionChannel(getCraftingOption());
+        return channel.isPresent()
+                ? List.of(TerminalStorageChannels.createChannelLine(channel.getAsInt()))
+                : List.of();
     }
 
     /**
