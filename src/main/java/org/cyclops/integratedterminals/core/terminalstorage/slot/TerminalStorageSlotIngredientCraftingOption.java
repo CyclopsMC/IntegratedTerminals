@@ -14,6 +14,7 @@ import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredientsTooltip;
 import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageChannels;
@@ -65,10 +66,17 @@ public class TerminalStorageSlotIngredientCraftingOption<T, M> extends TerminalS
         drawCraftingJobOverlay(guiGraphics, layer, x, y, pendingCraftingJobOutput);
     }
 
+    @OnlyIn(Dist.CLIENT)
     protected List<Component> getTooltipLines(@Nullable PendingCraftingJobOutput<T> pendingCraftingJobOutput,
                                               List<List<IPrototypedIngredient<?, ?>>> inputs,
                                               ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         List<Component> tooltipLines = createTooltipLines(pendingCraftingJobOutput, tab, channel, label);
+        // An unknown duration says nothing here, so it is left out rather than shown as a placeholder
+        long estimatedTickDuration = getCraftingOption().getCraftingOption().getEstimatedTickDuration();
+        if (estimatedTickDuration >= 0) {
+            tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.duration",
+                    GuiCraftingPlan.getDurationValue(estimatedTickDuration)));
+        }
         if (!inputs.isEmpty()) {
             tooltipLines.add(Component.translatable("gui.integratedterminals.terminal_storage.tooltip.requirements")
                     .withStyle(ChatFormatting.YELLOW));

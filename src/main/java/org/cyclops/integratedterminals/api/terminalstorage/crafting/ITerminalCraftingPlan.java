@@ -43,6 +43,14 @@ public interface ITerminalCraftingPlan<I> {
     public long getCraftingQuantity();
 
     /**
+     * @return The number of instances that will be crafted in total by this job,
+     *         including the ones that were crafted already.
+     *         For jobs that have not started crafting yet,
+     *         this is equal to {@link #getCraftingQuantity()}.
+     */
+    public long getCraftingQuantityTotal();
+
+    /**
      * @return The ingredients within the storage buffer.
      */
     public List<IPrototypedIngredient<?, ?>> getBufferedIngredients();
@@ -63,6 +71,19 @@ public interface ITerminalCraftingPlan<I> {
      * @return The tick duration for this job. -1 indicates no duration.
      */
     public long getTickDuration();
+
+    /**
+     * Contrary to {@link #getTickDuration()}, which indicates how long this job has been running already,
+     * this is an estimation of how long this job takes from start to finish.
+     *
+     * @return The estimated total tick duration for this job. -1 indicates an unknown duration.
+     */
+    public long getEstimatedTickDurationTotal();
+
+    /**
+     * @return The estimated tick duration until this job is finished. -1 indicates an unknown duration.
+     */
+    public long getEstimatedTickDurationRemaining();
 
     /**
      * @return The channel id, or -1 for non-applicable.
