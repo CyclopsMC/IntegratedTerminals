@@ -1,8 +1,21 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.9.0"></a>
+## [26.1.2-1.9.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.8.0...26.1.2-1.9.0) - 2026-09-05 19:05:05
+
+
+### Added
+* Show a toast when a requested crafting job is completed (#214), Closes CyclopsMC/IntegratedCrafting#175
+* Add ender-upgradable storage terminals with an ender chest tab (#213), Closes #177
+* Show crafting plan progress and duration estimations (#211), Closes #145
+* Allow ordering craftable ingredients first or last in the storage terminal (#212), Closes #128
+* Show a hint in the storage terminal when no tab is selected (#215)
+* Show icons for crafting requirements (#210), Closes #206
+* Show a spinner overlay on ingredients that are being crafted (#209), Closes #138
+
 <a name="26.1.2-1.8.0"></a>
-## [26.1.2-1.8.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.7.1...26.1.2-1.8.0) - 2026-08-24 20:12:29
+## [26.1.2-1.8.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.7.1...26.1.2-1.8.0) - 2026-08-24 20:12:29 +0200
 
 
 ### Changed
