@@ -410,6 +410,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected List<InstanceWithMetadata<T>> getFilteredIngredientsView(int channel) {
         updateSortingPausedState(channel);
         if (this.predictions.removeExpired()) {
+            this.lastChangeId++;
             // Predictions are applied to all channel views, so all of them have to be rebuilt
             this.filteredIngredientsViews.clear();
         }

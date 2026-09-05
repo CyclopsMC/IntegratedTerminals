@@ -13,6 +13,9 @@ import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
+
+import java.util.List;
 
 /**
  * Game tests for the client-side simulation of storage terminal clicks.
@@ -140,6 +143,34 @@ public class GameTestTerminalStorageClickPredictions {
 
         helper.assertTrue(moved.getCount() == 32, "The whole slot should be moved");
         helper.assertTrue(menu.getSlot(SLOT_START).getItem().isEmpty(), "The slot should be emptied");
+
+        helper.succeed();
+    }
+
+    /**
+     * The server only sends its full container state when it changed nothing itself,
+     * as that is the only case in which a client-side prediction is not corrected by the regular sync.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testUnchangedContainerIsDetected(GameTestHelper helper) {
+        AbstractContainerMenu menu = createMenu(helper);
+        menu.getSlot(SLOT_START).set(new ItemStack(Items.STONE, 32));
+        List<ItemStack> before = TerminalStorageTabIngredientComponentServer.copyContainerContents(menu);
+
+        helper.assertTrue(TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
+                "An untouched container should be unchanged");
+
+        menu.getSlot(SLOT_START).getItem().shrink(1);
+        helper.assertTrue(!TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
+                "A changed quantity should be detected");
+
+        menu.getSlot(SLOT_START).set(new ItemStack(Items.STONE, 32));
+        helper.assertTrue(TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
+                "A restored container should be unchanged again");
+
+        menu.getSlot(SLOT_START).set(new ItemStack(Items.DIRT, 32));
+        helper.assertTrue(!TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
+                "A changed item should be detected");
 
         helper.succeed();
     }

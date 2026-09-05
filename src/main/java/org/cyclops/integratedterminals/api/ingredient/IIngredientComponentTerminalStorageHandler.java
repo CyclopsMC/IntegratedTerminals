@@ -191,6 +191,10 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      *
      * The container is modified, the storage is not, as the client has no storage to modify.
      *
+     * This is part of this capability, and not a helper next to its only caller,
+     * so that a handler whose movements can not run client-side can opt out of being predicted
+     * by returning an empty instance here.
+     *
      * @param container The client-side container to insert to.
      * @param containerSlotStart The container slot to start from.
      * @param containerSlotEnd The container slot to end at (exclusive).
@@ -249,6 +253,10 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
     /**
      * Run the given movement against a storage that holds the given available quantity of the given instance,
      * and determine how much was taken out of it.
+     *
+     * The storage that is simulated has no rate limit, while the network may have one,
+     * in which case the prediction moves more than the server will.
+     * The client can not know that limit, so such a prediction is left to expire.
      */
     private T predictMovement(long availableQuantity, T instance,
                               BiConsumer<IIngredientComponentStorage<T, M>, T> movement) {

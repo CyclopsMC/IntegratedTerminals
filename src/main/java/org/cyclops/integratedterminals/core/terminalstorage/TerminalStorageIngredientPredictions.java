@@ -74,6 +74,12 @@ public class TerminalStorageIngredientPredictions<T, M> {
      * Without this, a second click would briefly be shown as undone
      * when the server confirms the first one.
      *
+     * Predictions are matched on their instance only, deliberately not on their channel:
+     * a click in the wildcard channel is stored under that channel,
+     * while the server confirms it in the channel it actually happened in.
+     * The cost is that unrelated network activity for the same instance confirms a prediction early,
+     * after which the shown quantity falls back to the server's until the real change arrives.
+     *
      * @param instances The changed instances.
      * @param addition If the instances were added, otherwise they were removed.
      * @return If at least one prediction was confirmed.

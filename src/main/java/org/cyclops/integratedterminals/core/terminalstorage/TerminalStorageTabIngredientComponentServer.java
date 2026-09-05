@@ -9,6 +9,8 @@ import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
@@ -474,6 +476,7 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
 
         boolean updateActivePlayerStack = false;
+        List<ItemStack> containerBefore = copyContainerContents(container);
 
         switch (clickType) {
             case STORAGE_QUICK_MOVE:
@@ -513,10 +516,31 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             player.connection.send(new ClientboundContainerSetSlotPacket(-1, 0, 0, container.getCarried()));
         }
 
-        // Send the container state as we know it, so that a client that predicted this click
-        // is corrected when its prediction was wrong.
-        // Without this, a slot that the client changed but the server did not would stay wrong,
-        // as only slots that changed server-side are sent otherwise.
-        container.broadcastFullState();
+        // A client that predicted this click has already applied it to its own container.
+        // The slots that we changed are sent to it as usual, which confirms or corrects them,
+        // but a slot that only the client changed is not sent, as nothing changed for us.
+        // That only happens when we moved nothing at all, so send our full state in that case.
+        // Doing that after every click instead would undo the predictions of any click
+        // that the player made in the meantime, until the server has caught up with those as well.
+        if (isUnchanged(containerBefore, container)) {
+            container.broadcastFullState();
+        }
+    }
+
+    public static List<ItemStack> copyContainerContents(AbstractContainerMenu container) {
+        List<ItemStack> contents = Lists.newArrayListWithExpectedSize(container.slots.size());
+        for (Slot slot : container.slots) {
+            contents.add(slot.getItem().copy());
+        }
+        return contents;
+    }
+
+    public static boolean isUnchanged(List<ItemStack> contentsBefore, AbstractContainerMenu container) {
+        for (int i = 0; i < contentsBefore.size(); i++) {
+            if (!ItemStack.matches(contentsBefore.get(i), container.getSlot(i).getItem())) {
+                return false;
+            }
+        }
+        return true;
     }
 }
