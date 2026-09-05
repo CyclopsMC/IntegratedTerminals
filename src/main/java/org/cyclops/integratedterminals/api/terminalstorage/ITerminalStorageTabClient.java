@@ -137,6 +137,22 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
                                boolean isQuickMove);
 
     /**
+     * If {@link #handleClick} should already be called when the mouse button goes down,
+     * instead of when it is released.
+     *
+     * Clicks are handled on release by default, as the press may also be the start of a drag.
+     * Tabs can return true for the clicks that can never start a drag, so that they are applied instantly.
+     * This is only called when the player's cursor is empty.
+     *
+     * @param channel The active channel.
+     * @param hoveringStorageSlot The storage slot id that is being hovered. -1 if none.
+     * @return If the click should be handled on press.
+     */
+    public default boolean isClickHandledOnPress(int channel, int hoveringStorageSlot) {
+        return false;
+    }
+
+    /**
      * Called when a mouse scroll happens in a gui.
      * @param container The active container.
      * @param channel The active channel.

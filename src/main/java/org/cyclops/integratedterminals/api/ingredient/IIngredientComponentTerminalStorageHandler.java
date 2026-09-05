@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
+import com.google.common.collect.Iterables;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.entity.player.Player;
@@ -14,12 +15,16 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
+import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
+import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionHelpers;
+import org.cyclops.cyclopscore.ingredient.storage.IngredientComponentStorageCollectionWrapper;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
 /**
@@ -179,6 +184,93 @@ public interface IIngredientComponentTerminalStorageHandler<T, M> {
      * @return The instance quantity that was moved.
      */
     public T insertIntoContainer(IIngredientComponentStorage<T, M> storage, AbstractContainerMenu container, int containerSlot, T maxInstance, @Nullable Player player, boolean transferFullSelection);
+
+    /**
+     * Simulate {@link #insertMaxIntoContainer(IIngredientComponentStorage, AbstractContainerMenu, int, int, Object)}
+     * against the client-side container, so that its effect can be shown before the server confirms it.
+     *
+     * The container is modified, the storage is not, as the client has no storage to modify.
+     *
+     * This is part of this capability, and not a helper next to its only caller,
+     * so that a handler whose movements can not run client-side can opt out of being predicted
+     * by returning an empty instance here.
+     *
+     * @param container The client-side container to insert to.
+     * @param containerSlotStart The container slot to start from.
+     * @param containerSlotEnd The container slot to end at (exclusive).
+     * @param instance The instance to move.
+     * @param availableQuantity The quantity that is expected to be available in the storage.
+     * @return The instance quantity that would be moved.
+     */
+    public default T predictInsertMaxIntoContainer(AbstractContainerMenu container, int containerSlotStart,
+                                                   int containerSlotEnd, T instance, long availableQuantity) {
+        return predictMovement(availableQuantity, instance, (storage, movedInstance) ->
+                insertMaxIntoContainer(storage, container, containerSlotStart, containerSlotEnd, movedInstance));
+    }
+
+    /**
+     * Simulate {@link #insertIntoContainer(IIngredientComponentStorage, AbstractContainerMenu, int, Object, Player, boolean)}
+     * against the client-side container, so that its effect can be shown before the server confirms it.
+     *
+     * The container is modified, the storage is not, as the client has no storage to modify.
+     * No player is passed, so that the container slot contents are never picked up by the prediction.
+     * The server may still do so, in which case the prediction simply moves nothing.
+     *
+     * @param container The client-side container to insert to.
+     * @param containerSlot The container slot to insert to.
+     * @param maxInstance The instance to move.
+     * @param transferFullSelection If the selected stack should be moved fully.
+     * @param availableQuantity The quantity that is expected to be available in the storage.
+     * @return The instance quantity that would be moved.
+     */
+    public default T predictInsertIntoContainer(AbstractContainerMenu container, int containerSlot, T maxInstance,
+                                                boolean transferFullSelection, long availableQuantity) {
+        return predictMovement(availableQuantity, maxInstance, (storage, movedInstance) ->
+                insertIntoContainer(storage, container, containerSlot, movedInstance, null, transferFullSelection));
+    }
+
+    /**
+     * Simulate {@link #extractMaxFromContainerSlot(IIngredientComponentStorage, AbstractContainerMenu, int, Inventory, int)}
+     * against the client-side container, so that its effect can be shown before the server confirms it.
+     *
+     * The container is modified, the storage is not, as the client has no storage to modify.
+     *
+     * @param container The client-side container to extract from.
+     * @param containerSlot The container slot to extract from.
+     * @param playerInventory The active player inventory.
+     * @param limit The max limit. -1 is no limit.
+     * @return The instance quantity that would be moved.
+     */
+    public default T predictExtractMaxFromContainerSlot(AbstractContainerMenu container, int containerSlot,
+                                                        Inventory playerInventory, int limit) {
+        IIngredientCollapsedCollectionMutable<T, M> collection = IngredientCollectionHelpers
+                .createCollapsedCollection(getComponent());
+        extractMaxFromContainerSlot(new IngredientComponentStorageCollectionWrapper<>(collection),
+                container, containerSlot, playerInventory, limit);
+        return Iterables.getFirst(collection, getComponent().getMatcher().getEmptyInstance());
+    }
+
+    /**
+     * Run the given movement against a storage that holds the given available quantity of the given instance,
+     * and determine how much was taken out of it.
+     *
+     * The storage that is simulated has no rate limit, while the network may have one,
+     * in which case the prediction moves more than the server will.
+     * The client can not know that limit, so such a prediction is left to expire.
+     */
+    private T predictMovement(long availableQuantity, T instance,
+                              BiConsumer<IIngredientComponentStorage<T, M>, T> movement) {
+        IIngredientMatcher<T, M> matcher = getComponent().getMatcher();
+        if (availableQuantity <= 0) {
+            return matcher.getEmptyInstance();
+        }
+        IIngredientCollapsedCollectionMutable<T, M> collection = IngredientCollectionHelpers
+                .createCollapsedCollection(getComponent());
+        collection.add(matcher.withQuantity(instance, availableQuantity));
+        // The movement may modify the instance it is given, so it never gets the caller's instance
+        movement.accept(new IngredientComponentStorageCollectionWrapper<>(collection), matcher.copy(instance));
+        return matcher.withQuantity(instance, availableQuantity - collection.getQuantity(instance));
+    }
 
     /**
      * Move the ingredient in the active player stack to the storage.

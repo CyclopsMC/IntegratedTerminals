@@ -33,6 +33,7 @@ import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackNam
 import org.cyclops.integratedterminals.capability.ingredient.sorter.ItemStackQuantitySorter;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
+import org.cyclops.integratedterminals.core.terminalstorage.query.IngredientQueryMatchers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 import org.lwjgl.opengl.GL11;
 
@@ -243,16 +244,16 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
     @Override
     @OnlyIn(Dist.CLIENT)
     public Predicate<ItemStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
+        Predicate<String> matcher = IngredientQueryMatchers.containsQuery(query);
         return switch (searchMode) {
-            case MOD -> i -> Optional.ofNullable(i.getItem().getCreatorModId(i))
-                    .orElse("minecraft").toLowerCase(Locale.ENGLISH)
-                    .matches(".*" + query + ".*");
+            case MOD -> i -> matcher.test(Optional.ofNullable(i.getItem().getCreatorModId(i))
+                    .orElse("minecraft").toLowerCase(Locale.ENGLISH));
             case TOOLTIP -> i -> i.getTooltipLines(Item.TooltipContext.of(Minecraft.getInstance().player.registryAccess()), Minecraft.getInstance().player, TooltipFlag.Default.NORMAL).stream()
-                    .anyMatch(s -> s.getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"));
+                    .anyMatch(s -> matcher.test(s.getString().toLowerCase(Locale.ENGLISH)));
             case TAG -> i -> i.getItem().builtInRegistryHolder().tags()
-                    .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                    .filter(tag -> matcher.test(tag.location().toString().toLowerCase(Locale.ENGLISH)))
                     .anyMatch(tag -> !BuiltInRegistries.ITEM.getTag(tag).isEmpty());
-            case DEFAULT -> i -> i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case DEFAULT -> i -> matcher.test(i.getHoverName().getString().toLowerCase(Locale.ENGLISH));
         };
     }
 

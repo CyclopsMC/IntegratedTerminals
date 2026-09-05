@@ -671,6 +671,22 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
+        // Handle clicks that don't have to wait for the mouse button to be released
+        if (this.clicked && tabOptional.isPresent() && getMenu().getCarried().isEmpty()) {
+            ITerminalStorageTabClient<?> tab = tabOptional.get();
+            int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
+            if (tab.isClickHandledOnPress(getMenu().getSelectedChannel(), slot)) {
+                this.clicked = false; // To avoid handling this click again on mouse release
+                Slot playerSlot = getSlotUnderMouse();
+                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
+                        this.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, mouseButton),
+                        this.hasClickedInStorage(mouseX, mouseY),
+                        playerSlot != null ? playerSlot.index : -1, false)) {
+                    return true;
+                }
+            }
+        }
+
         return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 

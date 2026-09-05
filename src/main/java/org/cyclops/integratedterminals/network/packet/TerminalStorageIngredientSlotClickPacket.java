@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import com.google.common.collect.Maps;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -7,6 +8,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -18,6 +20,8 @@ import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
+
+import java.util.Map;
 
 /**
  * Packet for sending a storage slot click event from client to server.
@@ -47,6 +51,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
     private CompoundTag activeStorageInstanceData;
     @CodecField
     private boolean transferFullSelection;
+    @CodecField
+    private CompoundTag predictedContainerSlots;
 
     public TerminalStorageIngredientSlotClickPacket() {
         super((Type) ID);
@@ -56,7 +62,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
                                                     TerminalClickType clickType,
                                                     int channel, T hoveringStorageInstance,
                                                     int hoveredContainerSlot, long moveQuantityPlayerSlot,
-                                                    T activeStorageInstance, boolean transferFullSelection) {
+                                                    T activeStorageInstance, boolean transferFullSelection,
+                                                    Map<Integer, ItemStack> predictedContainerSlots) {
         super((Type) ID);
         this.tabId = tabId;
         this.clickType = clickType.ordinal();
@@ -70,6 +77,11 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
         this.activeStorageInstanceData = new CompoundTag();
         this.activeStorageInstanceData.put("i", serializer.serializeInstance(lookupProvider, activeStorageInstance));
         this.transferFullSelection = transferFullSelection;
+        this.predictedContainerSlots = new CompoundTag();
+        for (Map.Entry<Integer, ItemStack> entry : predictedContainerSlots.entrySet()) {
+            this.predictedContainerSlots.put(String.valueOf(entry.getKey()),
+                    entry.getValue().saveOptional(lookupProvider));
+        }
     }
 
     @Override
@@ -93,8 +105,22 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
             T hoveringStorageInstance = serializer.deserializeInstance(world.registryAccess(), this.hoveringStorageInstanceData.get("i"));
             T activeInstance = serializer.deserializeInstance(world.registryAccess(), this.activeStorageInstanceData.get("i"));
             tab.handleStorageSlotClick(container, player, getClickType(), getChannel(), hoveringStorageInstance,
-                    hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection);
+                    hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection,
+                    getPredictedContainerSlots(world.registryAccess()));
         }
+    }
+
+    /**
+     * @param lookupProvider A lookup provider.
+     * @return The container slot contents that the client has predicted for this click, by slot id.
+     */
+    public Map<Integer, ItemStack> getPredictedContainerSlots(HolderLookup.Provider lookupProvider) {
+        Map<Integer, ItemStack> slots = Maps.newHashMap();
+        for (String key : this.predictedContainerSlots.getAllKeys()) {
+            slots.put(Integer.valueOf(key), ItemStack.parseOptional(lookupProvider,
+                    this.predictedContainerSlots.getCompound(key)));
+        }
+        return slots;
     }
 
     public TerminalClickType getClickType() {
