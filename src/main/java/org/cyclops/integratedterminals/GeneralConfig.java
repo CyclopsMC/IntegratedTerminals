@@ -26,6 +26,10 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
     public static boolean terminalStorageDefaultToCraftingPlanTree = false;
     @ConfigurablePropertyCommon(category = "core", comment = "The limit for the number of leaves in a tree-based crafting plan after which it won't be sent to the client anymore.", isCommandable = true, configLocation = ModConfigLocation.SERVER)
     public static int terminalStorageMaxTreePlanSize = 64;
+    @ConfigurablePropertyCommon(category = "core", comment = "If storage terminals can be ender-upgraded with an eye of ender to gain a tab with the player's ender chest contents.", isCommandable = true, configLocation = ModConfigLocation.SERVER)
+    public static boolean terminalStorageTabEnderChestEnabled = true;
+    @ConfigurablePropertyCommon(category = "core", comment = "If ender-upgraded storage terminals should emit ender particles.", isCommandable = true, configLocation = ModConfigLocation.SERVER)
+    public static boolean terminalStorageEnderParticles = false;
 
     @ConfigurablePropertyCommon(category = "machine", comment = "The number of items that should be selected when clicking on an item in the storage terminal.", isCommandable = true)
     public static int guiStorageItemInitialQuantity = 64;
@@ -47,6 +51,9 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
 
     @ConfigurablePropertyCommon(category = "machine", comment = "The update frequency in milliseconds for the crafting jobs gui.", isCommandable = true)
     public static int guiTerminalCraftingJobsUpdateFrequency = 1000;
+
+    @ConfigurablePropertyCommon(category = "machine", comment = "If a toast should be shown when a crafting job that you requested has been completed.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
+    public static boolean craftingJobFinishedToast = true;
 
     @ConfigurablePropertyCommon(category = "core", comment = "The number of threads that the crafting plan calculator can use.", minimalValue = 1, requiresMcRestart = true, configLocation = ModConfigLocation.SERVER)
     public static int craftingPlannerThreads = 2;

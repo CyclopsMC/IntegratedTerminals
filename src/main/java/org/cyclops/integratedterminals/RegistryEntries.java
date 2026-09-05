@@ -6,7 +6,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import org.cyclops.cyclopscore.recipe.type.RecipeCraftingShapelessCustomOutput;
 import org.cyclops.integrateddynamics.core.item.ItemBlockEnergyContainer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobs;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlan;
@@ -38,5 +40,8 @@ public class RegistryEntries {
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CompoundTag>> COMPONENT_TERMINAL_STORAGE_INVENTORIES = DeferredHolder.create(Registries.DATA_COMPONENT_TYPE, Identifier.parse("integratedterminals:terminal_storage_inventories"));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CompoundTag>> COMPONENT_TERMINAL_STORAGE_STATE = DeferredHolder.create(Registries.DATA_COMPONENT_TYPE, Identifier.parse("integratedterminals:terminal_storage_state"));
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> COMPONENT_ENDER_UPGRADED = DeferredHolder.create(Registries.DATA_COMPONENT_TYPE, Identifier.parse("integratedterminals:ender_upgraded"));
+
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<RecipeCraftingShapelessCustomOutput>> RECIPESERIALIZER_TERMINAL_STORAGE_PORTABLE_ENDER_UPGRADE = DeferredHolder.create(Registries.RECIPE_SERIALIZER, Identifier.parse("integratedterminals:crafting_special_terminal_storage_portable_ender_upgrade"));
 
 }

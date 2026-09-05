@@ -29,7 +29,8 @@ public class Images {
     public static final Image BUTTON_MIDDLE_JEI_SYNC = new Image(ICONS, 144, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_EMI_SYNC = new Image(ICONS, 126, 36, 18, 18);
     public static final Image BUTTON_MIDDLE_REI_SYNC = new Image(ICONS, 144, 36, 18, 18);
-    public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_ALL = new Image(ICONS, 162, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_ALL = new Image(ICONS, 216, 18, 18, 18);
+    public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_ALL_CRAFTABLE_FIRST = new Image(ICONS, 162, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_STORAGE = new Image(ICONS, 180, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_FILTER_CRAFTING_CRAFTABLE = new Image(ICONS, 198, 18, 18, 18);
     public static final Image BUTTON_MIDDLE_SCALE_XY = new Image(ICONS, 18, 36, 18, 18);

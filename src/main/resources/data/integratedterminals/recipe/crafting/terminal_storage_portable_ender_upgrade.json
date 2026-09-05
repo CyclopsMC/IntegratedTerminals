@@ -1,0 +1,8 @@
+{
+  "type": "integratedterminals:crafting_special_terminal_storage_portable_ender_upgrade",
+  "category": "misc",
+  "ingredients": [
+    "integratedterminals:terminal_storage_portable",
+    "minecraft:ender_eye"
+  ]
+}

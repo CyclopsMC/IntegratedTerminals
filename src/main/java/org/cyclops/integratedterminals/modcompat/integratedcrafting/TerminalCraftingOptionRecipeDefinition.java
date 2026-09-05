@@ -22,11 +22,25 @@ public class TerminalCraftingOptionRecipeDefinition<T, M> implements ITerminalCr
 
     private final IngredientComponent<T, M> ingredientComponent;
     private final IRecipeDefinition prioritizedRecipe;
+    private final long estimatedTickDuration;
 
+    @Deprecated // TODO: rm in next major
     public TerminalCraftingOptionRecipeDefinition(IngredientComponent<T, M> ingredientComponent,
                                                   IRecipeDefinition prioritizedRecipe) {
+        this(ingredientComponent, prioritizedRecipe, -1);
+    }
+
+    public TerminalCraftingOptionRecipeDefinition(IngredientComponent<T, M> ingredientComponent,
+                                                  IRecipeDefinition prioritizedRecipe,
+                                                  long estimatedTickDuration) {
         this.ingredientComponent = ingredientComponent;
         this.prioritizedRecipe = prioritizedRecipe;
+        this.estimatedTickDuration = estimatedTickDuration;
+    }
+
+    @Override
+    public long getEstimatedTickDuration() {
+        return estimatedTickDuration;
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -27,6 +28,7 @@ import org.cyclops.cyclopscore.client.gui.image.Images;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
@@ -58,6 +60,10 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     protected static final int TICK_DELAY = 30;
 
+    private static final int DURATION_LINE_HEIGHT = 6;
+    private static final int SECONDS_IN_MINUTE = 60;
+    private static final int SECONDS_IN_HOUR = 60 * 60;
+
     private final AbstractContainerScreen parentGui;
     private final int guiLeft;
     private final int guiTop;
@@ -67,6 +73,9 @@ public class GuiCraftingPlan extends AbstractWidget {
     private final WidgetScrollBar scrollBar;
     private final String label;
     private final long tickDuration;
+    private final long estimatedTickDuration;
+    private final boolean estimatedTickDurationRemaining;
+    private final boolean showEstimatedTickDuration;
     private final int channel;
     @Nullable
     private final String initiatorName;
@@ -85,6 +94,12 @@ public class GuiCraftingPlan extends AbstractWidget {
         this.scrollBar.setTotalRows(visibleElements.size());
         this.label = IModHelpers.get().getL10NHelpers().localize(craftingPlan.getUnlocalizedLabel());
         this.tickDuration = craftingPlan.getTickDuration();
+        // Jobs that have not started yet can only show a total estimation, running jobs show what is left of it
+        this.estimatedTickDurationRemaining = craftingPlan.getStatus() != TerminalCraftingJobStatus.UNSTARTED;
+        this.estimatedTickDuration = this.estimatedTickDurationRemaining
+                ? craftingPlan.getEstimatedTickDurationRemaining() : craftingPlan.getEstimatedTickDurationTotal();
+        // Jobs that can not be crafted have nothing to estimate, other jobs show a placeholder until they are measured
+        this.showEstimatedTickDuration = craftingPlan.getStatus().isValid();
         this.channel = craftingPlan.getChannel();
         this.initiatorName = craftingPlan.getInitiatorName();
     }
@@ -234,9 +249,61 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     public static String getDurationString(long tickDuration) {
+        return getDurationString("gui.integratedterminals.terminal_crafting_job.craftingplan.duration", tickDuration);
+    }
+
+    public static String getDurationString(String unlocalizedName, long tickDuration) {
+        return IModHelpers.get().getL10NHelpers().localize(unlocalizedName, getDurationValue(tickDuration));
+    }
+
+    /**
+     * @param tickDuration A tick duration, where -1 indicates an unknown duration.
+     * @return The duration in the coarsest unit that still shows it, or a placeholder if it is unknown.
+     */
+    public static String getDurationValue(long tickDuration) {
+        if (tickDuration < 0) {
+            return IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown");
+        }
+
+        // A clock would round most crafting jobs away to zero, so short durations are shown in seconds
+        if (tickDuration < IModHelpers.get().getMinecraftHelpers().getSecondInTicks() * SECONDS_IN_MINUTE) {
+            return IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.seconds",
+                    getDurationSeconds(tickDuration));
+        }
+        return getDurationClock(tickDuration);
+    }
+
+    /**
+     * @param tickDuration A tick duration below a minute.
+     * @return The duration in seconds, with the decimals that are still meaningful at that magnitude.
+     */
+    public static String getDurationSeconds(long tickDuration) {
+        String format = tickDuration < IModHelpers.get().getMinecraftHelpers().getSecondInTicks()
+                ? "%.2f" : (tickDuration < IModHelpers.get().getMinecraftHelpers().getSecondInTicks() * 10 ? "%.1f" : "%.0f");
+        return String.format(Locale.ROOT, format, (double) tickDuration / IModHelpers.get().getMinecraftHelpers().getSecondInTicks());
+    }
+
+    /**
+     * @param tickDuration A tick duration of at least a minute.
+     * @return The duration as m:ss, or as H:mm:ss from an hour onwards.
+     */
+    public static String getDurationClock(long tickDuration) {
         long durationMs = tickDuration * 1000 / IModHelpers.get().getMinecraftHelpers().getSecondInTicks();
-        return IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
-                DurationFormatUtils.formatDuration(durationMs, "H:mm:ss", true));
+        return DurationFormatUtils.formatDuration(durationMs,
+                tickDuration < IModHelpers.get().getMinecraftHelpers().getSecondInTicks() * SECONDS_IN_HOUR ? "m:ss" : "H:mm:ss", true);
+    }
+
+    /**
+     * @param craftingPlan A flattened crafting plan.
+     * @return The percentage of crafting operations of the plan that are finished, or -1 if unknown.
+     */
+    public static int getProgress(ITerminalCraftingPlanFlat<?> craftingPlan) {
+        long total = craftingPlan.getCraftingQuantityTotal();
+        if (total <= 0) {
+            return -1;
+        }
+        long finished = total - craftingPlan.getCraftingQuantityRemaining();
+        return (int) (finished * 100 / total);
     }
 
     public void drawGuiContainerBackgroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
@@ -260,7 +327,12 @@ public class GuiCraftingPlan extends AbstractWidget {
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+        }
+
+        // Draw estimated duration
+        if (showEstimatedTickDuration) {
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
         }
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
@@ -269,6 +341,43 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     public void drawGuiContainerForegroundLayer(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
+        if (showEstimatedTickDuration) {
+            drawUnknownDurationTooltip(this.parentGui, guiGraphics, getEstimatedDurationString(), estimatedTickDuration,
+                    getX() - 4, getY() - 14, mouseX, mouseY);
+        }
+    }
+
+    protected String getEstimatedDurationString() {
+        return getDurationString(estimatedTickDurationRemaining
+                ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
+                : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
+    }
+
+    /**
+     * Explain an estimated duration that could not be determined, when the mouse hovers over it.
+     *
+     * @param parentGui The gui that the duration is drawn in.
+     * @param guiGraphics The gui graphics.
+     * @param durationString The duration line as it is drawn, to derive its width from.
+     * @param tickDuration The estimated duration, where only an unknown one is explained.
+     * @param x The X position of the duration line, relative to the gui.
+     * @param y The Y position of the duration line, relative to the gui.
+     * @param mouseX The mouse X position.
+     * @param mouseY The mouse Y position.
+     */
+    public static void drawUnknownDurationTooltip(AbstractContainerScreen parentGui, GuiGraphicsExtractor guiGraphics,
+                                                  String durationString, long tickDuration,
+                                                  int x, int y, int mouseX, int mouseY) {
+        if (tickDuration >= 0) {
+            return;
+        }
+        // The line is drawn at half scale, so it only takes up half of the font's width
+        int width = Minecraft.getInstance().font.width(durationString) / 2;
+        IModHelpers.get().getGuiHelpers().renderTooltipOptional(parentGui, guiGraphics, x, y, width, DURATION_LINE_HEIGHT,
+                mouseX, mouseY, () -> Optional.of(Lists.newArrayList(
+                        Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown.title"),
+                        Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.unknown.desc")
+                                .withStyle(ChatFormatting.GRAY))));
     }
 
     @Override

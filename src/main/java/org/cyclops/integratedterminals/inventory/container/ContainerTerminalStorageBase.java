@@ -195,6 +195,20 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
     public abstract ITerminalStorageLocation<L> getLocation();
     public abstract L getLocationInstance();
 
+    /**
+     * @return If this terminal has been ender-upgraded, which unlocks the ender storage tab.
+     */
+    public boolean isEnderUpgraded() {
+        return false;
+    }
+
+    /**
+     * Exposes {@link #moveItemStackTo(ItemStack, int, int, boolean)} to terminal storage tabs.
+     */
+    public boolean moveStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
+        return moveItemStackTo(stack, startIndex, endIndex, reverseDirection);
+    }
+
     @Override
     public void onDirty() {
 
@@ -281,6 +295,15 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
 
     @Override
     public ItemStack quickMoveStack(Player player, int slotID) {
+        // Let the selected tab handle the quick move with regular container semantics, if it wants to
+        ITerminalStorageTabCommon selectedTabCommon = getTabCommon(getSelectedTab());
+        if (selectedTabCommon != null) {
+            Optional<ItemStack> quickMoved = selectedTabCommon.handleQuickMove(this, player, slotID);
+            if (quickMoved.isPresent()) {
+                return quickMoved.get();
+            }
+        }
+
         // Handle any (modded) client-side quick move controls
         if(player.level().isClientSide()) {
             Optional<ITerminalStorageTabClient<?>> tabOptional = this.selectedClientTabProvider.getSelectedClientTab();

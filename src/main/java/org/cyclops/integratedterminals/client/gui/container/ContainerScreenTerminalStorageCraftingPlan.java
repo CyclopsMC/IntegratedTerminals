@@ -2,6 +2,8 @@ package org.cyclops.integratedterminals.client.gui.container;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
@@ -54,7 +56,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
                     addRenderableWidget(this.guiCraftingPlan);
 
                     if (this.craftingPlanFlat != null) {
-                        addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 80, 20,
+                        addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 62, 20,
                                 Component.translatable("gui.integratedterminals.craftingplan.view.flat"),
                                 Component.translatable("gui.integratedterminals.craftingplan.view.flat").withStyle(ChatFormatting.ITALIC),
                                 (b) -> {
@@ -69,7 +71,7 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
                     addRenderableWidget(this.guiCraftingPlanFlat);
 
                     if (this.craftingPlan != null) {
-                        addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 80, 20,
+                        addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 62, 20,
                                 Component.translatable("gui.integratedterminals.craftingplan.view.tree"),
                                 Component.translatable("gui.integratedterminals.craftingplan.view.tree").withStyle(ChatFormatting.ITALIC),
                                 (b) -> {
@@ -123,6 +125,13 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
                 Component.translatable("gui.integratedterminals.terminal_storage.step.back"),
                 (b) -> returnToCraftingOptionAmount(),
                 true));
+
+        addRenderableWidget(Checkbox.builder(Component.translatable("gui.integratedterminals.terminal_storage.step.craft.notify"), font)
+                .pos(leftPos + 72, topPos + 200)
+                .selected(getMenu().isNotifyOnCompletion())
+                .tooltip(Tooltip.create(Component.translatable("gui.integratedterminals.terminal_storage.step.craft.notify.info")))
+                .onValueChange((widget, selected) -> getMenu().setNotifyOnCompletion(selected))
+                .build());
 
         addRenderableWidget(buttonConfirm = new ButtonText(leftPos + 221 + 10 - 50, topPos + 198, 50, 20,
                 Component.translatable("gui.integratedterminals.terminal_storage.step.craft"),

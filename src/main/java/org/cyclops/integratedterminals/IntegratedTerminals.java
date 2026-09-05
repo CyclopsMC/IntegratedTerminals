@@ -19,9 +19,11 @@ import org.cyclops.integrateddynamics.infobook.OnTheDynamicsOfIntegrationBook;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabRegistry;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandlerRegistry;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocationRegistry;
+import org.cyclops.integratedterminals.advancement.criterion.TerminalStorageEnderUpgradedTriggerConfig;
 import org.cyclops.integratedterminals.block.BlockChorusGlassConfig;
 import org.cyclops.integratedterminals.block.BlockMenrilGlassConfig;
 import org.cyclops.integratedterminals.capability.ingredient.TerminalIngredientComponentCapabilities;
+import org.cyclops.integratedterminals.component.DataComponentEnderUpgradedConfig;
 import org.cyclops.integratedterminals.component.DataComponentTerminalStorageInventoriesConfig;
 import org.cyclops.integratedterminals.component.DataComponentTerminalStorageStateConfig;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabRegistry;
@@ -32,12 +34,15 @@ import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalSto
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 import org.cyclops.integratedterminals.gametest.GameTestAdvancementsIntegratedTerminals;
 import org.cyclops.integratedterminals.gametest.GameTestCraftingJobIndication;
+import org.cyclops.integratedterminals.gametest.GameTestCraftingJobNotify;
 import org.cyclops.integratedterminals.gametest.GameTestPendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingOptionIntegratedTerminals;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageEnderChest;
 import org.cyclops.integratedterminals.inventory.container.*;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortableConfig;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
 import org.cyclops.integratedterminals.part.PartTypes;
+import org.cyclops.integratedterminals.recipe.RecipeTerminalStoragePortableEnderUpgradeConfig;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.cyclops.integratedterminals.proxy.CommonProxy;
 
@@ -124,6 +129,11 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
 
         configHandler.addConfigurable(new DataComponentTerminalStorageInventoriesConfig());
         configHandler.addConfigurable(new DataComponentTerminalStorageStateConfig());
+        configHandler.addConfigurable(new DataComponentEnderUpgradedConfig());
+
+        configHandler.addConfigurable(new RecipeTerminalStoragePortableEnderUpgradeConfig());
+
+        configHandler.addConfigurable(new TerminalStorageEnderUpgradedTriggerConfig());
     }
 
     @Override
@@ -141,8 +151,10 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
         return new Class<?>[]{
                 GameTestAdvancementsIntegratedTerminals.class,
                 GameTestCraftingJobIndication.class,
+                GameTestCraftingJobNotify.class,
                 GameTestPendingCraftingJobOutputs.class,
                 GameTestTerminalCraftingOptionIntegratedTerminals.class,
+                GameTestTerminalStorageEnderChest.class,
         };
     }
 

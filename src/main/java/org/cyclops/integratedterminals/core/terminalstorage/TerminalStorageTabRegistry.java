@@ -32,6 +32,12 @@ public class TerminalStorageTabRegistry implements ITerminalStorageTabRegistry {
         return tab;
     }
 
+    @Override
+    public <T extends ITerminalStorageTab> T registerLast(T tab) {
+        tabs.remove(tab.getName().toString());
+        return register(tab);
+    }
+
     @Nullable
     @Override
     public ITerminalStorageTab getTab(Identifier name) {
