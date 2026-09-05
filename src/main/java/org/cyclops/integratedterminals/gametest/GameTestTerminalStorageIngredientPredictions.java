@@ -63,7 +63,7 @@ public class GameTestTerminalStorageIngredientPredictions {
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testRemovalIsSubtracted(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4));
         List<InstanceWithMetadata<ItemStack>> view = createView(new ItemStack(Items.STONE, 10));
         predictions.apply(CHANNEL, view);
 
@@ -78,7 +78,7 @@ public class GameTestTerminalStorageIngredientPredictions {
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testFullRemovalHidesTheInstance(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 10));
         List<InstanceWithMetadata<ItemStack>> view = createView(new ItemStack(Items.STONE, 10),
                 new ItemStack(Items.DIRT, 2));
         predictions.apply(CHANNEL, view);
@@ -90,35 +90,9 @@ public class GameTestTerminalStorageIngredientPredictions {
     }
 
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
-    public void testAdditionIsAdded(GameTestHelper helper) {
-        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), true);
-        List<InstanceWithMetadata<ItemStack>> view = createView(new ItemStack(Items.STONE, 10));
-        predictions.apply(CHANNEL, view);
-
-        helper.assertTrue(getInstance(view, 0).getCount() == 14, "4 stone should have been added");
-
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty", templateNamespace = "cyclopscore")
-    public void testAdditionOfUnshownInstanceIsAdded(GameTestHelper helper) {
-        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.DIRT, 4), true);
-        List<InstanceWithMetadata<ItemStack>> view = createView(new ItemStack(Items.STONE, 10));
-        predictions.apply(CHANNEL, view);
-
-        helper.assertTrue(view.size() == 2, "The new instance should be shown");
-        helper.assertTrue(getInstance(view, 1).getItem() == Items.DIRT, "The new instance should be dirt");
-        helper.assertTrue(getInstance(view, 1).getCount() == 4, "4 dirt should be shown");
-
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testOtherInstancesAreUntouched(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4));
         List<InstanceWithMetadata<ItemStack>> view = createView(new ItemStack(Items.DIRT, 10));
         predictions.apply(CHANNEL, view);
 
@@ -130,7 +104,7 @@ public class GameTestTerminalStorageIngredientPredictions {
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testPredictionsAreShownInTheWildcardChannel(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4));
 
         List<InstanceWithMetadata<ItemStack>> wildcardView = createView(new ItemStack(Items.STONE, 10));
         predictions.apply(IPositionedAddonsNetwork.WILDCARD_CHANNEL, wildcardView);
@@ -148,15 +122,13 @@ public class GameTestTerminalStorageIngredientPredictions {
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testServerChangeConfirmsPrediction(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4));
 
-        helper.assertTrue(!predictions.consume(createChange(new ItemStack(Items.DIRT, 4)), false),
+        helper.assertTrue(!predictions.consume(createChange(new ItemStack(Items.DIRT, 4))),
                 "A change for another instance should not confirm the prediction");
-        helper.assertTrue(!predictions.consume(createChange(new ItemStack(Items.STONE, 4)), true),
-                "A change in the other direction should not confirm the prediction");
         helper.assertTrue(!predictions.isEmpty(), "The prediction should still be pending");
 
-        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 4)), false),
+        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 4))),
                 "A change for the predicted instance should confirm the prediction");
         helper.assertTrue(predictions.isEmpty(), "No predictions should be pending anymore");
 
@@ -170,11 +142,11 @@ public class GameTestTerminalStorageIngredientPredictions {
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testPartialServerChangeKeepsRemainingPrediction(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), false);
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 6), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4));
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 6));
 
         // The server confirms the first click only
-        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 4)), false),
+        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 4))),
                 "The change should confirm the first prediction");
         helper.assertTrue(predictions.getDelta(CHANNEL, new ItemStack(Items.STONE)) == -6,
                 "The unconfirmed prediction should be kept");
@@ -190,10 +162,10 @@ public class GameTestTerminalStorageIngredientPredictions {
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testLargerServerChangeConfirmsAllPredictions(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4));
 
         // Another player took some stone as well, so the change is larger than what we predicted
-        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 100)), false),
+        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 100))),
                 "The change should confirm the prediction");
         helper.assertTrue(predictions.isEmpty(), "No predictions should be pending anymore");
 
@@ -203,7 +175,7 @@ public class GameTestTerminalStorageIngredientPredictions {
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
     public void testPredictionsDontExpireImmediately(GameTestHelper helper) {
         TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
-        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4), false);
+        predictions.add(CHANNEL, new ItemStack(Items.STONE, 4));
 
         helper.assertTrue(!predictions.removeExpired(), "The prediction should not have expired yet");
         helper.assertTrue(!predictions.isEmpty(), "The prediction should still be pending");

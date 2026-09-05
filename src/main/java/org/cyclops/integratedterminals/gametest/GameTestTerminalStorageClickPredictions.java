@@ -13,9 +13,10 @@ import org.cyclops.commoncapabilities.IngredientComponents;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
-import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
+import org.cyclops.integratedterminals.core.terminalstorage.ContainerHelpers;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Game tests for the client-side simulation of storage terminal clicks.
@@ -148,29 +149,26 @@ public class GameTestTerminalStorageClickPredictions {
     }
 
     /**
-     * The server only sends its full container state when it changed nothing itself,
-     * as that is the only case in which a client-side prediction is not corrected by the regular sync.
+     * The slots that a prediction changed are sent to the server,
+     * so that it can correct the ones it disagrees with, including the ones it did not change itself.
      */
     @GameTest(template = "empty", templateNamespace = "cyclopscore")
-    public void testUnchangedContainerIsDetected(GameTestHelper helper) {
+    public void testChangedSlotsAreCollected(GameTestHelper helper) {
         AbstractContainerMenu menu = createMenu(helper);
-        menu.getSlot(SLOT_START).set(new ItemStack(Items.STONE, 32));
-        List<ItemStack> before = TerminalStorageTabIngredientComponentServer.copyContainerContents(menu);
+        menu.getSlot(SLOT_START).set(new ItemStack(Items.STONE, 60));
+        List<ItemStack> before = ContainerHelpers.copyContents(menu);
 
-        helper.assertTrue(TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
-                "An untouched container should be unchanged");
+        helper.assertTrue(ContainerHelpers.getChangedContents(before, menu).isEmpty(),
+                "An untouched container should report no changed slots");
 
-        menu.getSlot(SLOT_START).getItem().shrink(1);
-        helper.assertTrue(!TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
-                "A changed quantity should be detected");
+        // Fills the partial stack up and spills the rest into the next slot
+        getHandler().predictInsertMaxIntoContainer(menu, SLOT_START, SLOT_END,
+                new ItemStack(Items.STONE, 500), 500);
 
-        menu.getSlot(SLOT_START).set(new ItemStack(Items.STONE, 32));
-        helper.assertTrue(TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
-                "A restored container should be unchanged again");
-
-        menu.getSlot(SLOT_START).set(new ItemStack(Items.DIRT, 32));
-        helper.assertTrue(!TerminalStorageTabIngredientComponentServer.isUnchanged(before, menu),
-                "A changed item should be detected");
+        Map<Integer, ItemStack> changed = ContainerHelpers.getChangedContents(before, menu);
+        helper.assertTrue(changed.size() == 2, "Both filled slots should be reported, but got " + changed.size());
+        helper.assertTrue(changed.get(SLOT_START).getCount() == 64, "The filled up slot should be reported");
+        helper.assertTrue(changed.get(SLOT_START + 1).getCount() == 60, "The spilled slot should be reported");
 
         helper.succeed();
     }

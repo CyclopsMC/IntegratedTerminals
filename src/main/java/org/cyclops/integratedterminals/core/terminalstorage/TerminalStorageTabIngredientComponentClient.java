@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import org.apache.logging.log4j.Level;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.image.Images;
@@ -600,8 +601,8 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         // Confirm the predictions that this change covers.
         // This is deliberately skipped for the wildcard channel, as that one is a copy of this same change.
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL
-                && this.predictions.consume(ingredients,
-                        changeType == IIngredientComponentStorageObservable.Change.ADDITION)) {
+                && changeType == IIngredientComponentStorageObservable.Change.DELETION
+                && this.predictions.consume(ingredients)) {
             // Predictions are applied to all channel views, so all of them have to be rebuilt
             this.filteredIngredientsViews.clear();
         }
@@ -872,13 +873,24 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         activeInstance = matcher.withQuantity(slot.getInstance(), moveQuantity);
                     }
                 }
+                // Predict before sending, so that the server is told which container slots we changed.
+                // It can only correct a wrong prediction for slots that it knows we changed,
+                // as it sends us the slots that changed for it, which are not always the same ones.
+                List<ItemStack> containerBefore = ContainerHelpers.copyContents(container);
+                try {
+                    predictClick(container, clickType, channel, hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
+                            hoveredContainerSlot, activeInstance, transferFullSelection);
+                } catch (Exception e) {
+                    // Predicting runs the ingredient component's own movement logic, which may not expect this.
+                    // The click itself must still reach the server, so it is only shown later instead of not at all.
+                    IntegratedTerminals.clog(Level.WARN, "Could not predict a storage terminal click: " + e);
+                }
                 IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         player.level().registryAccess(),
                         this.getName().toString(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
-                        hoveredContainerSlot, movePlayerQuantity, activeInstance, transferFullSelection));
-                predictClick(container, clickType, channel, hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
-                        hoveredContainerSlot, activeInstance, transferFullSelection);
+                        hoveredContainerSlot, movePlayerQuantity, activeInstance, transferFullSelection,
+                        ContainerHelpers.getChangedContents(containerBefore, container)));
                 if (reset) {
                     resetActiveSlot();
                 }
@@ -922,42 +934,38 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                                 viewHandler.getIncrementalInstanceMovementQuantity(),
                                 matcher.getQuantity(hoveringStorageInstance)));
                 addPrediction(channel, viewHandler.predictInsertMaxIntoContainer(container, 0, 4 * 9, requested,
-                        getPredictedQuantity(channel, requested)), false);
+                        getPredictedQuantity(channel, requested)));
                 break;
             }
             case STORAGE_PLACE_PLAYER:
                 addPrediction(channel, viewHandler.predictInsertIntoContainer(container, hoveredContainerSlot,
                         activeInstance, transferFullSelection,
-                        getPredictedQuantity(channel, activeInstance)), false);
-                break;
-            case STORAGE_PLACE_WORLD:
-                // The server throws the full selection, or nothing at all
-                if (getPredictedQuantity(channel, activeInstance) >= matcher.getQuantity(activeInstance)) {
-                    addPrediction(channel, activeInstance, false);
-                }
+                        getPredictedQuantity(channel, activeInstance)));
                 break;
             case PLAYER_QUICK_MOVE:
             case PLAYER_QUICK_MOVE_INCREMENTAL:
-                if (hasStorageSpaceFor(channel, container.getSlot(hoveredContainerSlot).getItem())) {
-                    addPrediction(channel, viewHandler.predictExtractMaxFromContainerSlot(container,
-                            hoveredContainerSlot, Minecraft.getInstance().player.getInventory(),
-                            clickType == TerminalClickType.PLAYER_QUICK_MOVE
-                                    ? -1 : viewHandler.getIncrementalInstanceMovementQuantity()), true);
-                }
+                // Only the slot that the instance leaves is predicted, not its arrival in the storage:
+                // whether the storage accepts it depends on position filters, on the free space per position,
+                // and on the network's transfer rate, none of which the client knows.
+                viewHandler.predictExtractMaxFromContainerSlot(container, hoveredContainerSlot,
+                        Minecraft.getInstance().player.getInventory(),
+                        clickType == TerminalClickType.PLAYER_QUICK_MOVE
+                                ? -1 : viewHandler.getIncrementalInstanceMovementQuantity());
                 break;
+            case STORAGE_PLACE_WORLD:
             case PLAYER_PLACE_STORAGE:
-                // The moved instance is drained from the player's cursor client-side already,
-                // its arrival in the storage is left to the server.
+                // Nothing to predict: the thrown instance leaves the storage in one piece or not at all,
+                // and the instance placed from the cursor is drained client-side already.
                 break;
         }
     }
 
-    protected synchronized void addPrediction(int channel, T instance, boolean addition) {
+    protected synchronized void addPrediction(int channel, T instance) {
         if (!this.ingredientComponent.getMatcher().isEmpty(instance)) {
             // Remember the selected instance, as this change might change its position or quantity.
             Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
 
-            this.predictions.add(channel, instance, addition);
+            this.predictions.add(channel, instance);
             this.lastChangeId++;
             // Predictions are applied to all channel views, so all of them have to be rebuilt.
             // The sorting order that is kept while sorting is paused is deliberately not reset,
@@ -977,16 +985,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     protected long getPredictedQuantity(int channel, T instance) {
         return Math.max(0, getRawUnfilteredIngredientsView(channel).getQuantity(instance)
                 + this.predictions.getDelta(channel, instance));
-    }
-
-    protected boolean hasStorageSpaceFor(int channel, ItemStack stack) {
-        long maxQuantity = getMaxQuantity(channel);
-        if (maxQuantity <= 0) {
-            // The capacity is unknown, so just assume that it fits
-            return true;
-        }
-        T instance = getViewHandler().getInstance(stack);
-        return getTotalQuantity(channel) + this.ingredientComponent.getMatcher().getQuantity(instance) <= maxQuantity;
     }
 
     @Override

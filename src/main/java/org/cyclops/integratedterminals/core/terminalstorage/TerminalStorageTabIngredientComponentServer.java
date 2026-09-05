@@ -9,7 +9,6 @@ import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.tuple.Pair;
@@ -470,13 +469,13 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     @Nullable
     public void handleStorageSlotClick(AbstractContainerMenu container, ServerPlayer player, TerminalClickType clickType,
                                        int channel, T hoveringStorageInstance, int hoveredContainerSlot,
-                                       long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection) {
+                                       long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection,
+                                       Map<Integer, ItemStack> predictedContainerSlots) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(org.cyclops.integratedterminals.Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find an ingredient terminal storage handler"));
         IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
 
         boolean updateActivePlayerStack = false;
-        List<ItemStack> containerBefore = copyContainerContents(container);
 
         switch (clickType) {
             case STORAGE_QUICK_MOVE:
@@ -516,31 +515,17 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
             player.connection.send(new ClientboundContainerSetSlotPacket(-1, 0, 0, container.getCarried()));
         }
 
-        // A client that predicted this click has already applied it to its own container.
-        // The slots that we changed are sent to it as usual, which confirms or corrects them,
-        // but a slot that only the client changed is not sent, as nothing changed for us.
-        // That only happens when we moved nothing at all, so send our full state in that case.
-        // Doing that after every click instead would undo the predictions of any click
-        // that the player made in the meantime, until the server has caught up with those as well.
-        if (isUnchanged(containerBefore, container)) {
-            container.broadcastFullState();
-        }
-    }
-
-    public static List<ItemStack> copyContainerContents(AbstractContainerMenu container) {
-        List<ItemStack> contents = Lists.newArrayListWithExpectedSize(container.slots.size());
-        for (Slot slot : container.slots) {
-            contents.add(slot.getItem().copy());
-        }
-        return contents;
-    }
-
-    public static boolean isUnchanged(List<ItemStack> contentsBefore, AbstractContainerMenu container) {
-        for (int i = 0; i < contentsBefore.size(); i++) {
-            if (!ItemStack.matches(contentsBefore.get(i), container.getSlot(i).getItem())) {
-                return false;
+        // Tell the container what the client made of this click,
+        // so that the slots we disagree about are the only ones that are sent back to it.
+        // Without this, a slot that only the client changed would stay wrong,
+        // as we only send the slots that changed for us.
+        // This is the same reconciliation that vanilla container clicks use.
+        for (Map.Entry<Integer, ItemStack> predictedSlot : predictedContainerSlots.entrySet()) {
+            int slot = predictedSlot.getKey();
+            if (slot >= 0 && slot < container.slots.size()) {
+                container.setRemoteSlotNoCopy(slot, predictedSlot.getValue());
             }
         }
-        return true;
+        container.broadcastChanges();
     }
 }
