@@ -44,6 +44,7 @@ public class CommonProxy extends CommonProxyComponent {
         packetHandler.register(OpenCraftingJobsPlanGuiPacket.class, OpenCraftingJobsPlanGuiPacket.ID, OpenCraftingJobsPlanGuiPacket.CODEC);
         packetHandler.register(OpenCraftingJobsGuiPacket.class, OpenCraftingJobsGuiPacket.ID, OpenCraftingJobsGuiPacket.CODEC);
         packetHandler.register(CancelCraftingJobPacket.class, CancelCraftingJobPacket.ID, CancelCraftingJobPacket.CODEC);
+        packetHandler.register((Class) CraftingJobFinishedToastPacket.class, CraftingJobFinishedToastPacket.ID, CraftingJobFinishedToastPacket.CODEC);
 
         IntegratedDynamics.clog("Registered packet handler.");
     }

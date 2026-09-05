@@ -34,6 +34,27 @@ public class TerminalCraftingPlanCraftingJobDependencyGraph extends TerminalCraf
         this.craftingJobDependencyGraph = craftingJobDependencyGraph;
     }
 
+    public TerminalCraftingPlanCraftingJobDependencyGraph(int id,
+                                                          List<ITerminalCraftingPlan<Integer>> dependencies,
+                                                          List<IPrototypedIngredient<?, ?>> outputs,
+                                                          TerminalCraftingJobStatus status,
+                                                          long craftingQuantity,
+                                                          long craftingQuantityTotal,
+                                                          List<IPrototypedIngredient<?, ?>> bufferedIngredients,
+                                                          List<List<IPrototypedIngredient<?, ?>>> lastMissingIngredients,
+                                                          TerminalCraftingPlanStatic.Label label,
+                                                          long tickDuration,
+                                                          long estimatedTickDurationTotal,
+                                                          long estimatedTickDurationRemaining,
+                                                          int channel,
+                                                          @Nullable String initiatorName,
+                                                          CraftingJobDependencyGraph craftingJobDependencyGraph) {
+        super(id, dependencies, outputs, status, craftingQuantity, craftingQuantityTotal, bufferedIngredients,
+                lastMissingIngredients, label, tickDuration, estimatedTickDurationTotal, estimatedTickDurationRemaining,
+                channel, initiatorName);
+        this.craftingJobDependencyGraph = craftingJobDependencyGraph;
+    }
+
     public CraftingJobDependencyGraph getCraftingJobDependencyGraph() {
         return craftingJobDependencyGraph;
     }

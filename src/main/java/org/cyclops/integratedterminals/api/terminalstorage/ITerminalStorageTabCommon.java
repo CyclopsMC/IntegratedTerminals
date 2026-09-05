@@ -10,6 +10,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
+import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -35,6 +36,22 @@ public interface ITerminalStorageTabCommon {
     public default void onUpdate(AbstractContainerMenu container, Player player,
                                  Optional<IVariableInventory> variableInventory) {
 
+    }
+
+    /**
+     * Handle a quick move (shift-click) on the given container slot.
+     *
+     * This is only called for the tab that is currently selected,
+     * and allows tabs with regular container slots to apply regular quick move semantics.
+     *
+     * @param container The active container.
+     * @param player The player that is quick moving.
+     * @param slotIndex The index of the slot that is being quick moved.
+     * @return The moved stack following {@link AbstractContainerMenu#quickMoveStack} semantics,
+     *         or {@link Optional#empty()} if this tab does not handle quick moves.
+     */
+    public default Optional<ItemStack> handleQuickMove(ContainerTerminalStorageBase<?> container, Player player, int slotIndex) {
+        return Optional.empty();
     }
 
     public static interface IVariableInventory {

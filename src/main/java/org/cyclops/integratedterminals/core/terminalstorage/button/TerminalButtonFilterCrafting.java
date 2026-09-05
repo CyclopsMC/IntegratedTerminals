@@ -17,11 +17,12 @@ import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIn
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
 
 import javax.annotation.Nullable;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
 /**
- * A button for clearing the crafting grid.
+ * A button for filtering and ordering stored and craftable ingredients.
  * @author rubensworks
  */
 public class TerminalButtonFilterCrafting<T>
@@ -51,9 +52,9 @@ public class TerminalButtonFilterCrafting<T>
     public void reloadFromState() {
         if (state.hasButton(clientTab.getTabSettingsName().toString(), this.buttonName)) {
             CompoundTag data = (CompoundTag) state.getButton(clientTab.getTabSettingsName().toString(), this.buttonName);
-            this.active = FilterType.values()[data.getInt("active").orElseThrow()];
+            this.active = FilterType.read(data);
         } else {
-            this.active = FilterType.ALL;
+            this.active = FilterType.getDefault();
         }
     }
 
@@ -72,26 +73,65 @@ public class TerminalButtonFilterCrafting<T>
         return (Predicate) active.getFilter();
     }
 
+    /**
+     * @return The comparator that should be used for ordering stored and craftable ingredients,
+     *         or null if this button should not influence the ordering.
+     */
+    @Nullable
+    public Comparator<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<T>> getEffectiveOrder() {
+        return (Comparator) active.getOrder();
+    }
+
     public static enum FilterType {
         ALL(Images.BUTTON_MIDDLE_FILTER_CRAFTING_ALL,
                 "gui.integratedterminals.terminal_storage.crafting.filter.type.all",
-                i -> true),
+                i -> true,
+                1),
+        ALL_CRAFTABLE_FIRST(Images.BUTTON_MIDDLE_FILTER_CRAFTING_ALL_CRAFTABLE_FIRST,
+                "gui.integratedterminals.terminal_storage.crafting.filter.type.all_craftable_first",
+                i -> true,
+                -1),
         STORAGE(Images.BUTTON_MIDDLE_FILTER_CRAFTING_STORAGE,
                 "gui.integratedterminals.terminal_storage.crafting.filter.type.storage",
-                i -> i.getCraftingOption() == null),
+                i -> i.getCraftingOption() == null,
+                0),
         CRAFTABLE(Images.BUTTON_MIDDLE_FILTER_CRAFTING_CRAFTABLE,
                 "gui.integratedterminals.terminal_storage.crafting.filter.type.craftable",
-                i -> i.getCraftingOption() != null);
+                i -> i.getCraftingOption() != null,
+                0);
+
+        private static final String NBT_ACTIVE_NAME = "activeName";
+
+        // TODO: rm in next major: the legacy key that held the filter type as an ordinal.
+        private static final String NBT_ACTIVE = "active";
+
+        /**
+         * The order in which the filter types were declared before {@link #ALL_CRAFTABLE_FIRST} was introduced.
+         * This is only used for reading states that were persisted by older versions,
+         * which stored the filter type by its ordinal.
+         */
+        // TODO: rm in next major, together with NBT_ACTIVE and its uses in read and write.
+        private static final FilterType[] LEGACY_ORDINALS = { ALL, STORAGE, CRAFTABLE };
 
         @Nullable
         private final IImage image;
         private final String label;
         private final Predicate<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<?>> filter;
+        @Nullable
+        private final Comparator<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<?>> order;
 
-        FilterType(@Nullable IImage image, String label, Predicate<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<?>> filter) {
+        FilterType(@Nullable IImage image, String label,
+                   Predicate<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<?>> filter,
+                   int craftableRank) {
             this.image = image;
             this.label = label;
             this.filter = filter;
+            if (craftableRank == 0) {
+                this.order = null;
+            } else {
+                this.order = Comparator.comparingInt(
+                        instance -> instance.getCraftingOption() == null ? 0 : craftableRank);
+            }
         }
 
         @Nullable
@@ -105,6 +145,81 @@ public class TerminalButtonFilterCrafting<T>
 
         public Predicate<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<?>> getFilter() {
             return filter;
+        }
+
+        /**
+         * @return The comparator that groups craftable ingredients before or after stored ingredients,
+         *         or null if this filter type should not influence the ordering.
+         */
+        @Nullable
+        public Comparator<TerminalStorageTabIngredientComponentClient.InstanceWithMetadata<?>> getOrder() {
+            return order;
+        }
+
+        /**
+         * @return The next filter type when cycling through them.
+         */
+        public FilterType next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
+
+        /**
+         * @return The filter type that is active by default.
+         */
+        public static FilterType getDefault() {
+            return ALL;
+        }
+
+        /**
+         * Write this filter type to the given tag.
+         *
+         * The ordinal is written as well, so that older versions can still read the state,
+         * albeit by falling back to the default for filter types they don't know about.
+         *
+         * @param tag A tag.
+         */
+        public void write(CompoundTag tag) {
+            tag.putString(NBT_ACTIVE_NAME, name());
+
+            // TODO: rm in next major: drop everything below, so that only the name is written.
+            int legacyOrdinal = 0;
+            for (int i = 0; i < LEGACY_ORDINALS.length; i++) {
+                if (LEGACY_ORDINALS[i] == this) {
+                    legacyOrdinal = i;
+                    break;
+                }
+            }
+            tag.putInt(NBT_ACTIVE, legacyOrdinal);
+        }
+
+        /**
+         * Read a filter type from the given tag.
+         *
+         * Filter types are persisted by name, as ordinals are not stable across versions.
+         * States that were persisted before this was the case are read by their ordinal.
+         *
+         * @param tag A tag.
+         * @return The persisted filter type, or the default if none could be read.
+         */
+        public static FilterType read(CompoundTag tag) {
+            // TODO: rm in next major: drop this if-wrapper, and read the name unconditionally,
+            //       so that a tag without a name falls through to the default below.
+            if (tag.contains(NBT_ACTIVE_NAME)) {
+                String name = tag.getStringOr(NBT_ACTIVE_NAME, "");
+                for (FilterType filterType : values()) {
+                    if (filterType.name().equals(name)) {
+                        return filterType;
+                    }
+                }
+                return getDefault();
+            }
+
+            // TODO: rm in next major: drop everything below, together with LEGACY_ORDINALS.
+            int legacyOrdinal = tag.getIntOr(NBT_ACTIVE, -1);
+            if (legacyOrdinal < 0 || legacyOrdinal >= LEGACY_ORDINALS.length) {
+                return getDefault();
+            }
+            return LEGACY_ORDINALS[legacyOrdinal];
         }
     }
 }

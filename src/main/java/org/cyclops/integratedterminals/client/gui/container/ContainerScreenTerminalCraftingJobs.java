@@ -1,11 +1,14 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
+import com.google.common.collect.Lists;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
@@ -21,6 +24,7 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
@@ -42,6 +46,16 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     public static int OUTPUT_SLOT_Y = 17;
 
     public static int LINE_WIDTH = 221;
+
+    // Width of the info area at the end of a line, which holds the status line and the progress bar below it.
+    private static final int COLUMN_INFO = 132;
+    private static final int COLUMN_INFO_SPACING = 6;
+    private static final int PROGRESS_BAR_OFFSET_Y = 8;
+    private static final int PROGRESS_BAR_HEIGHT = 8;
+
+    private static final int BORDER_COLOR = IModHelpers.get().getBaseHelpers().RGBAToInt(0, 0, 0, 180);
+    private static final int TRACK_COLOR = IModHelpers.get().getBaseHelpers().RGBAToInt(0, 0, 0, 100);
+    private static final int FILL_COLOR = TerminalCraftingJobStatus.CRAFTING.getColor() | 0xFF000000;
 
     private final Player player;
 
@@ -98,6 +112,14 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
         drawCraftingPlans(guiGraphics, 0, 0, 0, mouseX, mouseY, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND);
+
+        // The progress bar only has room for bare numbers, so the labelled values go in a tooltip.
+        // Outputs draw their own tooltip, which already contains these lines.
+        HandlerWrappedTerminalCraftingPlan hoveredPlan = getHoveredPlan(mouseX, mouseY);
+        if (hoveredPlan != null && !isHoveringOutputs(hoveredPlan, mouseX - leftPos)) {
+            IModHelpers.get().getGuiHelpers().drawTooltip(this, guiGraphics,
+                    getPlanTooltipLines(hoveredPlan.getCraftingPlanFlat()), mouseX - leftPos, mouseY - topPos);
+        }
     }
 
     protected List<HandlerWrappedTerminalCraftingPlan> getVisiblePlans() {
@@ -126,6 +148,8 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
 
         // Draw outputs
+        List<Component> tooltipLines = layer == ContainerScreenTerminalStorage.DrawLayer.FOREGROUND
+                ? getPlanTooltipLines(plan) : null;
         x += 4;
         for (IPrototypedIngredient<?, ?> output : plan.getOutputs()) {
             IngredientComponent<?, ?> ingredientComponent = output.getComponent();
@@ -133,31 +157,137 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
             int finalX = x;
             ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                     .ifPresent(h -> h.getClient().drawInstance(guiGraphics, output.getPrototype(), quantity,
-                            IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, null, null));
+                            IModHelpers.get().getGuiHelpers().quantityToScaledString(quantity), this, layer, partialTick, finalX, y + 1, mouseX, mouseY, tooltipLines, null));
             x += IModHelpers.get().getGuiHelpers().getSlotSizeInner();
         }
 
-        // Draw dependency count
         if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
-            String statusString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.craftingplan.status",
-                    IModHelpers.get().getL10NHelpers().localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, statusString, xOriginal + LINE_WIDTH - 80, y + 1, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+            int infoX = xOriginal + LINE_WIDTH - COLUMN_INFO;
 
-            int dependencies = plan.getEntries().size();
-            String dependenciesString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", dependencies);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, dependenciesString, xOriginal + LINE_WIDTH - 80, y + 7, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
-
+            // The size and channel are right-aligned, so that the status gets whatever room is left
+            int infoRight = xOriginal + LINE_WIDTH - 2;
             if (plan.getChannel() != -1) {
                 String channelString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", plan.getChannel());
-                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, channelString, xOriginal + LINE_WIDTH - 40, y + 7, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+                infoRight -= scaledWidth(channelString);
+                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, channelString, infoRight, y + 1, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+                infoRight -= COLUMN_INFO_SPACING;
             }
 
-            long tickDuration = plan.getTickDuration();
-            if (tickDuration >= 0) {
-                String durationString = GuiCraftingPlan.getDurationString(tickDuration);
-                IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, durationString, xOriginal + LINE_WIDTH - 80, y + 13, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+            String dependenciesString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies", plan.getEntries().size());
+            infoRight -= scaledWidth(dependenciesString);
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, dependenciesString, infoRight, y + 1, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+
+            String statusString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.craftingplan.status",
+                    IModHelpers.get().getL10NHelpers().localize( "gui.integratedterminals.craftingplan.status." + plan.getStatus().name().toLowerCase(Locale.ENGLISH)));
+            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, statusString, infoX, y + 1, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+
+            drawProgressBar(guiGraphics, plan, infoX, y + PROGRESS_BAR_OFFSET_Y, COLUMN_INFO);
+        }
+    }
+
+    /**
+     * @return If the mouse is over one of the output instances of the given plan, which draw their own tooltip.
+     */
+    protected boolean isHoveringOutputs(HandlerWrappedTerminalCraftingPlan plan, double mouseX) {
+        int outputs = plan.getCraftingPlanFlat().getOutputs().size();
+        return mouseX >= OUTPUT_SLOT_X + 4
+                && mouseX < OUTPUT_SLOT_X + 4 + IModHelpers.get().getGuiHelpers().getSlotSizeInner() * outputs;
+    }
+
+    /**
+     * Draw how far a job has come as a bar, with the time it has been running on the left,
+     * the completed percentage in the middle, and the estimated time until it is done on the right.
+     */
+    protected void drawProgressBar(GuiGraphicsExtractor guiGraphics, ITerminalCraftingPlanFlat<?> plan, int x, int y, int width) {
+        int progress = GuiCraftingPlan.getProgress(plan);
+        int filled = progress > 0 ? width * progress / 100 : 0;
+
+        // A sunken track, so that the numbers inside the bar stay readable over both the track and the fill
+        guiGraphics.fill(x, y, x + width, y + PROGRESS_BAR_HEIGHT, BORDER_COLOR);
+        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + PROGRESS_BAR_HEIGHT - 1, TRACK_COLOR);
+        if (filled > 1) {
+            guiGraphics.fill(x + 1, y + 1, x + filled - 1, y + PROGRESS_BAR_HEIGHT - 1, FILL_COLOR);
+        }
+
+        long tickDuration = plan.getTickDuration();
+        if (tickDuration >= 0) {
+            drawProgressBarString(guiGraphics, GuiCraftingPlan.getDurationValue(tickDuration), x + 2, y);
+        }
+        if (progress >= 0) {
+            String progressString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.progress.short", progress);
+            drawProgressBarString(guiGraphics, progressString, x + (width - scaledWidth(progressString)) / 2, y);
+        }
+        if (plan.getStatus().isValid()) {
+            String remainingString = GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationRemaining());
+            drawProgressBarString(guiGraphics, remainingString, x + width - 2 - scaledWidth(remainingString), y);
+        }
+    }
+
+    protected int scaledWidth(String string) {
+        return font.width(string) / 2;
+    }
+
+    protected void drawProgressBarString(GuiGraphicsExtractor guiGraphics, String string, int x, int y) {
+        IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, font, string,
+                x, y + 2, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
+    }
+
+    protected List<Component> getPlanTooltipLines(ITerminalCraftingPlanFlat<?> plan) {
+        List<Component> lines = Lists.newArrayList();
+
+        // The status is shown in the same color that the plan guis use for it
+        String status = plan.getStatus().name().toLowerCase(Locale.ENGLISH);
+        lines.add(Component.translatable("gui.integratedterminals.craftingplan.status",
+                        Component.translatable("gui.integratedterminals.craftingplan.status." + status)
+                                .withStyle(Style.EMPTY.withColor(plan.getStatus().getColor() & 0xFFFFFF)))
+                .withStyle(ChatFormatting.GRAY));
+        lines.add(Component.translatable("gui.integratedterminals.craftingplan.status." + status + ".desc")
+                .withStyle(ChatFormatting.DARK_GRAY));
+
+        // Durations are what this tooltip is here for, so they get the brightest colors
+        int progress = GuiCraftingPlan.getProgress(plan);
+        if (progress >= 0) {
+            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.progress",
+                    String.valueOf(progress), ChatFormatting.WHITE));
+        }
+        long tickDuration = plan.getTickDuration();
+        if (tickDuration >= 0) {
+            lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration",
+                    GuiCraftingPlan.getDurationValue(tickDuration), ChatFormatting.WHITE));
+        }
+        // An unknown duration says nothing here, so it is left out rather than shown as a placeholder
+        if (plan.getStatus().isValid()) {
+            if (plan.getEstimatedTickDurationRemaining() >= 0) {
+                lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining",
+                        GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationRemaining()), ChatFormatting.AQUA));
+            }
+            if (plan.getEstimatedTickDurationTotal() >= 0) {
+                lines.add(tooltipLine("gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate",
+                        GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationTotal()), ChatFormatting.WHITE));
             }
         }
+
+        // Everything that is only occasionally interesting stays in the background
+        lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.dependencies",
+                plan.getEntries().size()).withStyle(ChatFormatting.DARK_GRAY));
+        if (plan.getChannel() != -1) {
+            lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel",
+                    plan.getChannel()).withStyle(ChatFormatting.DARK_GRAY));
+        }
+        if (plan.getInitiatorName() != null) {
+            lines.add(Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.owner",
+                    plan.getInitiatorName()).withStyle(ChatFormatting.DARK_GRAY));
+        }
+
+        return lines;
+    }
+
+    /**
+     * @return A tooltip line with a dimmed label, so that its value stands out.
+     */
+    protected static Component tooltipLine(String unlocalizedName, String value, ChatFormatting valueColor) {
+        return Component.translatable(unlocalizedName, Component.literal(value).withStyle(valueColor))
+                .withStyle(ChatFormatting.GRAY);
     }
 
     private void cancelCraftingJobs() {

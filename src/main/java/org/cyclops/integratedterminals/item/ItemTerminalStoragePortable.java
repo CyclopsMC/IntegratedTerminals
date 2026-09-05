@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.item;
 
 import com.mojang.logging.LogUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -137,6 +138,10 @@ public class ItemTerminalStoragePortable extends ItemGui {
         if (groupId >= 0) {
             tooltip.accept(Component.translatable(L10NValues.PART_TOOLTIP_MONODIRECTIONALCONNECTOR_GROUP, groupId));
         }
+        if (isEnderUpgraded(stack)) {
+            tooltip.accept(Component.translatable("item.integratedterminals.terminal_storage_portable.ender_upgraded")
+                    .withStyle(ChatFormatting.DARK_PURPLE));
+        }
     }
 
     public static int getGroupId(ItemStack itemStack) {
@@ -145,6 +150,14 @@ public class ItemTerminalStoragePortable extends ItemGui {
 
     public static void setGroupId(ItemStack itemStack, int groupId) {
         itemStack.set(RegistryEntries.DATACOMPONENT_OMNIDIRECTIONAL_GROUP, groupId);
+    }
+
+    public static boolean isEnderUpgraded(ItemStack itemStack) {
+        return Objects.requireNonNullElse(itemStack.get(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_ENDER_UPGRADED), false);
+    }
+
+    public static void setEnderUpgraded(ItemStack itemStack, boolean enderUpgraded) {
+        itemStack.set(org.cyclops.integratedterminals.RegistryEntries.COMPONENT_ENDER_UPGRADED, enderUpgraded);
     }
 
     public static ITerminalStorageTabCommon.IVariableInventory getVariableInventory(ItemStack itemStack) {

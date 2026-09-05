@@ -24,9 +24,9 @@ public class TerminalButtonFilterCraftingClient<T> implements ITerminalButtonCli
     @Override
     public ButtonImage createButton(int x, int y) {
         return new ButtonImage(x, y,
-                Component.translatable("gui.integratedterminals.terminal_storage.craftinggrid.clear"),
+                Component.translatable(this.button.getTranslationKey()),
                 (b) -> {},
-                this.button.active == TerminalButtonFilterCrafting.FilterType.ALL ? Images.BUTTON_BACKGROUND_INACTIVE : Images.BUTTON_BACKGROUND_ACTIVE,
+                this.button.active == TerminalButtonFilterCrafting.FilterType.getDefault() ? Images.BUTTON_BACKGROUND_INACTIVE : Images.BUTTON_BACKGROUND_ACTIVE,
                 this.button.active.getImage());
     }
 
@@ -34,10 +34,10 @@ public class TerminalButtonFilterCraftingClient<T> implements ITerminalButtonCli
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
                         TerminalStorageTabIngredientComponentCommon<T, ?> commomTab, ButtonImage guiButton,
                         int channel, MouseButtonEvent mouse, boolean isDoubleClick) {
-        this.button.active = mouse.button() == 0 ? TerminalButtonFilterCrafting.FilterType.values()[(this.button.active.ordinal() + 1) % TerminalButtonFilterCrafting.FilterType.values().length] : TerminalButtonFilterCrafting.FilterType.ALL;
+        this.button.active = mouse.button() == 0 ? this.button.active.next() : TerminalButtonFilterCrafting.FilterType.getDefault();
 
         CompoundTag data = new CompoundTag();
-        data.putInt("active", this.button.active.ordinal());
+        this.button.active.write(data);
         this.button.state.setButton(clientTab.getTabSettingsName().toString(), this.button.buttonName, data);
 
         clientTab.resetFilteredIngredientsViews(channel);
