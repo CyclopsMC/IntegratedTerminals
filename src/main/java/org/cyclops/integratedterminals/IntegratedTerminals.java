@@ -45,6 +45,7 @@ import org.cyclops.integratedterminals.part.PartTypes;
 import org.cyclops.integratedterminals.recipe.RecipeTerminalStoragePortableEnderUpgradeConfig;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
 import org.cyclops.integratedterminals.proxy.CommonProxy;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.MeasurementCommand;
 
 /**
  * The main mod class of this mod.
@@ -52,6 +53,7 @@ import org.cyclops.integratedterminals.proxy.CommonProxy;
  *
  */
 @Mod(Reference.MOD_ID)
+
 public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
 
     public static IntegratedTerminals _instance;
@@ -66,6 +68,13 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
 
         modEventBus.addListener(this::onRegistriesCreate);
         modEventBus.addListener(this::onSetup);
+
+        // Debug-only measurement helpers, see MEASUREMENT.md
+        if (GeneralConfig.debugTerminalOpenMetrics) {
+            modEventBus.addListener(MeasurementCommand::onRegisterCapabilities);
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS
+                    .addListener(MeasurementCommand::onRegisterCommands);
+        }
         TerminalStorageTabs.load();
         TerminalStorageTabIngredientCraftingHandlers.load();
         TerminalStorageLocations.load();

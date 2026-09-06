@@ -32,6 +32,10 @@ import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTab;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabCommon;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabServer;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.ServerOpenMetrics;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.ClientOpenMetrics;
+import org.cyclops.integratedterminals.GeneralConfig;
+import net.minecraft.server.level.ServerPlayer;
 import org.cyclops.integratedterminals.api.terminalstorage.event.TerminalStorageTabCommonLoadSlotsEvent;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
@@ -100,6 +104,9 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         for (ITerminalStorageTab tab : TerminalStorageTabs.REGISTRY.getTabs()) {
             String tabId = tab.getName().toString();
             if (this.getWorld().isClientSide()) {
+                if (GeneralConfig.debugTerminalOpenMetrics && this.tabsClient.isEmpty()) {
+                    ClientOpenMetrics.beginOpen();
+                }
                 this.tabsClient.put(tabId, tab.createClientTab(this, player));
             } else {
                 this.tabsServer.put(tabId, tab.createServerTab(this, player, network.get()));
@@ -237,8 +244,16 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         super.broadcastChanges();
         // Init tabs
         if (!serverTabsInitialized) {
+            boolean measure = GeneralConfig.debugTerminalOpenMetrics && player instanceof ServerPlayer;
+            if (measure) {
+                ServerOpenMetrics.begin((ServerPlayer) player);
+            }
+            long initStart = measure ? System.nanoTime() : 0;
             for (ITerminalStorageTabServer tab : this.tabsServer.values()) {
                 tab.init();
+            }
+            if (measure) {
+                ServerOpenMetrics.endMainThread((ServerPlayer) player, System.nanoTime() - initStart);
             }
             serverTabsInitialized = true;
         }

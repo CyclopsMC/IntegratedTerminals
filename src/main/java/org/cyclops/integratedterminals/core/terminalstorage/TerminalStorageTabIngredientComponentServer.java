@@ -48,6 +48,8 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalSto
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingOption;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.PacketSizeMeasurer;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.ServerOpenMetrics;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientChangeEventPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingJobsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingOptionsPacket;
@@ -383,10 +385,18 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     protected void sendToClient(IIngredientComponentStorageObservable.StorageChangeEvent<T, M> event, long maxQuantity) {
         // Only allow ingredient collection of a max given size to be sent in a packet
         if (event.getInstances().size() <= GeneralConfig.terminalStoragePacketMaxInstances) {
-            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientChangeEventPacket(ServerLifecycleHooks.getCurrentServer().registryAccess(), this.getName().toString(), event, this.ingredientNetwork.hasPositions()), player);
-            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientMaxQuantityPacket(this.getName().toString(), event.getInstances().getComponent(), maxQuantity, event.getChannel()), player);
+            TerminalStorageIngredientChangeEventPacket packet = new TerminalStorageIngredientChangeEventPacket(ServerLifecycleHooks.getCurrentServer().registryAccess(), this.getName().toString(), event, this.ingredientNetwork.hasPositions());
+            if (GeneralConfig.debugTerminalOpenMetrics) {
+                recordSentPacket(packet, TerminalStorageIngredientChangeEventPacket.CODEC,
+                        event.getChannel(), event.getInstances().size(), false);
+            }
+            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(packet, player);
+            TerminalStorageIngredientMaxQuantityPacket maxQuantityPacket = new TerminalStorageIngredientMaxQuantityPacket(this.getName().toString(), event.getInstances().getComponent(), maxQuantity, event.getChannel());
+            if (GeneralConfig.debugTerminalOpenMetrics) {
+                recordSentPacket(maxQuantityPacket, TerminalStorageIngredientMaxQuantityPacket.CODEC,
+                        event.getChannel(), 0, false);
+            }
+            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(maxQuantityPacket, player);
         } else {
             List<IngredientArrayList<T, M>> chunks = Lists.newArrayList();
             IngredientArrayList<T, M> buffer = new IngredientArrayList<>(event.getInstances().getComponent(),
@@ -409,9 +419,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
             for (IngredientArrayList<T, M> chunk : chunks) {
                 if (GeneralConfig.packetSerializationEnableMultithreading) {
-                    packetSerializer.execute(() -> sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
+                    Runnable task = () -> sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
                             event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), chunk, false
-                    ), maxQuantity));
+                    ), maxQuantity);
+                    packetSerializer.execute(GeneralConfig.debugTerminalOpenMetrics
+                            ? ServerOpenMetrics.wrapAsync(ServerOpenMetrics.current(this.player), task) : task);
                 } else {
                     sendToClient(new IIngredientComponentStorageObservable.StorageChangeEvent<>(
                             event.getChannel(), event.getPos(), event.getChangeType(), event.isCompleteChange(), chunk, false
@@ -425,8 +437,12 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
                                              boolean reset, boolean firstChannel) {
         // Only allow collection of a max given size to be sent in a packet
         if (channeledCraftingOptions.size() <= GeneralConfig.terminalStoragePacketMaxRecipes) {
-            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
-                    new TerminalStorageIngredientCraftingOptionsPacket(player.level().registryAccess(), this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel, ingredientComponent), player);
+            TerminalStorageIngredientCraftingOptionsPacket packet = new TerminalStorageIngredientCraftingOptionsPacket(player.level().registryAccess(), this.getName().toString(), channel, channeledCraftingOptions, reset, firstChannel, ingredientComponent);
+            if (GeneralConfig.debugTerminalOpenMetrics) {
+                recordSentPacket(packet, TerminalStorageIngredientCraftingOptionsPacket.CODEC,
+                        channel, channeledCraftingOptions.size(), true);
+            }
+            IntegratedTerminals._instance.getPacketHandler().sendToPlayer(packet, player);
         } else {
             List<Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>>> chunks = Lists.newArrayList();
             List<HandlerWrappedTerminalCraftingOption<T>> buffer = Lists.newArrayListWithExpectedSize(GeneralConfig.terminalStoragePacketMaxRecipes);
@@ -449,12 +465,32 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
 
             for (Pair<Boolean, List<HandlerWrappedTerminalCraftingOption<T>>> chunk : chunks) {
                 if (GeneralConfig.packetSerializationEnableMultithreading) {
-                    packetSerializer.execute(() -> sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel));
+                    Runnable task = () -> sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel);
+                    packetSerializer.execute(GeneralConfig.debugTerminalOpenMetrics
+                            ? ServerOpenMetrics.wrapAsync(ServerOpenMetrics.current(this.player), task) : task);
                 } else {
                     sendCraftingOptionsToClient(channel, chunk.getRight(), chunk.getLeft(), firstChannel);
                 }
             }
         }
+    }
+
+    /**
+     * Debug-only: size a packet we are about to send and attribute it to the player's current open.
+     * The measurement re-encodes the packet, so its cost is tracked separately and subtracted again.
+     */
+    private void recordSentPacket(Object packet, net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, ?> codec,
+                                  int channel, int count, boolean crafting) {
+        ServerOpenMetrics.Open open = ServerOpenMetrics.current(this.player);
+        if (open == null) {
+            return;
+        }
+        long start = System.nanoTime();
+        PacketSizeMeasurer.Sizes sizes = PacketSizeMeasurer.measure(codec, packet,
+                ServerLifecycleHooks.getCurrentServer().registryAccess());
+        open.recordPacket(this.getName().toString(), channel, packet.getClass().getSimpleName(), count, sizes, crafting);
+        open.sampleChannel(org.cyclops.integratedterminals.core.terminalstorage.metrics.ChannelWritability.channelOf(this.player));
+        open.addMeasureOverhead(System.nanoTime() - start);
     }
 
     public INetwork getNetwork() {

@@ -6,6 +6,7 @@ import org.cyclops.cyclopscore.proxy.CommonProxyComponent;
 import org.cyclops.integrateddynamics.IntegratedDynamics;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.network.packet.*;
+import org.cyclops.integratedterminals.GeneralConfig;
 
 /**
  * Proxy for server and client side.
@@ -44,7 +45,12 @@ public class CommonProxy extends CommonProxyComponent {
         packetHandler.register(OpenCraftingJobsPlanGuiPacket.class, OpenCraftingJobsPlanGuiPacket.ID, OpenCraftingJobsPlanGuiPacket.CODEC);
         packetHandler.register(OpenCraftingJobsGuiPacket.class, OpenCraftingJobsGuiPacket.ID, OpenCraftingJobsGuiPacket.CODEC);
         packetHandler.register(CancelCraftingJobPacket.class, CancelCraftingJobPacket.ID, CancelCraftingJobPacket.CODEC);
-        packetHandler.register((Class) CraftingJobFinishedToastPacket.class, CraftingJobFinishedToastPacket.ID, CraftingJobFinishedToastPacket.CODEC);
+        // Registering this packet loads client-only classes, which a dedicated server refuses.
+        // Skipped only while measuring, so a dedicated server can boot at all. See MEASUREMENT.md.
+        if (!(GeneralConfig.debugTerminalOpenMetrics
+                && net.neoforged.fml.loading.FMLLoader.getCurrent().getDist().isDedicatedServer())) {
+            packetHandler.register((Class) CraftingJobFinishedToastPacket.class, CraftingJobFinishedToastPacket.ID, CraftingJobFinishedToastPacket.CODEC);
+        }
 
         IntegratedDynamics.clog("Registered packet handler.");
     }

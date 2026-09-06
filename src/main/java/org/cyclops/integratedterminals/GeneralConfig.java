@@ -66,6 +66,12 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
     @ConfigurablePropertyCommon(category = "core", comment = "If client-received packets should be deserialized in a separate thread.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
     public static boolean packetDeserializationEnableMultithreading = true;
 
+    // Debug-only instrumentation of the storage terminal open cost.
+    // Deliberately not a config property: enable per JVM with
+    // -Dintegratedterminals.debugTerminalOpenMetrics=true
+    public static boolean debugTerminalOpenMetrics =
+            Boolean.getBoolean("integratedterminals.debugTerminalOpenMetrics");
+
     @ConfigurablePropertyCommon(category = "general", comment = "The base energy usage for the crafting terminal.", minimalValue = 0, configLocation = ModConfigLocation.SERVER)
     public static int terminalCraftingBaseConsumption = 1;
     @ConfigurablePropertyCommon(category = "general", comment = "The base energy usage for the storage terminal.", minimalValue = 0, configLocation = ModConfigLocation.SERVER)

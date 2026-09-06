@@ -49,6 +49,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraf
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputEntry;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.ClientOpenMetrics;
 import org.cyclops.integratedterminals.core.terminalstorage.query.IIngredientQuery;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredient;
 import org.cyclops.integratedterminals.core.terminalstorage.slot.TerminalStorageSlotIngredientCraftingOption;
@@ -382,6 +383,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         updateSortingPausedState(channel);
         List<InstanceWithMetadata<T>> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
+            long rebuildStart = GeneralConfig.debugTerminalOpenMetrics ? System.nanoTime() : 0;
             ingredientsView = createUnfilteredIngredientsView(channel);
 
             // Filter
@@ -410,6 +412,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
             filteredIngredientsViews.put(channel, ingredientsView);
             lastFilteredIngredientsViews.put(channel, ingredientsView);
+            if (GeneralConfig.debugTerminalOpenMetrics) {
+                ClientOpenMetrics.Open open = ClientOpenMetrics.current();
+                if (open != null) {
+                    open.recordViewRebuild(System.nanoTime() - rebuildStart);
+                }
+            }
         }
         return ingredientsView;
     }

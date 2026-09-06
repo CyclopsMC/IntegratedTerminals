@@ -20,6 +20,8 @@ import org.cyclops.cyclopscore.network.PacketCodec;
 import org.cyclops.integrateddynamics.api.ingredient.IIngredientComponentStorageObservable;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.ClientOpenMetrics;
+import org.cyclops.integratedterminals.core.terminalstorage.metrics.PacketSizeMeasurer;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentItemStackCrafting;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
@@ -70,11 +72,24 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
 
     @Override
     public void actionClient(Level world, Player player) {
+        boolean measure = GeneralConfig.debugTerminalOpenMetrics;
+        long deserializeStart = measure ? System.nanoTime() : 0;
         IIngredientComponentStorageObservable.Change changeType = IIngredientComponentStorageObservable.Change.values()[changeData.getInt("changeType").orElseThrow()];
         IngredientArrayList ingredients = IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(changeData, world.registryAccess(), (Function<ValueInput, IngredientArrayList>) IngredientCollections::deserialize);
+        if (measure) {
+            long deserializeNanos = System.nanoTime() - deserializeStart;
+            ClientOpenMetrics.Open open = ClientOpenMetrics.current();
+            if (open != null) {
+                long measureStart = System.nanoTime();
+                PacketSizeMeasurer.Sizes sizes = PacketSizeMeasurer.measure(CODEC, this, world.registryAccess());
+                open.recordDeserialize(getClass().getSimpleName(), ingredients.size(), sizes,
+                        deserializeNanos, System.nanoTime() - measureStart);
+            }
+        }
 
         // Run the following code in the render thread, since this packet runs in a different thread. (isAsync is true)
         Minecraft.getInstance().execute(() -> {
+            long applyStart = measure ? System.nanoTime() : 0;
             if(player.containerMenu instanceof ContainerTerminalStorageBase container) {
                 TerminalStorageTabIngredientComponentClient<?, ?> tab = (TerminalStorageTabIngredientComponentClient<?, ?>) container.getTabClient(tabId);
                 tab.onChange(channel, changeType, ingredients, enabled);
@@ -88,6 +103,12 @@ public class TerminalStorageIngredientChangeEventPacket extends PacketCodec<Term
                 }
 
                 container.refreshChannelStrings();
+            }
+            if (measure) {
+                ClientOpenMetrics.Open open = ClientOpenMetrics.current();
+                if (open != null) {
+                    open.recordApply(System.nanoTime() - applyStart);
+                }
             }
         });
     }
