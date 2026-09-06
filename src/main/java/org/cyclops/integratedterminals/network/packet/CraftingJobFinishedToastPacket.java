@@ -1,27 +1,19 @@
 package org.cyclops.integratedterminals.network.packet;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
-import org.cyclops.commoncapabilities.api.ingredient.IIngredientSerializer;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
-import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.Reference;
-import org.cyclops.integratedterminals.client.gui.toast.CraftingJobToast;
+import org.cyclops.integratedterminals.client.gui.toast.CraftingJobToastHelpers;
 
 /**
  * Packet for showing a toast when a crafting job that the player requested has been completed.
@@ -62,7 +54,6 @@ public class CraftingJobFinishedToastPacket<T, M> extends PacketCodec<CraftingJo
     }
 
     @Override
-    @OnlyIn(Dist.CLIENT)
     public void actionClient(Level world, Player player) {
         if (!GeneralConfig.craftingJobFinishedToast) {
             return;
@@ -72,46 +63,11 @@ public class CraftingJobFinishedToastPacket<T, M> extends PacketCodec<CraftingJo
         if (ingredientComponent == null) {
             return;
         }
-        IIngredientMatcher<T, M> matcher = ingredientComponent.getMatcher();
-        IIngredientSerializer<T, M> serializer = ingredientComponent.getSerializer();
-        T instance = serializer.deserializeInstance(world.registryAccess(), this.instanceData.get("i"));
+        T instance = ingredientComponent.getSerializer()
+                .deserializeInstance(world.registryAccess(), this.instanceData.get("i"));
 
-        // Group by output, so that repeated crafts of the same thing don't pile up.
-        // A job that was distributed over multiple crafting interfaces completes as several jobs,
-        // so their quantities are summed into a single toast.
-        Object token = this.ingredientName + "|" + matcher.getDisplayName(instance).getString();
-        var toasts = Minecraft.getInstance().getToasts();
-        CraftingJobToast<T, M> existing = (CraftingJobToast<T, M>) toasts.getToast(CraftingJobToast.class, token);
-        if (existing != null) {
-            instance = matcher.withQuantity(instance, addQuantities(matcher,
-                    matcher.getQuantity(existing.getInstance()), matcher.getQuantity(instance)));
-        }
-
-        // The quantity is formatted by the component's own handler, so that fluids, energy,
-        // and ingredient components from other mods all read naturally.
-        T shownInstance = instance;
-        String quantity = ingredientComponent
-                .getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
-                .map(handler -> handler.formatQuantity(shownInstance))
-                .orElseGet(() -> String.valueOf(matcher.getQuantity(shownInstance)));
-        Component title = Component.translatable("gui.integratedterminals.crafting_job.finished.title")
-                .withStyle(ChatFormatting.GREEN);
-        Component subtitle = Component.translatable("gui.integratedterminals.crafting_job.finished",
-                quantity, matcher.getDisplayName(shownInstance));
-
-        if (existing != null) {
-            existing.reset(shownInstance, title, subtitle);
-        } else {
-            toasts.addToast(new CraftingJobToast<>(token, ingredientComponent, shownInstance, title, subtitle));
-        }
-    }
-
-    protected static <T, M> long addQuantities(IIngredientMatcher<T, M> matcher, long quantity, long quantityToAdd) {
-        try {
-            return Math.min(matcher.getMaximumQuantity(), Math.addExact(quantity, quantityToAdd));
-        } catch (ArithmeticException e) {
-            return matcher.getMaximumQuantity();
-        }
+        // Showing the toast is delegated, as referring to a client-only class from here breaks dedicated servers
+        CraftingJobToastHelpers.showCraftingJobFinished(ingredientComponent, instance);
     }
 
     @Override
