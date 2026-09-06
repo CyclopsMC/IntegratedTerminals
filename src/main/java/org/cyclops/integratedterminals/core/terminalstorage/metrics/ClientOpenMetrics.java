@@ -74,8 +74,10 @@ public final class ClientOpenMetrics {
                     return;
                 }
                 Open open = current;
-                if (open != null && open.packets.get() > 0
-                        && System.currentTimeMillis() - open.lastApplyWallMs >= QUIET_PERIOD_MS) {
+                // Wait for an applied packet, not just a deserialized one: a render thread busy
+                // with a large burst would otherwise let the open finish with nothing recorded.
+                if (open != null && open.applies.get() > 0
+                        && System.currentTimeMillis() - open.lastActivityWallMs >= QUIET_PERIOD_MS) {
                     open.finish();
                 }
             }
@@ -96,6 +98,7 @@ public final class ClientOpenMetrics {
         private final long startNanos = System.nanoTime();
 
         private final AtomicInteger packets = new AtomicInteger();
+        private final AtomicInteger applies = new AtomicInteger();
         private long rawBytes;
         private long compressedBytes;
         private long instances;
@@ -106,6 +109,8 @@ public final class ClientOpenMetrics {
         private long longestStallNanos;
         private long firstContentNanos = -1;
         private volatile long lastApplyWallMs = System.currentTimeMillis();
+        // Touched by both halves, so a slow render thread does not look like a finished open.
+        private volatile long lastActivityWallMs = System.currentTimeMillis();
         private volatile boolean written;
 
         private Open(int openId) {
@@ -119,6 +124,7 @@ public final class ClientOpenMetrics {
         public synchronized void recordDeserialize(String packetClass, int count, PacketSizeMeasurer.Sizes sizes,
                                                    long deserializeNanos, long measureNanos) {
             this.packets.incrementAndGet();
+            this.lastActivityWallMs = System.currentTimeMillis();
             this.rawBytes += sizes.raw();
             this.compressedBytes += sizes.compressed();
             this.instances += count;
@@ -139,12 +145,14 @@ public final class ClientOpenMetrics {
          * Record the render-thread half of one packet, which applies the change to the client views.
          */
         public synchronized void recordApply(long applyNanos) {
+            this.applies.incrementAndGet();
             this.applyNanos += applyNanos;
             this.longestStallNanos = Math.max(this.longestStallNanos, applyNanos);
             if (this.firstContentNanos < 0) {
                 this.firstContentNanos = System.nanoTime() - this.startNanos;
             }
             this.lastApplyWallMs = System.currentTimeMillis();
+            this.lastActivityWallMs = this.lastApplyWallMs;
             MetricsCsv.append("client_packets.csv", PACKETS_HEADER, String.join(",",
                     String.valueOf(this.openId),
                     this.tag,
@@ -166,7 +174,7 @@ public final class ClientOpenMetrics {
         }
 
         synchronized void finish() {
-            if (this.written || this.packets.get() == 0) {
+            if (this.written || this.applies.get() == 0) {
                 return;
             }
             this.written = true;
