@@ -69,6 +69,89 @@ alone.
 
 Hypothesis confirmed.
 
+## Everything together
+
+One table, before against after, with all five changes in place. Before is `master-26-lts` as it
+stands today. Times in milliseconds throughout.
+
+### Opening a storage terminal
+
+Loopback, one channel, medians of seven runs after a discarded warm-up. Scenario A is a first
+open, B a re-open, C a re-open after 1% of stacks changed, D after 10% changed.
+
+| case | server before | server after | | client before | client after | |
+|---|---:|---:|---|---:|---:|---|
+| 1 000 A | 5.1 | 4.4 | 1.2x | 11.5 | 10.0 | 1.2x |
+| 1 000 B | 4.5 | 4.1 | 1.1x | 15.5 | 10.0 | 1.6x |
+| 1 000 C | 4.3 | 4.0 | 1.1x | 12.5 | 11.0 | 1.1x |
+| 1 000 D | 4.1 | 4.0 | same | 11.0 | 9.0 | 1.2x |
+| 10 000 A | 287.7 | 33.1 | **8.7x** | 560.5 | 84.0 | **6.7x** |
+| 10 000 B | 285.4 | 33.0 | **8.6x** | 611.5 | 78.0 | **7.8x** |
+| 10 000 C | 328.5 | 31.9 | **10.3x** | 603.5 | 81.0 | **7.5x** |
+| 10 000 D | 224.8 | 29.4 | **7.6x** | 440.0 | 68.0 | **6.5x** |
+| 50 000 A | 5535.9 | 180.6 | **30.7x** | 10482.0 | 567.0 | **18.5x** |
+| 50 000 B | 5524.3 | 173.5 | **31.8x** | 10356.0 | 525.0 | **19.7x** |
+
+Two shapes built to collide as hard as possible:
+
+| case | before | after |
+|---|---|---|
+| 50 000 stacks, every heavy stack on one item | tripped the 60 s single-tick watchdog | 335.7 server, 933.5 client |
+| 10 000 stacks, 10% change all on one item type | 1503.4 server | 31.8 server, 116.5 client |
+
+Bytes on the wire are unchanged: 7373.6 KB raw and 842.5 KB compressed over 196 packets at
+50 000 stacks, the same as before. Nothing about what is sent changed, only what it costs to
+build and apply.
+
+### Storage index operations
+
+IntegratedDynamics index benchmarks, milliseconds per operation, medians of six runs each side.
+`plain` is all stacks free of components, `mixed` one in ten carrying one, `few_items` fifty item
+types, `single_item` every stack on one item, `heavy_components` a large payload on each.
+
+| operation | before | after | |
+|---|---:|---:|---|
+| exact lookup, spread | 0.004670 | 0.001500 | 3.1x faster |
+| exact lookup, plain | 0.001227 | 0.000954 | 1.3x faster |
+| exact lookup, mixed | 0.001618 | 0.001190 | 1.4x faster |
+| exact lookup, few items | 0.070593 | 0.000858 | **82x faster** |
+| exact lookup, single item | 3.796415 | 0.001252 | **3034x faster** |
+| exact lookup, heavy components | 0.003482 | 0.002789 | 1.2x faster |
+| item-only lookup, spread | 0.268168 | 0.001097 | **245x faster** |
+| item-only lookup, plain | 0.231160 | 0.001099 | **210x faster** |
+| item-only lookup, mixed | 0.220683 | 0.001053 | **210x faster** |
+| item-only lookup, single item | 0.432068 | 0.582180 | 1.35x slower |
+| modification, spread | 0.000744 | 0.001381 | 1.85x slower |
+| modification, plain | 0.000540 | 0.000507 | 1.1x faster |
+| modification, mixed | 0.000501 | 0.000667 | 1.33x slower |
+| modification, few items | 0.156185 | 0.000726 | **215x faster** |
+| modification, single item | 3.291132 | 0.000688 | **4784x faster** |
+| modification, heavy components | 0.000423 | 0.002077 | 4.91x slower |
+| non-empty position, first | 0.000243 | 0.000259 | same |
+| non-empty position, all | 0.012368 | 0.012341 | same |
+
+### What got worse
+
+Four rows regress, all of them the cost of hashing data components on instances that carry them.
+
+* **Modification** on component-bearing stacks, 1.33x on the realistic mixed shape and 4.91x with
+  a large payload. In absolute terms that is 166 ns and 1.65 microseconds per operation. The same
+  operation on a plain stack is slightly faster than before.
+* **Item-only lookup where one item has thousands of variants**, 1.35x. That query has to return
+  every variant, so classification cannot narrow it and each result costs a dearer hash.
+
+Set against them, an item-only lookup on a normal network costs 220 microseconds less, and the
+collision-heavy shapes are hundreds to thousands of times cheaper. One avoided lookup pays for
+roughly a thousand modifications.
+
+### Caveats
+
+* The terminal measurements were taken before the fifth change, which collapses repeated hashing
+  in the index update path. That change is worth 4 to 41% of a modification depending on shape
+  and does not touch the open path, so the terminal figures are if anything slightly pessimistic.
+* Before and after come from different sessions. The large factors are far outside the run to run
+  spread; the modification rows are not, and that spread is given where it matters below.
+
 ## Before and after
 
 Loopback, one channel, no shaping. Times in milliseconds.
