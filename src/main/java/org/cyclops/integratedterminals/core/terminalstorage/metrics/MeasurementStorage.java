@@ -41,7 +41,13 @@ public class MeasurementStorage implements ResourceHandler<ItemResource> {
      */
     private static final double SMALL_SHARE = 0.30;
 
+    /**
+     * If freshly added stacks should all share one item type, which is the slow case.
+     */
+    public static boolean clusterNewStacks = false;
+
     private final List<ItemStack> stacks = new ArrayList<>();
+    private final List<Item> itemPool = new ArrayList<>();
     private int plainCount;
     private int smallCount;
     private int heavyCount;
@@ -64,6 +70,8 @@ public class MeasurementStorage implements ResourceHandler<ItemResource> {
                 items.add(item);
             }
         }
+        this.itemPool.clear();
+        this.itemPool.addAll(items);
         List<Holder<Enchantment>> enchantments = new ArrayList<>();
         HolderLookup.RegistryLookup<Enchantment> lookup = registryAccess.lookupOrThrow(Registries.ENCHANTMENT);
         lookup.listElements().forEach(enchantments::add);
@@ -147,8 +155,12 @@ public class MeasurementStorage implements ResourceHandler<ItemResource> {
                     }
                 }
                 default -> {
-                    // New distinct stack
-                    ItemStack fresh = new ItemStack(Items.STONE);
+                    // New distinct stack. Whether these all share one item type matters a lot:
+                    // stacks of the same item differing only in components cluster in the
+                    // network's ingredient index and make it far slower.
+                    ItemStack fresh = new ItemStack(clusterNewStacks
+                            ? Items.STONE
+                            : this.itemPool.get(random.nextInt(this.itemPool.size())));
                     fresh.setCount(1 + random.nextInt(64));
                     fresh.set(DataComponents.CUSTOM_NAME, Component.literal("new-" + seed + "-" + i));
                     this.stacks.set(index, fresh);

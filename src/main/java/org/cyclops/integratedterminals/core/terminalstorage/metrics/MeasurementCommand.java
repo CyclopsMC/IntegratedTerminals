@@ -89,6 +89,10 @@ public final class MeasurementCommand {
                                 StringArgumentType.getString(context, "value")))));
         root.then(Commands.literal("status").executes(context -> status(context.getSource())));
         root.then(Commands.literal("index").executes(context -> index(context.getSource())));
+        root.then(Commands.literal("cluster")
+                .then(Commands.argument("enabled", com.mojang.brigadier.arguments.BoolArgumentType.bool())
+                        .executes(context -> cluster(context.getSource(),
+                                com.mojang.brigadier.arguments.BoolArgumentType.getBool(context, "enabled")))));
         root.then(Commands.literal("crafting")
                 .then(Commands.argument("recipes", IntegerArgumentType.integer(0))
                         .executes(context -> crafting(context.getSource(),
@@ -235,6 +239,16 @@ public final class MeasurementCommand {
         int finalSkipped = skipped;
         source.sendSuccess(() -> Component.literal("Added " + finalAdded + " crafting recipes ("
                 + finalSkipped + " skipped, " + recipeKeys.size() + " available)"), false);
+        return 1;
+    }
+
+    /**
+     * Choose whether stacks added by a change all share one item type.
+     */
+    private static int cluster(CommandSourceStack source, boolean enabled) {
+        MeasurementStorage.clusterNewStacks = enabled;
+        source.sendSuccess(() -> Component.literal("New stacks from a change now use "
+                + (enabled ? "a single item type" : "varied item types")), false);
         return 1;
     }
 
