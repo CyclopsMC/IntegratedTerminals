@@ -157,6 +157,13 @@ Medians over the repetitions after the warm-up. `n` is how many rows contributed
 Byte and packet counts are server-side, measured at the point of sending; the client's own
 byte counter omits the small max-quantity packets, which are under 0.1% of the total.
 
+The P3 rows carry more samples because P3 was run twice: on the first attempt the harness
+declared an open failed while the screen was still crossing a 150 ms link, so P3 was repeated
+with a wait for the screen to appear. Rows from both runs are kept where they measure a real
+open. Rows where the packets arrived after the harness had already closed the container, and
+so were deserialized but applied to nothing, are excluded; they are recognisable by a near-zero
+apply total against a full packet count.
+
 | profile | stacks | channels | scenario | n | instances sent | packets | raw KB | compressed KB | server main ms | server total ms | client first ms | client complete ms | fill gap ms | deserialize ms | apply ms | sort/filter ms | longest stall ms |
 |---|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | P0 | 1000 | 1ch | A | 2 | 1000 | 4 | 120.1 | 18.3 | 5.1 | 8.3 | 7.1 | 11.5 | 4.4 | 3.5 | 3.9 | 2.0 | 2.2 |
@@ -236,6 +243,11 @@ First open, one channel, loopback:
 Bytes and packets scale linearly with the stack count. Time does not. Ten times the stacks
 costs 56 times the server time, and fifty times the stacks costs 1085 times the server time.
 The same shape appears on the client.
+
+One number moves the other way under shaping. The sorted and filtered view rebuild at 10 000
+stacks costs 57 ms on loopback but 182 ms under P3. The rebuild is lazy and triggered by
+rendering after the view has been invalidated, so when the packets arrive spread over a slower
+link the client rebuilds the view more times over the course of one open.
 
 Splitting the same contents over more channels makes it markedly cheaper, which points at the
 per-channel index rather than the total as the thing that hurts. 50 000 stacks over four
