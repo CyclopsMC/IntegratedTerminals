@@ -26,3 +26,53 @@ Raw rows are in `../measurements/`.
 
 `tc` was unavailable, so `netshape.py` was used instead of netem. See MEASUREMENT.md for
 the control comparison and the caveats that come with a userspace relay.
+
+## Running against a locally built CyclopsCore or IntegratedDynamics
+
+Both IntegratedTerminals and IntegratedDynamics already support this, so no Gradle edits are
+needed. Their `build.gradle` reads `secrets.properties` and prefers a local version when one
+is named there.
+
+1. Clone CyclopsCore and initialise its submodule. The CommonCapabilities API is a git
+   submodule under `loader-neoforge/src/api/java/org/cyclops/commoncapabilities/api`, and
+   without it the build fails with roughly 950 errors about a missing
+   `org.cyclops.commoncapabilities.api.ingredient` package:
+
+       git clone https://github.com/CyclopsMC/CyclopsCore /home/user/cyclopscore
+       cd /home/user/cyclopscore && git submodule update --init --depth 1
+
+2. Publish it to the local Maven repository. The published version is
+   `<mod_version>-<build_number>`, and `build_number` defaults to `DEV`:
+
+       ./gradlew :loader-neoforge:publishToMavenLocal
+
+   To keep a patched and an unpatched build side by side, temporarily suffix `mod_version`
+   in `gradle.properties` before publishing, for example `1.30.4-hashfix`, which yields
+   `1.30.4-hashfix-DEV`. Revert the file afterwards so the change stays out of any commit.
+
+3. Point IntegratedTerminals at it by creating `secrets.properties` in the repository root
+   (it is gitignored):
+
+       cyclopscore_version_local=1.30.4-DEV
+
+   IntegratedDynamics takes the same key in its own `secrets.properties`. Flipping the value
+   between two published versions and restarting is enough to A/B the two, since
+   `mavenLocal()` is first in the repository list.
+
+## Profiling the server
+
+`tools/env_jfr.sh` is `env.sh` plus a JFR recording on every JVM it starts, and
+`tools/start_server_jfr.sh` starts the dedicated server with it. Dump and read a recording
+with:
+
+    jcmd <server pid> JFR.dump name=open filename=server.jfr
+    jfr print --events jdk.ExecutionSample --stack-depth 40 server.jfr
+
+Filter samples by `sampledThread = "Server thread"`. Frames containing `HashMap$TreeNode`
+indicate buckets that have treeified, which is the signature of pathological hash collisions.
+
+## Reproducing the collision shapes
+
+`itmetrics cluster true` makes both the generated heavy stacks and the stacks added by a
+change share a single item type, which is the shape that collides. `tools/pathological.sh`
+runs the two cases that regressed worst.
