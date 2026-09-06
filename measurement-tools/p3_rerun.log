@@ -1,0 +1,85 @@
+connected on 25566
+Set up 1000 stacks over 1 channel(s).
+  channel 0: 1000 stacks (600 plain, 300 small payload, 100 heavy payload)
+    index 0=1000
+--- P3_1000_1ch_A_r1
+    client_row=True server_row=True
+--- P3_1000_1ch_A_r2
+    client_row=True server_row=True
+--- P3_1000_1ch_A_r3
+    client_row=True server_row=True
+--- P3_1000_1ch_B_r1
+    client_row=True server_row=True
+--- P3_1000_1ch_B_r2
+    client_row=True server_row=True
+--- P3_1000_1ch_B_r3
+    client_row=True server_row=True
+Set up 10000 stacks over 1 channel(s).
+  channel 0: 10000 stacks (1615 plain, 7385 small payload, 1000 heavy payload)
+    index 0=10000
+--- P3_10000_1ch_A_r1
+    client_row=True server_row=True
+--- P3_10000_1ch_A_r2
+    client_row=True server_row=True
+--- P3_10000_1ch_A_r3
+    client_row=True server_row=True
+--- P3_10000_1ch_B_r1
+    client_row=True server_row=True
+--- P3_10000_1ch_B_r2
+    client_row=True server_row=True
+--- P3_10000_1ch_B_r3
+    client_row=True server_row=True
+Set up 50000 stacks over 1 channel(s).
+  channel 0: 50000 stacks (1615 plain, 43385 small payload, 5000 heavy payload)
+    index 0=50000
+--- P3_50000_1ch_A_r1
+    client_row=True server_row=True
+--- P3_50000_1ch_A_r2
+    client_row=True server_row=True
+--- P3_50000_1ch_A_r3
+    client_row=True server_row=True
+--- P3_50000_1ch_B_r1
+    client_row=True server_row=True
+--- P3_50000_1ch_B_r2
+    client_row=True server_row=True
+--- P3_50000_1ch_B_r3
+    client_row=True server_row=True
+done
+connected on 25566
+Set up 10000 stacks over 4 channel(s).
+  channel 0: 2500 stacks (1500 plain, 750 small payload, 250 heavy payload)
+  channel 1: 2500 stacks (1500 plain, 750 small payload, 250 heavy payload)
+  channel 2: 2500 stacks (1500 plain, 750 small payload, 250 heavy payload)
+  channel 3: 2500 stacks (1500 plain, 750 small payload, 250 heavy payload)
+    index 0=2500 1=2500 2=2500 3=2500
+--- P3_10000_4ch_A_r1
+    client_row=True server_row=True
+--- P3_10000_4ch_A_r2
+    client_row=True server_row=True
+--- P3_10000_4ch_A_r3
+    client_row=True server_row=True
+--- P3_10000_4ch_B_r1
+    client_row=True server_row=True
+--- P3_10000_4ch_B_r2
+    client_row=True server_row=True
+--- P3_10000_4ch_B_r3
+    client_row=True server_row=True
+done
+connected on 25566
+Set up 10000 stacks over 1 channel(s).
+  channel 0: 10000 stacks (1615 plain, 7385 small payload, 1000 heavy payload)
+    index 0=10000
+--- P3_10000_1ch_C_r1
+    client_row=True server_row=True
+--- P3_10000_1ch_C_r2
+    client_row=True server_row=True
+--- P3_10000_1ch_C_r3
+    client_row=True server_row=True
+--- P3_10000_1ch_D_r1
+    client_row=True server_row=True
+--- P3_10000_1ch_D_r2
+    client_row=True server_row=True
+--- P3_10000_1ch_D_r3
+    client_row=True server_row=True
+done
+P3 rerun done

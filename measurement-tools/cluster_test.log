@@ -1,0 +1,9 @@
+=== new stacks: varied ===
+New stacks from a change now use varied item types
+  after setup: index 0=10000
+  after changes: index 0=9099
+=== new stacks: same ===
+New stacks from a change now use a single item type
+  after setup: index 0=10000
+  after changes: index 0=9093
+cluster test done

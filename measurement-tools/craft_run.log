@@ -1,0 +1,17 @@
+Set up 10000 stacks over 1 channel(s).
+  channel 0: 10000 stacks (1615 plain, 7385 small payload, 1000 heavy payload)
+    index 0=10000
+    Added 296 crafting recipes (4 skipped, 1203 available)
+--- P0_10000_1chcraft_A_r1
+    client_row=True server_row=True
+--- P0_10000_1chcraft_A_r2
+    client_row=True server_row=True
+--- P0_10000_1chcraft_A_r3
+    client_row=True server_row=True
+--- P0_10000_1chcraft_B_r1
+    client_row=True server_row=True
+--- P0_10000_1chcraft_B_r2
+    client_row=True server_row=True
+--- P0_10000_1chcraft_B_r3
+    client_row=True server_row=True
+done

@@ -1,0 +1,31 @@
+--- P0_50000_4ch_A_r1
+    client_row=True server_row=True
+--- P0_50000_4ch_A_r2
+    client_row=True server_row=True
+--- P0_50000_4ch_A_r3
+    client_row=True server_row=True
+--- P0_50000_4ch_B_r1
+    client_row=True server_row=True
+--- P0_50000_4ch_B_r2
+    client_row=True server_row=True
+--- P0_50000_4ch_B_r3
+    client_row=True server_row=True
+--- P0_50000_4ch_C_r1
+    client_row=True server_row=True
+--- P0_50000_4ch_C_r2
+    client_row=True server_row=True
+--- P0_50000_4ch_C_r3
+    client_row=True server_row=True
+--- P0_50000_4ch_D_r1
+    client_row=True server_row=True
+--- P0_50000_4ch_D_r2
+    client_row=True server_row=True
+--- P0_50000_4ch_D_r3
+    client_row=True server_row=True
+--- P0_50000_4ch_E_r1
+    client_row=True server_row=True
+--- P0_50000_4ch_E_r2
+    client_row=True server_row=True
+--- P0_50000_4ch_E_r3
+    client_row=True server_row=True
+done
