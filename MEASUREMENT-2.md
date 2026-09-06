@@ -309,15 +309,31 @@ slightly dearer hash.
 
 Not implemented. Listed in the order I would take them.
 
-1. **Hash the prototype once per index operation instead of two to four times.**
-   `IngredientMapWrappedAdapter` builds a fresh wrapper inside each of `get`, `put` and `remove`,
-   so the get-then-put pairs in `IngredientCollectionPrototypeMap.add` and
-   `IngredientPositionsIndex.addPosition` hash the same prototype twice. Every storage change is
-   then applied twice over, once to its own channel and once to the wildcard channel, in
-   `PositionedAddonsNetworkIngredients.applyChangesToChannel`. A compute or merge style method on
-   `IIngredientMapMutable`, overridden in the wrapped and classified maps, would collapse each
-   pair into one hash. Hashing is 63.6% of index modification samples, so this is worth roughly a
-   third of what remains of the modification regression.
+1. **Hash the prototype once per index operation instead of twice.** Implemented and measured,
+   in CyclopsMC/CyclopsCore#239 and CyclopsMC/IntegratedDynamics#1725, rather than left as a
+   suggestion. `IngredientMapWrappedAdapter` builds a fresh wrapper inside each of `get`, `put`
+   and `remove`, so the get-then-put pairs in `IngredientCollectionPrototypeMap.add` and
+   `IngredientPositionsIndex.addPosition` hash the same prototype twice, and every storage change
+   runs twice over, once for its own channel and once for the wildcard channel. A `compute`
+   method on `IIngredientMapMutable`, overridden in the wrapped and classified maps, collapses
+   each pair into one hash.
+
+   Medians of six runs each, alternating between the two configurations within one session:
+
+   | benchmark | without | with | factor |
+   |---|---:|---:|---|
+   | index_modification_single_item | 0.001162 | 0.000688 | 41% faster |
+   | index_modification_few_items | 0.001084 | 0.000726 | 33% faster |
+   | index_modification_heavy_components | 0.002510 | 0.002077 | 17% faster |
+   | index_modification_mixed | 0.000713 | 0.000667 | 6% faster |
+   | index_modification_plain | 0.000530 | 0.000507 | 4% faster |
+   | index_modification | 0.001246 | 0.001381 | 11% slower |
+
+   I predicted a third of the remaining modification cost. That held where hashing dominates and
+   overestimated the realistic shapes, because the plain-stack change already removed most of the
+   hashing there. The spread-shape row runs first in the sequence and absorbs warm-up; its two
+   distributions overlap almost completely, so it is neither a regression I would report nor one
+   I can rule out.
 
    An earlier version of this report claimed that caching the hash inside
    `IngredientInstanceWrapper` was the biggest win here. That was wrong. Each `wrap` call
