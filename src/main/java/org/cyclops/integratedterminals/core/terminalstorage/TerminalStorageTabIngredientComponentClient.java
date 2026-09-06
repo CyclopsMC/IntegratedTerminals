@@ -78,6 +78,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -324,6 +325,32 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @Nullable
     public Collection<HandlerWrappedTerminalCraftingOption<T>> getCraftingOptions(int channel) {
         return craftingOptions.get(channel);
+    }
+
+    /**
+     * Determine in which channels the given instance is stored, and in which quantity.
+     * @param instance An instance, its quantity is ignored.
+     * @return The stored quantity per channel, in ascending channel order.
+     */
+    public Int2LongMap getInstanceQuantitiesPerChannel(T instance) {
+        return TerminalStorageChannels.getInstanceQuantitiesPerChannel(this.ingredientComponent, getChannels(),
+                this::getRawUnfilteredIngredientsView, instance);
+    }
+
+    /**
+     * Determine the channel that the given crafting option is available in.
+     * @param craftingOption A crafting option.
+     * @return A channel id, or empty if the crafting option is not available in any channel.
+     */
+    public OptionalInt getCraftingOptionChannel(HandlerWrappedTerminalCraftingOption<T> craftingOption) {
+        for (int channel : getChannels()) {
+            Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions = getCraftingOptions(channel);
+            if (channeledCraftingOptions != null
+                    && channeledCraftingOptions.stream().anyMatch(option -> option == craftingOption)) {
+                return OptionalInt.of(channel);
+            }
+        }
+        return OptionalInt.empty();
     }
 
     /**

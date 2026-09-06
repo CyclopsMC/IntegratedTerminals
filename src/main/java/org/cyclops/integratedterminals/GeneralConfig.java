@@ -102,6 +102,8 @@ public class GeneralConfig extends DummyConfig {
     public static boolean guiStorageForceCraftingGridCenter = false;
     @ConfigurableProperty(category = "general", comment = "If the automatic re-sorting of the storage terminal contents should be paused while the shift key is held down.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean guiStoragePauseSortingWhileShifting = true;
+    @ConfigurableProperty(category = "general", comment = "If the tooltips in the storage terminal should indicate the channels in which ingredients are available when all channels are shown at once.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean guiStorageTooltipChannels = true;
 
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");
