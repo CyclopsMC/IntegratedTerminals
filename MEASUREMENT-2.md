@@ -252,8 +252,35 @@ added for this work.
 | index_lookup_exact_heavy_components | 0.003313 | 0.003172 | 0.002793 | 1.2x faster |
 | index_modification_heavy_components | 0.000421 | 0.002611 | 0.002580 | 6x slower |
 
-The `plain` shape is 5000 stacks distinct by item and count with no components at all, which is
-what a large modpack storage mostly looks like. It is faster or unchanged on every benchmark.
+The `plain` shape is 5000 stacks distinct by item and count with no components at all. It is
+faster or unchanged on every benchmark.
+
+### What a realistic composition costs
+
+`plain` and `spread` bracket a real storage network rather than describing one. A `mixed` shape
+gives one instance in ten a component and leaves the rest plain, which is closer to a modpack:
+bulk material with a tail of enchanted, damaged or named items. Medians of three runs each.
+
+| benchmark | before | after | factor |
+|---|---:|---:|---|
+| index_lookup_exact_mixed | 0.001618 | 0.001022 | 1.6x faster |
+| index_lookup_item_mixed | 0.220683 | 0.000955 | 231x faster |
+| index_modification_mixed | 0.000501 | 0.000710 | 1.4x slower |
+
+The modification cost tracks the fraction of instances carrying components, since only those pay
+for the hash:
+
+| component-bearing share | modification, after vs before |
+|---|---|
+| 0% (`plain`) | 1.05x |
+| 10% (`mixed`) | 1.42x |
+| 74% (`spread`) | 1.70x |
+| 100% with a large payload (`heavy_components`) | 6.53x |
+
+In absolute terms a modification on the mixed shape costs 209 ns more than it did. An item-only
+lookup on the same shape costs 220 microseconds less. One avoided lookup pays for roughly a
+thousand modifications, so on any network where item-only lookups happen at all, which is every
+extraction that ignores components, the trade is heavily one-sided.
 
 The hash-only column is the reason the other two changes exist. Taken alone the hash makes
 item-only lookups three times slower and modifications two to three times slower, which would be
@@ -282,12 +309,21 @@ slightly dearer hash.
 
 Not implemented. Listed in the order I would take them.
 
-1. **Cache the ItemStack component hash.** `IngredientInstanceWrapper.hashCode` recomputes
-   `getComponent().getMatcher().hash(getInstance())` on every call. The wrapper holds an
-   immutable instance and stores nothing, so a lazily computed field would help wherever one
-   wrapper is hashed more than once, which includes every rehash of a map it is a key in. This is
-   the largest remaining item on either profile and it is what the three surviving regressions
-   above are made of. It belongs in CommonCapabilitiesAPI, which is a separate repository.
+1. **Hash the prototype once per index operation instead of two to four times.**
+   `IngredientMapWrappedAdapter` builds a fresh wrapper inside each of `get`, `put` and `remove`,
+   so the get-then-put pairs in `IngredientCollectionPrototypeMap.add` and
+   `IngredientPositionsIndex.addPosition` hash the same prototype twice. Every storage change is
+   then applied twice over, once to its own channel and once to the wildcard channel, in
+   `PositionedAddonsNetworkIngredients.applyChangesToChannel`. A compute or merge style method on
+   `IIngredientMapMutable`, overridden in the wrapped and classified maps, would collapse each
+   pair into one hash. Hashing is 63.6% of index modification samples, so this is worth roughly a
+   third of what remains of the modification regression.
+
+   An earlier version of this report claimed that caching the hash inside
+   `IngredientInstanceWrapper` was the biggest win here. That was wrong. Each `wrap` call
+   produces a fresh wrapper that is hashed exactly once, and `HashMap` stores the hash in its
+   nodes so it never recomputes on resize. Caching in the wrapper helps only where a stored
+   wrapper is hashed again, which is the `iterator()` case in item 3 below.
 2. **Coalesce the client view rebuild during the initial burst.** Every applied change packet
    calls `resetFilteredIngredientsViews`, and the next rendered frame rebuilds the filtered and
    sorted list from scratch. A 50 000 stack open sends 196 packets, so the list can be rebuilt
@@ -336,9 +372,8 @@ A comment drafted for the issue, not posted:
 >
 > That removes the reason this issue was opened. Suggest parking it: the remaining cost is not
 > worth client-side persistence and its invalidation problems. If it comes back, the two cheaper
-> wins are caching the ItemStack component hash in `IngredientInstanceWrapper`, which is now the
-> largest single frame in both server and client profiles, and coalescing the client's
-> sorted-view rebuild while the initial packet burst is still arriving.
+> wins are collapsing the repeated prototype hashing in the index update path, and coalescing the
+> client's sorted-view rebuild while the initial packet burst is still arriving.
 >
 > Full numbers and profiles in MEASUREMENT-2.md on the measurement branch.
 
