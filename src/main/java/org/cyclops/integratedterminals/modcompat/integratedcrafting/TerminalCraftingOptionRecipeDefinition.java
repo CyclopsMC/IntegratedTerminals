@@ -2,12 +2,14 @@ package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import net.minecraft.world.item.ItemStack;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingOption;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ public class TerminalCraftingOptionRecipeDefinition<T, M> implements ITerminalCr
     private final IngredientComponent<T, M> ingredientComponent;
     private final IRecipeDefinition prioritizedRecipe;
     private final long estimatedTickDuration;
+    private final List<ItemStack> craftingMachines;
 
     @Deprecated // TODO: rm in next major
     public TerminalCraftingOptionRecipeDefinition(IngredientComponent<T, M> ingredientComponent,
@@ -33,14 +36,27 @@ public class TerminalCraftingOptionRecipeDefinition<T, M> implements ITerminalCr
     public TerminalCraftingOptionRecipeDefinition(IngredientComponent<T, M> ingredientComponent,
                                                   IRecipeDefinition prioritizedRecipe,
                                                   long estimatedTickDuration) {
+        this(ingredientComponent, prioritizedRecipe, estimatedTickDuration, Collections.emptyList());
+    }
+
+    public TerminalCraftingOptionRecipeDefinition(IngredientComponent<T, M> ingredientComponent,
+                                                  IRecipeDefinition prioritizedRecipe,
+                                                  long estimatedTickDuration,
+                                                  List<ItemStack> craftingMachines) {
         this.ingredientComponent = ingredientComponent;
         this.prioritizedRecipe = prioritizedRecipe;
         this.estimatedTickDuration = estimatedTickDuration;
+        this.craftingMachines = craftingMachines;
     }
 
     @Override
     public long getEstimatedTickDuration() {
         return estimatedTickDuration;
+    }
+
+    @Override
+    public List<ItemStack> getCraftingMachines() {
+        return craftingMachines;
     }
 
     @Override

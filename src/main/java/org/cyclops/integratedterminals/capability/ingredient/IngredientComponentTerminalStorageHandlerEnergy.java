@@ -10,6 +10,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import com.mojang.datafixers.util.Either;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -67,7 +69,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
     public void drawInstance(GuiGraphics guiGraphics, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
-                             @Nullable TooltipComponent additionalTooltipComponent) {
+                             @Nullable List<Either<FormattedText, TooltipComponent>> additionalTooltipElements) {
         if (instance > 0) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
 
@@ -103,7 +105,7 @@ public class IngredientComponentTerminalStorageHandlerEnergy implements IIngredi
                                 lines.addAll(additionalTooltipLines);
                             }
                             return lines;
-                        }, additionalTooltipComponent);
+                        }, additionalTooltipElements);
             }
         }
     }
