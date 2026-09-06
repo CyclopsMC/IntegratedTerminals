@@ -251,8 +251,17 @@ link the client rebuilds the view more times over the course of one open.
 
 Splitting the same contents over more channels makes it markedly cheaper, which points at the
 per-channel index rather than the total as the thing that hurts. 50 000 stacks over four
-channels of 12 500 carries the same bytes as 50 000 over one channel, but costs 1 628 ms of
-server thread instead of 5 536 ms, and 4 607 ms on the client instead of 10 482 ms.
+channels of 12 500 carries almost the same bytes as 50 000 over one channel (856 KB compressed
+against 845 KB), but costs 1 628 ms of server thread instead of 5 536 ms, and 4 607 ms on the
+client instead of 10 482 ms.
+
+This comparison is not perfectly clean. The 1615-item plain cap applies per channel, so the
+four-channel network holds 6 460 component-free stacks against 1 615 for the single-channel
+one, and component-free stacks are the cheap ones to compare. Some of the gap is that lighter
+mix rather than the index size. The gap is 3.4x on the server while the composition differs by
+roughly 10% of the stacks, so per-channel index size looks like the larger term, but this
+measurement does not separate the two. Holding composition fixed while varying only the channel
+split would settle it, and was not run.
 
 ### The re-open is entirely redundant
 
