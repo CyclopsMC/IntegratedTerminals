@@ -71,6 +71,14 @@ with:
 Filter samples by `sampledThread = "Server thread"`. Frames containing `HashMap$TreeNode`
 indicate buckets that have treeified, which is the signature of pathological hash collisions.
 
+Because `JAVA_TOOL_OPTIONS` reaches every JVM it starts, sourcing `env_jfr.sh` before
+`clientdevbridge start` records the client too.
+
+`hotframes.py` ranks the frames in the printed samples, optionally restricted to samples that
+pass through a given frame, which is how to look at one code path rather than the whole run:
+
+    ./hotframes.py samples.txt "Server thread" ContainerTerminalStorageBase.broadcastChanges
+
 ## Reproducing the collision shapes
 
 `itmetrics cluster true` makes both the generated heavy stacks and the stacks added by a
