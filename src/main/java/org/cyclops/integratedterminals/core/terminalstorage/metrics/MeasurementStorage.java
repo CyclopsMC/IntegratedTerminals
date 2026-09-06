@@ -42,7 +42,8 @@ public class MeasurementStorage implements ResourceHandler<ItemResource> {
     private static final double SMALL_SHARE = 0.30;
 
     /**
-     * If freshly added stacks should all share one item type, which is the slow case.
+     * If stacks that differ only by components should all share one item type, which is the slow case.
+     * Applies both to generated heavy stacks and to stacks added by a change.
      */
     public static boolean clusterNewStacks = false;
 
@@ -97,9 +98,11 @@ public class MeasurementStorage implements ResourceHandler<ItemResource> {
             this.smallCount++;
         }
         for (int i = 0; i < heavyTarget; i++) {
-            // Spread heavy stacks over item types. Putting them all on one item makes the network's
-            // ingredient index degrade badly, which is a separate finding, not what we want to measure here.
-            ItemStack stack = new ItemStack(items.get(random.nextInt(items.size())));
+            // Spreading heavy stacks over item types is the normal case. Putting them all on one
+            // item is the pathological case, kept selectable so it can be measured.
+            ItemStack stack = new ItemStack(clusterNewStacks
+                    ? Items.DIAMOND_SWORD
+                    : items.get(random.nextInt(items.size())));
             stack.setCount(1);
             stack.set(DataComponents.CUSTOM_NAME, Component.literal("heavy-" + i));
             stack.set(DataComponents.LORE, new ItemLore(List.of(
