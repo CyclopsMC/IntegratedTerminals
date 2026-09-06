@@ -1,8 +1,18 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.9.1"></a>
+## [26.1.2-1.9.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.9.0...26.1.2-1.9.1) - 2026-09-06 13:30:24
+
+
+### Changed
+* Make JEI toast style consistent with the rest
+
+### Fixed
+* Fix dedicated servers crashing on the crafting job toast packet (#220)
+
 <a name="26.1.2-1.9.0"></a>
-## [26.1.2-1.9.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.8.0...26.1.2-1.9.0) - 2026-09-05 19:05:05
+## [26.1.2-1.9.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.8.0...26.1.2-1.9.0) - 2026-09-05 19:05:05 +0200
 
 
 ### Added
