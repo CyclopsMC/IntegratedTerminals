@@ -115,6 +115,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final Int2LongMap maxQuantities;
     private final Int2LongMap totalQuantities;
     private final IntSet channels;
+    /**
+     * If the wildcard ingredients view is the very same collection as the view of the single
+     * channel this tab knows about. Only {@link #updateWildcardViewAlias()} changes this.
+     */
+    private boolean wildcardViewAliased;
     private boolean enabled;
     private int activeSlotId;
     private int activeSlotQuantity;
@@ -164,6 +169,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.totalQuantities = new Int2LongOpenHashMap();
         this.enabled = false;
         this.channels = new IntOpenHashSet();
+        this.wildcardViewAliased = false;
         resetActiveSlot();
 
         this.lastChangeId = 0;
@@ -311,6 +317,52 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         filter = event.getSearchString();
         resetFilteredIngredientsViews(channel);
         container.getGuiState().setSearch(getTabSettingsName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
+    }
+
+    /**
+     * If the wildcard ingredients view is the very same collection as the view of the single
+     * channel this tab knows about.
+     *
+     * This only reports the current state. {@link #updateWildcardViewAlias()} establishes and
+     * breaks the alias.
+     *
+     * @return If the wildcard view is aliased.
+     */
+    protected boolean isWildcardViewAliased() {
+        return this.wildcardViewAliased;
+    }
+
+    /**
+     * Establish or break the aliasing of the wildcard ingredients view, after the set of known
+     * channels has changed.
+     *
+     * The wildcard view holds the sum over all channels, so with one channel it is an exact copy of
+     * that channel's view. Letting the two share one collection means the ingredients are stored
+     * and updated once instead of twice, which is the bulk of the client-side cost of opening a
+     * terminal on a single-channel network.
+     *
+     * This is the only place that changes {@link #wildcardViewAliased} or the wildcard entry of
+     * {@link #ingredientsUnsortedViews}, so callers can read either without side effects.
+     */
+    protected void updateWildcardViewAlias() {
+        if (this.wildcardViewAliased) {
+            if (this.channels.size() > 1) {
+                // A second channel appeared, so the wildcard view has to become independent again.
+                IIngredientCollapsedCollectionMutable<T, M> independent = IngredientCollectionHelpers
+                        .createCollapsedCollection(getIngredientComponent());
+                for (T instance : getRawUnfilteredIngredientsView(IPositionedAddonsNetwork.WILDCARD_CHANNEL)) {
+                    independent.add(instance);
+                }
+                this.ingredientsUnsortedViews.put(IPositionedAddonsNetwork.WILDCARD_CHANNEL, independent);
+                this.wildcardViewAliased = false;
+            }
+        } else if (this.channels.size() == 1
+                && !this.ingredientsUnsortedViews.containsKey(IPositionedAddonsNetwork.WILDCARD_CHANNEL)) {
+            // One channel, and the wildcard view holds nothing yet, so the two can share a collection.
+            this.ingredientsUnsortedViews.put(IPositionedAddonsNetwork.WILDCARD_CHANNEL,
+                    getRawUnfilteredIngredientsView(this.channels.iterator().nextInt()));
+            this.wildcardViewAliased = true;
+        }
     }
 
     public IIngredientCollapsedCollectionMutable<T, M> getRawUnfilteredIngredientsView(int channel) {
@@ -583,16 +635,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.enabled = enabled || this.craftingOptions.containsKey(channel);
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             this.channels.add(channel);
+            updateWildcardViewAlias();
         }
 
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
         Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
-
-        // Apply the change to the wildcard channel as well
-        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
-            onChange(IPositionedAddonsNetwork.WILDCARD_CHANNEL, changeType, ingredients, enabled);
-        }
 
         // Calculate quantity-diff
         long quantity = 0;
@@ -613,13 +661,22 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         long newQuantity = totalQuantities.get(channel) + quantity;
         totalQuantities.put(channel, newQuantity);
 
-        // Apply diff
+        // Apply diff, unless the wildcard view is aliased to the channel that applies it itself
         IIngredientCollapsedCollectionMutable<T, M> rawPersistedIngredients = getRawUnfilteredIngredientsView(channel);
-        IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
-                changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
-                changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
-                false);
-        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, rawPersistedIngredients);
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL || !isWildcardViewAliased()) {
+            IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
+                    changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
+                    changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
+                    false);
+            IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, rawPersistedIngredients);
+        }
+
+        // Apply the change to the wildcard channel as well.
+        // This happens after the diff above, because an aliased wildcard view shares this channel's
+        // collection, and it rebuilds its filtered view from that collection as it goes.
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+            onChange(IPositionedAddonsNetwork.WILDCARD_CHANNEL, changeType, ingredients, enabled);
+        }
 
         // Persist changes
         resetFilteredIngredientsViews(channel, false);
@@ -659,6 +716,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.enabled = true;
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             this.channels.add(channel);
+            updateWildcardViewAlias();
         }
         Collection<HandlerWrappedTerminalCraftingOption<T>> existingOptions = this.craftingOptions.get(channel);
         if (existingOptions == null || reset) {
