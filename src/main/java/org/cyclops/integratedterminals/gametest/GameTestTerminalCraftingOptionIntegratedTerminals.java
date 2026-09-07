@@ -40,7 +40,7 @@ public class GameTestTerminalCraftingOptionIntegratedTerminals {
     private static ITerminalCraftingOption<ItemStack> createCraftingOption(List<List<IPrototypedIngredient<ItemStack, Integer>>> inputs) {
         IRecipeDefinition recipe = RecipeDefinition.ofIngredients(IngredientComponent.ITEMSTACK, inputs,
                 MixedIngredients.ofInstance(IngredientComponent.ITEMSTACK, new ItemStack(Items.STICK, 4)));
-        return new TerminalCraftingOptionRecipeDefinition<>(IngredientComponent.ITEMSTACK, recipe);
+        return new TerminalCraftingOptionRecipeDefinition<>(IngredientComponent.ITEMSTACK, recipe, -1);
     }
 
     @GameTest(template = "empty", templateNamespace = "cyclopscore")

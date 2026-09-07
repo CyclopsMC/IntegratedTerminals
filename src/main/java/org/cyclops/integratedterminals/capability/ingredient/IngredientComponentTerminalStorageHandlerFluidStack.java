@@ -12,6 +12,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import com.mojang.datafixers.util.Either;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -75,7 +77,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
                              @Nullable List<Component> additionalTooltipLines,
-                             @Nullable TooltipComponent additionalTooltipComponent) {
+                             @Nullable List<Either<FormattedText, TooltipComponent>> additionalTooltipElements) {
         if (instance != null) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
@@ -93,7 +95,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStack implements IIng
                         lines.addAll(additionalTooltipLines);
                     }
                     return lines;
-                }, additionalTooltipComponent);
+                }, additionalTooltipElements);
             }
         }
     }

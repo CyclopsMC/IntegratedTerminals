@@ -83,6 +83,15 @@ public class ContainerTerminalStorageItem extends ContainerTerminalStorageBase<I
     }
 
     @Override
+    public boolean isEnderUpgraded() {
+        if (this.itemLocation == null) {
+            // This can be called from the super constructor, before this field is assigned
+            return false;
+        }
+        return ItemTerminalStoragePortable.isEnderUpgraded(getItemStack(player));
+    }
+
+    @Override
     public boolean stillValid(Player playerIn) {
         ItemStack item = getItemStack(player);
         return item != null && item.getItem() == RegistryEntries.ITEM_TERMINAL_STORAGE_PORTABLE.get();

@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:ender_eye"
+    },
+    "title": {
+      "translate": "advancement.integratedterminals.ender_upgrade_storage_terminal"
+    },
+    "description": {
+      "translate": "advancement.integratedterminals.ender_upgrade_storage_terminal.desc"
+    },
+    "frame": "goal"
+  },
+  "parent": "integratedterminals:storage_terminal/gui_storage_terminal",
+  "criteria": {
+    "criteria_0": {
+      "trigger": "integratedterminals:terminal_storage_ender_upgraded"
+    }
+  }
+}

@@ -27,6 +27,10 @@ public class GeneralConfig extends DummyConfig {
     public static boolean terminalStorageDefaultToCraftingPlanTree = false;
     @ConfigurableProperty(category = "core", comment = "The limit for the number of leaves in a tree-based crafting plan after which it won't be sent to the client anymore.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static int terminalStorageMaxTreePlanSize = 64;
+    @ConfigurableProperty(category = "core", comment = "If storage terminals can be ender-upgraded with an eye of ender to gain a tab with the player's ender chest contents.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
+    public static boolean terminalStorageTabEnderChestEnabled = true;
+    @ConfigurableProperty(category = "core", comment = "If ender-upgraded storage terminals should emit ender particles.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
+    public static boolean terminalStorageEnderParticles = false;
 
     @ConfigurableProperty(category = "machine", comment = "The number of items that should be selected when clicking on an item in the storage terminal.", isCommandable = true)
     public static int guiStorageItemInitialQuantity = 64;
@@ -48,6 +52,9 @@ public class GeneralConfig extends DummyConfig {
 
     @ConfigurableProperty(category = "machine", comment = "The update frequency in milliseconds for the crafting jobs gui.", isCommandable = true)
     public static int guiTerminalCraftingJobsUpdateFrequency = 1000;
+
+    @ConfigurableProperty(category = "machine", comment = "If a toast should be shown when a crafting job that you requested has been completed.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean craftingJobFinishedToast = true;
 
     @ConfigurableProperty(category = "core", comment = "The number of threads that the crafting plan calculator can use.", minimalValue = 1, requiresMcRestart = true, configLocation = ModConfig.Type.SERVER)
     public static int craftingPlannerThreads = 2;
@@ -98,6 +105,8 @@ public class GeneralConfig extends DummyConfig {
     public static boolean guiStorageForceCraftingGridCenter = false;
     @ConfigurableProperty(category = "general", comment = "If the automatic re-sorting of the storage terminal contents should be paused while the shift key is held down.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean guiStoragePauseSortingWhileShifting = true;
+    @ConfigurableProperty(category = "general", comment = "If the tooltips in the storage terminal should indicate the channels in which ingredients are available when all channels are shown at once.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean guiStorageTooltipChannels = true;
 
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");

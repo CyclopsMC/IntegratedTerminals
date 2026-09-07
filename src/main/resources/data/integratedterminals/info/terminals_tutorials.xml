@@ -22,6 +22,22 @@
         </appendix>
     </section>
 
+    <section name="info_book.integratedterminals.tutorials.storage_terminal_ender">
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal_ender.text1</paragraph>
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal_ender.text2</paragraph>
+        <paragraph>info_book.integratedterminals.tutorials.storage_terminal_ender.text3</paragraph>
+        <appendix type="minecraft:crafting">integratedterminals:crafting/terminal_storage_portable_ender_upgrade</appendix>
+        <appendix type="advancement_rewards" id="integratedterminals:storage_terminal_ender">
+            <advancements>
+                <advancement id="integratedterminals:storage_terminal_ender/ender_upgrade_storage_terminal" />
+            </advancements>
+            <rewards>
+                <reward type="item" amount="2">minecraft:ender_eye</reward>
+                <reward type="item" amount="1">integratedterminals:terminal_storage_portable</reward>
+            </rewards>
+        </appendix>
+    </section>
+
     <section name="info_book.integratedterminals.tutorials.storage_terminal_filtering">
         <paragraph>info_book.integratedterminals.tutorials.storage_terminal_filtering.text1</paragraph>
         <paragraph>info_book.integratedterminals.tutorials.storage_terminal_filtering.text2</paragraph>
