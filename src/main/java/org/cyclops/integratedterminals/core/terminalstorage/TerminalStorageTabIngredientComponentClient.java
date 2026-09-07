@@ -970,7 +970,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     // The click itself must still reach the server, so it is only shown later instead of not at all.
                     IntegratedTerminals.clog(Level.WARN, "Could not predict a storage terminal click: " + e);
                 }
-                IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
+                TerminalStorageLatencySimulation.sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         player.level().registryAccess(),
                         this.getName().toString(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
