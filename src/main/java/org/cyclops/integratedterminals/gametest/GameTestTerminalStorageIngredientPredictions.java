@@ -253,4 +253,145 @@ public class GameTestTerminalStorageIngredientPredictions {
         helper.succeed();
     }
 
+
+    /**
+     * The tests below cover clicks that are still unconfirmed when the next one is made,
+     * which is what happens when the player clicks faster than the round trip.
+     */
+
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testPipelinedClicksAreShownTogether(GameTestHelper helper) {
+        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
+        predictions.add(CLICK, CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CLICK + 1, CHANNEL, new ItemStack(Items.STONE, 20), false);
+        predictions.add(CLICK + 2, CHANNEL, new ItemStack(Items.STONE, 5), false);
+
+        List<InstanceWithMetadata<ItemStack>> view = createView(new ItemStack(Items.STONE, 100));
+        predictions.apply(CHANNEL, view);
+
+        helper.assertTrue(getInstance(view, 0).getCount() == 65, "All pending clicks should be shown at once");
+
+        helper.succeed();
+    }
+
+    /**
+     * The server handles clicks in the order it received them, and predictions are kept in that same order,
+     * so the change for the first click confirms the first prediction and leaves the later ones pending.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testConfirmingOneClickKeepsTheLaterOnes(GameTestHelper helper) {
+        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
+        predictions.add(CLICK, CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CLICK + 1, CHANNEL, new ItemStack(Items.STONE, 20), false);
+
+        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 10)), false),
+                "The change of the first click should be confirmed");
+        helper.assertTrue(predictions.getDelta(CHANNEL, new ItemStack(Items.STONE)) == -20,
+                "The second click should still be shown in full");
+
+        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 20)), false),
+                "The change of the second click should be confirmed");
+        helper.assertTrue(predictions.isEmpty(), "Nothing should be left pending");
+
+        helper.succeed();
+    }
+
+    /**
+     * A single change can cover more than one click, as the server batches what it observed.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testOneChangeCanConfirmSeveralClicks(GameTestHelper helper) {
+        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
+        predictions.add(CLICK, CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CLICK + 1, CHANNEL, new ItemStack(Items.STONE, 20), false);
+        predictions.add(CLICK + 2, CHANNEL, new ItemStack(Items.STONE, 5), false);
+
+        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 25)), false),
+                "A batched change should be confirmed");
+        helper.assertTrue(predictions.getDelta(CHANNEL, new ItemStack(Items.STONE)) == -10,
+                "Only the part that the change did not cover should still be shown");
+
+        helper.succeed();
+    }
+
+    /**
+     * Results carry the id of the click they belong to, so they stay apart even when they arrive out of order.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testResultsOfPipelinedClicksStayApart(GameTestHelper helper) {
+        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
+        predictions.add(CLICK, CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CLICK + 1, CHANNEL, new ItemStack(Items.STONE, 20), false);
+
+        helper.assertTrue(predictions.reconcile(CLICK + 1, 8), "The second click's result should be applied");
+        helper.assertTrue(predictions.getDelta(CHANNEL, new ItemStack(Items.STONE)) == -18,
+                "Only the second click should have been cut down");
+
+        helper.assertTrue(predictions.reconcile(CLICK, 3), "The first click's result should be applied");
+        helper.assertTrue(predictions.getDelta(CHANNEL, new ItemStack(Items.STONE)) == -11,
+                "Both clicks should be cut down to what they really moved");
+
+        helper.succeed();
+    }
+
+    /**
+     * A result for a click that a change already confirmed is a no-op,
+     * and must not fall through to another click's prediction.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testLateResultDoesNotTouchAnotherClick(GameTestHelper helper) {
+        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
+        predictions.add(CLICK, CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CLICK + 1, CHANNEL, new ItemStack(Items.STONE, 20), false);
+
+        predictions.consume(createChange(new ItemStack(Items.STONE, 10)), false);
+        helper.assertTrue(!predictions.reconcile(CLICK, 0),
+                "A result for an already confirmed click should change nothing");
+        helper.assertTrue(predictions.getDelta(CHANNEL, new ItemStack(Items.STONE)) == -20,
+                "The other click should be untouched");
+
+        helper.succeed();
+    }
+
+    /**
+     * Clicks in opposite directions cancel out in the view, and are confirmed by their own direction only.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testPipelinedClicksInBothDirections(GameTestHelper helper) {
+        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
+        predictions.add(CLICK, CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CLICK + 1, CHANNEL, new ItemStack(Items.STONE, 4), true);
+
+        List<InstanceWithMetadata<ItemStack>> view = createView(new ItemStack(Items.STONE, 100));
+        predictions.apply(CHANNEL, view);
+        helper.assertTrue(getInstance(view, 0).getCount() == 94, "Both directions should be shown");
+
+        helper.assertTrue(predictions.consume(createChange(new ItemStack(Items.STONE, 4)), true),
+                "The addition should be confirmed by an addition");
+        helper.assertTrue(predictions.getDelta(CHANNEL, new ItemStack(Items.STONE)) == -10,
+                "The removal should still be pending");
+
+        helper.succeed();
+    }
+
+    /**
+     * A click that empties an instance and a later click on it cannot both be shown,
+     * as the second one is capped by what the first one left behind.
+     */
+    @GameTest(template = "empty", templateNamespace = "cyclopscore")
+    public void testPipelinedRemovalsCannotGoNegative(GameTestHelper helper) {
+        TerminalStorageIngredientPredictions<ItemStack, Integer> predictions = createPredictions();
+        predictions.add(CLICK, CHANNEL, new ItemStack(Items.STONE, 10), false);
+        predictions.add(CLICK + 1, CHANNEL, new ItemStack(Items.STONE, 10), false);
+
+        List<InstanceWithMetadata<ItemStack>> view = createView(
+                new ItemStack(Items.STONE, 15), new ItemStack(Items.DIRT, 3));
+        predictions.apply(CHANNEL, view);
+
+        helper.assertTrue(view.size() == 1, "An over-predicted instance should be hidden, not shown negative");
+        helper.assertTrue(getInstance(view, 0).getItem() == Items.DIRT, "Other instances should be untouched");
+
+        helper.succeed();
+    }
+
 }
