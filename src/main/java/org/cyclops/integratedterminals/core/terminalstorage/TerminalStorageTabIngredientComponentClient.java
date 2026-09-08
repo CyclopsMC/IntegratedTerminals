@@ -1093,13 +1093,6 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     }
 
     @Override
-    public boolean isClickHandledOnPress(int channel, int hoveringStorageSlot) {
-        // Clicks that can not start a drag over the player inventory are applied as soon as the button goes down,
-        // just like vanilla containers do when the cursor is empty.
-        return hoveringStorageSlot >= 0 && getActiveSlotId() < 0;
-    }
-
-    @Override
     public boolean handleScroll(AbstractContainerMenu container, int channel, int hoveringStorageSlot, double delta,
                                 boolean hasClickedOutside, boolean hasClickedInStorage, int hoveredContainerSlot) {
         this.activeChannel = channel;

@@ -683,11 +683,14 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             }
         });
 
-        // Handle clicks that don't have to wait for the mouse button to be released
+        // Apply a click on a storage slot right away, the way vanilla containers do:
+        // it acts on the press while the cursor is empty, and waits for the release while it is not,
+        // as that press may be the start of a drag. Here a drag needs a selected slot,
+        // so without one there is nothing to wait for.
         if (this.clicked && tabOptional.isPresent() && getMenu().getCarried().isEmpty()) {
             ITerminalStorageTabClient<?> tab = tabOptional.get();
             int slot = getStorageSlotIndexAtPosition(mouseX, mouseY);
-            if (tab.isClickHandledOnPress(getMenu().getSelectedChannel(), slot)) {
+            if (slot >= 0 && tab.getActiveSlotId() < 0) {
                 this.clicked = false; // To avoid handling this click again on mouse release
                 Slot playerSlot = getSlotUnderMouse();
                 if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouseButton,
