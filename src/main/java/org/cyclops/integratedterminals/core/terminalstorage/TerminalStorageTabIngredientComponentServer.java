@@ -9,11 +9,11 @@ import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionHelpers;
@@ -52,6 +52,7 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientC
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingJobsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingOptionsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickResultPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
 
 import javax.annotation.Nullable;
@@ -468,10 +469,13 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     @Nullable
     public void handleStorageSlotClick(AbstractContainerMenu container, ServerPlayer player, TerminalClickType clickType,
                                        int channel, T hoveringStorageInstance, int hoveredContainerSlot,
-                                       long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection) {
+                                       long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection,
+                                       Map<Integer, ItemStack> predictedContainerSlots, int clickId) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(org.cyclops.integratedterminals.Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find an ingredient terminal storage handler"));
-        IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
+        // Count what actually moves, so that the client can correct a prediction that expected more
+        IngredientComponentStorageCounting<T, M> storage =
+                new IngredientComponentStorageCounting<>(ingredientNetwork.getChannel(channel));
 
         boolean updateActivePlayerStack = false;
 
@@ -512,5 +516,23 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         if (updateActivePlayerStack) {
             player.connection.send(new ClientboundContainerSetSlotPacket(-1, 0, 0, container.getCarried()));
         }
+
+        // Tell the client what this click really moved, as it may have predicted more than we did
+        IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                new TerminalStorageIngredientSlotClickResultPacket(this.getName().toString(), clickId,
+                        storage.getMovedQuantity()), player);
+
+        // Tell the container what the client made of this click,
+        // so that the slots we disagree about are the only ones that are sent back to it.
+        // Without this, a slot that only the client changed would stay wrong,
+        // as we only send the slots that changed for us.
+        // This is the same reconciliation that vanilla container clicks use.
+        for (Map.Entry<Integer, ItemStack> predictedSlot : predictedContainerSlots.entrySet()) {
+            int slot = predictedSlot.getKey();
+            if (slot >= 0 && slot < container.slots.size()) {
+                container.setRemoteSlotNoCopy(slot, predictedSlot.getValue());
+            }
+        }
+        container.broadcastChanges();
     }
 }

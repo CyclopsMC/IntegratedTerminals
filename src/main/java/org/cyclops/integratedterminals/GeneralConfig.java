@@ -75,6 +75,12 @@ public class GeneralConfig extends DummyConfig {
     @ConfigurableProperty(category = "general", comment = "If the search box and button states should be synchronized between the item storage and crafting tabs.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean syncItemStorageAndCraftingTabStates = true;
 
+    @ConfigurableProperty(category = "general", comment = "If storage terminal interactions should be shown immediately, before the server confirms them.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean guiStoragePredictInteractions = true;
+
+    @ConfigurableProperty(category = "general", comment = "For testing only: hold storage terminal clicks back by this many milliseconds, to imitate a server that is far away. 0 disables this.", isCommandable = true, minimalValue = 0, configLocation = ModConfig.Type.CLIENT)
+    public static int guiStorageSimulatedLatency = 0;
+
     @ConfigurableProperty(category = "general", comment = "If shift-clicking on the crafting terminal's crafting result slot should only produce a single result.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean shiftClickCraftingResultLimit = false;
 
