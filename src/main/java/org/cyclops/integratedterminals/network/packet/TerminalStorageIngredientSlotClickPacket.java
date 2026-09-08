@@ -53,6 +53,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
     private boolean transferFullSelection;
     @CodecField
     private CompoundTag predictedContainerSlots;
+    @CodecField
+    private int clickId;
 
     public TerminalStorageIngredientSlotClickPacket() {
         super((Type) ID);
@@ -63,7 +65,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
                                                     int channel, T hoveringStorageInstance,
                                                     int hoveredContainerSlot, long moveQuantityPlayerSlot,
                                                     T activeStorageInstance, boolean transferFullSelection,
-                                                    Map<Integer, ItemStack> predictedContainerSlots) {
+                                                    Map<Integer, ItemStack> predictedContainerSlots, int clickId) {
         super((Type) ID);
         this.tabId = tabId;
         this.clickType = clickType.ordinal();
@@ -77,6 +79,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
         this.activeStorageInstanceData = new CompoundTag();
         this.activeStorageInstanceData.put("i", serializer.serializeInstance(lookupProvider, activeStorageInstance));
         this.transferFullSelection = transferFullSelection;
+        this.clickId = clickId;
         this.predictedContainerSlots = new CompoundTag();
         for (Map.Entry<Integer, ItemStack> entry : predictedContainerSlots.entrySet()) {
             this.predictedContainerSlots.put(String.valueOf(entry.getKey()),
@@ -106,7 +109,7 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
             T activeInstance = serializer.deserializeInstance(world.registryAccess(), this.activeStorageInstanceData.get("i"));
             tab.handleStorageSlotClick(container, player, getClickType(), getChannel(), hoveringStorageInstance,
                     hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection,
-                    getPredictedContainerSlots(world.registryAccess()));
+                    getPredictedContainerSlots(world.registryAccess()), clickId);
         }
     }
 

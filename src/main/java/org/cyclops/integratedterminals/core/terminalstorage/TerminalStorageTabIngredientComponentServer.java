@@ -14,7 +14,6 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.commoncapabilities.api.ingredient.storage.IIngredientComponentStorage;
 import org.cyclops.cyclopscore.ingredient.collection.IIngredientCollapsedCollectionMutable;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientArrayList;
 import org.cyclops.cyclopscore.ingredient.collection.IngredientCollectionHelpers;
@@ -53,6 +52,7 @@ import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientC
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingJobsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientCraftingOptionsPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientMaxQuantityPacket;
+import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientSlotClickResultPacket;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientUpdateActiveStorageIngredientPacket;
 
 import javax.annotation.Nullable;
@@ -470,10 +470,12 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
     public void handleStorageSlotClick(AbstractContainerMenu container, ServerPlayer player, TerminalClickType clickType,
                                        int channel, T hoveringStorageInstance, int hoveredContainerSlot,
                                        long moveQuantityPlayerSlot, T activeStorageInstance, boolean transferFullSelection,
-                                       Map<Integer, ItemStack> predictedContainerSlots) {
+                                       Map<Integer, ItemStack> predictedContainerSlots, int clickId) {
         IIngredientComponentTerminalStorageHandler<T, M> viewHandler = ingredientComponent.getCapability(org.cyclops.integratedterminals.Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
                 .orElseThrow(() -> new IllegalStateException("Could not find an ingredient terminal storage handler"));
-        IIngredientComponentStorage<T, M> storage = ingredientNetwork.getChannel(channel);
+        // Count what actually moves, so that the client can correct a prediction that expected more
+        IngredientComponentStorageCounting<T, M> storage =
+                new IngredientComponentStorageCounting<>(ingredientNetwork.getChannel(channel));
 
         boolean updateActivePlayerStack = false;
 
@@ -514,6 +516,11 @@ public class TerminalStorageTabIngredientComponentServer<T, M> implements ITermi
         if (updateActivePlayerStack) {
             player.connection.send(new ClientboundContainerSetSlotPacket(-1, 0, 0, container.getCarried()));
         }
+
+        // Tell the client what this click really moved, as it may have predicted more than we did
+        IntegratedTerminals._instance.getPacketHandler().sendToPlayer(
+                new TerminalStorageIngredientSlotClickResultPacket(this.getName().toString(), clickId,
+                        storage.getMovedQuantity()), player);
 
         // Tell the container what the client made of this click,
         // so that the slots we disagree about are the only ones that are sent back to it.

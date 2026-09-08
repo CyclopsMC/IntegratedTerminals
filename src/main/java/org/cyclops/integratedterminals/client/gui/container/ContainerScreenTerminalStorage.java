@@ -639,6 +639,18 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             if(MinecraftHelpers.isShifted() && playerSlot != null && tab.isQuickMovePrevented(playerSlot)) {
                 return true;
             }
+
+            // Quick-move into the storage ourselves, instead of letting this become a vanilla slot click.
+            // Vanilla would send its own click for it, which the server answers without knowing about
+            // the terminal's click yet, so it would undo what we predicted until that one arrives too.
+            if (MinecraftHelpers.isShifted() && playerSlot != null && !playerSlot.getItem().isEmpty()
+                    && getMenu().getCarried().isEmpty() && (mouseButton == 0 || mouseButton == 1)) {
+                this.clicked = false; // To avoid handling this click again on mouse release
+                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), -1, mouseButton,
+                        false, false, playerSlot.index, true)) {
+                    return true;
+                }
+            }
         } else if (getSlotUnderMouse() != null) {
             // Don't allow shift clicking items into container when no tab has been selected
             return false;

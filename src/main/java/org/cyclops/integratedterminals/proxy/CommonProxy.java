@@ -33,6 +33,7 @@ public class CommonProxy extends CommonProxyComponent {
         packetHandler.register(TerminalStorageIngredientCraftingJobsPacket.ID, TerminalStorageIngredientCraftingJobsPacket.CODEC);
         packetHandler.register(TerminalStorageIngredientMaxQuantityPacket.ID, TerminalStorageIngredientMaxQuantityPacket.CODEC);
         packetHandler.register(TerminalStorageIngredientSlotClickPacket.ID, TerminalStorageIngredientSlotClickPacket.CODEC);
+        packetHandler.register(TerminalStorageIngredientSlotClickResultPacket.ID, TerminalStorageIngredientSlotClickResultPacket.CODEC);
         packetHandler.register(TerminalStorageIngredientOpenCraftingPlanGuiPacket.ID, TerminalStorageIngredientOpenCraftingPlanGuiPacket.CODEC);
         packetHandler.register(TerminalStorageIngredientOpenCraftingJobAmountGuiPacket.ID, TerminalStorageIngredientOpenCraftingJobAmountGuiPacket.CODEC);
         packetHandler.register(TerminalStorageIngredientUpdateActiveStorageIngredientPacket.ID, TerminalStorageIngredientUpdateActiveStorageIngredientPacket.CODEC);
