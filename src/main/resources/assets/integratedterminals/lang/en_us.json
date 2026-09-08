@@ -120,6 +120,8 @@
     "gui.integratedterminals.craftingplan.status.pending_inputs.desc": "Missing input ingredients",
     "gui.integratedterminals.craftingplan.status.invalid_inputs": "Recipe Not Allowed",
     "gui.integratedterminals.craftingplan.status.invalid_inputs.desc": "Recipe inputs could not be inserted into the crafting target",
+    "gui.integratedterminals.craftingplan.status.pending_output_storage": "Storage Full",
+    "gui.integratedterminals.craftingplan.status.pending_output_storage.desc": "Crafting results can not be inserted into the storage network",
     "gui.integratedterminals.craftingplan.status.crafting": "Crafting",
     "gui.integratedterminals.craftingplan.status.crafting.desc": "Job started, waiting for outputs",
     "gui.integratedterminals.craftingplan.status.finished": "Finished",

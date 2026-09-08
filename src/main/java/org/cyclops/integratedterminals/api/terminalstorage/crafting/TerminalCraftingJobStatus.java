@@ -45,7 +45,14 @@ public enum TerminalCraftingJobStatus {
     /**
      * All expected outputs are crafted.
      */
-    FINISHED(Helpers.RGBAToInt(43, 231, 47, 150), true, 0);
+    FINISHED(Helpers.RGBAToInt(43, 231, 47, 150), true, 0),
+    /**
+     * The crafting interface holds results that the storage network refuses to accept,
+     * so it can not make progress until they can be pushed out.
+     *
+     * New values must be appended, as this enum's ordinal is sent over the network.
+     */
+    PENDING_OUTPUT_STORAGE(Helpers.RGBAToInt(245, 120, 3, 150), true, 5);
 
     private final int color;
     private final boolean valid;
