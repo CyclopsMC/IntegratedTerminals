@@ -74,6 +74,12 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
     @ConfigurablePropertyCommon(category = "general", comment = "If the search box and button states should be synchronized between the item storage and crafting tabs.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
     public static boolean syncItemStorageAndCraftingTabStates = true;
 
+    @ConfigurablePropertyCommon(category = "general", comment = "If storage terminal interactions should be shown immediately, before the server confirms them.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
+    public static boolean guiStoragePredictInteractions = true;
+
+    @ConfigurablePropertyCommon(category = "general", comment = "For testing only: hold storage terminal clicks back by this many milliseconds, to imitate a server that is far away. 0 disables this.", isCommandable = true, minimalValue = 0, configLocation = ModConfigLocation.CLIENT)
+    public static int guiStorageSimulatedLatency = 0;
+
     @ConfigurablePropertyCommon(category = "general", comment = "If shift-clicking on the crafting terminal's crafting result slot should only produce a single result.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
     public static boolean shiftClickCraftingResultLimit = false;
 
@@ -101,6 +107,8 @@ public class GeneralConfig extends DummyConfigCommon<IModBase> {
     public static boolean guiStorageForceCraftingGridCenter = false;
     @ConfigurablePropertyCommon(category = "general", comment = "If the automatic re-sorting of the storage terminal contents should be paused while the shift key is held down.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
     public static boolean guiStoragePauseSortingWhileShifting = true;
+    @ConfigurablePropertyCommon(category = "general", comment = "If the tooltips in the storage terminal should indicate the channels in which ingredients are available when all channels are shown at once.", isCommandable = true, configLocation = ModConfigLocation.CLIENT)
+    public static boolean guiStorageTooltipChannels = true;
 
     public GeneralConfig() {
         super(IntegratedTerminals._instance, "general");

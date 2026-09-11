@@ -1,11 +1,13 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.IGuiHelpers;
@@ -35,7 +37,7 @@ public class IngredientComponentTerminalStorageHandlerEnergyClient implements II
     public void drawInstance(GuiGraphicsExtractor guiGraphics, Long instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui,
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
-                             @Nullable TooltipComponent additionalTooltipComponent) {
+                             @Nullable List<Either<FormattedText, TooltipComponent>> additionalTooltipElements) {
         if (instance > 0) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND){
 
@@ -68,7 +70,7 @@ public class IngredientComponentTerminalStorageHandlerEnergyClient implements II
                                 lines.addAll(additionalTooltipLines);
                             }
                             return lines;
-                        }, additionalTooltipComponent);
+                        }, additionalTooltipElements);
             }
         }
     }

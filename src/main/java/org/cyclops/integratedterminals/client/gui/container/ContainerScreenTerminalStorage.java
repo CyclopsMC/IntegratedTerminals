@@ -649,6 +649,18 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             if(IModHelpers.get().getMinecraftClientHelpers().isShifted() && playerSlot != null && tab.isQuickMovePrevented(playerSlot)) {
                 return true;
             }
+
+            // Quick-move into the storage ourselves, instead of letting this become a vanilla slot click.
+            // Vanilla would send its own click for it, which the server answers without knowing about
+            // the terminal's click yet, so it would undo what we predicted until that one arrives too.
+            if (IModHelpers.get().getMinecraftClientHelpers().isShifted() && playerSlot != null && !playerSlot.getItem().isEmpty()
+                    && getMenu().getCarried().isEmpty() && (mouse.button() == 0 || mouse.button() == 1)) {
+                this.clicked = false; // To avoid handling this click again on mouse release
+                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), -1, mouse.button(),
+                        false, false, playerSlot.index, true)) {
+                    return true;
+                }
+            }
         } else if (getSlotUnderMouse() != null) {
             // Don't allow shift clicking items into container when no tab has been selected
             return false;
@@ -680,6 +692,25 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 }
             }
         });
+
+        // Apply a click on a storage slot right away, the way vanilla containers do:
+        // it acts on the press while the cursor is empty, and waits for the release while it is not,
+        // as that press may be the start of a drag. Here a drag needs a selected slot,
+        // so without one there is nothing to wait for.
+        if (this.clicked && tabOptional.isPresent() && getMenu().getCarried().isEmpty()) {
+            ITerminalStorageTabClient<?> tab = tabOptional.get();
+            int slot = getStorageSlotIndexAtPosition(mouse.x(), mouse.y());
+            if (slot >= 0 && tab.getActiveSlotId() < 0) {
+                this.clicked = false; // To avoid handling this click again on mouse release
+                Slot playerSlot = getSlotUnderMouse();
+                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouse.button(),
+                        this.hasClickedOutside(mouse.x(), mouse.y(), this.leftPos, this.topPos),
+                        this.hasClickedInStorage(mouse.x(), mouse.y()),
+                        playerSlot != null ? playerSlot.index : -1, false)) {
+                    return true;
+                }
+            }
+        }
 
         return super.mouseClicked(mouse, isDoubleClick);
     }

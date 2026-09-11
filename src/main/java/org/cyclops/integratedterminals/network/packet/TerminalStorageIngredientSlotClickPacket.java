@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.network.packet;
 
+import com.google.common.collect.Maps;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -9,6 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -23,6 +25,8 @@ import org.cyclops.integratedterminals.api.terminalstorage.TerminalClickType;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentServer;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.slf4j.Logger;
+
+import java.util.Map;
 
 /**
  * Packet for sending a storage slot click event from client to server.
@@ -54,6 +58,10 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
     private CompoundTag activeStorageInstanceData;
     @CodecField
     private boolean transferFullSelection;
+    @CodecField
+    private CompoundTag predictedContainerSlots;
+    @CodecField
+    private int clickId;
 
     public TerminalStorageIngredientSlotClickPacket() {
         super((Type) ID);
@@ -63,7 +71,8 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
                                                     TerminalClickType clickType,
                                                     int channel, T hoveringStorageInstance,
                                                     int hoveredContainerSlot, long moveQuantityPlayerSlot,
-                                                    T activeStorageInstance, boolean transferFullSelection) {
+                                                    T activeStorageInstance, boolean transferFullSelection,
+                                                    Map<Integer, ItemStack> predictedContainerSlots, int clickId) {
         super((Type) ID);
         this.tabId = tabId;
         this.clickType = clickType.ordinal();
@@ -83,6 +92,14 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
             this.activeStorageInstanceData = valueOutput.buildResult();
         }
         this.transferFullSelection = transferFullSelection;
+        this.clickId = clickId;
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(new CompoundTag()), LOGGER)) {
+            TagValueOutput valueOutput = TagValueOutput.createWithContext(scopedCollector, lookupProvider);
+            for (Map.Entry<Integer, ItemStack> entry : predictedContainerSlots.entrySet()) {
+                valueOutput.store(String.valueOf(entry.getKey()), ItemStack.OPTIONAL_CODEC, entry.getValue());
+            }
+            this.predictedContainerSlots = valueOutput.buildResult();
+        }
     }
 
     @Override
@@ -113,8 +130,24 @@ public class TerminalStorageIngredientSlotClickPacket<T> extends PacketCodec<Ter
                 activeInstance = serializer.deserializeInstance(input);
             }
             tab.handleStorageSlotClick(container, player, getClickType(), getChannel(), hoveringStorageInstance,
-                    hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection);
+                    hoveredContainerSlot, moveQuantityPlayerSlot, activeInstance, transferFullSelection,
+                    getPredictedContainerSlots(world.registryAccess()), clickId);
         }
+    }
+
+    /**
+     * @param lookupProvider A lookup provider.
+     * @return The container slot contents that the client has predicted for this click, by slot id.
+     */
+    public Map<Integer, ItemStack> getPredictedContainerSlots(HolderLookup.Provider lookupProvider) {
+        Map<Integer, ItemStack> slots = Maps.newHashMap();
+        try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(new TagPathElement(this.predictedContainerSlots), LOGGER)) {
+            ValueInput input = TagValueInput.create(scopedCollector, lookupProvider, this.predictedContainerSlots);
+            for (String key : this.predictedContainerSlots.keySet()) {
+                slots.put(Integer.valueOf(key), input.read(key, ItemStack.OPTIONAL_CODEC).orElse(ItemStack.EMPTY));
+            }
+        }
+        return slots;
     }
 
     public TerminalClickType getClickType() {

@@ -35,9 +35,15 @@ import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalSto
 import org.cyclops.integratedterminals.gametest.GameTestAdvancementsIntegratedTerminals;
 import org.cyclops.integratedterminals.gametest.GameTestCraftingJobIndication;
 import org.cyclops.integratedterminals.gametest.GameTestCraftingJobNotify;
+import org.cyclops.integratedterminals.gametest.GameTestIngredientQueryMatchers;
 import org.cyclops.integratedterminals.gametest.GameTestPendingCraftingJobOutputs;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingJobFinishedEvent;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingOptionIntegratedTerminals;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingOptionMachines;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageChannels;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageClickPredictions;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageEnderChest;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageIngredientPredictions;
 import org.cyclops.integratedterminals.inventory.container.*;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortableConfig;
 import org.cyclops.integratedterminals.modcompat.integratedcrafting.IntegratedCraftingModCompat;
@@ -152,9 +158,15 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
                 GameTestAdvancementsIntegratedTerminals.class,
                 GameTestCraftingJobIndication.class,
                 GameTestCraftingJobNotify.class,
+                GameTestIngredientQueryMatchers.class,
                 GameTestPendingCraftingJobOutputs.class,
+                GameTestTerminalCraftingJobFinishedEvent.class,
                 GameTestTerminalCraftingOptionIntegratedTerminals.class,
+                GameTestTerminalCraftingOptionMachines.class,
+                GameTestTerminalStorageChannels.class,
+                GameTestTerminalStorageClickPredictions.class,
                 GameTestTerminalStorageEnderChest.class,
+                GameTestTerminalStorageIngredientPredictions.class,
         };
     }
 

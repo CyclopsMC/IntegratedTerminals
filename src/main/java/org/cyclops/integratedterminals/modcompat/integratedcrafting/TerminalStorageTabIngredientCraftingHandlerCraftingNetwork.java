@@ -1,9 +1,13 @@
 package org.cyclops.integratedterminals.modcompat.integratedcrafting;
 
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -69,24 +73,62 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         IngredientComponent<T, M> ingredientComponent = tab.getIngredientNetwork().getComponent();
         IRecipeIndex recipeIndex = getRecipeIndex(tab.getNetwork(), channel);
         ICraftingNetwork craftingNetwork = CraftingHelpers.getCraftingNetwork(tab.getNetwork()).orElse(null);
+        Multimap<IRecipeDefinition, ICraftingInterface> recipeCraftingInterfaces = craftingNetwork == null
+                ? ImmutableMultimap.of() : craftingNetwork.getRecipeCraftingInterfaces(channel);
+        // Multiple recipes are commonly exposed by the same crafting interface,
+        // so only resolve the machine of each interface once.
+        Map<ICraftingInterface, ItemStack> machineCache = Maps.newIdentityHashMap();
         Iterable<IRecipeDefinition> recipes = () -> recipeIndex.getRecipes(ingredientComponent, instance, matchCondition);
         return StreamSupport.stream(recipes.spliterator(), false)
                 .map((recipe) -> new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent, recipe,
-                        craftingNetwork == null ? -1 : craftingNetwork.getEstimatedRecipeDuration(channel, recipe)))
+                        craftingNetwork == null ? -1 : craftingNetwork.getEstimatedRecipeDuration(channel, recipe),
+                        getCraftingMachines(recipeCraftingInterfaces.get(recipe), machineCache)))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Determine the distinct machines that are targeted by the given crafting interfaces.
+     * @param craftingInterfaces The crafting interfaces that expose a recipe.
+     * @param machineCache A cache of machines by crafting interface.
+     * @return The machines, without duplicates.
+     */
+    public static List<ItemStack> getCraftingMachines(Collection<ICraftingInterface> craftingInterfaces,
+                                                      Map<ICraftingInterface, ItemStack> machineCache) {
+        List<ItemStack> craftingMachines = Lists.newArrayList();
+        for (ICraftingInterface craftingInterface : craftingInterfaces) {
+            ItemStack machine = machineCache.computeIfAbsent(craftingInterface, ICraftingInterface::getTargetMachineItem);
+            // Different interfaces can target the same machine type, which we only want to show once
+            if (!machine.isEmpty() && craftingMachines.stream()
+                    .noneMatch(existing -> ItemStack.isSameItemSameComponents(existing, machine))) {
+                craftingMachines.add(machine);
+            }
+        }
+        return craftingMachines;
     }
 
     @Override
     public void serializeCraftingOption(ValueOutput valueOutput, TerminalCraftingOptionRecipeDefinition craftingOption) {
         IRecipeDefinition.serialize(valueOutput, craftingOption.getRecipe());
         valueOutput.putLong("estimatedTickDuration", craftingOption.getEstimatedTickDuration());
+        List<ItemStack> craftingMachines = craftingOption.getCraftingMachines();
+        if (!craftingMachines.isEmpty()) {
+            ValueOutput.TypedOutputList<ItemStack> craftingMachinesOutput = valueOutput.list("craftingMachines", ItemStack.CODEC);
+            for (ItemStack craftingMachine : craftingMachines) {
+                craftingMachinesOutput.add(craftingMachine);
+            }
+        }
     }
 
     @Override
     public <T, M> TerminalCraftingOptionRecipeDefinition deserializeCraftingOption(ValueInput valueInput, IngredientComponent<T, M> ingredientComponent) throws IllegalArgumentException {
+        List<ItemStack> craftingMachines = Lists.newArrayList();
+        for (ItemStack craftingMachine : valueInput.listOrEmpty("craftingMachines", ItemStack.CODEC)) {
+            craftingMachines.add(craftingMachine);
+        }
         return new TerminalCraftingOptionRecipeDefinition<>(ingredientComponent,
                 IRecipeDefinition.deserialize(valueInput),
-                valueInput.getLongOr("estimatedTickDuration", -1));
+                valueInput.getLongOr("estimatedTickDuration", -1),
+                craftingMachines);
     }
 
     @Override
@@ -339,6 +381,9 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                 break;
             case INVALID_INPUTS:
                 jobStatus = TerminalCraftingJobStatus.INVALID_INPUTS;
+                break;
+            case PENDING_OUTPUT_STORAGE:
+                jobStatus = TerminalCraftingJobStatus.PENDING_OUTPUT_STORAGE;
                 break;
             case PROCESSING:
                 jobStatus = TerminalCraftingJobStatus.CRAFTING;
