@@ -7,11 +7,15 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.tuple.Triple;
 import org.cyclops.cyclopscore.helper.IModHelpers;
+import org.cyclops.integrateddynamics.api.network.IPositionedAddonsNetwork;
+import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandler;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageSlot;
 import org.cyclops.integratedterminals.api.terminalstorage.ITerminalStorageTabClient;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.image.Images;
+import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
+import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageChannels;
 import org.cyclops.integratedterminals.core.terminalstorage.TerminalStorageTabIngredientComponentClient;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.PendingCraftingJobOutput;
 
@@ -46,8 +50,14 @@ public class TerminalStorageSlotIngredient<T, M> implements ITerminalStorageSlot
                                       ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         long maxQuantity = ((TerminalStorageTabIngredientComponentClient) tab).getMaxQuantity(channel);
         PendingCraftingJobOutput<T> pendingCraftingJobOutput = getPendingCraftingJobOutput(tab, channel, label);
+        // This is called for all visible slots on every frame,
+        // so only determine the tooltip lines when they are actually going to be shown.
+        int slotSizeInner = IModHelpers.get().getGuiHelpers().getSlotSizeInner();
+        List<Component> tooltipLines = layer == ContainerScreenTerminalStorage.DrawLayer.FOREGROUND
+                && TooltipRenderHelpers.isHovering(gui, x, y, slotSizeInner, slotSizeInner, mouseX, mouseY)
+                ? createTooltipLines(pendingCraftingJobOutput, tab, channel, label) : null;
         ingredientComponentViewHandler.getClient().drawInstance(guiGraphics, instance, maxQuantity, label, gui, layer, partialTick, x, y, mouseX, mouseY,
-                createCraftingJobTooltipLines(pendingCraftingJobOutput), null);
+                tooltipLines, null);
         drawCraftingJobOverlay(guiGraphics, layer, x, y, pendingCraftingJobOutput);
     }
 
@@ -77,14 +87,44 @@ public class TerminalStorageSlotIngredient<T, M> implements ITerminalStorageSlot
                 : null;
     }
 
-    @Nullable
-    protected List<Component> createCraftingJobTooltipLines(@Nullable PendingCraftingJobOutput<T> pendingCraftingJobOutput) {
-        if (pendingCraftingJobOutput == null) {
-            return null;
-        }
+    protected List<Component> createTooltipLines(@Nullable PendingCraftingJobOutput<T> pendingCraftingJobOutput,
+                                                 ITerminalStorageTabClient tab, int channel, @Nullable String label) {
         List<Component> tooltipLines = Lists.newArrayList();
-        addCraftingJobTooltipLines(tooltipLines, pendingCraftingJobOutput);
+        if (pendingCraftingJobOutput != null) {
+            addCraftingJobTooltipLines(tooltipLines, pendingCraftingJobOutput);
+        }
+        addChannelTooltipLines(tooltipLines, tab, channel, label);
         return tooltipLines;
+    }
+
+    /**
+     * Add the tooltip lines that indicate in which channels this slot's instance is available.
+     *
+     * These are only shown when all channels are shown at once,
+     * as the channel is already known when a single channel is shown.
+     *
+     * @param tooltipLines The tooltip lines to append to.
+     * @param tab The tab this slot is being rendered in.
+     * @param channel The channel this slot is being rendered in.
+     * @param label An optional label that is rendered instead of the quantity.
+     *              Slots with such a label are not part of the storage overview,
+     *              so they don't get a channel indication.
+     */
+    protected void addChannelTooltipLines(List<Component> tooltipLines, ITerminalStorageTabClient tab,
+                                          int channel, @Nullable String label) {
+        if (GeneralConfig.guiStorageTooltipChannels && label == null
+                && channel == IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+            tooltipLines.addAll(createChannelTooltipLines(tab));
+        }
+    }
+
+    /**
+     * @param tab The tab this slot is being rendered in.
+     * @return The tooltip lines indicating the channels in which this slot's instance is available.
+     */
+    protected List<Component> createChannelTooltipLines(ITerminalStorageTabClient tab) {
+        return TerminalStorageChannels.createChannelTooltipLines(getIngredientComponentViewHandler(), getInstance(),
+                ((TerminalStorageTabIngredientComponentClient<T, M>) tab).getInstanceQuantitiesPerChannel(getInstance()));
     }
 
     protected void addCraftingJobTooltipLines(List<Component> tooltipLines,

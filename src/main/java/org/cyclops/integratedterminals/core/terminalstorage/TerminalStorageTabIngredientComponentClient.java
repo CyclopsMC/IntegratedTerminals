@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import org.apache.logging.log4j.Level;
 import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.image.Images;
@@ -82,6 +83,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final List<ITerminalButton<?, ?, ?>> buttons;
 
     private final Int2ObjectMap<IIngredientCollapsedCollectionMutable<T, M>> ingredientsUnsortedViews;
+    private final TerminalStorageIngredientPredictions<T, M> predictions;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> filteredIngredientsViews;
     private final Int2ObjectMap<List<InstanceWithMetadata<T>>> lastFilteredIngredientsViews;
     private final Int2ObjectMap<Collection<HandlerWrappedTerminalCraftingOption<T>>> craftingOptions;
@@ -90,11 +92,17 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     private final Int2LongMap maxQuantities;
     private final Int2LongMap totalQuantities;
     private final IntSet channels;
+    /**
+     * If the wildcard ingredients view is the very same collection as the view of the single
+     * channel this tab knows about. Only {@link #updateWildcardViewAlias()} changes this.
+     */
+    private boolean wildcardViewAliased;
     private boolean enabled;
     private int activeSlotId;
     private int activeSlotQuantity;
     private int activeChannel;
     private int lastChangeId;
+    private int lastClickId;
     private boolean sortingPaused;
 
     @SubscribeEvent
@@ -129,6 +137,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.buttons = event.getButtons();
 
         this.ingredientsUnsortedViews = new Int2ObjectOpenHashMap<>();
+        this.predictions = new TerminalStorageIngredientPredictions<>(this.ingredientComponent);
         this.filteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.lastFilteredIngredientsViews = new Int2ObjectOpenHashMap<>();
         this.craftingOptions = new Int2ObjectOpenHashMap<>();
@@ -139,9 +148,11 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.totalQuantities = new Int2LongOpenHashMap();
         this.enabled = false;
         this.channels = new IntOpenHashSet();
+        this.wildcardViewAliased = false;
         resetActiveSlot();
 
         this.lastChangeId = 0;
+        this.lastClickId = 0;
         this.sortingPaused = false;
 
     }
@@ -288,6 +299,52 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         container.getGuiState().setSearch(getTabSettingsName().toString(), channel, filter.toLowerCase(Locale.ENGLISH));
     }
 
+    /**
+     * If the wildcard ingredients view is the very same collection as the view of the single
+     * channel this tab knows about.
+     *
+     * This only reports the current state. {@link #updateWildcardViewAlias()} establishes and
+     * breaks the alias.
+     *
+     * @return If the wildcard view is aliased.
+     */
+    protected boolean isWildcardViewAliased() {
+        return this.wildcardViewAliased;
+    }
+
+    /**
+     * Establish or break the aliasing of the wildcard ingredients view, after the set of known
+     * channels has changed.
+     *
+     * The wildcard view holds the sum over all channels, so with one channel it is an exact copy of
+     * that channel's view. Letting the two share one collection means the ingredients are stored
+     * and updated once instead of twice, which is the bulk of the client-side cost of opening a
+     * terminal on a single-channel network.
+     *
+     * This is the only place that changes {@link #wildcardViewAliased} or the wildcard entry of
+     * {@link #ingredientsUnsortedViews}, so callers can read either without side effects.
+     */
+    protected void updateWildcardViewAlias() {
+        if (this.wildcardViewAliased) {
+            if (this.channels.size() > 1) {
+                // A second channel appeared, so the wildcard view has to become independent again.
+                IIngredientCollapsedCollectionMutable<T, M> independent = IngredientCollectionHelpers
+                        .createCollapsedCollection(getIngredientComponent());
+                for (T instance : getRawUnfilteredIngredientsView(IPositionedAddonsNetwork.WILDCARD_CHANNEL)) {
+                    independent.add(instance);
+                }
+                this.ingredientsUnsortedViews.put(IPositionedAddonsNetwork.WILDCARD_CHANNEL, independent);
+                this.wildcardViewAliased = false;
+            }
+        } else if (this.channels.size() == 1
+                && !this.ingredientsUnsortedViews.containsKey(IPositionedAddonsNetwork.WILDCARD_CHANNEL)) {
+            // One channel, and the wildcard view holds nothing yet, so the two can share a collection.
+            this.ingredientsUnsortedViews.put(IPositionedAddonsNetwork.WILDCARD_CHANNEL,
+                    getRawUnfilteredIngredientsView(this.channels.iterator().nextInt()));
+            this.wildcardViewAliased = true;
+        }
+    }
+
     public IIngredientCollapsedCollectionMutable<T, M> getRawUnfilteredIngredientsView(int channel) {
         IIngredientCollapsedCollectionMutable<T, M> ingredientsView = ingredientsUnsortedViews.get(channel);
         if (ingredientsView == null) {
@@ -300,6 +357,32 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
     @Nullable
     public Collection<HandlerWrappedTerminalCraftingOption<T>> getCraftingOptions(int channel) {
         return craftingOptions.get(channel);
+    }
+
+    /**
+     * Determine in which channels the given instance is stored, and in which quantity.
+     * @param instance An instance, its quantity is ignored.
+     * @return The stored quantity per channel, in ascending channel order.
+     */
+    public Int2LongMap getInstanceQuantitiesPerChannel(T instance) {
+        return TerminalStorageChannels.getInstanceQuantitiesPerChannel(this.ingredientComponent, getChannels(),
+                this::getRawUnfilteredIngredientsView, instance);
+    }
+
+    /**
+     * Determine the channel that the given crafting option is available in.
+     * @param craftingOption A crafting option.
+     * @return A channel id, or empty if the crafting option is not available in any channel.
+     */
+    public OptionalInt getCraftingOptionChannel(HandlerWrappedTerminalCraftingOption<T> craftingOption) {
+        for (int channel : getChannels()) {
+            Collection<HandlerWrappedTerminalCraftingOption<T>> channeledCraftingOptions = getCraftingOptions(channel);
+            if (channeledCraftingOptions != null
+                    && channeledCraftingOptions.stream().anyMatch(option -> option == craftingOption)) {
+                return OptionalInt.of(channel);
+            }
+        }
+        return OptionalInt.empty();
     }
 
     /**
@@ -356,6 +439,9 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             enrichedIngredients.add(new InstanceWithMetadata<>(persistedIngredient, null));
         }
 
+        // Show the effect of clicks that the server has not confirmed yet
+        this.predictions.apply(channel, enrichedIngredients);
+
         // Add all crafting option outputs
         Collection<HandlerWrappedTerminalCraftingOption<T>> craftingOptions = getCraftingOptions(channel);
         if (craftingOptions != null) {
@@ -380,14 +466,20 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
     protected List<InstanceWithMetadata<T>> getFilteredIngredientsView(int channel) {
         updateSortingPausedState(channel);
+        if (this.predictions.removeExpired()) {
+            this.lastChangeId++;
+            // Predictions are applied to all channel views, so all of them have to be rebuilt
+            this.filteredIngredientsViews.clear();
+        }
         List<InstanceWithMetadata<T>> ingredientsView = filteredIngredientsViews.get(channel);
         if (ingredientsView == null) {
             ingredientsView = createUnfilteredIngredientsView(channel);
 
             // Filter
+            IIngredientQuery<T> query = IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel));
             ingredientsView = Lists.newArrayList(
                     this.transformIngredientsView(ingredientsView.stream())
-                            .filter(im -> IIngredientQuery.parse(ingredientComponent, getInstanceFilter(channel)).test(im.getInstance()))
+                            .filter(im -> query.test(im.getInstance()))
                             .filter(getInstanceFilterMetadata())
                             .collect(Collectors.toList()));
 
@@ -532,16 +624,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.enabled = enabled || this.craftingOptions.containsKey(channel);
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             this.channels.add(channel);
+            updateWildcardViewAlias();
         }
 
         // Remember the selected instance, as this change event might change its position or quantity.
         // This is handled at the end of this method.
         Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
-
-        // Apply the change to the wildcard channel as well
-        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
-            onChange(IPositionedAddonsNetwork.WILDCARD_CHANNEL, changeType, ingredients, enabled);
-        }
 
         // Calculate quantity-diff
         long quantity = 0;
@@ -562,13 +650,31 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         long newQuantity = totalQuantities.get(channel) + quantity;
         totalQuantities.put(channel, newQuantity);
 
-        // Apply diff
+        // Confirm the predictions that this change covers.
+        // This is deliberately skipped for the wildcard channel, as that one is a copy of this same change.
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL
+                && this.predictions.consume(ingredients,
+                        changeType == IIngredientComponentStorageObservable.Change.ADDITION)) {
+            // Predictions are applied to all channel views, so all of them have to be rebuilt
+            this.filteredIngredientsViews.clear();
+        }
+
+        // Apply diff, unless the wildcard view is aliased to the channel that applies it itself
         IIngredientCollapsedCollectionMutable<T, M> rawPersistedIngredients = getRawUnfilteredIngredientsView(channel);
-        IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
-                changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
-                changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
-                false);
-        IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, rawPersistedIngredients);
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL || !isWildcardViewAliased()) {
+            IngredientCollectionDiff<T, M> diff = new IngredientCollectionDiff<>(
+                    changeType == IIngredientComponentStorageObservable.Change.ADDITION ? ingredients : null,
+                    changeType == IIngredientComponentStorageObservable.Change.DELETION ? ingredients : null,
+                    false);
+            IngredientCollectionDiffHelpers.applyDiff(ingredientComponent, diff, rawPersistedIngredients);
+        }
+
+        // Apply the change to the wildcard channel as well.
+        // This happens after the diff above, because an aliased wildcard view shares this channel's
+        // collection, and it rebuilds its filtered view from that collection as it goes.
+        if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
+            onChange(IPositionedAddonsNetwork.WILDCARD_CHANNEL, changeType, ingredients, enabled);
+        }
 
         // Persist changes
         resetFilteredIngredientsViews(channel, false);
@@ -608,6 +714,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         this.enabled = true;
         if (channel != IPositionedAddonsNetwork.WILDCARD_CHANNEL) {
             this.channels.add(channel);
+            updateWildcardViewAlias();
         }
         Collection<HandlerWrappedTerminalCraftingOption<T>> existingOptions = this.craftingOptions.get(channel);
         if (existingOptions == null || reset) {
@@ -828,11 +935,26 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                         activeInstance = matcher.withQuantity(slot.getInstance(), moveQuantity);
                     }
                 }
-                IntegratedTerminals._instance.getPacketHandler().sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
+                // Predict before sending, so that the server is told which container slots we changed.
+                // It can only correct a wrong prediction for slots that it knows we changed,
+                // as it sends us the slots that changed for it, which are not always the same ones.
+                int clickId = ++this.lastClickId;
+                List<ItemStack> containerBefore = ContainerHelpers.copyContents(container);
+                try {
+                    predictClick(clickId, container, clickType, channel,
+                            hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
+                            hoveredContainerSlot, activeInstance, transferFullSelection);
+                } catch (Exception e) {
+                    // Predicting runs the ingredient component's own movement logic, which may not expect this.
+                    // The click itself must still reach the server, so it is only shown later instead of not at all.
+                    IntegratedTerminals.clog(Level.WARN, "Could not predict a storage terminal click: " + e);
+                }
+                TerminalStorageLatencySimulation.sendToServer(new TerminalStorageIngredientSlotClickPacket<>(
                         player.level().registryAccess(),
                         this.getName().toString(), ingredientComponent, clickType, channel,
                         hoveringStorageInstance.orElse(matcher.getEmptyInstance()),
-                        hoveredContainerSlot, movePlayerQuantity, activeInstance, transferFullSelection));
+                        hoveredContainerSlot, movePlayerQuantity, activeInstance, transferFullSelection,
+                        ContainerHelpers.getChangedContents(containerBefore, container), clickId));
                 if (reset) {
                     resetActiveSlot();
                 }
@@ -841,6 +963,108 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
         }
 
         return false;
+    }
+
+    /**
+     * Show the effect of the given click before the server has confirmed it.
+     *
+     * The server remains the only source of truth: predictions are shown on top of the server-sent state,
+     * and are dropped again as soon as the server has sent a change for the predicted instance.
+     * A prediction that the server does not confirm expires by itself.
+     *
+     * @param container The active container.
+     * @param clickType The click that was sent to the server.
+     * @param channel The active channel.
+     * @param hoveringStorageInstance The storage instance that is being hovered.
+     * @param hoveredContainerSlot The container slot id that is being hovered. -1 if none.
+     * @param activeInstance The selected storage instance, with the quantity that is being moved.
+     * @param transferFullSelection If the selected stack should be moved fully.
+     */
+    protected void predictClick(int clickId, AbstractContainerMenu container, TerminalClickType clickType, int channel,
+                                T hoveringStorageInstance, int hoveredContainerSlot, T activeInstance,
+                                boolean transferFullSelection) {
+        if (!GeneralConfig.guiStoragePredictInteractions) {
+            return;
+        }
+
+        IIngredientMatcher<T, M> matcher = this.ingredientComponent.getMatcher();
+        IIngredientComponentTerminalStorageHandler<T, M> viewHandler = getViewHandler();
+        switch (clickType) {
+            case STORAGE_QUICK_MOVE:
+            case STORAGE_QUICK_MOVE_INCREMENTAL: {
+                T requested = clickType == TerminalClickType.STORAGE_QUICK_MOVE
+                        ? hoveringStorageInstance
+                        : matcher.withQuantity(hoveringStorageInstance, Math.min(
+                                viewHandler.getIncrementalInstanceMovementQuantity(),
+                                matcher.getQuantity(hoveringStorageInstance)));
+                addPrediction(clickId, channel, viewHandler.predictInsertMaxIntoContainer(container, 0, 4 * 9,
+                        requested, getPredictedQuantity(channel, requested)), false);
+                break;
+            }
+            case STORAGE_PLACE_PLAYER:
+                addPrediction(clickId, channel, viewHandler.predictInsertIntoContainer(container,
+                        hoveredContainerSlot, activeInstance, transferFullSelection,
+                        getPredictedQuantity(channel, activeInstance)), false);
+                break;
+            case PLAYER_QUICK_MOVE:
+            case PLAYER_QUICK_MOVE_INCREMENTAL:
+                // Whether the storage accepts this depends on position filters, on the free space per
+                // position, and on the network's transfer rate, none of which the client knows,
+                // so this is the prediction that is most likely to expect too much.
+                // The server reports what it really accepted, which corrects that within one round trip.
+                addPrediction(clickId, channel, viewHandler.predictExtractMaxFromContainerSlot(container,
+                        hoveredContainerSlot, Minecraft.getInstance().player.getInventory(),
+                        clickType == TerminalClickType.PLAYER_QUICK_MOVE
+                                ? -1 : viewHandler.getIncrementalInstanceMovementQuantity()), true);
+                break;
+            case STORAGE_PLACE_WORLD:
+            case PLAYER_PLACE_STORAGE:
+                // Nothing to predict: the thrown instance leaves the storage in one piece or not at all,
+                // and the instance placed from the cursor is drained client-side already.
+                break;
+        }
+    }
+
+    protected synchronized void addPrediction(int clickId, int channel, T instance, boolean addition) {
+        if (!this.ingredientComponent.getMatcher().isEmpty(instance)) {
+            // Remember the selected instance, as this change might change its position or quantity.
+            Optional<T> lastInstance = getSlotInstance(channel, this.activeSlotId);
+
+            this.predictions.add(clickId, channel, instance, addition);
+            this.lastChangeId++;
+            // Predictions are applied to all channel views, so all of them have to be rebuilt.
+            // The sorting order that is kept while sorting is paused is deliberately not reset,
+            // just like for the changes that are sent by the server.
+            this.filteredIngredientsViews.clear();
+
+            // Update the active instance by searching for its new position in the slots
+            updateActiveInstance(lastInstance, channel);
+        }
+    }
+
+    /**
+     * Called by the server to report what one of our clicks really moved,
+     * so that a prediction that expected more can be cut down without waiting for it to expire.
+     * @param clickId The click that was reported on.
+     * @param movedQuantity The quantity that the click moved.
+     */
+    public synchronized void handleClickResult(int clickId, long movedQuantity) {
+        Optional<T> lastInstance = getSlotInstance(this.activeChannel, this.activeSlotId);
+        if (this.predictions.reconcile(clickId, movedQuantity)) {
+            this.lastChangeId++;
+            this.filteredIngredientsViews.clear();
+            updateActiveInstance(lastInstance, this.activeChannel);
+        }
+    }
+
+    /**
+     * @param channel A channel id.
+     * @param instance An instance.
+     * @return The quantity of the given instance that is currently being shown, predictions included.
+     */
+    protected long getPredictedQuantity(int channel, T instance) {
+        return Math.max(0, getRawUnfilteredIngredientsView(channel).getQuantity(instance)
+                + this.predictions.getDelta(channel, instance));
     }
 
     @Override

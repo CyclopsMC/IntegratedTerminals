@@ -10,8 +10,9 @@ import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalSto
 public class IntegratedCraftingModCompatInitializer implements ICompatInitializer {
     @Override
     public void initialize(IModBase mod) {
-        TerminalStorageTabIngredientCraftingHandlers.REGISTRY.register(
+        TerminalStorageTabIngredientCraftingHandlerCraftingNetwork handler = TerminalStorageTabIngredientCraftingHandlers.REGISTRY.register(
                 new TerminalStorageTabIngredientCraftingHandlerCraftingNetwork());
         CraftingJobFinishedToastListener.register();
+        CraftingJobFinishedEventForwarder.register(handler);
     }
 }

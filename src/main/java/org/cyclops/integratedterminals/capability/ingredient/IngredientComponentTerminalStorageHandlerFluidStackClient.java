@@ -1,11 +1,13 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import com.mojang.datafixers.util.Either;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
@@ -16,6 +18,7 @@ import org.cyclops.cyclopscore.helper.IModHelpersNeoForge;
 import org.cyclops.integratedterminals.api.ingredient.IIngredientComponentTerminalStorageHandlerClient;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.client.gui.tooltip.TooltipRenderHelpers;
+import org.cyclops.integratedterminals.core.terminalstorage.query.IngredientQueryMatchers;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
 
 import javax.annotation.Nullable;
@@ -39,7 +42,7 @@ public class IngredientComponentTerminalStorageHandlerFluidStackClient implement
                              ContainerScreenTerminalStorage.DrawLayer layer, float partialTick,
                              int x, int y, int mouseX, int mouseY,
                              @Nullable List<Component> additionalTooltipLines,
-                             @Nullable TooltipComponent additionalTooltipComponent) {
+                             @Nullable List<Either<FormattedText, TooltipComponent>> additionalTooltipElements) {
         if (instance != null) {
             if (layer == ContainerScreenTerminalStorage.DrawLayer.BACKGROUND) {
                 // Draw fluid
@@ -57,21 +60,22 @@ public class IngredientComponentTerminalStorageHandlerFluidStackClient implement
                         lines.addAll(additionalTooltipLines);
                     }
                     return lines;
-                }, additionalTooltipComponent);
+                }, additionalTooltipElements);
             }
         }
     }
 
     @Override
     public Predicate<FluidStack> getInstanceFilterPredicate(SearchMode searchMode, String query) {
+        Predicate<String> matcher = IngredientQueryMatchers.containsQuery(query);
         return switch (searchMode) {
-            case MOD -> i -> BuiltInRegistries.FLUID.getKey(i.getFluid()).getNamespace()
-                    .toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case MOD -> i -> matcher.test(BuiltInRegistries.FLUID.getKey(i.getFluid()).getNamespace()
+                    .toLowerCase(Locale.ENGLISH));
             case TOOLTIP -> i -> false; // Fluids have no tooltip
             case TAG -> i -> i.getFluid().builtInRegistryHolder().tags()
-                    .filter(tag -> tag.location().toString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*"))
+                    .filter(tag -> matcher.test(tag.location().toString().toLowerCase(Locale.ENGLISH)))
                     .anyMatch(tag -> BuiltInRegistries.FLUID.get(tag).isPresent());
-            case DEFAULT -> i -> i != null && i.getHoverName().getString().toLowerCase(Locale.ENGLISH).matches(".*" + query + ".*");
+            case DEFAULT -> i -> i != null && matcher.test(i.getHoverName().getString().toLowerCase(Locale.ENGLISH));
         };
     }
 

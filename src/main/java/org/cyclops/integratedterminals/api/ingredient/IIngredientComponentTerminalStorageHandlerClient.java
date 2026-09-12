@@ -1,8 +1,10 @@
 package org.cyclops.integratedterminals.api.ingredient;
 
+import com.mojang.datafixers.util.Either;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.terminalstorage.query.SearchMode;
@@ -30,11 +32,12 @@ public interface IIngredientComponentTerminalStorageHandlerClient<T, M> {
      * @param mouseX The mouse X position.
      * @param mouseY The mouse Y position.
      * @param additionalTooltipLines The additional tooltip lines to add.
-     * @param additionalTooltipComponent An optional visual tooltip component to render below the tooltip lines.
+     * @param additionalTooltipElements Optional elements to render below the tooltip lines,
+     *                                   which can mix text and visual components.
      */
     public void drawInstance(GuiGraphicsExtractor guiGraphics, T instance, long maxQuantity, @Nullable String label, AbstractContainerScreen gui, ContainerScreenTerminalStorage.DrawLayer layer, float partialTick, int x, int y,
                              int mouseX, int mouseY, @Nullable List<Component> additionalTooltipLines,
-                             @Nullable TooltipComponent additionalTooltipComponent);
+                             @Nullable List<Either<FormattedText, TooltipComponent>> additionalTooltipElements);
 
     /**
      * Get a predicate for matching instances that apply to the given query string.
