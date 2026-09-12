@@ -1,8 +1,31 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.10.0"></a>
+## [26.1.2-1.10.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.9.1...26.1.2-1.10.0) - 2026-09-12 09:50:13
+
+
+### Added
+* Fill the crafting grid once JEI auto-crafted ingredients are done (#18)
+* Show crafting jobs that are blocked by a full storage network (#224)
+* Show the crafting machine in crafting option tooltips (#216), Closes #181
+* Show the channels of ingredients in storage terminal tooltips (#218), Closes #71
+
+### Changed
+* Avoid Storage Terminal interaction lag when on slow servers (#217)
+  The storage terminal now shows interactions before the server confirms them.
+* Reuse the crafting job toast from IntegratedTerminals (#17)
+* Emit a crafting handler-agnostic event when a crafting job completes (#225)
+  Required for CyclopsMC/IntegratedCrafting#142
+* Alias the wildcard ingredients view when there is only one channel (#223)
+  This improves client performance.
+* Make JEI toast style consistent with the rest
+
+### Fixed
+* Fix JEI slot highlights being drawn over the transfer tooltip (#19)
+
 <a name="26.1.2-1.9.1"></a>
-## [26.1.2-1.9.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.9.0...26.1.2-1.9.1) - 2026-09-06 13:30:24
+## [26.1.2-1.9.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.9.0...26.1.2-1.9.1) - 2026-09-06 13:30:24 +0200
 
 
 ### Changed
