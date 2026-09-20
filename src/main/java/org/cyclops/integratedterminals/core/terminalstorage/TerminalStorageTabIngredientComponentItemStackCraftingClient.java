@@ -119,7 +119,7 @@ public class TerminalStorageTabIngredientComponentItemStackCraftingClient
         super.onTabBackgroundRender(screen, guiGraphics, f, mouseX, mouseY);
 
         // Render crafting grid
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, screen.getGuiTexture(), screen.getGuiLeft() + (screen.getGridXSize() / 2) - (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.getGuiTop() + 52 + screen.getGridYSize() , 0, 117, 120, 68, 256, 256);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, screen.getGuiTexture(), screen.leftPos + (screen.getGridXSize() / 2) - (9 * IModHelpers.get().getGuiHelpers().getSlotSize() / 2) + 51 - (isCraftingGridCenter() ? 0 : 107), screen.topPos + 52 + screen.getGridYSize() , 0, 117, 120, 68, 256, 256);
     }
 
     @Override

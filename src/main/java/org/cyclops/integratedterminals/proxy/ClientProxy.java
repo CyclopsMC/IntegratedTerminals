@@ -21,7 +21,7 @@ import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionIngredie
 import org.cyclops.integratedterminals.client.gui.tooltip.CraftingOptionMachinesTooltip;
 import org.cyclops.integratedterminals.item.ItemTerminalStoragePortable;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemOpenGenericPacket;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 /**
  * Proxy for the client side.
@@ -60,27 +60,27 @@ public class ClientProxy extends ClientProxyComponent {
     public void registerKeyBindings(IKeyRegistry keyRegistry, RegisterKeyMappingsEvent event) {
         event.register(TERMINAL_TAB_NEXT = new KeyMapping(
                 "key." + Reference.MOD_ID + ".terminal.tab.next",
-                KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
+                KeyConflictContext.GUI, InputConstants.Type.KEYBOARD, InputConstants.KEY_TAB,
                 getMainKeyCategory()));
         event.register(TERMINAL_TAB_PREVIOUS = new KeyMapping(
                 "key." + Reference.MOD_ID + ".terminal.tab.previous",
-                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_TAB,
+                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYBOARD, InputConstants.KEY_TAB,
                 getMainKeyCategory()));
         event.register(TERMINAL_CRAFTINGGRID_CLEARPLAYER = new KeyMapping(
                 "key." + Reference.MOD_ID + ".terminal.craftinggrid.clearplayer",
-                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
+                KeyConflictContext.GUI, KeyModifier.SHIFT, InputConstants.Type.KEYBOARD, InputConstants.KEY_C,
                 getMainKeyCategory()));
         event.register(TERMINAL_CRAFTINGGRID_CLEARSTORAGE = new KeyMapping(
                 "key." + Reference.MOD_ID + ".terminal.craftinggrid.clearstorage",
-                KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
+                KeyConflictContext.GUI, InputConstants.Type.KEYBOARD, InputConstants.KEY_C,
                 getMainKeyCategory()));
         event.register(TERMINAL_CRAFTINGGRID_BALANCE = new KeyMapping(
                 "key." + Reference.MOD_ID + ".terminal.craftinggrid.balance",
-                KeyConflictContext.GUI, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B,
+                KeyConflictContext.GUI, InputConstants.Type.KEYBOARD, InputConstants.KEY_B,
                 getMainKeyCategory()));
         event.register(TERMINAL_STORAGE_PORTABLE_OPEN = new KeyMapping(
                 "key." + Reference.MOD_ID + ".terminal.portable.open",
-                KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C,
+                KeyConflictContext.IN_GAME, InputConstants.Type.KEYBOARD, InputConstants.KEY_C,
                 getMainKeyCategory()));
 
         keyRegistry.addKeyHandler(TERMINAL_STORAGE_PORTABLE_OPEN, (kb) -> {

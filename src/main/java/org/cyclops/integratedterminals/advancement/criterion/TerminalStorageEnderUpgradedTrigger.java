@@ -2,10 +2,10 @@ package org.cyclops.integratedterminals.advancement.criterion;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.advancements.predicates.ContextAwarePredicate;
-import net.minecraft.advancements.predicates.entity.EntityPredicate;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -21,7 +21,7 @@ public class TerminalStorageEnderUpgradedTrigger extends SimpleCriterionTrigger<
 
     public static final Codec<TerminalStorageEnderUpgradedTrigger.Instance> CODEC = RecordCodecBuilder.create(
             builder -> builder.group(
-                            EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TerminalStorageEnderUpgradedTrigger.Instance::player)
+                            LootItemCondition.CODEC.optionalFieldOf("player").forGetter(TerminalStorageEnderUpgradedTrigger.Instance::player)
                     )
                     .apply(builder, TerminalStorageEnderUpgradedTrigger.Instance::new)
     );
@@ -46,7 +46,7 @@ public class TerminalStorageEnderUpgradedTrigger extends SimpleCriterionTrigger<
     }
 
     public static record Instance(
-            Optional<ContextAwarePredicate> player
+            Optional<Holder<LootItemCondition>> player
     ) implements SimpleCriterionTrigger.SimpleInstance {
     }
 }

@@ -30,7 +30,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingPlanGuiPacket;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import java.util.List;
 
@@ -130,10 +130,10 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
     @Override
     public boolean keyPressed(KeyEvent evt) {
-        if (evt.key() == GLFW.GLFW_KEY_ESCAPE) {
+        if (evt.key() == InputConstants.KEY_ESCAPE) {
             returnToTerminalStorage();
             return true;
-        } else if (evt.key() == GLFW.GLFW_KEY_ENTER || evt.key() == GLFW.GLFW_KEY_KP_ENTER) {
+        } else if (evt.key() == InputConstants.KEY_RETURN || evt.key() == InputConstants.KEY_NUMPADENTER) {
             calculateCraftingJob(getMenu().getPlayerIInventory().player.registryAccess());
             return true;
         }
