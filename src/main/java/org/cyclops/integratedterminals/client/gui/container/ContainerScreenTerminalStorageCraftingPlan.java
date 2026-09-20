@@ -24,7 +24,7 @@ import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftin
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientOpenCraftingJobAmountGuiPacket;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import javax.annotation.Nullable;
 
@@ -143,12 +143,12 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
 
     @Override
     public boolean keyPressed(KeyEvent evt) {
-        if (evt.key() == GLFW.GLFW_KEY_ESCAPE) {
+        if (evt.key() == InputConstants.KEY_ESCAPE) {
             returnToCraftingOptionAmount();
             return true;
         }
         if (this.guiCraftingPlan != null && this.guiCraftingPlan.isValid()
-                && (evt.key() == GLFW.GLFW_KEY_ENTER || evt.key() == GLFW.GLFW_KEY_KP_ENTER)) {
+                && (evt.key() == InputConstants.KEY_RETURN || evt.key() == InputConstants.KEY_NUMPADENTER)) {
             buttonConfirm.onPress(evt);
             return true;
         }

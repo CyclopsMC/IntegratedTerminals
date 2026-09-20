@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.capability.ingredient;
 
 import com.google.common.collect.Lists;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -85,7 +86,7 @@ public class IngredientComponentTerminalStorageHandlerItemStack implements IIngr
                               Player player) {
         ItemStack extracted = storage.extract(maxInstance, ItemMatch.EXACT, false);
         if (!extracted.isEmpty()) {
-            player.drop(extracted, true);
+            player.drop(extracted, true, Prediction.SERVER_ONLY);
         }
         return extracted.getCount();
     }

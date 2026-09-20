@@ -78,7 +78,7 @@ public final class TooltipRenderHelpers {
     public static boolean isHovering(AbstractContainerScreen gui, int x, int y, int width, int height,
                                      int mouseX, int mouseY) {
         return IModHelpers.get().getRenderHelpers()
-                .isPointInRegion(x, y, width, height, mouseX - gui.getGuiLeft(), mouseY - gui.getGuiTop());
+                .isPointInRegion(x, y, width, height, mouseX - gui.leftPos, mouseY - gui.topPos);
     }
 
 }

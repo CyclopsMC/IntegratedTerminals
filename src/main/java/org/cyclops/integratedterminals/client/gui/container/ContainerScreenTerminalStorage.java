@@ -44,7 +44,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.button.TerminalButto
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientItemStackCraftingGridBalance;
 import org.cyclops.integratedterminals.proxy.ClientProxy;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -594,11 +594,11 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
         // Select a tab
         if (mouse.button() == 0
-                && mouse.y() < getGuiTop() + TAB_UNSELECTED_HEIGHT
-                && mouse.x() > getGuiLeft() + TAB_OFFSET_X
-                && mouse.x() <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
+                && mouse.y() < topPos + TAB_UNSELECTED_HEIGHT
+                && mouse.x() > leftPos + TAB_OFFSET_X
+                && mouse.x() <= leftPos + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
             // Save tab index
-            setTabByIndex((int) ((mouse.x() - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH));
+            setTabByIndex((int) ((mouse.x() - TAB_OFFSET_X - leftPos) / TAB_WIDTH));
             playButtonClickSound();
 
             return true;
@@ -716,9 +716,8 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     @Nullable
-    @Override
     public Slot getSlotUnderMouse() {
-        Slot slot = super.getSlotUnderMouse();
+        Slot slot = this.hoveredSlot;
         // Safety for hacky disabled slots
         if (slot != null && slot.x < 0) {
             return null;
@@ -908,7 +907,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
     @Override
     public boolean keyPressed(KeyEvent evt) {
-        if (evt.key() != GLFW.GLFW_KEY_ESCAPE) {
+        if (evt.key() != InputConstants.KEY_ESCAPE) {
             if (handleKeyCodeFirst(evt)) {
                 return true;
             }
@@ -993,14 +992,14 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
         // Draw channels label
         if (hasChannelField()) {
-            guiGraphics.text(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.channel"), getGuiLeft() + 30, getGuiTop() + 26, ARGB.opaque(16777215));
+            guiGraphics.text(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_storage.channel"), leftPos + 30, topPos + 26, ARGB.opaque(16777215));
         }
 
         // Draw all tabs next to each other horizontally
         for (ITerminalStorageTabClient tab : getMenu().getTabsClient().values()) {
             boolean selected = tab.getName().toString().equals(getMenu().getSelectedTab());
-            int x = getGuiLeft() + offsetX;
-            int y = getGuiTop();
+            int x = leftPos + offsetX;
+            int y = topPos;
             int width = TAB_WIDTH;
             int height = selected ? TAB_SELECTED_HEIGHT : TAB_UNSELECTED_HEIGHT;
             int textureX = selected ? TAB_SELECTED_TEXTURE_X : TAB_UNSELECTED_TEXTURE_X;
@@ -1143,10 +1142,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
     }
 
     protected void drawTabsForeground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
-        if (mouseY < getGuiTop() + TAB_UNSELECTED_HEIGHT
-                && mouseX > getGuiLeft() + TAB_OFFSET_X
-                && mouseX <= getGuiLeft() + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
-            int tabIndex = (mouseX - TAB_OFFSET_X - getGuiLeft()) / TAB_WIDTH;
+        if (mouseY < topPos + TAB_UNSELECTED_HEIGHT
+                && mouseX > leftPos + TAB_OFFSET_X
+                && mouseX <= leftPos + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
+            int tabIndex = (mouseX - TAB_OFFSET_X - leftPos) / TAB_WIDTH;
             getTabByIndex(tabIndex)
                     .ifPresent(tab -> this.drawTooltip(tab.getTooltip(), guiGraphics, mouseX, mouseY));
         }

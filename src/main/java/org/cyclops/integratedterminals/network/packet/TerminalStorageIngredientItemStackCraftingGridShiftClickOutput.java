@@ -4,6 +4,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
@@ -95,7 +96,7 @@ public class TerminalStorageIngredientItemStackCraftingGridShiftClickOutput exte
 
                     if (!resultStack.isEmpty()) {
                         // Move result into player inventory
-                        player.getInventory().placeItemBackInInventory(resultStack.copy(), true);
+                        player.getInventory().placeItemBackInInventory(resultStack.copy(), true, Prediction.SERVER_ONLY);
 
                         // Re-calculate recipe
                         tabCommonCrafting.updateCraftingResult(player, player.containerMenu, variableInventory);

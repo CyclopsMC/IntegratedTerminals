@@ -22,7 +22,7 @@ import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftin
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlan;
 import org.cyclops.integratedterminals.network.packet.CancelCraftingJobPacket;
 import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsGuiPacket;
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import javax.annotation.Nullable;
 
@@ -139,7 +139,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
 
     @Override
     public boolean keyPressed(KeyEvent evt) {
-        if (evt.key() == GLFW.GLFW_KEY_ESCAPE) {
+        if (evt.key() == InputConstants.KEY_ESCAPE) {
             returnToOverview();
             return true;
         } else {

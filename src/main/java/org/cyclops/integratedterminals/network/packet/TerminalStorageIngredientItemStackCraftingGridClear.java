@@ -4,6 +4,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
@@ -82,7 +83,7 @@ public class TerminalStorageIngredientItemStackCraftingGridClear extends PacketC
                     inventoryCrafting.setItem(i, remainder);
                 } else {
                     // To player inventory
-                    player.getInventory().placeItemBackInInventory(itemStack, true);
+                    player.getInventory().placeItemBackInInventory(itemStack, true, Prediction.SERVER_ONLY);
                     inventoryCrafting.setItem(i, ItemStack.EMPTY);
                 }
             }
