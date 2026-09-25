@@ -656,7 +656,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             if (IModHelpers.get().getMinecraftClientHelpers().isShifted() && playerSlot != null && !playerSlot.getItem().isEmpty()
                     && getMenu().getCarried().isEmpty() && (mouse.button() == InputConstants.MOUSE_BUTTON_LEFT || mouse.button() == InputConstants.MOUSE_BUTTON_RIGHT)) {
                 this.clicked = false; // To avoid handling this click again on mouse release
-                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), -1, getContainerClickButton(mouse),
+                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), -1, mouse.button(),
                         false, false, playerSlot.index, true)) {
                     return true;
                 }
@@ -703,7 +703,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             if (slot >= 0 && tab.getActiveSlotId() < 0) {
                 this.clicked = false; // To avoid handling this click again on mouse release
                 Slot playerSlot = getSlotUnderMouse();
-                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), slot, getContainerClickButton(mouse),
+                if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouse.button(),
                         this.hasClickedOutside(mouse.x(), mouse.y(), this.leftPos, this.topPos),
                         this.hasClickedInStorage(mouse.x(), mouse.y()),
                         playerSlot != null ? playerSlot.index : -1, false)) {
@@ -713,19 +713,6 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }
 
         return super.mouseClicked(mouse, isDoubleClick);
-    }
-
-    /**
-     * Convert a mouse button to the vanilla container click button (0 left, 1 right, 2 middle).
-     * @param mouse The mouse event.
-     * @return The container click button.
-     */
-    public static int getContainerClickButton(MouseButtonEvent mouse) {
-        return switch (mouse.button()) {
-            case InputConstants.MOUSE_BUTTON_LEFT -> 0;
-            case InputConstants.MOUSE_BUTTON_RIGHT -> 1;
-            default -> mouse.button();
-        };
     }
 
     protected boolean isPickItemButton(MouseButtonEvent mouse) {
@@ -826,7 +813,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
                 // Handle clicks on storage slots
                 boolean hasClickedOutside = this.hasClickedOutside(mouse.x(), mouse.y(), this.leftPos, this.topPos);
                 boolean hasClickedInStorage = this.hasClickedInStorage(mouse.x(), mouse.y());
-                if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, getContainerClickButton(mouse),
+                if (tabOptional.get().handleClick(getMenu(), getMenu().getSelectedChannel(), slot, mouse.button(),
                         hasClickedOutside, hasClickedInStorage, playerSlot != null ? playerSlot.index : -1, false)) {
                     return true;
                 }

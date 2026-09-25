@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.inventory.container;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.Identifier;
@@ -308,7 +309,7 @@ public abstract class ContainerTerminalStorageBase<L> extends InventoryContainer
         if(player.level().isClientSide()) {
             Optional<ITerminalStorageTabClient<?>> tabOptional = this.selectedClientTabProvider.getSelectedClientTab();
             if(tabOptional.isPresent() && !tabOptional.get().isQuickMovePrevented(slotID)) {
-                tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, 0,
+                tabOptional.get().handleClick(this, this.getSelectedChannel(), -1, InputConstants.MOUSE_BUTTON_LEFT,
                         false, false, slotID, true);
             }
         }

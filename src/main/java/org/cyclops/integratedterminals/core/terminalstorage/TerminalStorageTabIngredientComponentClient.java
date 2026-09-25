@@ -3,6 +3,7 @@ package org.cyclops.integratedterminals.core.terminalstorage;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.mojang.blaze3d.platform.InputConstants;
 import it.unimi.dsi.fastutil.ints.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -830,7 +831,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
 
         Player player = Minecraft.getInstance().player;
         boolean initiateCraftingOption = false;
-        if (mouseButton == 0 || mouseButton == 1 || mouseButton == 2) {
+        if (mouseButton == InputConstants.MOUSE_BUTTON_LEFT || mouseButton == InputConstants.MOUSE_BUTTON_RIGHT || mouseButton == InputConstants.MOUSE_BUTTON_MIDDLE) {
             TerminalClickType clickType = null;
             long moveQuantity = this.activeSlotQuantity;
             long movePlayerQuantity = 0;
@@ -842,29 +843,29 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 } else {
                     if (shift) {
                         // Quick move single or max quantity from storage to player
-                        clickType = mouseButton == 2 ? TerminalClickType.STORAGE_QUICK_MOVE_INCREMENTAL : TerminalClickType.STORAGE_QUICK_MOVE;
+                        clickType = mouseButton == InputConstants.MOUSE_BUTTON_MIDDLE ? TerminalClickType.STORAGE_QUICK_MOVE_INCREMENTAL : TerminalClickType.STORAGE_QUICK_MOVE;
                     } else {
                         // Pick up
                         this.activeSlotId = hoveringStorageSlot;
                         this.activeSlotQuantity = Math.min((int) ingredientComponent.getMatcher()
                                         .getQuantity(hoveringStorageInstance.orElse(matcher.getEmptyInstance())),
                                 viewHandler.getInitialInstanceMovementQuantity());
-                        if (mouseButton == 1) {
+                        if (mouseButton == InputConstants.MOUSE_BUTTON_RIGHT) {
                             this.activeSlotQuantity = (int) Math.ceil((double) this.activeSlotQuantity / 2);
-                        } else if (mouseButton == 2) {
+                        } else if (mouseButton == InputConstants.MOUSE_BUTTON_MIDDLE) {
                             this.activeSlotQuantity = 1;
                         }
                     }
                 }
             } else if (hoveredContainerSlot >= 0 && !container.getSlot(hoveredContainerSlot).getItem().isEmpty() && isQuickMove) {
                 // Quick move max quantity from player to storage
-                clickType = mouseButton == 2 ? TerminalClickType.PLAYER_QUICK_MOVE_INCREMENTAL : TerminalClickType.PLAYER_QUICK_MOVE;
+                clickType = mouseButton == InputConstants.MOUSE_BUTTON_MIDDLE ? TerminalClickType.PLAYER_QUICK_MOVE_INCREMENTAL : TerminalClickType.PLAYER_QUICK_MOVE;
             } else if (hasClickedInStorage && !container.getCarried().isEmpty()) {
                 // Move into storage
                 clickType = TerminalClickType.PLAYER_PLACE_STORAGE;
-                if (mouseButton == 0) {
+                if (mouseButton == InputConstants.MOUSE_BUTTON_LEFT) {
                     movePlayerQuantity = viewHandler.getActivePlayerStackQuantity(player.getInventory(), container);
-                } else if (mouseButton == 1) {
+                } else if (mouseButton == InputConstants.MOUSE_BUTTON_RIGHT) {
                     movePlayerQuantity = viewHandler.getIncrementalInstanceMovementQuantity();
                 } else {
                     movePlayerQuantity = (int) Math.ceil((double) viewHandler.getActivePlayerStackQuantity(player.getInventory(), container) / 2);
@@ -880,10 +881,10 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                 } else if (hoveredContainerSlot >= 0) {
                     // Insert into player inventory
                     clickType = TerminalClickType.STORAGE_PLACE_PLAYER;
-                    if (mouseButton == 0) {
+                    if (mouseButton == InputConstants.MOUSE_BUTTON_LEFT) {
                         reset = true;
                         moveQuantity = this.activeSlotQuantity;
-                    } else if (mouseButton == 1) {
+                    } else if (mouseButton == InputConstants.MOUSE_BUTTON_RIGHT) {
                         transferFullSelection = false;
                         moveQuantity = viewHandler.getIncrementalInstanceMovementQuantity();
                     } else {
@@ -892,12 +893,12 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
                     }
                     this.activeSlotQuantity -= moveQuantity;
                 } else if (hasClickedInStorage) {
-                    if ((mouseButton == 0 || mouseButton == 2) && this.activeSlotId == hoveringStorageSlot) {
+                    if ((mouseButton == InputConstants.MOUSE_BUTTON_LEFT || mouseButton == InputConstants.MOUSE_BUTTON_MIDDLE) && this.activeSlotId == hoveringStorageSlot) {
                         // Increase the active quantity
                         this.activeSlotQuantity = (int) Math.min(ingredientComponent.getMatcher().getQuantity(hoveringStorageInstance.get()),
                                 this.activeSlotQuantity + (shift ? viewHandler.getInitialInstanceMovementQuantity()
                                         : viewHandler.getIncrementalInstanceMovementQuantity()));
-                    } else if (mouseButton == 1) {
+                    } else if (mouseButton == InputConstants.MOUSE_BUTTON_RIGHT) {
                         // Decrease active quantity
                         this.activeSlotQuantity = Math.max(0, this.activeSlotQuantity - (shift ? viewHandler.getInitialInstanceMovementQuantity()
                                 : viewHandler.getIncrementalInstanceMovementQuantity()));
@@ -1268,7 +1269,7 @@ public class TerminalStorageTabIngredientComponentClient<T, M>
             int activeSlotQuantityOld = this.activeSlotQuantity;
 
             this.activeSlotQuantity = quantity;
-            this.handleClick(container, channel, getActiveSlotId(), 0, false, false, slot.index, false);
+            this.handleClick(container, channel, getActiveSlotId(), InputConstants.MOUSE_BUTTON_LEFT, false, false, slot.index, false);
 
             this.activeSlotId = oldActiveSlotId;
             this.activeSlotQuantity = activeSlotQuantityOld;
