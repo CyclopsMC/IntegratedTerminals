@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -333,7 +334,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     @Override
     public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
-        return this.getFocused() != null && this.isDragging() && mouse.button() == 0 && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
+        return this.getFocused() != null && this.isDragging() && mouse.button() == InputConstants.MOUSE_BUTTON_LEFT && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {

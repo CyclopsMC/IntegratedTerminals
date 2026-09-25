@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -28,7 +29,7 @@ public class TerminalButtonSortClient<T> implements ITerminalButtonClient<Termin
     @Override
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab, ITerminalStorageTabCommon commonTab,
                         ButtonSort guiButton, int channel, MouseButtonEvent mouse, boolean isDoubleClick) {
-        if (mouse.button() == 0) {
+        if (mouse.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             if (this.button.active) {
                 if (this.button.descending) {
                     this.button.descending = false;

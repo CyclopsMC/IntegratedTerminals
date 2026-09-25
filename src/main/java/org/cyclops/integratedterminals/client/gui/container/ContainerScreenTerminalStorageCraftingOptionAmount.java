@@ -204,7 +204,7 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
     @Override
     public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
-        return this.getFocused() != null && this.isDragging() && mouse.button() == 0 && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
+        return this.getFocused() != null && this.isDragging() && mouse.button() == InputConstants.MOUSE_BUTTON_LEFT && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     public void setFirstRow(int firstRow) {

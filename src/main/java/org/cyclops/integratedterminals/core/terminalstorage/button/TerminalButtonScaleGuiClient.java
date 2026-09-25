@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -35,7 +36,7 @@ public class TerminalButtonScaleGuiClient<T>
 
     @Override
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab, @Nullable TerminalStorageTabIngredientComponentCommon<T, ?> commonTab, ButtonImage guiButton, int channel, MouseButtonEvent mouse, boolean isDoubleClick) {
-        this.button.scale = mouse.button() == 0 ? TerminalButtonScaleGui.GuiScale.values()[(this.button.scale.ordinal() + 1) % TerminalButtonScaleGui.GuiScale.values().length] : TerminalButtonScaleGui.GuiScale.SCALE_XY;
+        this.button.scale = mouse.button() == InputConstants.MOUSE_BUTTON_LEFT ? TerminalButtonScaleGui.GuiScale.values()[(this.button.scale.ordinal() + 1) % TerminalButtonScaleGui.GuiScale.values().length] : TerminalButtonScaleGui.GuiScale.SCALE_XY;
 
         CompoundTag data = new CompoundTag();
         data.putInt("scale", this.button.scale.ordinal());
