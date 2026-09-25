@@ -1,5 +1,6 @@
 package org.cyclops.integratedterminals.core.terminalstorage.button;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -34,7 +35,7 @@ public class TerminalButtonFilterCraftingClient<T> implements ITerminalButtonCli
     public void onClick(TerminalStorageTabIngredientComponentClient<T, ?> clientTab,
                         TerminalStorageTabIngredientComponentCommon<T, ?> commomTab, ButtonImage guiButton,
                         int channel, MouseButtonEvent mouse, boolean isDoubleClick) {
-        this.button.active = mouse.button() == 0 ? this.button.active.next() : TerminalButtonFilterCrafting.FilterType.getDefault();
+        this.button.active = mouse.button() == InputConstants.MOUSE_BUTTON_LEFT ? this.button.active.next() : TerminalButtonFilterCrafting.FilterType.getDefault();
 
         CompoundTag data = new CompoundTag();
         this.button.active.write(data);

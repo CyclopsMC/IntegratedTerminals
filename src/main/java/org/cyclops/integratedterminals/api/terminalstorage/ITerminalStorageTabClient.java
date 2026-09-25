@@ -121,7 +121,7 @@ public interface ITerminalStorageTabClient<S extends ITerminalStorageSlot> {
      * @param container The active container.
      * @param channel The active channel.
      * @param hoveringStorageSlot The storage slot id that is being hovered. -1 if none.
-     * @param mouseButton The mouse button.
+     * @param mouseButton The mouse button, as an InputConstants.MOUSE_BUTTON_* value.
      * @param hasClickedOutside If the player has clicked outside the gui.
      * @param hasClickedInStorage If the player has clicked inside the storage space.
      *                            This can be true even if the storage slot is -1.

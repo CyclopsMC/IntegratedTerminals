@@ -593,7 +593,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         this.clicked = true;
 
         // Select a tab
-        if (mouse.button() == 0
+        if (mouse.button() == InputConstants.MOUSE_BUTTON_LEFT
                 && mouse.y() < topPos + TAB_UNSELECTED_HEIGHT
                 && mouse.x() > leftPos + TAB_OFFSET_X
                 && mouse.x() <= leftPos + TAB_OFFSET_X + (TAB_WIDTH * getMenu().getTabsClientCount() - 1)) {
@@ -630,17 +630,17 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
             // Start dragging over container slots when a storage slot is selected
             if (tab.getActiveSlotId() >= 0
-                    && (mouse.button() == 0 || mouse.button() == 1 || this.getMinecraft().options.keyPickItem.getKey().getValue() == mouse.button() - 100)) {
+                    && (mouse.button() == InputConstants.MOUSE_BUTTON_LEFT || mouse.button() == InputConstants.MOUSE_BUTTON_RIGHT || isPickItemButton(mouse))) {
                 if (playerSlot != null && !this.terminalDragSplitting) {
                     this.terminalDragSplitting = true;
                     this.terminalDragSplittingButton = mouse.button();
                     this.terminalDragSplittingSlots.clear();
 
-                    if (mouse.button() == 0) {
+                    if (mouse.button() == InputConstants.MOUSE_BUTTON_LEFT) {
                         this.terminalDragMode = 0;
-                    } else if (mouse.button() == 1) {
+                    } else if (mouse.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
                         this.terminalDragMode = 1;
-                    } else if (this.getMinecraft().options.keyPickItem.getKey().getValue() == mouse.button() - 100) {
+                    } else if (isPickItemButton(mouse)) {
                         this.terminalDragMode = 2;
                     }
                     return true;
@@ -654,7 +654,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
             // Vanilla would send its own click for it, which the server answers without knowing about
             // the terminal's click yet, so it would undo what we predicted until that one arrives too.
             if (IModHelpers.get().getMinecraftClientHelpers().isShifted() && playerSlot != null && !playerSlot.getItem().isEmpty()
-                    && getMenu().getCarried().isEmpty() && (mouse.button() == 0 || mouse.button() == 1)) {
+                    && getMenu().getCarried().isEmpty() && (mouse.button() == InputConstants.MOUSE_BUTTON_LEFT || mouse.button() == InputConstants.MOUSE_BUTTON_RIGHT)) {
                 this.clicked = false; // To avoid handling this click again on mouse release
                 if (tab.handleClick(getMenu(), getMenu().getSelectedChannel(), -1, mouse.button(),
                         false, false, playerSlot.index, true)) {
@@ -715,6 +715,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         return super.mouseClicked(mouse, isDoubleClick);
     }
 
+    protected boolean isPickItemButton(MouseButtonEvent mouse) {
+        return this.getMinecraft().options.keyPickItem.isActiveAndMatches(InputConstants.Type.MOUSE.getOrCreate(mouse.button()));
+    }
+
     @Nullable
     public Slot getSlotUnderMouse() {
         Slot slot = this.hoveredSlot;
@@ -742,7 +746,7 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         }).orElse(false)) {
             return true;
         }
-        return this.getFocused() != null && this.isDragging() && mouse.button() == 0 && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
+        return this.getFocused() != null && this.isDragging() && mouse.button() == InputConstants.MOUSE_BUTTON_LEFT && this.getFocused().mouseDragged(mouse, mouseXPrev, mouseYPrev) ? true : super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     private void updateTerminalDragSplitting(ITerminalStorageTabClient<?> tab) {
