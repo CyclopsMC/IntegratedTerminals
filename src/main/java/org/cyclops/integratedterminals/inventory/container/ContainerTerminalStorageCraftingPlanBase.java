@@ -1,5 +1,7 @@
 package org.cyclops.integratedterminals.inventory.container;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
@@ -29,7 +31,19 @@ import java.util.concurrent.Executors;
 public abstract class ContainerTerminalStorageCraftingPlanBase<L> extends InventoryContainer {
 
     public static final String BUTTON_START = "start";
-    private static final ExecutorService WORKER_POOL = Executors.newFixedThreadPool(GeneralConfig.craftingPlannerThreads);
+    // Daemon threads, so they don't prevent the client JVM from exiting.
+    private static final ExecutorService WORKER_POOL = Executors.newFixedThreadPool(
+            GeneralConfig.craftingPlannerThreads,
+            new ThreadFactoryBuilder()
+                    .setNameFormat("IntegratedTerminals Crafting Planner #%d")
+                    .setDaemon(true)
+                    .build()
+    );
+
+    @VisibleForTesting
+    public static ExecutorService getWorkerPool() {
+        return WORKER_POOL;
+    }
 
     private final CraftingOptionGuiData craftingOptionGuiData;
     private final int craftingPlanNotifierId;
