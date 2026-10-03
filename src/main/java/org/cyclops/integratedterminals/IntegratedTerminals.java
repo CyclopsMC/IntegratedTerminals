@@ -35,6 +35,7 @@ import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalSto
 import org.cyclops.integratedterminals.gametest.GameTestAdvancementsIntegratedTerminals;
 import org.cyclops.integratedterminals.gametest.GameTestCraftingJobIndication;
 import org.cyclops.integratedterminals.gametest.GameTestCraftingJobNotify;
+import org.cyclops.integratedterminals.gametest.GameTestCraftingPlanWorkerPool;
 import org.cyclops.integratedterminals.gametest.GameTestIngredientQueryMatchers;
 import org.cyclops.integratedterminals.gametest.GameTestPendingCraftingJobOutputs;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingJobFinishedEvent;
@@ -158,6 +159,7 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
                 GameTestAdvancementsIntegratedTerminals.class,
                 GameTestCraftingJobIndication.class,
                 GameTestCraftingJobNotify.class,
+                GameTestCraftingPlanWorkerPool.class,
                 GameTestIngredientQueryMatchers.class,
                 GameTestPendingCraftingJobOutputs.class,
                 GameTestTerminalCraftingJobFinishedEvent.class,
