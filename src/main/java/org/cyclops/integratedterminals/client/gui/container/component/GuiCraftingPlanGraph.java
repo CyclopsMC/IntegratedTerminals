@@ -310,6 +310,23 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         };
     }
 
+    /**
+     * @param segment An edge segment.
+     * @return 2 if it leads to a failed node, 1 if it leads to a node that is crafting, and 0 otherwise.
+     */
+    protected static int getEdgeSeverity(CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment) {
+        int severity = 0;
+        for (GuiCraftingPlan.Element target : segment.getTargets()) {
+            if (isFailed(target.getStatus())) {
+                return 2;
+            }
+            if (target.getStatus() == TerminalCraftingJobStatus.CRAFTING) {
+                severity = 1;
+            }
+        }
+        return severity;
+    }
+
     protected static boolean isCollapsed(GuiCraftingPlan.Element element) {
         for (GuiCraftingPlan.Element child : element.getChildren()) {
             if (!child.isEnabled()) {
@@ -365,23 +382,21 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             guiGraphics.fill(innerLeft, y, innerRight, y + 1, COLOR_GRID);
         }
 
-        // Edges
+        // Edges, where the paths to problems are drawn last so that they are not hidden by shared parts of the trunk
         int thickness = camera.getZoom() >= 1.5F ? 2 : 1;
-        for (CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment : layout.getSegments()) {
-            int color = COLOR_EDGE;
-            if (segment.getTarget() != null) {
-                if (isFailed(segment.getTarget().getStatus())) {
-                    color = COLOR_STATUS_FAILED;
-                } else if (segment.getTarget().getStatus() == TerminalCraftingJobStatus.CRAFTING) {
-                    color = COLOR_STATUS_CRAFTING;
+        for (int severity = 0; severity <= 2; severity++) {
+            for (CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment : layout.getSegments()) {
+                if (getEdgeSeverity(segment) != severity) {
+                    continue;
                 }
-            }
-            if (segment.getY1() == segment.getY2()) {
-                int y = toViewY(segment.getY1());
-                guiGraphics.fill(toViewX(segment.getX1()), y, toViewX(segment.getX2() + 1), y + thickness, color);
-            } else {
-                int x = toViewX(segment.getX1());
-                guiGraphics.fill(x, toViewY(segment.getY1()), x + thickness, toViewY(segment.getY2()) + thickness, color);
+                int color = severity == 2 ? COLOR_STATUS_FAILED : (severity == 1 ? COLOR_STATUS_CRAFTING : COLOR_EDGE);
+                if (segment.getY1() == segment.getY2()) {
+                    int y = toViewY(segment.getY1());
+                    guiGraphics.fill(toViewX(segment.getX1()), y, toViewX(segment.getX2() + 1), y + thickness, color);
+                } else {
+                    int x = toViewX(segment.getX1());
+                    guiGraphics.fill(x, toViewY(segment.getY1()), x + thickness, toViewY(segment.getY2()) + thickness, color);
+                }
             }
         }
 

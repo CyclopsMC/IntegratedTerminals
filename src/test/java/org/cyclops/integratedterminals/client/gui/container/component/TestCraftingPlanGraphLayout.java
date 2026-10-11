@@ -141,31 +141,61 @@ public class TestCraftingPlanGraphLayout {
 
         int center = NODE_SIZE / 2;
         int trunkX = NODE_SIZE + CraftingPlanGraphLayout.COLUMN_GAP / 2;
+        int rootCenterY = pRoot.getY() + center;
         List<CraftingPlanGraphLayout.Segment<Node>> segments = layout.getSegments();
-        assertEquals(4, segments.size());
+        assertEquals(5, segments.size());
 
-        // Stub out of the parent's right edge
+        // Stub out of the parent's right edge, which leads to all children
         CraftingPlanGraphLayout.Segment<Node> stub = segments.get(0);
-        assertNull(stub.getTarget());
+        assertEquals(Arrays.asList(c1, c2), stub.getTargets());
         assertEquals(pRoot.getX() + NODE_SIZE, stub.getX1());
-        assertEquals(pRoot.getY() + center, stub.getY1());
+        assertEquals(rootCenterY, stub.getY1());
         assertEquals(trunkX, stub.getX2());
 
-        // Trunk from the first to the last child
-        CraftingPlanGraphLayout.Segment<Node> trunk = segments.get(1);
-        assertEquals(trunkX, trunk.getX1());
-        assertEquals(trunkX, trunk.getX2());
-        assertEquals(placement(layout, c1).getY() + center, trunk.getY1());
-        assertEquals(placement(layout, c2).getY() + center, trunk.getY2());
-
-        // Stubs into the left edge of each child
+        // For each child, a part of the trunk from the parent's center, and a stub into the child's left edge
         for (int i = 0; i < 2; i++) {
-            CraftingPlanGraphLayout.Segment<Node> childStub = segments.get(2 + i);
             Node child = i == 0 ? c1 : c2;
-            assertSame(child, childStub.getTarget());
+            int childCenterY = placement(layout, child).getY() + center;
+
+            CraftingPlanGraphLayout.Segment<Node> trunk = segments.get(1 + i * 2);
+            assertEquals(Collections.singletonList(child), trunk.getTargets());
+            assertEquals(trunkX, trunk.getX1());
+            assertEquals(trunkX, trunk.getX2());
+            assertEquals(Math.min(rootCenterY, childCenterY), trunk.getY1());
+            assertEquals(Math.max(rootCenterY, childCenterY), trunk.getY2());
+
+            CraftingPlanGraphLayout.Segment<Node> childStub = segments.get(2 + i * 2);
+            assertEquals(Collections.singletonList(child), childStub.getTargets());
             assertEquals(trunkX, childStub.getX1());
             assertEquals(placement(layout, child).getX() - 1, childStub.getX2());
-            assertEquals(placement(layout, child).getY() + center, childStub.getY1());
+            assertEquals(childCenterY, childStub.getY1());
+        }
+    }
+
+    @Test
+    public void testEachChildHasAConnectedPath() {
+        // Every child must be reachable from its parent through segments that lead to it alone,
+        // so that the path to a single child can be highlighted
+        Node root = node("root", node("a"), node("b"), node("c"));
+        CraftingPlanGraphLayout<Node> layout = CraftingPlanGraphLayout.create(root);
+        int center = NODE_SIZE / 2;
+        int rootCenterY = placement(layout, root).getY() + center;
+        for (Node child : root.getChildren()) {
+            int childCenterY = placement(layout, child).getY() + center;
+            boolean vertical = childCenterY == rootCenterY;
+            boolean horizontal = false;
+            for (CraftingPlanGraphLayout.Segment<Node> segment : layout.getSegments()) {
+                if (segment.getTargets().equals(Collections.singletonList(child))) {
+                    if (segment.getX1() == segment.getX2()) {
+                        vertical |= segment.getY1() <= rootCenterY && segment.getY2() >= rootCenterY
+                                && segment.getY1() <= childCenterY && segment.getY2() >= childCenterY;
+                    } else {
+                        horizontal |= segment.getY1() == childCenterY;
+                    }
+                }
+            }
+            assertTrue("vertical path to " + child, vertical);
+            assertTrue("horizontal path to " + child, horizontal);
         }
     }
 

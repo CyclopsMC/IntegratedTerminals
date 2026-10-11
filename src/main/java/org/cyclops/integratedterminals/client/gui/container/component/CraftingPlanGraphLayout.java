@@ -85,17 +85,25 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
             int lastY = childPlacements.get(childPlacements.size() - 1).y;
             placement.y = (firstY + lastY) / 2;
 
-            // Elbow connectors: a stub out of the parent, a vertical trunk, and a stub into each child
+            // Elbow connectors: a stub out of the parent, and for each child a vertical part of the trunk and a stub into it.
+            // The trunk is split per child, so that the path to each child can be highlighted on its own.
             int center = NODE_SIZE / 2;
             int parentRight = placement.x + NODE_SIZE;
             int trunkX = parentRight + COLUMN_GAP / 2;
-            segments.add(new Segment<>(parentRight, placement.y + center, trunkX, placement.y + center, null));
-            if (firstY != lastY) {
-                segments.add(new Segment<>(trunkX, firstY + center, trunkX, lastY + center, null));
-            }
+            int parentCenterY = placement.y + center;
+            List<N> children = Lists.newArrayList();
             for (Placement<N> childPlacement : childPlacements) {
-                segments.add(new Segment<>(trunkX, childPlacement.y + center, childPlacement.x - 1, childPlacement.y + center,
-                        childPlacement.getNode()));
+                children.add(childPlacement.getNode());
+            }
+            segments.add(new Segment<>(parentRight, parentCenterY, trunkX, parentCenterY, children));
+            for (Placement<N> childPlacement : childPlacements) {
+                int childCenterY = childPlacement.y + center;
+                List<N> child = Collections.singletonList(childPlacement.getNode());
+                if (childCenterY != parentCenterY) {
+                    segments.add(new Segment<>(trunkX, Math.min(parentCenterY, childCenterY), trunkX,
+                            Math.max(parentCenterY, childCenterY), child));
+                }
+                segments.add(new Segment<>(trunkX, childCenterY, childPlacement.x - 1, childCenterY, child));
             }
         }
         return placement;
@@ -201,14 +209,14 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
         private int y1;
         private final int x2;
         private int y2;
-        private final N target;
+        private final List<N> targets;
 
-        public Segment(int x1, int y1, int x2, int y2, N target) {
+        public Segment(int x1, int y1, int x2, int y2, List<N> targets) {
             this.x1 = x1;
             this.y1 = y1;
             this.x2 = x2;
             this.y2 = y2;
-            this.target = target;
+            this.targets = targets;
         }
 
         public int getX1() {
@@ -228,10 +236,10 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
         }
 
         /**
-         * @return The child node this segment leads into, or null if it is shared by all children.
+         * @return The child nodes this segment leads to.
          */
-        public N getTarget() {
-            return target;
+        public List<N> getTargets() {
+            return targets;
         }
     }
 
