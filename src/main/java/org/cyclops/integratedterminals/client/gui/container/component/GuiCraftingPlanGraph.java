@@ -51,6 +51,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final long FLOW_STEP_DURATION = 80;
     private static final int FLOW_PERIOD = 6;
     private static final int FLOW_DASH = 2;
+    // TODO: temporary switch for comparing the two crafting animations, remove before merging
+    public static boolean CRAFTING_ANIMATION_BORDER = false;
     /**
      * The smallest zoom level at which quantities are still shown.
      */
@@ -347,6 +349,46 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
     }
 
+    /**
+     * Draw a light that runs around a frame, with a fading tail.
+     * @param guiGraphics The gui graphics.
+     * @param x0 The outer left of the frame.
+     * @param y0 The outer top of the frame.
+     * @param x1 The outer right of the frame, exclusive.
+     * @param y1 The outer bottom of the frame, exclusive.
+     * @param thickness The frame thickness.
+     */
+    protected void drawBorderComet(GuiGraphics guiGraphics, int x0, int y0, int x1, int y1, int thickness) {
+        int w = x1 - x0 - thickness;
+        int h = y1 - y0 - thickness;
+        int length = 2 * (w + h);
+        if (length <= 0) {
+            return;
+        }
+        int head = (int) ((System.currentTimeMillis() % PULSE_DURATION) * length / PULSE_DURATION);
+        int tail = Math.max(4, length / 3);
+        for (int d = tail - 1; d >= 0; d--) {
+            int s = Math.floorMod(head - d, length);
+            int x;
+            int y;
+            if (s < w) {
+                x = x0 + s;
+                y = y0;
+            } else if (s < w + h) {
+                x = x1 - thickness;
+                y = y0 + s - w;
+            } else if (s < 2 * w + h) {
+                x = x1 - thickness - (s - w - h);
+                y = y1 - thickness;
+            } else {
+                x = x0;
+                y = y1 - thickness - (s - 2 * w - h);
+            }
+            int color = lerpColor(COLOR_STATUS_CRAFTING, 0xFFFFFFFF, 1F - (float) d / tail);
+            guiGraphics.fill(x, y, x + thickness, y + thickness, color);
+        }
+    }
+
     protected static int lerpColor(int from, int to, float t) {
         int result = 0;
         for (int shift = 0; shift <= 24; shift += 8) {
@@ -502,7 +544,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         } else {
             // Crafting jobs look like a raised tile, framed in the color of their status
             int accent = getStatusColor(element.getStatus());
-            if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING) {
+            if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING && !CRAFTING_ANIMATION_BORDER) {
                 // Active jobs pulse, so they stand out from the ones that are waiting
                 double phase = (System.currentTimeMillis() % PULSE_DURATION) / (double) PULSE_DURATION;
                 accent = lerpColor(COLOR_STATUS_CRAFTING, COLOR_STATUS_CRAFTING_LIGHT, (float) (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI)));
@@ -512,6 +554,9 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             if (accent != 0) {
                 inset += zoom >= 1.5F ? 3 : 2;
                 guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, accent);
+                if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING && CRAFTING_ANIMATION_BORDER) {
+                    drawBorderComet(guiGraphics, x0 + 1, y0 + 1, x1 - 1, y1 - 1, inset - 1);
+                }
             }
             guiGraphics.fill(x0 + inset, y0 + inset, x1 - inset, y1 - inset,
                     isProblem(element) ? COLOR_NODE_FILL_FAILED : COLOR_NODE_FILL);
@@ -549,7 +594,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 guiGraphics.fill(1, 1, 7, 11, COLOR_BADGE);
                 guiGraphics.drawString(font, "!", 3, 2, 0xFFFF5555, false);
             }
-            if (crafting) {
+            if (crafting && !CRAFTING_ANIMATION_BORDER) {
                 // The same spinner as on crafting ingredients in the storage terminal
                 int frame = (int) ((System.currentTimeMillis() / SPINNER_FRAME_DURATION) % Images.SPINNER.length);
                 GlStateManager._enableBlend();
