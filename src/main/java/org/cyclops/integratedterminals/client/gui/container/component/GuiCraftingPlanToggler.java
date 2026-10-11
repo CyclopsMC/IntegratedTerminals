@@ -13,6 +13,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCra
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
@@ -33,6 +34,11 @@ public class GuiCraftingPlanToggler {
      * If the graph view is shown fullscreen, shared by all crafting plan guis for the session.
      */
     private static boolean graphFullscreen = false;
+    /**
+     * The display mode the player last chose, shared by all crafting plan guis for the session.
+     */
+    @Nullable
+    private static CraftingPlanDisplayMode preferredDisplayMode = null;
 
     private final Supplier<ITerminalCraftingPlan> craftingPlanSupplier;
     private final Supplier<ITerminalCraftingPlanFlat> craftingPlanFlatSupplier;
@@ -60,25 +66,34 @@ public class GuiCraftingPlanToggler {
     public void resolveDisplayMode() {
         // Determine available display modes
         if (this.craftingPlanDisplayMode == null) {
-            if (this.craftingPlanFlatSupplier.get() != null) {
-                if (this.craftingPlanSupplier.get() == null) {
-                    this.craftingPlanDisplayMode = CraftingPlanDisplayMode.FLAT;
-                } else {
-                    this.craftingPlanDisplayMode = GeneralConfig.terminalStorageDefaultToCraftingPlanTree ? CraftingPlanDisplayMode.GRAPH : CraftingPlanDisplayMode.FLAT;
-                }
-            } else {
-                if (this.craftingPlanSupplier.get() == null) {
-                    this.craftingPlanDisplayMode = CraftingPlanDisplayMode.NONE;
-                } else {
-                    this.craftingPlanDisplayMode = CraftingPlanDisplayMode.GRAPH;
-                }
-            }
+            this.craftingPlanDisplayMode = getDefaultDisplayMode(this.craftingPlanSupplier.get() != null,
+                    this.craftingPlanFlatSupplier.get() != null, preferredDisplayMode,
+                    GeneralConfig.terminalStorageDefaultToCraftingPlanTree);
         }
 
         // Reset display mode if both plan views became empty
         if (this.craftingPlanFlatSupplier.get() == null && this.craftingPlanSupplier.get() == null) {
             this.craftingPlanDisplayMode = CraftingPlanDisplayMode.NONE;
         }
+    }
+
+    /**
+     * @param hasTree If a tree-based plan is available.
+     * @param hasFlat If a flattened plan is available.
+     * @param preferred The mode the player last chose, or null.
+     * @param defaultToTree If a tree-based view should be preferred over the flattened view.
+     * @return The display mode to show when a plan is opened.
+     */
+    public static CraftingPlanDisplayMode getDefaultDisplayMode(boolean hasTree, boolean hasFlat,
+                                                                @Nullable CraftingPlanDisplayMode preferred,
+                                                                boolean defaultToTree) {
+        if (preferred != null && (preferred == CraftingPlanDisplayMode.FLAT ? hasFlat : hasTree)) {
+            return preferred;
+        }
+        if (hasTree && (defaultToTree || !hasFlat)) {
+            return CraftingPlanDisplayMode.GRAPH;
+        }
+        return hasFlat ? CraftingPlanDisplayMode.FLAT : CraftingPlanDisplayMode.NONE;
     }
 
     public void init() {
@@ -171,6 +186,7 @@ public class GuiCraftingPlanToggler {
     protected Button createViewButton(int x, int y, CraftingPlanDisplayMode mode, String unlocalizedName, IImage image, Runnable onChange) {
         Component name = Component.translatable(unlocalizedName);
         Button button = new ButtonView(x, y, name, (b) -> {
+            preferredDisplayMode = mode;
             if (this.craftingPlanDisplayMode != mode) {
                 this.craftingPlanDisplayMode = mode;
                 onChange.run();
