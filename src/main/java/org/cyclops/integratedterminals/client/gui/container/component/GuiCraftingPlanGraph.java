@@ -1,7 +1,6 @@
 package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.platform.GlStateManager;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -22,7 +21,6 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
-import org.cyclops.integratedterminals.client.gui.image.Images;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -46,13 +44,10 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int LEGEND_MIN_WIDTH = 200;
     private static final int GRID_SIZE = 16;
     private static final int CLICK_DISTANCE = 2;
-    private static final long SPINNER_FRAME_DURATION = 100;
-    private static final long PULSE_DURATION = 1200;
+    private static final long BORDER_LAP_DURATION = 1200;
     private static final long FLOW_STEP_DURATION = 80;
     private static final int FLOW_PERIOD = 6;
     private static final int FLOW_DASH = 2;
-    // TODO: temporary switch for comparing the two crafting animations, remove before merging
-    public static boolean CRAFTING_ANIMATION_BORDER = false;
     /**
      * The smallest zoom level at which quantities are still shown.
      */
@@ -334,19 +329,35 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                             boolean towardsStart, boolean vertical) {
         int step = (int) ((System.currentTimeMillis() / FLOW_STEP_DURATION) % FLOW_PERIOD);
         int offset = towardsStart ? step : FLOW_PERIOD - step;
-        for (int p = from - FLOW_PERIOD; p < to; p += FLOW_PERIOD) {
-            // Align dashes to absolute positions, so that adjacent edges move in step
-            int start = p - Math.floorMod(p + offset, FLOW_PERIOD);
-            int dashFrom = Math.max(from, start);
-            int dashTo = Math.min(to, start + FLOW_DASH);
-            if (dashFrom < dashTo) {
-                if (vertical) {
-                    guiGraphics.fill(across, dashFrom, across + thickness, dashTo, COLOR_STATUS_CRAFTING_LIGHT);
-                } else {
-                    guiGraphics.fill(dashFrom, across, dashTo, across + thickness, COLOR_STATUS_CRAFTING_LIGHT);
-                }
+        for (int[] dash : getFlowDashes(from, to, offset, FLOW_PERIOD, FLOW_DASH)) {
+            if (vertical) {
+                guiGraphics.fill(across, dash[0], across + thickness, dash[1], COLOR_STATUS_CRAFTING_LIGHT);
+            } else {
+                guiGraphics.fill(dash[0], across, dash[1], across + thickness, COLOR_STATUS_CRAFTING_LIGHT);
             }
         }
+    }
+
+    /**
+     * Determine the dashes of a dashed line, aligned to absolute positions so that adjacent lines move in step.
+     * @param from The start of the line, inclusive.
+     * @param to The end of the line, exclusive.
+     * @param offset The animation offset, where increasing it moves the dashes towards the start.
+     * @param period The distance between the starts of two dashes.
+     * @param length The dash length.
+     * @return Pairs of the start (inclusive) and end (exclusive) of each dash, clipped to the line.
+     */
+    public static List<int[]> getFlowDashes(int from, int to, int offset, int period, int length) {
+        List<int[]> dashes = Lists.newArrayList();
+        // The first dash may start before the line and still overlap with it
+        for (int start = from - Math.floorMod(from + offset, period); start < to; start += period) {
+            int dashFrom = Math.max(from, start);
+            int dashTo = Math.min(to, start + length);
+            if (dashFrom < dashTo) {
+                dashes.add(new int[]{dashFrom, dashTo});
+            }
+        }
+        return dashes;
     }
 
     /**
@@ -365,7 +376,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         if (length <= 0) {
             return;
         }
-        int head = (int) ((System.currentTimeMillis() % PULSE_DURATION) * length / PULSE_DURATION);
+        int head = (int) ((System.currentTimeMillis() % BORDER_LAP_DURATION) * length / BORDER_LAP_DURATION);
         int tail = Math.max(4, length / 3);
         for (int d = tail - 1; d >= 0; d--) {
             int s = Math.floorMod(head - d, length);
@@ -475,30 +486,33 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         int thickness = camera.getZoom() >= 1.5F ? 2 : 1;
         for (int severity = 0; severity <= 2; severity++) {
             for (CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment : layout.getSegments()) {
-                if (getEdgeSeverity(segment) != severity) {
-                    continue;
+                if (getEdgeSeverity(segment) == severity) {
+                    int color = severity == 2 ? COLOR_STATUS_FAILED : (severity == 1 ? COLOR_STATUS_CRAFTING : COLOR_EDGE);
+                    if (segment.getY1() == segment.getY2()) {
+                        int y = toViewY(segment.getY1());
+                        guiGraphics.fill(toViewX(segment.getX1()), y, toViewX(segment.getX2() + 1), y + thickness, color);
+                    } else {
+                        int x = toViewX(segment.getX1());
+                        guiGraphics.fill(x, toViewY(segment.getY1()), x + thickness, toViewY(segment.getY2()) + thickness, color);
+                    }
                 }
-                int color = severity == 2 ? COLOR_STATUS_FAILED : (severity == 1 ? COLOR_STATUS_CRAFTING : COLOR_EDGE);
+            }
+        }
+
+        // Ingredients flowing from crafting jobs to their parents,
+        // drawn after all edges so that overlapping edges do not hide the dashes of others
+        for (CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment : layout.getSegments()) {
+            if (getEdgeSeverity(segment) == 1) {
                 if (segment.getY1() == segment.getY2()) {
-                    int y = toViewY(segment.getY1());
-                    int x1 = toViewX(segment.getX1());
-                    int x2 = toViewX(segment.getX2() + 1);
-                    guiGraphics.fill(x1, y, x2, y + thickness, color);
-                    if (severity == 1) {
-                        // Outputs flow back to the parent, which is always on the left
-                        drawFlow(guiGraphics, x1, x2, y, thickness, true, false);
-                    }
+                    // The parent is always on the left
+                    drawFlow(guiGraphics, toViewX(segment.getX1()), toViewX(segment.getX2() + 1), toViewY(segment.getY1()),
+                            thickness, true, false);
                 } else {
-                    int x = toViewX(segment.getX1());
-                    int y1 = toViewY(segment.getY1());
-                    int y2 = toViewY(segment.getY2()) + thickness;
-                    guiGraphics.fill(x, y1, x + thickness, y2, color);
-                    if (severity == 1) {
-                        // Outputs flow away from the child, towards the vertical center of the parent
-                        CraftingPlanGraphLayout.Placement<GuiCraftingPlan.Element> child = layout.getPlacement(segment.getTargets().get(0));
-                        boolean up = child != null && child.getY() + NODE_SIZE / 2 >= segment.getY2();
-                        drawFlow(guiGraphics, y1, y2, x, thickness, up, true);
-                    }
+                    // Flow away from the child, towards the vertical center of the parent
+                    CraftingPlanGraphLayout.Placement<GuiCraftingPlan.Element> child = layout.getPlacement(segment.getTargets().get(0));
+                    boolean up = child != null && child.getY() + NODE_SIZE / 2 >= segment.getY2();
+                    drawFlow(guiGraphics, toViewY(segment.getY1()), toViewY(segment.getY2()) + thickness, toViewX(segment.getX1()),
+                            thickness, up, true);
                 }
             }
         }
@@ -544,17 +558,13 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         } else {
             // Crafting jobs look like a raised tile, framed in the color of their status
             int accent = getStatusColor(element.getStatus());
-            if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING && !CRAFTING_ANIMATION_BORDER) {
-                // Active jobs pulse, so they stand out from the ones that are waiting
-                double phase = (System.currentTimeMillis() % PULSE_DURATION) / (double) PULSE_DURATION;
-                accent = lerpColor(COLOR_STATUS_CRAFTING, COLOR_STATUS_CRAFTING_LIGHT, (float) (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI)));
-            }
             guiGraphics.fill(x0, y0, x1, y1, COLOR_NODE_OUTLINE);
             int inset = 1;
             if (accent != 0) {
                 inset += zoom >= 1.5F ? 3 : 2;
                 guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, accent);
-                if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING && CRAFTING_ANIMATION_BORDER) {
+                if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING) {
+                    // Active jobs have a light running around their frame
                     drawBorderComet(guiGraphics, x0 + 1, y0 + 1, x1 - 1, y1 - 1, inset - 1);
                 }
             }
@@ -583,9 +593,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
 
         // Markers are drawn in node space, in front of the ingredient
         boolean failed = isProblem(element);
-        boolean crafting = element.getStatus() == TerminalCraftingJobStatus.CRAFTING;
         int hidden = placement.getHiddenDescendants();
-        if (failed || crafting || hidden > 0) {
+        if (failed || hidden > 0) {
             Font font = Minecraft.getInstance().font;
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(x0, y0, 300);
@@ -593,12 +602,6 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             if (failed) {
                 guiGraphics.fill(1, 1, 7, 11, COLOR_BADGE);
                 guiGraphics.drawString(font, "!", 3, 2, 0xFFFF5555, false);
-            }
-            if (crafting && !CRAFTING_ANIMATION_BORDER) {
-                // The same spinner as on crafting ingredients in the storage terminal
-                int frame = (int) ((System.currentTimeMillis() / SPINNER_FRAME_DURATION) % Images.SPINNER.length);
-                GlStateManager._enableBlend();
-                Images.SPINNER[frame].drawWithColor(guiGraphics, NODE_SIZE - 10, 2, 0.17F, 0.68F, 0.9F, 1F);
             }
             if (hidden > 0) {
                 String badge = "+" + hidden;
