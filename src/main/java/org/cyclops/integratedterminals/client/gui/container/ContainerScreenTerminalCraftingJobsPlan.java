@@ -14,6 +14,7 @@ import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
+import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanButtons;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanFlat;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanGraph;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanToggler;
@@ -72,7 +73,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
                         this.guiCraftingPlanGraph.inheritVisualizationState(previousGuiCraftingPlanGraph);
                     }
                     // Overlay buttons must be added before the graph, so that they receive clicks first
-                    for (Button button : GuiCraftingPlanToggler.createGraphButtons(this.guiCraftingPlanGraph, this::init)) {
+                    for (Button button : GuiCraftingPlanButtons.createGraphButtons(this.guiCraftingPlanGraph, this::init)) {
                         addRenderableWidget(button);
                     }
                     setActiveView(this.guiCraftingPlanGraph);
@@ -124,7 +125,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
         this.renderables.clear();
         this.children().clear();
 
-        for (Button button : this.guiCraftingPlanToggler.createViewButtons(leftPos + 8, topPos + imageHeight - 23, this::init)) {
+        for (Button button : GuiCraftingPlanButtons.createViewButtons(this.guiCraftingPlanToggler, leftPos + 8, topPos + imageHeight - 23, this::init)) {
             addRenderableWidget(button);
         }
 
