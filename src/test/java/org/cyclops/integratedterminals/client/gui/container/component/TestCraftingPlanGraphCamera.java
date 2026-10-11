@@ -95,7 +95,7 @@ public class TestCraftingPlanGraphCamera {
         assertEquals(0.5F, camera.getZoom(), EPSILON);
         assertEquals(MARGIN, camera.toViewX(0), EPSILON);
         // Root center is vertically centered
-        assertEquals(50, camera.toViewY(CraftingPlanGraphLayout.NODE_SIZE / 2D), EPSILON);
+        assertEquals(50, camera.toViewY(CraftingPlanGraphLayout.ROOT_NODE_SIZE / 2D), EPSILON);
     }
 
     @Test

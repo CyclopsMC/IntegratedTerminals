@@ -156,7 +156,7 @@ public class CraftingPlanGraphCamera {
             this.originY = (viewHeight - bounds.getHeight() * zoom) / 2 - bounds.getMinY() * zoom;
         } else {
             // Center the root, which is at the origin
-            this.originY = viewHeight / 2D - CraftingPlanGraphLayout.NODE_SIZE / 2D * zoom;
+            this.originY = viewHeight / 2D - CraftingPlanGraphLayout.ROOT_NODE_SIZE / 2D * zoom;
         }
     }
 

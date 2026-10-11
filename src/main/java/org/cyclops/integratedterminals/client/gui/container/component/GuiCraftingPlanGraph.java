@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
@@ -401,8 +402,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
         // Node rectangles are drawn from rounded view positions, so hit testing uses the same rounding
         for (CraftingPlanGraphLayout.Placement<GuiCraftingPlan.Element> placement : layout.getPlacements()) {
-            if (mouseX >= toViewX(placement.getX()) && mouseX < toViewX(placement.getX() + NODE_SIZE)
-                    && mouseY >= toViewY(placement.getY()) && mouseY < toViewY(placement.getY() + NODE_SIZE)) {
+            if (mouseX >= toViewX(placement.getX()) && mouseX < toViewX(placement.getX() + placement.getSize())
+                    && mouseY >= toViewY(placement.getY()) && mouseY < toViewY(placement.getY() + placement.getSize())) {
                 return placement;
             }
         }
@@ -690,7 +691,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 } else {
                     // Flow away from the child, towards the vertical center of the parent
                     CraftingPlanGraphLayout.Placement<GuiCraftingPlan.Element> child = layout.getPlacement(segment.getTargets().get(0));
-                    boolean up = child != null && child.getY() + NODE_SIZE / 2 >= segment.getY2();
+                    boolean up = child != null && child.getY() + child.getSize() / 2 >= segment.getY2();
                     drawFlow(guiGraphics, toViewY(segment.getY1()), toViewY(segment.getY2()) + thickness, toViewX(segment.getX1()),
                             thickness, up, true);
                 }
@@ -702,8 +703,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         for (CraftingPlanGraphLayout.Placement<GuiCraftingPlan.Element> placement : layout.getPlacements()) {
             int x0 = toViewX(placement.getX());
             int y0 = toViewY(placement.getY());
-            int x1 = toViewX(placement.getX() + NODE_SIZE);
-            int y1 = toViewY(placement.getY() + NODE_SIZE);
+            int x1 = toViewX(placement.getX() + placement.getSize());
+            int y1 = toViewY(placement.getY() + placement.getSize());
             // Skip nodes outside the viewport, with some slack for the collapsed badge
             if (x1 + NODE_SIZE < innerLeft || x0 > innerRight || y1 < innerTop || y0 > innerBottom) {
                 continue;
@@ -770,13 +771,26 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             IngredientComponent<?, ?> ingredientComponent = output.getComponent();
             long quantity = getQuantity(output);
             String label = getLabel(element, output);
+            // Larger nodes only enlarge the ingredient, as text would become uneven at fractional scales
+            boolean enlarged = placement.getSize() != NODE_SIZE;
+            String instanceLabel = enlarged ? "" : label;
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate((x0 + x1) / 2F, (y0 + y1) / 2F, 0);
-            guiGraphics.pose().scale(zoom, zoom, 1);
+            float scale = zoom * placement.getSize() / NODE_SIZE;
+            guiGraphics.pose().scale(scale, scale, 1);
             ingredientComponent.getCapability(Capabilities.IngredientComponentTerminalStorageHandler.INGREDIENT)
-                    .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity, label, this.parentGui,
+                    .ifPresent(h -> h.drawInstance(guiGraphics, output.getPrototype(), quantity, instanceLabel, this.parentGui,
                             ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, -8, -8, mouseX, mouseY, null));
             guiGraphics.pose().popPose();
+            if (enlarged && !label.isEmpty()) {
+                // Draw the label as in a regular node, in the bottom right corner
+                int inset = (NODE_SIZE - GuiHelpers.SLOT_SIZE_INNER) / 2 + GuiHelpers.SLOT_SIZE_INNER;
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(x1, y1, 0);
+                guiGraphics.pose().scale(zoom, zoom, 1);
+                new GuiGraphicsExtended(guiGraphics).drawSlotText(Minecraft.getInstance().font, label, -inset, -inset);
+                guiGraphics.pose().popPose();
+            }
         }
 
         // Done jobs are faded while the plan is running, so that the remaining work stands out
@@ -801,11 +815,12 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             if (hidden > 0) {
                 // A short edge into a pill with the number of hidden nodes, where the edges to them would start
                 String count = "+" + hidden;
-                int center = NODE_SIZE / 2;
-                int pillX = NODE_SIZE + PILL_STUB;
+                int size = placement.getSize();
+                int center = size / 2;
+                int pillX = size + PILL_STUB;
                 int pillWidth = font.width(count) + 5;
                 int pillTop = center - PILL_HEIGHT / 2;
-                guiGraphics.fill(NODE_SIZE, center, pillX, center + 1, COLOR_EDGE);
+                guiGraphics.fill(size, center, pillX, center + 1, COLOR_EDGE);
                 guiGraphics.fill(pillX + 1, pillTop, pillX + pillWidth - 1, pillTop + PILL_HEIGHT, COLOR_EDGE);
                 guiGraphics.fill(pillX, pillTop + 1, pillX + pillWidth, pillTop + PILL_HEIGHT - 1, COLOR_EDGE);
                 guiGraphics.drawString(font, count, pillX + 3, pillTop + 1, COLOR_PILL_TEXT, false);

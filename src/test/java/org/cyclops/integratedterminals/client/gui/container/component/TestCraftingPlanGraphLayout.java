@@ -11,6 +11,8 @@ import java.util.List;
 
 import static org.cyclops.integratedterminals.client.gui.container.component.CraftingPlanGraphLayout.COLUMN_PITCH;
 import static org.cyclops.integratedterminals.client.gui.container.component.CraftingPlanGraphLayout.NODE_SIZE;
+import static org.cyclops.integratedterminals.client.gui.container.component.CraftingPlanGraphLayout.ROOT_GROWTH;
+import static org.cyclops.integratedterminals.client.gui.container.component.CraftingPlanGraphLayout.ROOT_NODE_SIZE;
 import static org.cyclops.integratedterminals.client.gui.container.component.CraftingPlanGraphLayout.ROW_PITCH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -44,7 +46,8 @@ public class TestCraftingPlanGraphLayout {
         assertEquals(0, placement(layout, root).getX());
         assertEquals(0, placement(layout, root).getY());
         assertTrue(layout.getSegments().isEmpty());
-        assertBounds(layout.getBounds(), 0, 0, NODE_SIZE, NODE_SIZE);
+        assertBounds(layout.getBounds(), 0, 0, ROOT_NODE_SIZE, ROOT_NODE_SIZE);
+        assertEquals(ROOT_NODE_SIZE, placement(layout, root).getSize());
     }
 
     @Test
@@ -54,12 +57,14 @@ public class TestCraftingPlanGraphLayout {
         Node a = node("a", b);
         CraftingPlanGraphLayout<Node> layout = CraftingPlanGraphLayout.create(a);
         assertEquals(0, placement(layout, a).getX());
-        assertEquals(COLUMN_PITCH, placement(layout, b).getX());
-        assertEquals(2 * COLUMN_PITCH, placement(layout, c).getX());
-        for (CraftingPlanGraphLayout.Placement<Node> placement : layout.getPlacements()) {
-            assertEquals(0, placement.getY());
-        }
-        assertBounds(layout.getBounds(), 0, 0, 2 * COLUMN_PITCH + NODE_SIZE, NODE_SIZE);
+        assertEquals(COLUMN_PITCH + ROOT_GROWTH, placement(layout, b).getX());
+        assertEquals(2 * COLUMN_PITCH + ROOT_GROWTH, placement(layout, c).getX());
+        assertEquals(NODE_SIZE, placement(layout, b).getSize());
+        // Centers are aligned with the larger root
+        assertEquals(0, placement(layout, a).getY());
+        assertEquals(ROOT_GROWTH / 2, placement(layout, b).getY());
+        assertEquals(ROOT_GROWTH / 2, placement(layout, c).getY());
+        assertBounds(layout.getBounds(), 0, 0, 2 * COLUMN_PITCH + ROOT_GROWTH + NODE_SIZE, ROOT_NODE_SIZE);
     }
 
     @Test
@@ -69,11 +74,13 @@ public class TestCraftingPlanGraphLayout {
         Node c3 = node("c3");
         Node root = node("root", c1, c2, c3);
         CraftingPlanGraphLayout<Node> layout = CraftingPlanGraphLayout.create(root);
+        int offset = ROOT_GROWTH / 2;
         assertEquals(0, placement(layout, root).getY());
-        assertEquals(-ROW_PITCH, placement(layout, c1).getY());
-        assertEquals(0, placement(layout, c2).getY());
-        assertEquals(ROW_PITCH, placement(layout, c3).getY());
-        assertBounds(layout.getBounds(), 0, -ROW_PITCH, COLUMN_PITCH + NODE_SIZE, ROW_PITCH + NODE_SIZE);
+        assertEquals(offset - ROW_PITCH, placement(layout, c1).getY());
+        assertEquals(offset, placement(layout, c2).getY());
+        assertEquals(offset + ROW_PITCH, placement(layout, c3).getY());
+        assertBounds(layout.getBounds(), 0, offset - ROW_PITCH, COLUMN_PITCH + ROOT_GROWTH + NODE_SIZE,
+                offset + ROW_PITCH + NODE_SIZE);
     }
 
     @Test
@@ -140,15 +147,15 @@ public class TestCraftingPlanGraphLayout {
         CraftingPlanGraphLayout.Placement<Node> pRoot = placement(layout, root);
 
         int center = NODE_SIZE / 2;
-        int trunkX = NODE_SIZE + CraftingPlanGraphLayout.COLUMN_GAP / 2;
-        int rootCenterY = pRoot.getY() + center;
+        int trunkX = ROOT_NODE_SIZE + CraftingPlanGraphLayout.COLUMN_GAP / 2;
+        int rootCenterY = pRoot.getY() + ROOT_NODE_SIZE / 2;
         List<CraftingPlanGraphLayout.Segment<Node>> segments = layout.getSegments();
         assertEquals(5, segments.size());
 
         // Stub out of the parent's right edge, which leads to all children
         CraftingPlanGraphLayout.Segment<Node> stub = segments.get(0);
         assertEquals(Arrays.asList(c1, c2), stub.getTargets());
-        assertEquals(pRoot.getX() + NODE_SIZE, stub.getX1());
+        assertEquals(pRoot.getX() + ROOT_NODE_SIZE, stub.getX1());
         assertEquals(rootCenterY, stub.getY1());
         assertEquals(trunkX, stub.getX2());
 
@@ -179,7 +186,7 @@ public class TestCraftingPlanGraphLayout {
         Node root = node("root", node("a"), node("b"), node("c"));
         CraftingPlanGraphLayout<Node> layout = CraftingPlanGraphLayout.create(root);
         int center = NODE_SIZE / 2;
-        int rootCenterY = placement(layout, root).getY() + center;
+        int rootCenterY = placement(layout, root).getY() + ROOT_NODE_SIZE / 2;
         for (Node child : root.getChildren()) {
             int childCenterY = placement(layout, child).getY() + center;
             boolean vertical = childCenterY == rootCenterY;
@@ -214,7 +221,7 @@ public class TestCraftingPlanGraphLayout {
         hidden.visible = false;
         CraftingPlanGraphLayout<Node> layout = CraftingPlanGraphLayout.create(root);
         assertSame(c1, layout.getPlacement(c1).getNode());
-        assertEquals(COLUMN_PITCH, layout.getPlacement(c1).getX());
+        assertEquals(COLUMN_PITCH + ROOT_GROWTH, layout.getPlacement(c1).getX());
         assertNull(layout.getPlacement(hidden));
     }
 

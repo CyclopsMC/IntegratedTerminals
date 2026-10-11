@@ -18,6 +18,9 @@ import java.util.Map;
 public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>> {
 
     public static final int NODE_SIZE = 26;
+    // The root is larger, so that it stands out as the goal of the plan
+    public static final int ROOT_NODE_SIZE = 34;
+    public static final int ROOT_GROWTH = ROOT_NODE_SIZE - NODE_SIZE;
     public static final int COLUMN_GAP = 22;
     public static final int ROW_GAP = 6;
     public static final int COLUMN_PITCH = NODE_SIZE + COLUMN_GAP;
@@ -57,8 +60,8 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
         for (Placement<N> placement : placements) {
             placement.y += shiftY;
             minY = Math.min(minY, placement.y);
-            maxX = Math.max(maxX, placement.x + NODE_SIZE);
-            maxY = Math.max(maxY, placement.y + NODE_SIZE);
+            maxX = Math.max(maxX, placement.x + placement.size);
+            maxY = Math.max(maxY, placement.y + placement.size);
         }
         for (Segment<N> segment : segments) {
             segment.y1 += shiftY;
@@ -70,7 +73,9 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
 
     private static <N extends INode<N>> Placement<N> place(N node, int depth, int[] nextRow,
                                                            List<Placement<N>> placements, List<Segment<N>> segments) {
-        Placement<N> placement = new Placement<>(node, depth * COLUMN_PITCH);
+        Placement<N> placement = depth == 0
+                ? new Placement<>(node, 0, ROOT_NODE_SIZE)
+                : new Placement<>(node, depth * COLUMN_PITCH + ROOT_GROWTH, NODE_SIZE);
         placements.add(placement);
 
         List<Placement<N>> childPlacements = Lists.newArrayList();
@@ -90,21 +95,21 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
         } else {
             int firstY = childPlacements.get(0).y;
             int lastY = childPlacements.get(childPlacements.size() - 1).y;
-            placement.y = (firstY + lastY) / 2;
+            // Align the center of the parent with the center of its children
+            placement.y = (firstY + lastY) / 2 - (placement.size - NODE_SIZE) / 2;
 
             // Elbow connectors: a stub out of the parent, and for each child a vertical part of the trunk and a stub into it.
             // The trunk is split per child, so that the path to each child can be highlighted on its own.
-            int center = NODE_SIZE / 2;
-            int parentRight = placement.x + NODE_SIZE;
+            int parentRight = placement.x + placement.size;
             int trunkX = parentRight + COLUMN_GAP / 2;
-            int parentCenterY = placement.y + center;
+            int parentCenterY = placement.y + placement.size / 2;
             List<N> children = Lists.newArrayList();
             for (Placement<N> childPlacement : childPlacements) {
                 children.add(childPlacement.getNode());
             }
             segments.add(new Segment<>(parentRight, parentCenterY, trunkX, parentCenterY, children));
             for (Placement<N> childPlacement : childPlacements) {
-                int childCenterY = childPlacement.y + center;
+                int childCenterY = childPlacement.y + childPlacement.size / 2;
                 List<N> child = Collections.singletonList(childPlacement.getNode());
                 if (childCenterY != parentCenterY) {
                     segments.add(new Segment<>(trunkX, Math.min(parentCenterY, childCenterY), trunkX,
@@ -173,12 +178,14 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
     public static class Placement<N> {
         private final N node;
         private final int x;
+        private final int size;
         private int y;
         private int hiddenDescendants;
 
-        public Placement(N node, int x) {
+        public Placement(N node, int x, int size) {
             this.node = node;
             this.x = x;
+            this.size = size;
         }
 
         public N getNode() {
@@ -191,6 +198,13 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
 
         public int getY() {
             return y;
+        }
+
+        /**
+         * @return The width and height of the node.
+         */
+        public int getSize() {
+            return size;
         }
 
         /**
