@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
 
 import javax.annotation.Nullable;
 
@@ -17,6 +18,8 @@ import javax.annotation.Nullable;
  */
 public class GuiCraftingPlanHeader {
 
+    private static final String LABEL_COMPLETED = "gui.integratedterminals.terminal_storage.craftingplan.label.completed";
+
     private final String label;
     private final long tickDuration;
     private final long estimatedTickDuration;
@@ -26,10 +29,22 @@ public class GuiCraftingPlanHeader {
     @Nullable
     private final String initiatorName;
 
-    public GuiCraftingPlanHeader(String unlocalizedLabel, TerminalCraftingJobStatus status, long tickDuration,
+    /**
+     * @param unlocalizedLabel The plan label.
+     * @param status The plan status.
+     * @param completed If the plan has nothing left to craft.
+     * @param tickDuration The duration so far in ticks.
+     * @param estimatedTickDurationTotal The estimated total duration in ticks.
+     * @param estimatedTickDurationRemaining The estimated remaining duration in ticks.
+     * @param channel The crafting channel.
+     * @param initiatorName The name of the player that started the job.
+     */
+    public GuiCraftingPlanHeader(String unlocalizedLabel, TerminalCraftingJobStatus status, boolean completed, long tickDuration,
                                  long estimatedTickDurationTotal, long estimatedTickDurationRemaining,
                                  int channel, @Nullable String initiatorName) {
-        this.label = L10NHelpers.localize(unlocalizedLabel);
+        // A running job that has nothing left to craft has completed
+        this.label = L10NHelpers.localize(completed && TerminalCraftingPlanStatic.Label.RUNNING.getUnlocalizedMessage().equals(unlocalizedLabel)
+                ? LABEL_COMPLETED : unlocalizedLabel);
         this.tickDuration = tickDuration;
         // Jobs that have not started yet can only show a total estimation, running jobs show what is left of it
         this.estimatedTickDurationRemaining = status != TerminalCraftingJobStatus.UNSTARTED;

@@ -2,6 +2,8 @@ package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -21,6 +23,7 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
+import org.lwjgl.glfw.GLFW;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -44,6 +47,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int LEGEND_MIN_WIDTH = 200;
     private static final int GRID_SIZE = 16;
     private static final int CLICK_DISTANCE = 2;
+    private static final int KEY_PAN_DISTANCE = 24;
     private static final long BORDER_LAP_DURATION = 1200;
     private static final long FLOW_STEP_DURATION = 80;
     private static final int FLOW_PERIOD = 6;
@@ -95,6 +99,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private final GuiCraftingPlanHeader header;
     private final CraftingPlanGraphCamera camera;
 
+    private final Int2ObjectMap<List<List<IPrototypedIngredient<?, ?>>>> knownOutputs;
+
     private CraftingPlanGraphLayout<GuiCraftingPlan.Element> layout;
 
     private boolean pressing;
@@ -114,9 +120,11 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
      * @param live If this shows a running job, which changes over time.
      *             It then shows a status legend instead of the controls hint,
      *             and initially leaves room for the plan to grow.
+     * @param previous The graph that showed an earlier version of this plan, to continue from.
      */
     public GuiCraftingPlanGraph(AbstractContainerScreen parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop,
-                                int x, int y, int viewWidth, int viewHeight, boolean live) {
+                                int x, int y, int viewWidth, int viewHeight, boolean live,
+                                @Nullable GuiCraftingPlanGraph previous) {
         super(x, y, 0, 0, Component.literal(""));
         this.parentGui = parentGui;
         this.craftingPlan = craftingPlan;
@@ -126,15 +134,159 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         this.viewHeight = viewHeight;
         this.live = live;
         this.elements = GuiCraftingPlan.getElements(craftingPlan);
+        this.knownOutputs = new Int2ObjectOpenHashMap<>();
+        if (previous != null) {
+            this.knownOutputs.putAll(previous.knownOutputs);
+        }
+        restoreOutputs(this.elements, this.knownOutputs);
+        if (previous != null) {
+            restoreToggleState(previous.elements, this.elements);
+            restoreCompletedJobs(previous.elements, this.elements);
+        }
         pruneEmptyLeaves(this.elements.get(0));
         this.valid = craftingPlan.getStatus().isValid();
         this.header = new GuiCraftingPlanHeader(craftingPlan.getUnlocalizedLabel(), craftingPlan.getStatus(),
+                craftingPlan.getStatus() == TerminalCraftingJobStatus.FINISHED && craftingPlan.getCraftingQuantity() == 0,
                 craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
                 craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
         this.camera = new CraftingPlanGraphCamera();
-        collapseToFit();
-        this.camera.reset(layout.getBounds(), getInnerWidth(), getInnerHeight(),
-                live ? CraftingPlanGraphCamera.DEFAULT_ZOOM_INDEX : CraftingPlanGraphCamera.INITIAL_MAX_ZOOM_INDEX);
+        if (previous == null) {
+            collapseToFit();
+            this.camera.reset(layout.getBounds(), getInnerWidth(), getInnerHeight(),
+                    live ? CraftingPlanGraphCamera.DEFAULT_ZOOM_INDEX : CraftingPlanGraphCamera.INITIAL_MAX_ZOOM_INDEX);
+        } else {
+            refreshLayout();
+            // Keep the camera, with the center of the view in place if the viewport was resized
+            this.camera.copyFrom(previous.camera);
+            this.camera.pan((getInnerWidth() - previous.getInnerWidth()) / 2D, (getInnerHeight() - previous.getInnerHeight()) / 2D);
+            this.camera.clamp(layout.getBounds(), getInnerWidth(), getInnerHeight());
+        }
+    }
+
+    /**
+     * Remember the outputs of crafting jobs, and show the last known outputs of jobs that currently have none.
+     * The outputs of a running job only include what remains to be crafted, so they are empty once it is done.
+     * @param elements The elements of the plan.
+     * @param knownOutputs The last known outputs per element id, which will be updated.
+     */
+    protected static void restoreOutputs(List<GuiCraftingPlan.Element> elements,
+                                         Int2ObjectMap<List<List<IPrototypedIngredient<?, ?>>>> knownOutputs) {
+        for (GuiCraftingPlan.Element element : elements) {
+            if (element.isCraftingJob()) {
+                if (hasOutputs(element)) {
+                    knownOutputs.put(element.getId(), element.getOutputs());
+                } else if (knownOutputs.containsKey(element.getId())) {
+                    element.setOutputs(knownOutputs.get(element.getId()));
+                }
+            }
+        }
+    }
+
+    protected static boolean hasOutputs(GuiCraftingPlan.Element element) {
+        return element.getOutputs().stream()
+                .anyMatch(alternatives -> alternatives.stream().anyMatch(ingredient -> !isEmpty(ingredient)));
+    }
+
+    /**
+     * Collapse the same nodes as before, where nodes that did not exist before are expanded.
+     * @param previousElements The elements of the previous version of the plan.
+     * @param elements The elements of the plan.
+     */
+    protected static void restoreToggleState(List<GuiCraftingPlan.Element> previousElements, List<GuiCraftingPlan.Element> elements) {
+        Int2BooleanOpenHashMap enabledElements = new Int2BooleanOpenHashMap();
+        for (GuiCraftingPlan.Element element : previousElements) {
+            enabledElements.put(element.getId(), element.isEnabled());
+        }
+        for (GuiCraftingPlan.Element element : elements) {
+            element.setEnabled(enabledElements.getOrDefault(element.getId(), true));
+        }
+    }
+
+    /**
+     * Crafting jobs are removed from a running plan once they are done.
+     * Keep showing them as completed in the place where they were, so that progress stays visible,
+     * with their completed sub-jobs folded away.
+     * @param previousElements The elements of the previous version of the plan.
+     * @param elements The elements of the plan, to which completed jobs will be added.
+     */
+    public static void restoreCompletedJobs(List<GuiCraftingPlan.Element> previousElements, List<GuiCraftingPlan.Element> elements) {
+        if (previousElements.isEmpty() || elements.isEmpty() || previousElements.get(0).getId() != elements.get(0).getId()) {
+            return;
+        }
+        Int2ObjectMap<GuiCraftingPlan.Element> currentElements = new Int2ObjectOpenHashMap<>();
+        for (GuiCraftingPlan.Element element : elements) {
+            currentElements.put(element.getId(), element);
+        }
+        restoreCompletedJobs(previousElements.get(0), currentElements, elements);
+    }
+
+    protected static void restoreCompletedJobs(GuiCraftingPlan.Element previousParent,
+                                               Int2ObjectMap<GuiCraftingPlan.Element> currentElements,
+                                               List<GuiCraftingPlan.Element> elements) {
+        GuiCraftingPlan.Element parent = currentElements.get(previousParent.getId());
+        int rank = 0;
+        for (GuiCraftingPlan.Element previousChild : previousParent.getChildren()) {
+            if (!previousChild.isCraftingJob()) {
+                continue;
+            }
+            if (currentElements.containsKey(previousChild.getId())) {
+                restoreCompletedJobs(previousChild, currentElements, elements);
+            } else if (parent != null) {
+                GuiCraftingPlan.Element completed = createCompletedJob(previousChild, !previousChild.isCompleted());
+                insertCraftingJob(parent, completed, rank);
+                addRecursively(completed, elements);
+            }
+            rank++;
+        }
+    }
+
+    /**
+     * @param previous A crafting job that is done.
+     * @param fold If its sub-jobs must be collapsed.
+     * @return A completed copy of the job, with completed copies of its sub-jobs.
+     */
+    protected static GuiCraftingPlan.Element createCompletedJob(GuiCraftingPlan.Element previous, boolean fold) {
+        long total = Math.max(previous.getCraftQuantityTotal(), previous.getCraftQuantity());
+        GuiCraftingPlan.Element completed = new GuiCraftingPlan.Element(previous.getId(), previous.getIndent(),
+                (List) previous.getOutputs(), 0, 0, total, 0,
+                TerminalCraftingJobStatus.FINISHED.getColor(), TerminalCraftingJobStatus.FINISHED)
+                .markCraftingJob()
+                .markCompleted();
+        completed.setEnabled(previous.isEnabled());
+        for (GuiCraftingPlan.Element previousChild : previous.getChildren()) {
+            if (previousChild.isCraftingJob()) {
+                GuiCraftingPlan.Element completedChild = completed.addChild(createCompletedJob(previousChild, false));
+                if (fold) {
+                    completedChild.setEnabled(false);
+                }
+            }
+        }
+        return completed;
+    }
+
+    /**
+     * Insert a crafting job at the given position among the crafting jobs of a parent, which follow its ingredients.
+     */
+    protected static void insertCraftingJob(GuiCraftingPlan.Element parent, GuiCraftingPlan.Element job, int rank) {
+        List<GuiCraftingPlan.Element> children = parent.getChildren();
+        int jobs = 0;
+        for (int i = 0; i < children.size(); i++) {
+            if (children.get(i).isCraftingJob()) {
+                if (jobs == rank) {
+                    children.add(i, job);
+                    return;
+                }
+                jobs++;
+            }
+        }
+        children.add(job);
+    }
+
+    protected static void addRecursively(GuiCraftingPlan.Element element, List<GuiCraftingPlan.Element> elements) {
+        elements.add(element);
+        for (GuiCraftingPlan.Element child : element.getChildren()) {
+            addRecursively(child, elements);
+        }
     }
 
     /**
@@ -174,23 +326,6 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
 
     public ITerminalCraftingPlan<?> getCraftingPlan() {
         return craftingPlan;
-    }
-
-    public void inheritVisualizationState(GuiCraftingPlanGraph previous) {
-        // Inherit toggle state, where elements that did not exist before are expanded
-        Int2BooleanOpenHashMap enabledElements = new Int2BooleanOpenHashMap();
-        for (GuiCraftingPlan.Element element : previous.elements) {
-            enabledElements.put(element.getId(), element.isEnabled());
-        }
-        for (GuiCraftingPlan.Element element : this.elements) {
-            element.setEnabled(enabledElements.getOrDefault(element.getId(), true));
-        }
-        refreshLayout();
-
-        // Inherit camera, keeping the center of the view in place if the viewport was resized
-        this.camera.copyFrom(previous.camera);
-        this.camera.pan((getInnerWidth() - previous.getInnerWidth()) / 2D, (getInnerHeight() - previous.getInnerHeight()) / 2D);
-        this.camera.clamp(layout.getBounds(), getInnerWidth(), getInnerHeight());
     }
 
     protected void refreshLayout() {
@@ -287,6 +422,19 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     protected static boolean isFailed(TerminalCraftingJobStatus status) {
         return status == TerminalCraftingJobStatus.INVALID || status == TerminalCraftingJobStatus.ERROR
                 || status == TerminalCraftingJobStatus.INVALID_INPUTS;
+    }
+
+    /**
+     * @param element An element.
+     * @return The status to show for the element.
+     */
+    protected static TerminalCraftingJobStatus getDisplayStatus(GuiCraftingPlan.Element element) {
+        // Crafting interfaces report a job as finished in between its crafting operations, while some remain to be done
+        if (element.getStatus() == TerminalCraftingJobStatus.FINISHED && element.isCraftingJob() && !element.isCompleted()
+                && element.getCraftQuantity() > 0) {
+            return TerminalCraftingJobStatus.CRAFTING;
+        }
+        return element.getStatus();
     }
 
     /**
@@ -417,10 +565,10 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     protected static int getEdgeSeverity(CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment) {
         int severity = 0;
         for (GuiCraftingPlan.Element target : segment.getTargets()) {
-            if (isFailed(target.getStatus())) {
+            if (isFailed(getDisplayStatus(target))) {
                 return 2;
             }
-            if (target.getStatus() == TerminalCraftingJobStatus.CRAFTING) {
+            if (getDisplayStatus(target) == TerminalCraftingJobStatus.CRAFTING) {
                 severity = 1;
             }
         }
@@ -557,13 +705,13 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, COLOR_SLOT_FILL);
         } else {
             // Crafting jobs look like a raised tile, framed in the color of their status
-            int accent = getStatusColor(element.getStatus());
+            int accent = getStatusColor(getDisplayStatus(element));
             guiGraphics.fill(x0, y0, x1, y1, COLOR_NODE_OUTLINE);
             int inset = 1;
             if (accent != 0) {
                 inset += zoom >= 1.5F ? 3 : 2;
                 guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, accent);
-                if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING) {
+                if (getDisplayStatus(element) == TerminalCraftingJobStatus.CRAFTING) {
                     // Active jobs have a light running around their frame
                     drawBorderComet(guiGraphics, x0 + 1, y0 + 1, x1 - 1, y1 - 1, inset - 1);
                 }
@@ -679,9 +827,10 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             lines.add(Component.translatable("gui.integratedterminals.craftingplan.graph.stored").withStyle(ChatFormatting.GRAY));
             return lines;
         }
-        String statusKey = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH);
+        TerminalCraftingJobStatus status = getDisplayStatus(element);
+        String statusKey = "gui.integratedterminals.craftingplan.status." + status.name().toLowerCase(Locale.ENGLISH);
         lines.add(Component.translatable("gui.integratedterminals.craftingplan.status", Component.translatable(statusKey))
-                .withStyle(getStatusFormatting(element.getStatus())));
+                .withStyle(getStatusFormatting(status)));
         lines.add(Component.translatable(statusKey + ".desc").withStyle(ChatFormatting.GRAY));
 
         // Quantities
@@ -748,6 +897,39 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     protected void zoom(int direction) {
         camera.zoomAt(getInnerWidth() / 2D, getInnerHeight() / 2D, direction);
         camera.clamp(layout.getBounds(), getInnerWidth(), getInnerHeight());
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // Arrow keys move the view in their direction, so the graph moves the other way
+        int dx = 0;
+        int dy = 0;
+        switch (keyCode) {
+            case GLFW.GLFW_KEY_LEFT -> dx = KEY_PAN_DISTANCE;
+            case GLFW.GLFW_KEY_RIGHT -> dx = -KEY_PAN_DISTANCE;
+            case GLFW.GLFW_KEY_UP -> dy = KEY_PAN_DISTANCE;
+            case GLFW.GLFW_KEY_DOWN -> dy = -KEY_PAN_DISTANCE;
+            default -> {
+                return false;
+            }
+        }
+        camera.pan(dx, dy);
+        camera.clamp(layout.getBounds(), getInnerWidth(), getInnerHeight());
+        return true;
+    }
+
+    @Override
+    public boolean charTyped(char character, int modifiers) {
+        // Characters instead of key codes, so that these keys work on any keyboard layout
+        switch (character) {
+            case '+', '=' -> zoomIn();
+            case '-', '_' -> zoomOut();
+            case 'f', 'F' -> fit();
+            default -> {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void fit() {

@@ -559,6 +559,24 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         return plan;
     }
 
+    /**
+     * @param craftingPlan A crafting plan.
+     * @param <I> The plan identifier type.
+     * @return A copy of the plan in which the plan and all of its dependencies are finished,
+     *         with nothing left to craft and no ingredients left in their buffers.
+     */
+    public static <I> TerminalCraftingPlanStatic<I> asCompleted(ITerminalCraftingPlan<I> craftingPlan) {
+        List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayList();
+        for (ITerminalCraftingPlan<I> dependency : craftingPlan.getDependencies()) {
+            dependencies.add(asCompleted(dependency));
+        }
+        return new TerminalCraftingPlanStatic<>(craftingPlan.getId(), dependencies, craftingPlan.getOutputs(),
+                TerminalCraftingJobStatus.FINISHED, 0,
+                Math.max(craftingPlan.getCraftingQuantityTotal(), craftingPlan.getCraftingQuantity()),
+                Collections.emptyList(), Collections.emptyList(), Label.RUNNING, craftingPlan.getTickDuration(),
+                craftingPlan.getEstimatedTickDurationTotal(), 0, craftingPlan.getChannel(), craftingPlan.getInitiatorName());
+    }
+
     public static enum Label {
         RUNNING("gui.integratedterminals.terminal_storage.craftingplan.label.running"),
         VALID("gui.integratedterminals.terminal_storage.craftingplan.label.valid"),

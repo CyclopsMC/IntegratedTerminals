@@ -94,6 +94,7 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
         this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size());
         this.header = new GuiCraftingPlanHeader(craftingPlan.getUnlocalizedLabel(), craftingPlan.getStatus(),
+                craftingPlan.getStatus() == TerminalCraftingJobStatus.FINISHED && craftingPlan.getCraftingQuantity() == 0,
                 craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
                 craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
     }
@@ -401,6 +402,7 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
                 valid ? 0 : craftingPlan.getCraftingQuantity(),
                 craftingPlan.getStatus().getColor(),
                 craftingPlan.getStatus());
+        currentElement.markCraftingJob();
         if (parent != null) {
             parent.addChild(currentElement);
         }
@@ -445,7 +447,7 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
 
         private final int id;
         private final int indent;
-        private final List<List<IPrototypedIngredient<?, ?>>> outputs;
+        private List<List<IPrototypedIngredient<?, ?>>> outputs;
         private final long storageQuantity;
         private final long craftQuantity;
         private final long craftQuantityTotal;
@@ -456,6 +458,8 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
 
         private boolean enabled;
         private boolean storedIngredient;
+        private boolean craftingJob;
+        private boolean completed;
 
         public Element(int id, int indent, List<List<IPrototypedIngredient>> outputs, long storageQuantity, long craftQuantity,
                        long missingQuantity, int color, TerminalCraftingJobStatus status) {
@@ -551,6 +555,36 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
 
         public boolean isStoredIngredient() {
             return storedIngredient;
+        }
+
+        /**
+         * Mark this element as a crafting job, instead of an ingredient that is stored or missing.
+         * @return This element.
+         */
+        public Element markCraftingJob() {
+            this.craftingJob = true;
+            return this;
+        }
+
+        public boolean isCraftingJob() {
+            return craftingJob;
+        }
+
+        /**
+         * Mark this element as a crafting job that has been completed, and that is no longer part of the plan.
+         * @return This element.
+         */
+        public Element markCompleted() {
+            this.completed = true;
+            return this;
+        }
+
+        public boolean isCompleted() {
+            return completed;
+        }
+
+        public void setOutputs(List<List<IPrototypedIngredient<?, ?>>> outputs) {
+            this.outputs = outputs;
         }
     }
 

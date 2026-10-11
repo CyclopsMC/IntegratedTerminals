@@ -89,6 +89,10 @@ public class GuiCraftingPlanButtons {
      */
     public static class ButtonView extends ButtonImage {
 
+        private static final int COLOR_SELECTED_OUTLINE = 0xFFFFFFFF;
+        private static final int COLOR_UNSELECTED_FADE = 0x908B8B8B;
+        private static final int COLOR_HOVER = 0x30FFFFFF;
+
         private final boolean selected;
 
         public ButtonView(int x, int y, Component narrationMessage, OnPress pressCallback, IImage image, boolean selected) {
@@ -98,10 +102,23 @@ public class GuiCraftingPlanButtons {
 
         @Override
         protected void drawButtonInner(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-            (selected ? Images.BUTTON_BACKGROUND_ACTIVE : Images.BUTTON_BACKGROUND_INACTIVE).draw(guiGraphics, getX(), getY());
+            int x0 = getX();
+            int y0 = getY();
+            int x1 = x0 + getWidth();
+            int y1 = y0 + getHeight();
+            (selected ? Images.BUTTON_BACKGROUND_ACTIVE : Images.BUTTON_BACKGROUND_INACTIVE).draw(guiGraphics, x0, y0);
             super.drawButtonInner(guiGraphics, mouseX, mouseY);
-            if (isHovered() && !selected) {
-                guiGraphics.fill(getX() + 1, getY() + 1, getX() + getWidth() - 2, getY() + getHeight() - 2, 0x30FFFFFF);
+            if (selected) {
+                // Outline the active view, so it stands out from the other buttons at a glance
+                guiGraphics.fill(x0, y0, x1, y0 + 1, COLOR_SELECTED_OUTLINE);
+                guiGraphics.fill(x0, y1 - 1, x1, y1, COLOR_SELECTED_OUTLINE);
+                guiGraphics.fill(x0, y0 + 1, x0 + 1, y1 - 1, COLOR_SELECTED_OUTLINE);
+                guiGraphics.fill(x1 - 1, y0 + 1, x1, y1 - 1, COLOR_SELECTED_OUTLINE);
+            } else if (isHovered()) {
+                guiGraphics.fill(x0 + 1, y0 + 1, x1 - 2, y1 - 2, COLOR_HOVER);
+            } else {
+                // Fade the icons of the other views
+                guiGraphics.fill(x0 + 2, y0 + 2, x1 - 2, y1 - 2, COLOR_UNSELECTED_FADE);
             }
         }
     }

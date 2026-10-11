@@ -88,4 +88,30 @@ public class TestTerminalCraftingPlanStatic {
         assertEquals(-1, plan.getEstimatedTickDurationRemaining());
     }
 
+    @Test
+    public void testAsCompleted() {
+        TerminalCraftingPlanStatic<Integer> dependency = new TerminalCraftingPlanStatic<>(2, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingJobStatus.CRAFTING, 3, 5, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingPlanStatic.Label.RUNNING, 10, 40, 20, 0, "player");
+        TerminalCraftingPlanStatic<Integer> plan = new TerminalCraftingPlanStatic<>(1, Lists.newArrayList(dependency),
+                Collections.emptyList(), TerminalCraftingJobStatus.FINISHED, 0, 4, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingPlanStatic.Label.RUNNING, 100, 400, 20, 0, "player");
+
+        ITerminalCraftingPlan<Integer> completed = TerminalCraftingPlanStatic.asCompleted(plan);
+        assertEquals(1, (int) completed.getId());
+        assertEquals(TerminalCraftingJobStatus.FINISHED, completed.getStatus());
+        assertEquals(0, completed.getCraftingQuantity());
+        assertEquals(4, completed.getCraftingQuantityTotal());
+        assertEquals(0, completed.getEstimatedTickDurationRemaining());
+        assertEquals(100, completed.getTickDuration());
+        assertEquals("player", completed.getInitiatorName());
+        assertEquals(TerminalCraftingPlanStatic.Label.RUNNING.getUnlocalizedMessage(), completed.getUnlocalizedLabel());
+
+        ITerminalCraftingPlan<Integer> completedDependency = completed.getDependencies().get(0);
+        assertEquals(2, (int) completedDependency.getId());
+        assertEquals(TerminalCraftingJobStatus.FINISHED, completedDependency.getStatus());
+        assertEquals(0, completedDependency.getCraftingQuantity());
+        assertEquals(5, completedDependency.getCraftingQuantityTotal());
+    }
+
 }

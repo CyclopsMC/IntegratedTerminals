@@ -58,10 +58,8 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
                 () -> {
                     GuiCraftingPlanGraph previousGraph = this.guiCraftingPlanGraph;
                     this.guiCraftingPlanGraph = new GuiCraftingPlanGraph(this, this.craftingPlan, leftPos, topPos, 9, 18,
-                            imageWidth - 18, imageHeight - 44, false);
-                    if (previousGraph != null && previousGraph.getCraftingPlan() == this.craftingPlan) {
-                        this.guiCraftingPlanGraph.inheritVisualizationState(previousGraph);
-                    }
+                            imageWidth - 18, imageHeight - 44, false,
+                            previousGraph != null && previousGraph.getCraftingPlan() == this.craftingPlan ? previousGraph : null);
                     // Overlay buttons must be added before the graph, so that they receive clicks first
                     for (Button button : GuiCraftingPlanButtons.createGraphButtons(this.guiCraftingPlanGraph, this::init)) {
                         addRenderableWidget(button);
@@ -145,6 +143,9 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
             returnToCraftingOptionAmount();
             return true;
         }
+        if (this.activeView != null && this.activeView.keyPressed(typedChar, keyCode, modifiers)) {
+            return true;
+        }
         if (this.activeView != null && this.activeView.isValid()
                 && (typedChar == GLFW.GLFW_KEY_ENTER || typedChar == GLFW.GLFW_KEY_KP_ENTER)) {
             buttonConfirm.onPress();
@@ -201,6 +202,14 @@ public class ContainerScreenTerminalStorageCraftingPlan<L, C extends ContainerTe
         if (this.activeView != null) {
             activeView.render(guiGraphics, mouseX, mouseY, partialTicks);
         }
+    }
+
+    @Override
+    public boolean charTyped(char character, int modifiers) {
+        if (this.activeView != null && this.activeView.charTyped(character, modifiers)) {
+            return true;
+        }
+        return super.charTyped(character, modifiers);
     }
 
     @Override

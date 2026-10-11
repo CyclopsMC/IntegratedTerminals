@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -67,6 +68,83 @@ public class TestGuiCraftingPlanGraph {
         int[] first = GuiCraftingPlanGraph.getFlowDashes(10, 40, 0, 6, 2).get(1);
         int[] next = GuiCraftingPlanGraph.getFlowDashes(10, 40, 1, 6, 2).get(1);
         assertEquals(first[0] - 1, next[0]);
+    }
+
+    protected static ITerminalCraftingPlan<Integer> job(int id, TerminalCraftingJobStatus status, long quantity, long total,
+                                                        ITerminalCraftingPlan<Integer>... dependencies) {
+        return TestGuiCraftingPlanProgress.plan(id, status, quantity, total, Lists.newArrayList(dependencies));
+    }
+
+    protected static List<GuiCraftingPlan.Element> update(List<GuiCraftingPlan.Element> previous, ITerminalCraftingPlan<Integer> plan) {
+        List<GuiCraftingPlan.Element> elements = GuiCraftingPlan.getElements(plan);
+        GuiCraftingPlanGraph.restoreToggleState(previous, elements);
+        GuiCraftingPlanGraph.restoreCompletedJobs(previous, elements);
+        return elements;
+    }
+
+    protected static int idOf(int planId) {
+        return GuiCraftingPlan.getElements(job(planId, TerminalCraftingJobStatus.UNSTARTED, 1, 1)).get(0).getId();
+    }
+
+    @Test
+    public void testCompletedJobsAreKept() {
+        List<GuiCraftingPlan.Element> first = GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.PENDING_DEPENDENCIES, 1, 1,
+                job(2, TerminalCraftingJobStatus.CRAFTING, 2, 4,
+                        job(3, TerminalCraftingJobStatus.FINISHED, 0, 8)),
+                job(4, TerminalCraftingJobStatus.QUEUEING, 3, 3)));
+
+        // Job 2 is done, so it is no longer part of the plan
+        List<GuiCraftingPlan.Element> second = update(first, job(1, TerminalCraftingJobStatus.PENDING_DEPENDENCIES, 1, 1,
+                job(4, TerminalCraftingJobStatus.CRAFTING, 3, 3)));
+        GuiCraftingPlan.Element root = second.get(0);
+        assertEquals(2, root.getChildren().size());
+        GuiCraftingPlan.Element completed = root.getChildren().get(0);
+        assertEquals(idOf(2), completed.getId());
+        assertTrue(completed.isCompleted());
+        assertTrue(completed.isCraftingJob());
+        assertEquals(TerminalCraftingJobStatus.FINISHED, completed.getStatus());
+        assertEquals(0, completed.getCraftQuantity());
+        assertEquals(4, completed.getCraftQuantityTotal());
+        // It stays in its place before the job that is still running, which is unchanged
+        assertEquals(idOf(4), root.getChildren().get(1).getId());
+        assertEquals(TerminalCraftingJobStatus.CRAFTING, root.getChildren().get(1).getStatus());
+        // Its completed sub-job is kept, but folded away
+        assertEquals(1, completed.getChildren().size());
+        assertEquals(idOf(3), completed.getChildren().get(0).getId());
+        assertTrue(completed.getChildren().get(0).isCompleted());
+        assertFalse(completed.getChildren().get(0).isEnabled());
+        assertTrue(second.contains(completed.getChildren().get(0)));
+
+        // The player expands the completed job, and then job 4 is done as well
+        completed.getChildren().get(0).setEnabled(true);
+        List<GuiCraftingPlan.Element> third = update(second, job(1, TerminalCraftingJobStatus.PENDING_DEPENDENCIES, 1, 1));
+        root = third.get(0);
+        assertEquals(2, root.getChildren().size());
+        assertEquals(idOf(2), root.getChildren().get(0).getId());
+        assertEquals(idOf(4), root.getChildren().get(1).getId());
+        assertTrue(root.getChildren().get(1).isCompleted());
+        // Jobs that were already completed keep their collapsed state
+        assertTrue(root.getChildren().get(0).getChildren().get(0).isEnabled());
+    }
+
+    @Test
+    public void testCompletedJobsOfAnotherPlanAreIgnored() {
+        List<GuiCraftingPlan.Element> first = GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.CRAFTING, 1, 1,
+                job(2, TerminalCraftingJobStatus.CRAFTING, 1, 1)));
+        List<GuiCraftingPlan.Element> second = update(first, job(5, TerminalCraftingJobStatus.CRAFTING, 1, 1));
+        assertTrue(second.get(0).getChildren().isEmpty());
+        assertEquals(1, second.size());
+    }
+
+    @Test
+    public void testDisplayStatus() {
+        // Jobs that are reported as finished in between their crafting operations are still in progress
+        GuiCraftingPlan.Element running = GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.FINISHED, 3, 12)).get(0);
+        assertEquals(TerminalCraftingJobStatus.CRAFTING, GuiCraftingPlanGraph.getDisplayStatus(running));
+        GuiCraftingPlan.Element done = GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.FINISHED, 0, 12)).get(0);
+        assertEquals(TerminalCraftingJobStatus.FINISHED, GuiCraftingPlanGraph.getDisplayStatus(done));
+        GuiCraftingPlan.Element waiting = GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.QUEUEING, 3, 12)).get(0);
+        assertEquals(TerminalCraftingJobStatus.QUEUEING, GuiCraftingPlanGraph.getDisplayStatus(waiting));
     }
 
 }
