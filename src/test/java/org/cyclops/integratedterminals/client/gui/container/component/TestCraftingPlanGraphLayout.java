@@ -207,6 +207,18 @@ public class TestCraftingPlanGraphLayout {
     }
 
     @Test
+    public void testPlacementLookup() {
+        Node hidden = node("hidden");
+        Node c1 = node("c1", hidden);
+        Node root = node("root", c1);
+        hidden.visible = false;
+        CraftingPlanGraphLayout<Node> layout = CraftingPlanGraphLayout.create(root);
+        assertSame(c1, layout.getPlacement(c1).getNode());
+        assertEquals(COLUMN_PITCH, layout.getPlacement(c1).getX());
+        assertNull(layout.getPlacement(hidden));
+    }
+
+    @Test
     public void testPlacementAt() {
         Node c1 = node("c1");
         Node root = node("root", c1, node("c2"));

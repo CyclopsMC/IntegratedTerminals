@@ -3,7 +3,9 @@ package org.cyclops.integratedterminals.client.gui.container.component;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Places the nodes of a tree in columns from left to right, with the root at the graph origin.
@@ -22,11 +24,16 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
     public static final int ROW_PITCH = NODE_SIZE + ROW_GAP;
 
     private final List<Placement<N>> placements;
+    private final Map<N, Placement<N>> placementsByNode;
     private final List<Segment<N>> segments;
     private final Bounds bounds;
 
     private CraftingPlanGraphLayout(List<Placement<N>> placements, List<Segment<N>> segments, Bounds bounds) {
         this.placements = placements;
+        this.placementsByNode = new IdentityHashMap<>();
+        for (Placement<N> placement : placements) {
+            this.placementsByNode.put(placement.getNode(), placement);
+        }
         this.segments = segments;
         this.bounds = bounds;
     }
@@ -133,6 +140,14 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
 
     public Bounds getBounds() {
         return bounds;
+    }
+
+    /**
+     * @param node A node.
+     * @return The placement of the node, or null if it is not visible.
+     */
+    public Placement<N> getPlacement(N node) {
+        return placementsByNode.get(node);
     }
 
     /**

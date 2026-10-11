@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.GlStateManager;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -21,6 +22,7 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
+import org.cyclops.integratedterminals.client.gui.image.Images;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -44,6 +46,11 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int LEGEND_MIN_WIDTH = 200;
     private static final int GRID_SIZE = 16;
     private static final int CLICK_DISTANCE = 2;
+    private static final long SPINNER_FRAME_DURATION = 100;
+    private static final long PULSE_DURATION = 1200;
+    private static final long FLOW_STEP_DURATION = 80;
+    private static final int FLOW_PERIOD = 6;
+    private static final int FLOW_DASH = 2;
     /**
      * The smallest zoom level at which quantities are still shown.
      */
@@ -64,6 +71,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int COLOR_SLOT_LIGHT = 0xFFFFFFFF;
     private static final int COLOR_STATUS_DONE = 0xFF4CC24C;
     private static final int COLOR_STATUS_CRAFTING = 0xFF2BAEE7;
+    private static final int COLOR_STATUS_CRAFTING_LIGHT = 0xFFB4E6FF;
     private static final int COLOR_STATUS_WAITING = 0xFFE8D020;
     private static final int COLOR_STATUS_BLOCKED = 0xFFF08A10;
     private static final int COLOR_STATUS_FAILED = 0xFFE03030;
@@ -311,6 +319,45 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     }
 
     /**
+     * Draw light dashes that move along an edge, to show that ingredients are flowing through it.
+     * @param guiGraphics The gui graphics.
+     * @param from The start of the edge along its direction, inclusive.
+     * @param to The end of the edge along its direction, exclusive.
+     * @param across The position of the edge across its direction.
+     * @param thickness The edge thickness.
+     * @param towardsStart If the dashes move towards the start of the edge.
+     * @param vertical If the edge is vertical.
+     */
+    protected void drawFlow(GuiGraphics guiGraphics, int from, int to, int across, int thickness,
+                            boolean towardsStart, boolean vertical) {
+        int step = (int) ((System.currentTimeMillis() / FLOW_STEP_DURATION) % FLOW_PERIOD);
+        int offset = towardsStart ? step : FLOW_PERIOD - step;
+        for (int p = from - FLOW_PERIOD; p < to; p += FLOW_PERIOD) {
+            // Align dashes to absolute positions, so that adjacent edges move in step
+            int start = p - Math.floorMod(p + offset, FLOW_PERIOD);
+            int dashFrom = Math.max(from, start);
+            int dashTo = Math.min(to, start + FLOW_DASH);
+            if (dashFrom < dashTo) {
+                if (vertical) {
+                    guiGraphics.fill(across, dashFrom, across + thickness, dashTo, COLOR_STATUS_CRAFTING_LIGHT);
+                } else {
+                    guiGraphics.fill(dashFrom, across, dashTo, across + thickness, COLOR_STATUS_CRAFTING_LIGHT);
+                }
+            }
+        }
+    }
+
+    protected static int lerpColor(int from, int to, float t) {
+        int result = 0;
+        for (int shift = 0; shift <= 24; shift += 8) {
+            int a = (from >> shift) & 0xFF;
+            int b = (to >> shift) & 0xFF;
+            result |= Math.round(a + (b - a) * t) << shift;
+        }
+        return result;
+    }
+
+    /**
      * @param segment An edge segment.
      * @return 2 if it leads to a failed node, 1 if it leads to a node that is crafting, and 0 otherwise.
      */
@@ -392,10 +439,24 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 int color = severity == 2 ? COLOR_STATUS_FAILED : (severity == 1 ? COLOR_STATUS_CRAFTING : COLOR_EDGE);
                 if (segment.getY1() == segment.getY2()) {
                     int y = toViewY(segment.getY1());
-                    guiGraphics.fill(toViewX(segment.getX1()), y, toViewX(segment.getX2() + 1), y + thickness, color);
+                    int x1 = toViewX(segment.getX1());
+                    int x2 = toViewX(segment.getX2() + 1);
+                    guiGraphics.fill(x1, y, x2, y + thickness, color);
+                    if (severity == 1) {
+                        // Outputs flow back to the parent, which is always on the left
+                        drawFlow(guiGraphics, x1, x2, y, thickness, true, false);
+                    }
                 } else {
                     int x = toViewX(segment.getX1());
-                    guiGraphics.fill(x, toViewY(segment.getY1()), x + thickness, toViewY(segment.getY2()) + thickness, color);
+                    int y1 = toViewY(segment.getY1());
+                    int y2 = toViewY(segment.getY2()) + thickness;
+                    guiGraphics.fill(x, y1, x + thickness, y2, color);
+                    if (severity == 1) {
+                        // Outputs flow away from the child, towards the vertical center of the parent
+                        CraftingPlanGraphLayout.Placement<GuiCraftingPlan.Element> child = layout.getPlacement(segment.getTargets().get(0));
+                        boolean up = child != null && child.getY() + NODE_SIZE / 2 >= segment.getY2();
+                        drawFlow(guiGraphics, y1, y2, x, thickness, up, true);
+                    }
                 }
             }
         }
@@ -441,6 +502,11 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         } else {
             // Crafting jobs look like a raised tile, framed in the color of their status
             int accent = getStatusColor(element.getStatus());
+            if (element.getStatus() == TerminalCraftingJobStatus.CRAFTING) {
+                // Active jobs pulse, so they stand out from the ones that are waiting
+                double phase = (System.currentTimeMillis() % PULSE_DURATION) / (double) PULSE_DURATION;
+                accent = lerpColor(COLOR_STATUS_CRAFTING, COLOR_STATUS_CRAFTING_LIGHT, (float) (0.5 - 0.5 * Math.cos(phase * 2 * Math.PI)));
+            }
             guiGraphics.fill(x0, y0, x1, y1, COLOR_NODE_OUTLINE);
             int inset = 1;
             if (accent != 0) {
@@ -472,8 +538,9 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
 
         // Markers are drawn in node space, in front of the ingredient
         boolean failed = isProblem(element);
+        boolean crafting = element.getStatus() == TerminalCraftingJobStatus.CRAFTING;
         int hidden = placement.getHiddenDescendants();
-        if (failed || hidden > 0) {
+        if (failed || crafting || hidden > 0) {
             Font font = Minecraft.getInstance().font;
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(x0, y0, 300);
@@ -481,6 +548,12 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             if (failed) {
                 guiGraphics.fill(1, 1, 7, 11, COLOR_BADGE);
                 guiGraphics.drawString(font, "!", 3, 2, 0xFFFF5555, false);
+            }
+            if (crafting) {
+                // The same spinner as on crafting ingredients in the storage terminal
+                int frame = (int) ((System.currentTimeMillis() / SPINNER_FRAME_DURATION) % Images.SPINNER.length);
+                GlStateManager._enableBlend();
+                Images.SPINNER[frame].drawWithColor(guiGraphics, NODE_SIZE - 10, 2, 0.17F, 0.68F, 0.9F, 1F);
             }
             if (hidden > 0) {
                 String badge = "+" + hidden;
