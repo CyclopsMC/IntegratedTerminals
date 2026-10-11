@@ -424,7 +424,7 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
             for (IPrototypedIngredient bufferedIngredient : craftingPlan.getBufferedIngredients()) {
                 elements.add(currentElement.addChild(new Element(elementId++, indent + 1, Collections.singletonList(Collections.singletonList(bufferedIngredient)),
                         bufferedIngredient.getComponent().getMatcher().getQuantity(bufferedIngredient.getPrototype()),
-                        0, 0, TerminalCraftingJobStatus.FINISHED.getColor(), TerminalCraftingJobStatus.FINISHED)));
+                        0, 0, TerminalCraftingJobStatus.FINISHED.getColor(), TerminalCraftingJobStatus.FINISHED).markStoredIngredient()));
             }
         }
         for (ITerminalCraftingPlan<?> dependency : craftingPlan.getDependencies()) {
@@ -455,6 +455,7 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
         private final TerminalCraftingJobStatus status;
 
         private boolean enabled;
+        private boolean storedIngredient;
 
         public Element(int id, int indent, List<List<IPrototypedIngredient>> outputs, long storageQuantity, long craftQuantity,
                        long missingQuantity, int color, TerminalCraftingJobStatus status) {
@@ -537,6 +538,19 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
 
         public TerminalCraftingJobStatus getStatus() {
             return status;
+        }
+
+        /**
+         * Mark this element as an ingredient that is taken from storage, instead of a crafting job.
+         * @return This element.
+         */
+        public Element markStoredIngredient() {
+            this.storedIngredient = true;
+            return this;
+        }
+
+        public boolean isStoredIngredient() {
+            return storedIngredient;
         }
     }
 

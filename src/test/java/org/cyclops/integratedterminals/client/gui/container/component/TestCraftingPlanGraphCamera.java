@@ -99,13 +99,22 @@ public class TestCraftingPlanGraphCamera {
     }
 
     @Test
-    public void testResetNeverZoomsBeyondDefault() {
+    public void testResetLimitsZoomAndCenters() {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -16, 74, 42);
         camera.reset(bounds, 238, 178);
-        assertEquals(1F, camera.getZoom(), EPSILON);
-        assertEquals(MARGIN, camera.toViewX(0), EPSILON);
+        // It would fit at 2, but the initial view is limited to 1.5
+        assertEquals(1.5F, camera.getZoom(), EPSILON);
+        assertEquals(238 - camera.toViewX(74), camera.toViewX(0), EPSILON);
         assertEquals(178 - camera.toViewY(42), camera.toViewY(-16), EPSILON);
+    }
+
+    @Test
+    public void testResetWithCustomLimit() {
+        CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
+        CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -16, 74, 42);
+        camera.reset(bounds, 238, 178, CraftingPlanGraphCamera.DEFAULT_ZOOM_INDEX);
+        assertEquals(1F, camera.getZoom(), EPSILON);
     }
 
     @Test
@@ -114,6 +123,15 @@ public class TestCraftingPlanGraphCamera {
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -100, 170, 100);
         camera.reset(bounds, 200, 200);
         assertEquals(0.75F, camera.getZoom(), EPSILON);
+        assertEquals(200 - camera.toViewX(170), camera.toViewX(0), EPSILON);
+    }
+
+    @Test
+    public void testResetTooLargeAlignsRootLeft() {
+        CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
+        CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -1000, 1000, 1000);
+        camera.reset(bounds, 200, 100);
+        assertEquals(0.5F, camera.getZoom(), EPSILON);
         assertEquals(MARGIN, camera.toViewX(0), EPSILON);
     }
 

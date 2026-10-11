@@ -54,24 +54,29 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int COLOR_BEVEL_DARK = 0xFF373737;
     private static final int COLOR_BEVEL_LIGHT = 0xFFFFFFFF;
     private static final int COLOR_EDGE = 0xFFDADADA;
-    private static final int COLOR_EDGE_MISSING = 0xFFFF5555;
-    private static final int COLOR_EDGE_CRAFTING = 0xFF2BAEE7;
     private static final int COLOR_NODE_OUTLINE = 0xFF000000;
+    private static final int COLOR_NODE_FILL = 0xFFC6C6C6;
+    private static final int COLOR_NODE_FILL_FAILED = 0xFFF0B4B4;
     private static final int COLOR_NODE_HIGHLIGHT = 0x80FFFFFF;
     private static final int COLOR_NODE_SHADOW = 0x40000000;
+    private static final int COLOR_SLOT_FILL = 0xFF8B8B8B;
+    private static final int COLOR_SLOT_DARK = 0xFF373737;
+    private static final int COLOR_SLOT_LIGHT = 0xFFFFFFFF;
+    private static final int COLOR_STATUS_DONE = 0xFF4CC24C;
+    private static final int COLOR_STATUS_CRAFTING = 0xFF2BAEE7;
+    private static final int COLOR_STATUS_WAITING = 0xFFE8D020;
+    private static final int COLOR_STATUS_BLOCKED = 0xFFF08A10;
+    private static final int COLOR_STATUS_FAILED = 0xFFE03030;
     private static final int COLOR_HOVER = 0xFFFFFFFF;
     private static final int COLOR_BADGE = 0xFF1E1E1E;
     private static final int COLOR_TEXT = 0xFFFFFFFF;
     private static final int COLOR_TEXT_HINT = 0xFFBDBDBD;
     private static final int COLOR_TEXT_BACKGROUND = 0xB02B2B2B;
 
-    private static final TerminalCraftingJobStatus[] LEGEND_STATUSES = {
-            TerminalCraftingJobStatus.FINISHED,
-            TerminalCraftingJobStatus.CRAFTING,
-            TerminalCraftingJobStatus.PENDING_DEPENDENCIES,
-            TerminalCraftingJobStatus.INVALID
-    };
-    private static final String[] LEGEND_LABELS = {"done", "crafting", "waiting", "missing"};
+    // A color of 0 means a stored ingredient, which is drawn as an inventory slot
+    private static final int[] LEGEND_COLORS = {0, COLOR_STATUS_WAITING, COLOR_STATUS_BLOCKED, COLOR_STATUS_CRAFTING,
+            COLOR_STATUS_DONE, COLOR_STATUS_FAILED};
+    private static final String[] LEGEND_LABELS = {"stored", "waiting", "blocked", "crafting", "done", "missing"};
 
     private final AbstractContainerScreen parentGui;
     private final ITerminalCraftingPlan<?> craftingPlan;
@@ -79,7 +84,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private final int guiTop;
     private final int viewWidth;
     private final int viewHeight;
-    private final boolean showLegend;
+    private final boolean live;
     private final List<GuiCraftingPlan.Element> elements;
     private final boolean valid;
     private final GuiCraftingPlanHeader header;
@@ -101,10 +106,12 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
      * @param y The viewport Y position, relative to the gui.
      * @param viewWidth The viewport width.
      * @param viewHeight The viewport height.
-     * @param showLegend If a status legend should be shown instead of the controls hint.
+     * @param live If this shows a running job, which changes over time.
+     *             It then shows a status legend instead of the controls hint,
+     *             and initially leaves room for the plan to grow.
      */
     public GuiCraftingPlanGraph(AbstractContainerScreen parentGui, ITerminalCraftingPlan<?> craftingPlan, int guiLeft, int guiTop,
-                                int x, int y, int viewWidth, int viewHeight, boolean showLegend) {
+                                int x, int y, int viewWidth, int viewHeight, boolean live) {
         super(x, y, 0, 0, Component.literal(""));
         this.parentGui = parentGui;
         this.craftingPlan = craftingPlan;
@@ -112,7 +119,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         this.guiTop = guiTop;
         this.viewWidth = viewWidth;
         this.viewHeight = viewHeight;
-        this.showLegend = showLegend;
+        this.live = live;
         this.elements = GuiCraftingPlan.getElements(craftingPlan);
         pruneEmptyLeaves(this.elements.get(0));
         this.valid = craftingPlan.getStatus().isValid();
@@ -121,7 +128,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
         this.camera = new CraftingPlanGraphCamera();
         collapseToFit();
-        this.camera.reset(layout.getBounds(), getInnerWidth(), getInnerHeight());
+        this.camera.reset(layout.getBounds(), getInnerWidth(), getInnerHeight(),
+                live ? CraftingPlanGraphCamera.DEFAULT_ZOOM_INDEX : CraftingPlanGraphCamera.INITIAL_MAX_ZOOM_INDEX);
     }
 
     /**
@@ -276,6 +284,32 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 || status == TerminalCraftingJobStatus.INVALID_INPUTS;
     }
 
+    /**
+     * @param element An element.
+     * @return If the element itself causes its plan to fail,
+     *         as opposed to an ancestor that only fails because of it.
+     */
+    protected static boolean isProblem(GuiCraftingPlan.Element element) {
+        return isFailed(element.getStatus()) && (element.getMissingQuantity() > 0 || element.getChildren().isEmpty());
+    }
+
+    /**
+     * @param status A job status.
+     * @return The color that groups this status for the player, or 0 for jobs that have not started.
+     */
+    protected static int getStatusColor(TerminalCraftingJobStatus status) {
+        if (isFailed(status)) {
+            return COLOR_STATUS_FAILED;
+        }
+        return switch (status) {
+            case FINISHED -> COLOR_STATUS_DONE;
+            case CRAFTING -> COLOR_STATUS_CRAFTING;
+            case QUEUEING, PENDING_DEPENDENCIES -> COLOR_STATUS_WAITING;
+            case PENDING_INPUTS, PENDING_OUTPUT_STORAGE -> COLOR_STATUS_BLOCKED;
+            default -> 0;
+        };
+    }
+
     protected static boolean isCollapsed(GuiCraftingPlan.Element element) {
         for (GuiCraftingPlan.Element child : element.getChildren()) {
             if (!child.isEnabled()) {
@@ -337,9 +371,9 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             int color = COLOR_EDGE;
             if (segment.getTarget() != null) {
                 if (isFailed(segment.getTarget().getStatus())) {
-                    color = COLOR_EDGE_MISSING;
+                    color = COLOR_STATUS_FAILED;
                 } else if (segment.getTarget().getStatus() == TerminalCraftingJobStatus.CRAFTING) {
-                    color = COLOR_EDGE_CRAFTING;
+                    color = COLOR_STATUS_CRAFTING;
                 }
             }
             if (segment.getY1() == segment.getY2()) {
@@ -368,7 +402,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         guiGraphics.flush();
         guiGraphics.disableScissor();
 
-        if (showLegend) {
+        if (live) {
             drawLegend(guiGraphics, innerLeft, innerBottom);
         } else {
             drawHint(guiGraphics, innerLeft, innerBottom);
@@ -384,12 +418,27 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         if (hovered) {
             guiGraphics.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, COLOR_HOVER);
         }
-        guiGraphics.fill(x0, y0, x1, y1, COLOR_NODE_OUTLINE);
-        guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, element.getColor() | 0xFF000000);
-        guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y0 + 2, COLOR_NODE_HIGHLIGHT);
-        guiGraphics.fill(x0 + 1, y0 + 2, x0 + 2, y1 - 1, COLOR_NODE_HIGHLIGHT);
-        guiGraphics.fill(x0 + 2, y1 - 2, x1 - 1, y1 - 1, COLOR_NODE_SHADOW);
-        guiGraphics.fill(x1 - 2, y0 + 2, x1 - 1, y1 - 2, COLOR_NODE_SHADOW);
+        if (element.isStoredIngredient()) {
+            // Ingredients from storage look like an inventory slot
+            guiGraphics.fill(x0, y0, x1, y1, COLOR_SLOT_LIGHT);
+            guiGraphics.fill(x0, y0, x1 - 1, y1 - 1, COLOR_SLOT_DARK);
+            guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, COLOR_SLOT_FILL);
+        } else {
+            // Crafting jobs look like a raised tile, framed in the color of their status
+            int accent = getStatusColor(element.getStatus());
+            guiGraphics.fill(x0, y0, x1, y1, COLOR_NODE_OUTLINE);
+            int inset = 1;
+            if (accent != 0) {
+                inset += zoom >= 1.5F ? 3 : 2;
+                guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, accent);
+            }
+            guiGraphics.fill(x0 + inset, y0 + inset, x1 - inset, y1 - inset,
+                    isProblem(element) ? COLOR_NODE_FILL_FAILED : COLOR_NODE_FILL);
+            guiGraphics.fill(x0 + inset, y0 + inset, x1 - inset, y0 + inset + 1, COLOR_NODE_HIGHLIGHT);
+            guiGraphics.fill(x0 + inset, y0 + inset + 1, x0 + inset + 1, y1 - inset, COLOR_NODE_HIGHLIGHT);
+            guiGraphics.fill(x0 + inset + 1, y1 - inset - 1, x1 - inset, y1 - inset, COLOR_NODE_SHADOW);
+            guiGraphics.fill(x1 - inset - 1, y0 + inset + 1, x1 - inset, y1 - inset - 1, COLOR_NODE_SHADOW);
+        }
 
         // Ingredient
         IPrototypedIngredient<?, ?> output = getShownOutput(element);
@@ -407,7 +456,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
 
         // Markers are drawn in node space, in front of the ingredient
-        boolean failed = isFailed(element.getStatus());
+        boolean failed = isProblem(element);
         int hidden = placement.getHiddenDescendants();
         if (failed || hidden > 0) {
             Font font = Minecraft.getInstance().font;
@@ -450,9 +499,13 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
         guiGraphics.fill(innerLeft, innerBottom - 7, innerLeft + width, innerBottom, COLOR_TEXT_BACKGROUND);
         int x = innerLeft + 2;
-        for (int i = 0; i < LEGEND_STATUSES.length; i++) {
+        for (int i = 0; i < LEGEND_LABELS.length; i++) {
             String label = L10NHelpers.localize("gui.integratedterminals.craftingplan.graph.legend." + LEGEND_LABELS[i]);
-            guiGraphics.fill(x, innerBottom - 5, x + 3, innerBottom - 2, LEGEND_STATUSES[i].getColor() | 0xFF000000);
+            if (LEGEND_COLORS[i] == 0) {
+                guiGraphics.fill(x, innerBottom - 5, x + 3, innerBottom - 2, COLOR_SLOT_FILL);
+            } else {
+                guiGraphics.fill(x, innerBottom - 5, x + 3, innerBottom - 2, LEGEND_COLORS[i]);
+            }
             x += 5;
             RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, label,
                     x, innerBottom - 5, 0.5F, COLOR_TEXT_HINT, true, Font.DisplayMode.NORMAL);
@@ -486,6 +539,10 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         List<Component> lines = Lists.newArrayList();
 
         // Status
+        if (element.isStoredIngredient()) {
+            lines.add(Component.translatable("gui.integratedterminals.craftingplan.graph.stored").withStyle(ChatFormatting.GRAY));
+            return lines;
+        }
         String statusKey = "gui.integratedterminals.craftingplan.status." + element.getStatus().name().toLowerCase(Locale.ENGLISH);
         lines.add(Component.translatable("gui.integratedterminals.craftingplan.status", Component.translatable(statusKey))
                 .withStyle(getStatusFormatting(element.getStatus())));

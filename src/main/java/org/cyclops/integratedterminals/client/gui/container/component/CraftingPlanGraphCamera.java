@@ -14,6 +14,7 @@ public class CraftingPlanGraphCamera {
 
     public static final float[] ZOOM_LEVELS = {0.5F, 0.75F, 1F, 1.5F, 2F};
     public static final int DEFAULT_ZOOM_INDEX = 2;
+    public static final int INITIAL_MAX_ZOOM_INDEX = 3;
     public static final int MARGIN = 8;
 
     private double originX;
@@ -93,24 +94,37 @@ public class CraftingPlanGraphCamera {
      * @param viewHeight The viewport height.
      */
     public void fit(CraftingPlanGraphLayout.Bounds bounds, int viewWidth, int viewHeight) {
-        if (fitZoom(bounds, viewWidth, viewHeight, ZOOM_LEVELS.length - 1)) {
-            this.originX = (viewWidth - bounds.getWidth() * getZoom()) / 2 - bounds.getMinX() * getZoom();
-        } else {
-            this.originX = MARGIN - bounds.getMinX() * getZoom();
-        }
-        centerVertically(bounds, viewHeight);
+        fit(bounds, viewWidth, viewHeight, ZOOM_LEVELS.length - 1);
     }
 
     /**
-     * Like {@link #fit(CraftingPlanGraphLayout.Bounds, int, int)}, but never zooms in beyond the default level,
-     * and always keeps the root at the left.
+     * Like {@link #fit(CraftingPlanGraphLayout.Bounds, int, int)}, but without zooming in as far,
+     * so that small graphs do not look oversized when they are first shown.
      * @param bounds The graph bounds.
      * @param viewWidth The viewport width.
      * @param viewHeight The viewport height.
      */
     public void reset(CraftingPlanGraphLayout.Bounds bounds, int viewWidth, int viewHeight) {
-        fitZoom(bounds, viewWidth, viewHeight, DEFAULT_ZOOM_INDEX);
-        this.originX = MARGIN - bounds.getMinX() * getZoom();
+        reset(bounds, viewWidth, viewHeight, INITIAL_MAX_ZOOM_INDEX);
+    }
+
+    /**
+     * Like {@link #reset(CraftingPlanGraphLayout.Bounds, int, int)}, with a custom zoom limit.
+     * @param bounds The graph bounds.
+     * @param viewWidth The viewport width.
+     * @param viewHeight The viewport height.
+     * @param maxZoomIndex The largest zoom level index to use.
+     */
+    public void reset(CraftingPlanGraphLayout.Bounds bounds, int viewWidth, int viewHeight, int maxZoomIndex) {
+        fit(bounds, viewWidth, viewHeight, maxZoomIndex);
+    }
+
+    protected void fit(CraftingPlanGraphLayout.Bounds bounds, int viewWidth, int viewHeight, int maxZoomIndex) {
+        if (fitZoom(bounds, viewWidth, viewHeight, maxZoomIndex)) {
+            this.originX = (viewWidth - bounds.getWidth() * getZoom()) / 2 - bounds.getMinX() * getZoom();
+        } else {
+            this.originX = MARGIN - bounds.getMinX() * getZoom();
+        }
         centerVertically(bounds, viewHeight);
     }
 
