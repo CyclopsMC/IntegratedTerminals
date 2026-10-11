@@ -114,10 +114,20 @@ public class CraftingPlanGraphCamera {
         centerVertically(bounds, viewHeight);
     }
 
+    /**
+     * @param bounds The graph bounds.
+     * @param viewWidth The viewport width.
+     * @param viewHeight The viewport height.
+     * @param zoom A zoom level.
+     * @return If the whole graph fits in the viewport at the given zoom level, including margins.
+     */
+    public static boolean fits(CraftingPlanGraphLayout.Bounds bounds, int viewWidth, int viewHeight, float zoom) {
+        return bounds.getWidth() * zoom + 2 * MARGIN <= viewWidth && bounds.getHeight() * zoom + 2 * MARGIN <= viewHeight;
+    }
+
     protected boolean fitZoom(CraftingPlanGraphLayout.Bounds bounds, int viewWidth, int viewHeight, int maxZoomIndex) {
         for (int i = maxZoomIndex; i >= 0; i--) {
-            float zoom = ZOOM_LEVELS[i];
-            if (bounds.getWidth() * zoom + 2 * MARGIN <= viewWidth && bounds.getHeight() * zoom + 2 * MARGIN <= viewHeight) {
+            if (fits(bounds, viewWidth, viewHeight, ZOOM_LEVELS[i])) {
                 this.zoomIndex = i;
                 return true;
             }

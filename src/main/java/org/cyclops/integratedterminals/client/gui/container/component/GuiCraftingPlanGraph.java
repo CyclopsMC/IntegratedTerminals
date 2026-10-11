@@ -1,7 +1,7 @@
 package org.cyclops.integratedterminals.client.gui.container.component;
 
 import com.google.common.collect.Lists;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -44,6 +44,10 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int LEGEND_MIN_WIDTH = 200;
     private static final int GRID_SIZE = 16;
     private static final int CLICK_DISTANCE = 2;
+    /**
+     * The smallest zoom level at which quantities are still shown.
+     */
+    private static final float MIN_READABLE_ZOOM = 0.75F;
 
     private static final int COLOR_BACKGROUND = 0xFF2B2B2B;
     private static final int COLOR_GRID = 0x0CFFFFFF;
@@ -116,8 +120,27 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
                 craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
         this.camera = new CraftingPlanGraphCamera();
-        refreshLayout();
+        collapseToFit();
         this.camera.reset(layout.getBounds(), getInnerWidth(), getInnerHeight());
+    }
+
+    /**
+     * Collapse the deepest levels of plans that are too large to read when fully expanded,
+     * so that they initially show as an overview that can be expanded per node.
+     */
+    protected void collapseToFit() {
+        refreshLayout();
+        int maxDepth = 0;
+        for (GuiCraftingPlan.Element element : elements) {
+            maxDepth = Math.max(maxDepth, element.getIndent());
+        }
+        for (int depth = maxDepth - 1; depth >= 1 && !CraftingPlanGraphCamera.fits(layout.getBounds(),
+                getInnerWidth(), getInnerHeight(), MIN_READABLE_ZOOM); depth--) {
+            for (GuiCraftingPlan.Element element : elements) {
+                element.setEnabled(element.getIndent() <= depth);
+            }
+            refreshLayout();
+        }
     }
 
     /**
@@ -141,17 +164,13 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     }
 
     public void inheritVisualizationState(GuiCraftingPlanGraph previous) {
-        // Inherit toggle state
-        IntOpenHashSet disabledElementIds = new IntOpenHashSet();
+        // Inherit toggle state, where elements that did not exist before are expanded
+        Int2BooleanOpenHashMap enabledElements = new Int2BooleanOpenHashMap();
         for (GuiCraftingPlan.Element element : previous.elements) {
-            if (!element.isEnabled()) {
-                disabledElementIds.add(element.getId());
-            }
+            enabledElements.put(element.getId(), element.isEnabled());
         }
         for (GuiCraftingPlan.Element element : this.elements) {
-            if (disabledElementIds.contains(element.getId())) {
-                element.setEnabled(false);
-            }
+            element.setEnabled(enabledElements.getOrDefault(element.getId(), true));
         }
         refreshLayout();
 
@@ -267,7 +286,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     }
 
     protected String getLabel(GuiCraftingPlan.Element element, IPrototypedIngredient<?, ?> output) {
-        if (camera.getZoom() < 0.75F) {
+        if (camera.getZoom() < MIN_READABLE_ZOOM) {
             return "";
         }
         long total = element.getCraftQuantityTotal();

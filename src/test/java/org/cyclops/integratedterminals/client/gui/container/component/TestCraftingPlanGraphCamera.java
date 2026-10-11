@@ -142,6 +142,15 @@ public class TestCraftingPlanGraphCamera {
     }
 
     @Test
+    public void testFits() {
+        CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -100, 100, 100);
+        assertTrue(CraftingPlanGraphCamera.fits(bounds, 116, 216, 1F));
+        assertFalse(CraftingPlanGraphCamera.fits(bounds, 115, 216, 1F));
+        assertFalse(CraftingPlanGraphCamera.fits(bounds, 116, 215, 1F));
+        assertTrue(CraftingPlanGraphCamera.fits(bounds, 66, 116, 0.5F));
+    }
+
+    @Test
     public void testCopyFrom() {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         camera.pan(3, 4);
