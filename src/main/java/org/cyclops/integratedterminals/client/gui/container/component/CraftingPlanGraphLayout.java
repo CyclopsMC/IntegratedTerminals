@@ -151,21 +151,6 @@ public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>>
     }
 
     /**
-     * @param graphX An X position in graph space.
-     * @param graphY A Y position in graph space.
-     * @return The node at the given position, or null.
-     */
-    public Placement<N> getPlacementAt(double graphX, double graphY) {
-        for (Placement<N> placement : placements) {
-            if (graphX >= placement.getX() && graphX < placement.getX() + NODE_SIZE
-                    && graphY >= placement.getY() && graphY < placement.getY() + NODE_SIZE) {
-                return placement;
-            }
-        }
-        return null;
-    }
-
-    /**
      * A node in a tree that can be laid out.
      * @param <N> The node type.
      */

@@ -6,6 +6,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
 
@@ -54,6 +56,28 @@ public class GuiCraftingPlanHeader {
         this.showEstimatedTickDuration = status.isValid();
         this.channel = channel;
         this.initiatorName = initiatorName;
+    }
+
+    /**
+     * @param craftingPlan A crafting plan.
+     * @return The header for the given plan.
+     */
+    public static GuiCraftingPlanHeader forPlan(ITerminalCraftingPlan<?> craftingPlan) {
+        return new GuiCraftingPlanHeader(craftingPlan.getUnlocalizedLabel(), craftingPlan.getStatus(),
+                craftingPlan.getStatus() == TerminalCraftingJobStatus.FINISHED && craftingPlan.getCraftingQuantity() == 0,
+                craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
+                craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
+    }
+
+    /**
+     * @param craftingPlan A flattened crafting plan.
+     * @return The header for the given plan.
+     */
+    public static GuiCraftingPlanHeader forPlan(ITerminalCraftingPlanFlat<?> craftingPlan) {
+        return new GuiCraftingPlanHeader(craftingPlan.getUnlocalizedLabel(), craftingPlan.getStatus(),
+                craftingPlan.getStatus() == TerminalCraftingJobStatus.FINISHED && craftingPlan.getCraftingQuantityRemaining() == 0,
+                craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
+                craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
     }
 
     /**

@@ -219,18 +219,6 @@ public class TestCraftingPlanGraphLayout {
     }
 
     @Test
-    public void testPlacementAt() {
-        Node c1 = node("c1");
-        Node root = node("root", c1, node("c2"));
-        CraftingPlanGraphLayout<Node> layout = CraftingPlanGraphLayout.create(root);
-        assertSame(root, layout.getPlacementAt(1, 1).getNode());
-        assertSame(root, layout.getPlacementAt(NODE_SIZE - 0.5, NODE_SIZE - 0.5).getNode());
-        assertNull(layout.getPlacementAt(NODE_SIZE, 1));
-        CraftingPlanGraphLayout.Placement<Node> p1 = placement(layout, c1);
-        assertSame(c1, layout.getPlacementAt(p1.getX() + 5, p1.getY() + 5).getNode());
-    }
-
-    @Test
     public void testCraftingPlanElements() {
         ITerminalCraftingPlan<Integer> plan = TestGuiCraftingPlanProgress.plan(1, TerminalCraftingJobStatus.UNSTARTED, 1, 1,
                 Lists.newArrayList(

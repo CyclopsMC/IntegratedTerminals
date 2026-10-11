@@ -93,10 +93,7 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
         this.valid = craftingPlan.getStatus().isValid();
         this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size());
-        this.header = new GuiCraftingPlanHeader(craftingPlan.getUnlocalizedLabel(), craftingPlan.getStatus(),
-                craftingPlan.getStatus() == TerminalCraftingJobStatus.FINISHED && craftingPlan.getCraftingQuantity() == 0,
-                craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
-                craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
+        this.header = GuiCraftingPlanHeader.forPlan(craftingPlan);
     }
 
     public void inheritVisualizationState(GuiCraftingPlan guiCraftingPlan) {

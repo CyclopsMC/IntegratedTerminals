@@ -163,10 +163,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
         pruneEmptyLeaves(this.elements.get(0));
         this.valid = craftingPlan.getStatus().isValid();
-        this.header = new GuiCraftingPlanHeader(craftingPlan.getUnlocalizedLabel(), craftingPlan.getStatus(),
-                craftingPlan.getStatus() == TerminalCraftingJobStatus.FINISHED && craftingPlan.getCraftingQuantity() == 0,
-                craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
-                craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
+        this.header = GuiCraftingPlanHeader.forPlan(craftingPlan);
         this.camera = new CraftingPlanGraphCamera();
         if (previous == null) {
             collapseToFit();
@@ -178,6 +175,18 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             this.camera.copyFrom(previous.camera);
             this.camera.pan((getInnerWidth() - previous.getInnerWidth()) / 2D, (getInnerHeight() - previous.getInnerHeight()) / 2D);
             this.camera.clamp(layout.getBounds(), getInnerWidth(), getInnerHeight());
+
+            // Live plans are recreated on each update, so continue an ongoing press or drag
+            this.pressing = previous.pressing;
+            this.dragDistance = previous.dragDistance;
+            if (previous.pressedElement != null) {
+                for (GuiCraftingPlan.Element element : this.elements) {
+                    if (element.getId() == previous.pressedElement.getId()) {
+                        this.pressedElement = element;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -334,7 +343,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         });
     }
 
-    protected static boolean isEmpty(IPrototypedIngredient<?, ?> ingredient) {
+    public static boolean isEmpty(IPrototypedIngredient<?, ?> ingredient) {
         return ((IngredientComponent) ingredient.getComponent()).getMatcher().isEmpty(ingredient.getPrototype());
     }
 
@@ -417,7 +426,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     }
 
     protected int getTick() {
-        return (int) Minecraft.getInstance().level.getGameTime() / GuiCraftingPlan.TICK_DELAY;
+        return (int) (Minecraft.getInstance().level.getGameTime() / GuiCraftingPlan.TICK_DELAY);
     }
 
     @Nullable
@@ -919,6 +928,9 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             lines.add(Component.translatable("gui.integratedterminals.craftingplan.graph.outputs").withStyle(ChatFormatting.GRAY));
             int tick = getTick();
             for (List<IPrototypedIngredient<?, ?>> alternatives : element.getOutputs()) {
+                if (alternatives.isEmpty()) {
+                    continue;
+                }
                 IPrototypedIngredient output = alternatives.get(tick % alternatives.size());
                 String name = output.getComponent().getMatcher().localize(output.getPrototype());
                 lines.add(Component.literal(" " + GuiHelpers.quantityToScaledString(getQuantity(output)) + " " + name)

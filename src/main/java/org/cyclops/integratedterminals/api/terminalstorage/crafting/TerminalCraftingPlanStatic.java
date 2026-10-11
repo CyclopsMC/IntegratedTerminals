@@ -329,8 +329,9 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
                     || plan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
                 entry.setQuantityToCraft(entry.getQuantityToCraft() + quantity);
             }
+            // Finished jobs with nothing left to craft are done, not crafting
             if (plan.getStatus() == TerminalCraftingJobStatus.CRAFTING ||
-                    plan.getStatus() == TerminalCraftingJobStatus.FINISHED) {
+                    (plan.getStatus() == TerminalCraftingJobStatus.FINISHED && plan.getCraftingQuantity() > 0)) {
                 entry.setQuantityCrafting(entry.getQuantityCrafting() + quantity);
             }
         }
@@ -566,11 +567,23 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
      *         with nothing left to craft and no ingredients left in their buffers.
      */
     public static <I> TerminalCraftingPlanStatic<I> asCompleted(ITerminalCraftingPlan<I> craftingPlan) {
+        return asCompleted(craftingPlan, Collections.emptyMap());
+    }
+
+    /**
+     * @param craftingPlan A running crafting plan.
+     * @param knownOutputs Outputs per job id, used instead of the remaining outputs, which are empty once crafted.
+     * @param <I> The id type.
+     * @return A copy of the plan in which everything has been crafted.
+     */
+    public static <I> TerminalCraftingPlanStatic<I> asCompleted(ITerminalCraftingPlan<I> craftingPlan,
+                                                                Map<I, List<IPrototypedIngredient<?, ?>>> knownOutputs) {
         List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayList();
         for (ITerminalCraftingPlan<I> dependency : craftingPlan.getDependencies()) {
-            dependencies.add(asCompleted(dependency));
+            dependencies.add(asCompleted(dependency, knownOutputs));
         }
-        return new TerminalCraftingPlanStatic<>(craftingPlan.getId(), dependencies, craftingPlan.getOutputs(),
+        return new TerminalCraftingPlanStatic<>(craftingPlan.getId(), dependencies,
+                knownOutputs.getOrDefault(craftingPlan.getId(), craftingPlan.getOutputs()),
                 TerminalCraftingJobStatus.FINISHED, 0,
                 Math.max(craftingPlan.getCraftingQuantityTotal(), craftingPlan.getCraftingQuantity()),
                 Collections.emptyList(), Collections.emptyList(), Label.RUNNING, craftingPlan.getTickDuration(),
