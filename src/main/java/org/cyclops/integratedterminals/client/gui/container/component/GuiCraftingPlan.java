@@ -59,6 +59,10 @@ import java.util.stream.Collectors;
 public class GuiCraftingPlan extends AbstractWidget {
 
     public static final int ELEMENT_WIDTH = 221;
+    /**
+     * The width of the list views, including their scrollbar.
+     */
+    public static final int VIEW_WIDTH = 238;
     private static final int ELEMENT_HEIGHT = 16;
     private static final int ELEMENT_HEIGHT_TOTAL = 18;
 
@@ -75,14 +79,7 @@ public class GuiCraftingPlan extends AbstractWidget {
     private final List<GuiCraftingPlan.Element> visibleElements;
     private final boolean valid;
     private final WidgetScrollBar scrollBar;
-    private final String label;
-    private final long tickDuration;
-    private final long estimatedTickDuration;
-    private final boolean estimatedTickDurationRemaining;
-    private final boolean showEstimatedTickDuration;
-    private final int channel;
-    @Nullable
-    private final String initiatorName;
+    private final GuiCraftingPlanHeader header;
 
     private int firstRow;
 
@@ -96,16 +93,9 @@ public class GuiCraftingPlan extends AbstractWidget {
         this.valid = craftingPlan.getStatus().isValid();
         this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, 178, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         this.scrollBar.setTotalRows(visibleElements.size());
-        this.label = L10NHelpers.localize(craftingPlan.getUnlocalizedLabel());
-        this.tickDuration = craftingPlan.getTickDuration();
-        // Jobs that have not started yet can only show a total estimation, running jobs show what is left of it
-        this.estimatedTickDurationRemaining = craftingPlan.getStatus() != TerminalCraftingJobStatus.UNSTARTED;
-        this.estimatedTickDuration = this.estimatedTickDurationRemaining
-                ? craftingPlan.getEstimatedTickDurationRemaining() : craftingPlan.getEstimatedTickDurationTotal();
-        // Jobs that can not be crafted have nothing to estimate, other jobs show a placeholder until they are measured
-        this.showEstimatedTickDuration = craftingPlan.getStatus().isValid();
-        this.channel = craftingPlan.getChannel();
-        this.initiatorName = craftingPlan.getInitiatorName();
+        this.header = new GuiCraftingPlanHeader(craftingPlan.getUnlocalizedLabel(), craftingPlan.getStatus(),
+                craftingPlan.getTickDuration(), craftingPlan.getEstimatedTickDurationTotal(),
+                craftingPlan.getEstimatedTickDurationRemaining(), craftingPlan.getChannel(), craftingPlan.getInitiatorName());
     }
 
     public void inheritVisualizationState(GuiCraftingPlan guiCraftingPlan) {
@@ -320,33 +310,7 @@ public class GuiCraftingPlan extends AbstractWidget {
     }
 
     public void drawGuiContainerBackgroundLayer(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        Font fontRenderer = Minecraft.getInstance().font;
-
-        // Draw plan label
-        guiGraphics.drawCenteredString(Minecraft.getInstance().font, this.label, guiLeft + getX() + ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, 16777215);
-
-        // Draw duration
-        if (tickDuration >= 0) {
-            String durationString = getDurationString(tickDuration);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
-        }
-
-        // Draw channel
-        if (channel != -1) {
-            String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
-        }
-
-        // Draw initiator
-        if (initiatorName != null) {
-            String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
-        }
-
-        // Draw estimated duration
-        if (showEstimatedTickDuration) {
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
-        }
+        header.drawBackground(guiGraphics, guiLeft + getX(), guiTop + getY(), VIEW_WIDTH);
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
         scrollBar.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -354,16 +318,7 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     public void drawGuiContainerForegroundLayer(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
-        if (showEstimatedTickDuration) {
-            drawUnknownDurationTooltip(this.parentGui, guiGraphics, getEstimatedDurationString(), estimatedTickDuration,
-                    getX() - 4, getY() - 14, mouseX, mouseY);
-        }
-    }
-
-    protected String getEstimatedDurationString() {
-        return getDurationString(estimatedTickDurationRemaining
-                ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
-                : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
+        header.drawForeground(this.parentGui, guiGraphics, getX(), getY(), mouseX, mouseY);
     }
 
     /**
@@ -442,6 +397,7 @@ public class GuiCraftingPlan extends AbstractWidget {
                     .collect(Collectors.toList()),
                 0,
                 valid ? craftingPlan.getCraftingQuantity() : 0,
+                valid ? craftingPlan.getCraftingQuantityTotal() : 0,
                 valid ? 0 : craftingPlan.getCraftingQuantity(),
                 craftingPlan.getStatus().getColor(),
                 craftingPlan.getStatus());
@@ -485,13 +441,14 @@ public class GuiCraftingPlan extends AbstractWidget {
 
     }
 
-    public static class Element {
+    public static class Element implements CraftingPlanGraphLayout.INode<Element> {
 
         private final int id;
         private final int indent;
         private final List<List<IPrototypedIngredient<?, ?>>> outputs;
         private final long storageQuantity;
         private final long craftQuantity;
+        private final long craftQuantityTotal;
         private final long missingQuantity;
         private final int color;
         private final List<Element> children;
@@ -501,11 +458,17 @@ public class GuiCraftingPlan extends AbstractWidget {
 
         public Element(int id, int indent, List<List<IPrototypedIngredient>> outputs, long storageQuantity, long craftQuantity,
                        long missingQuantity, int color, TerminalCraftingJobStatus status) {
+            this(id, indent, outputs, storageQuantity, craftQuantity, craftQuantity, missingQuantity, color, status);
+        }
+
+        public Element(int id, int indent, List<List<IPrototypedIngredient>> outputs, long storageQuantity, long craftQuantity,
+                       long craftQuantityTotal, long missingQuantity, int color, TerminalCraftingJobStatus status) {
             this.id = id;
             this.indent = indent;
             this.outputs = (List) outputs;
             this.storageQuantity = storageQuantity;
             this.craftQuantity = craftQuantity;
+            this.craftQuantityTotal = craftQuantityTotal;
             this.missingQuantity = missingQuantity;
             this.color = color;
             this.status = status;
@@ -534,6 +497,13 @@ public class GuiCraftingPlan extends AbstractWidget {
             return craftQuantity;
         }
 
+        /**
+         * @return The number of instances this job crafts in total, including the ones that were crafted already.
+         */
+        public long getCraftQuantityTotal() {
+            return craftQuantityTotal;
+        }
+
         public long getMissingQuantity() {
             return missingQuantity;
         }
@@ -547,8 +517,14 @@ public class GuiCraftingPlan extends AbstractWidget {
             return element;
         }
 
+        @Override
         public List<Element> getChildren() {
             return children;
+        }
+
+        @Override
+        public boolean isVisible() {
+            return isEnabled();
         }
 
         public boolean isEnabled() {
