@@ -47,6 +47,9 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int LEGEND_MIN_WIDTH = 200;
     private static final int GRID_SIZE = 16;
     private static final int CLICK_DISTANCE = 2;
+    private static final int STACK_OFFSET = 2;
+    private static final int PILL_STUB = 5;
+    private static final int PILL_HEIGHT = 9;
     private static final int KEY_PAN_DISTANCE = 24;
     private static final long BORDER_LAP_DURATION = 1200;
     private static final long FLOW_STEP_DURATION = 80;
@@ -78,6 +81,9 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int COLOR_STATUS_FAILED = 0xFFE03030;
     private static final int COLOR_HOVER = 0xFFFFFFFF;
     private static final int COLOR_BADGE = 0xFF1E1E1E;
+    private static final int COLOR_STACK_NEAR = 0xFFA8A8A8;
+    private static final int COLOR_STACK_FAR = 0xFF8B8B8B;
+    private static final int COLOR_PILL_TEXT = 0xFF2B2B2B;
     private static final int COLOR_TEXT = 0xFFFFFFFF;
     private static final int COLOR_TEXT_HINT = 0xFFBDBDBD;
     private static final int COLOR_TEXT_BACKGROUND = 0xB02B2B2B;
@@ -694,6 +700,17 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         GuiCraftingPlan.Element element = placement.getNode();
         float zoom = camera.getZoom();
 
+        // Collapsed nodes look like a stack, with one layer for a single hidden node and two for more
+        int hidden = placement.getHiddenDescendants();
+        if (hidden > 0) {
+            int offset = Math.max(2, Math.round(STACK_OFFSET * zoom));
+            for (int layer = hidden > 1 ? 2 : 1; layer >= 1; layer--) {
+                int d = offset * layer;
+                guiGraphics.fill(x0 + d, y0 + d, x1 + d, y1 + d, COLOR_NODE_OUTLINE);
+                guiGraphics.fill(x0 + d + 1, y0 + d + 1, x1 + d - 1, y1 + d - 1, layer == 1 ? COLOR_STACK_NEAR : COLOR_STACK_FAR);
+            }
+        }
+
         // Frame
         if (hovered) {
             guiGraphics.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, COLOR_HOVER);
@@ -741,7 +758,6 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
 
         // Markers are drawn in node space, in front of the ingredient
         boolean failed = isProblem(element);
-        int hidden = placement.getHiddenDescendants();
         if (failed || hidden > 0) {
             Font font = Minecraft.getInstance().font;
             guiGraphics.pose().pushPose();
@@ -752,13 +768,16 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 guiGraphics.drawString(font, "!", 3, 2, 0xFFFF5555, false);
             }
             if (hidden > 0) {
-                String badge = "+" + hidden;
-                int badgeWidth = font.width(badge) + 3;
-                int badgeX = NODE_SIZE - 2;
-                int badgeY = NODE_SIZE / 2 - 5;
-                guiGraphics.fill(badgeX, badgeY, badgeX + badgeWidth, badgeY + 10, COLOR_TEXT_HINT);
-                guiGraphics.fill(badgeX + 1, badgeY + 1, badgeX + badgeWidth - 1, badgeY + 9, COLOR_BADGE);
-                guiGraphics.drawString(font, badge, badgeX + 2, badgeY + 1, COLOR_TEXT, false);
+                // A short edge into a pill with the number of hidden nodes, where the edges to them would start
+                String count = "+" + hidden;
+                int center = NODE_SIZE / 2;
+                int pillX = NODE_SIZE + PILL_STUB;
+                int pillWidth = font.width(count) + 5;
+                int pillTop = center - PILL_HEIGHT / 2;
+                guiGraphics.fill(NODE_SIZE, center, pillX, center + 1, COLOR_EDGE);
+                guiGraphics.fill(pillX + 1, pillTop, pillX + pillWidth - 1, pillTop + PILL_HEIGHT, COLOR_EDGE);
+                guiGraphics.fill(pillX, pillTop + 1, pillX + pillWidth, pillTop + PILL_HEIGHT - 1, COLOR_EDGE);
+                guiGraphics.drawString(font, count, pillX + 3, pillTop + 1, COLOR_PILL_TEXT, false);
             }
             guiGraphics.pose().popPose();
         }
