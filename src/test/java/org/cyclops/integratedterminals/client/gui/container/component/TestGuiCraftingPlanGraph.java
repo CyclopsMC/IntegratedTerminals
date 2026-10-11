@@ -108,15 +108,15 @@ public class TestGuiCraftingPlanGraph {
         // It stays in its place before the job that is still running, which is unchanged
         assertEquals(idOf(4), root.getChildren().get(1).getId());
         assertEquals(TerminalCraftingJobStatus.CRAFTING, root.getChildren().get(1).getStatus());
-        // Its completed sub-job is kept, but folded away
+        // Its completed sub-job is kept, and stays expanded so that the layout does not change by itself
         assertEquals(1, completed.getChildren().size());
         assertEquals(idOf(3), completed.getChildren().get(0).getId());
         assertTrue(completed.getChildren().get(0).isCompleted());
-        assertFalse(completed.getChildren().get(0).isEnabled());
+        assertTrue(completed.getChildren().get(0).isEnabled());
         assertTrue(second.contains(completed.getChildren().get(0)));
 
-        // The player expands the completed job, and then job 4 is done as well
-        completed.getChildren().get(0).setEnabled(true);
+        // The player collapses the completed job, and then job 4 is done as well
+        completed.getChildren().get(0).setEnabled(false);
         List<GuiCraftingPlan.Element> third = update(second, job(1, TerminalCraftingJobStatus.PENDING_DEPENDENCIES, 1, 1));
         root = third.get(0);
         assertEquals(2, root.getChildren().size());
@@ -124,7 +124,7 @@ public class TestGuiCraftingPlanGraph {
         assertEquals(idOf(4), root.getChildren().get(1).getId());
         assertTrue(root.getChildren().get(1).isCompleted());
         // Jobs that were already completed keep their collapsed state
-        assertTrue(root.getChildren().get(0).getChildren().get(0).isEnabled());
+        assertFalse(root.getChildren().get(0).getChildren().get(0).isEnabled());
     }
 
     @Test

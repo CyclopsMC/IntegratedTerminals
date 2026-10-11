@@ -118,6 +118,7 @@
     "gui.integratedterminals.craftingplan.graph.outputs": "Outputs:",
     "gui.integratedterminals.craftingplan.graph.stored": "Taken from storage",
     "gui.integratedterminals.craftingplan.graph.legend.stored": "Stored",
+    "gui.integratedterminals.craftingplan.graph.legend.to_craft": "To craft",
     "gui.integratedterminals.craftingplan.graph.legend.blocked": "Blocked",
     "gui.integratedterminals.craftingplan.graph.legend.done": "Done",
     "gui.integratedterminals.craftingplan.graph.legend.crafting": "Crafting",

@@ -44,7 +44,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     public static final int OVERLAY_BUTTON_SIZE = 15;
     public static final int OVERLAY_BUTTON_COUNT = 4;
     private static final int OVERLAY_MARGIN = 3;
-    private static final int LEGEND_MIN_WIDTH = 200;
+    private static final int LEGEND_ROW_HEIGHT = 7;
+    private static final int SWATCH_SIZE = 5;
     private static final int GRID_SIZE = 16;
     private static final int CLICK_DISTANCE = 2;
     private static final int STACK_OFFSET = 2;
@@ -74,6 +75,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int COLOR_SLOT_DARK = 0xFF373737;
     private static final int COLOR_SLOT_LIGHT = 0xFFFFFFFF;
     private static final int COLOR_STATUS_DONE = 0xFF4CC24C;
+    // Done jobs are faded while the rest of the plan is still running, so that the remaining work stands out
+    private static final int COLOR_DONE_FADE = 0x58C6C6C6;
     private static final int COLOR_STATUS_CRAFTING = 0xFF2BAEE7;
     private static final int COLOR_STATUS_CRAFTING_LIGHT = 0xFFB4E6FF;
     private static final int COLOR_STATUS_WAITING = 0xFFE8D020;
@@ -88,10 +91,19 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int COLOR_TEXT_HINT = 0xFFBDBDBD;
     private static final int COLOR_TEXT_BACKGROUND = 0xB02B2B2B;
 
-    // A color of 0 means a stored ingredient, which is drawn as an inventory slot
-    private static final int[] LEGEND_COLORS = {0, COLOR_STATUS_WAITING, COLOR_STATUS_BLOCKED, COLOR_STATUS_CRAFTING,
-            COLOR_STATUS_DONE, COLOR_STATUS_FAILED};
-    private static final String[] LEGEND_LABELS = {"stored", "waiting", "blocked", "crafting", "done", "missing"};
+    private static final LegendEntry[] LEGEND_PREVIEW = {
+            new LegendEntry("to_craft", LegendSwatch.TILE, 0),
+            new LegendEntry("stored", LegendSwatch.SLOT, 0),
+            new LegendEntry("missing", LegendSwatch.COLOR, COLOR_STATUS_FAILED)
+    };
+    private static final LegendEntry[] LEGEND_LIVE = {
+            new LegendEntry("stored", LegendSwatch.SLOT, 0),
+            new LegendEntry("waiting", LegendSwatch.COLOR, COLOR_STATUS_WAITING),
+            new LegendEntry("blocked", LegendSwatch.COLOR, COLOR_STATUS_BLOCKED),
+            new LegendEntry("crafting", LegendSwatch.COLOR, COLOR_STATUS_CRAFTING),
+            new LegendEntry("done", LegendSwatch.DONE, COLOR_STATUS_DONE),
+            new LegendEntry("missing", LegendSwatch.COLOR, COLOR_STATUS_FAILED)
+    };
 
     private final AbstractContainerScreen parentGui;
     private final ITerminalCraftingPlan<?> craftingPlan;
@@ -210,8 +222,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
 
     /**
      * Crafting jobs are removed from a running plan once they are done.
-     * Keep showing them as completed in the place where they were, so that progress stays visible,
-     * with their completed sub-jobs folded away.
+     * Keep showing them as completed in the place where they were, so that progress stays visible
+     * and the layout does not change by itself.
      * @param previousElements The elements of the previous version of the plan.
      * @param elements The elements of the plan, to which completed jobs will be added.
      */
@@ -238,7 +250,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             if (currentElements.containsKey(previousChild.getId())) {
                 restoreCompletedJobs(previousChild, currentElements, elements);
             } else if (parent != null) {
-                GuiCraftingPlan.Element completed = createCompletedJob(previousChild, !previousChild.isCompleted());
+                GuiCraftingPlan.Element completed = createCompletedJob(previousChild);
                 insertCraftingJob(parent, completed, rank);
                 addRecursively(completed, elements);
             }
@@ -248,10 +260,9 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
 
     /**
      * @param previous A crafting job that is done.
-     * @param fold If its sub-jobs must be collapsed.
-     * @return A completed copy of the job, with completed copies of its sub-jobs.
+     * @return A completed copy of the job, with completed copies of its sub-jobs, which keep their collapsed state.
      */
-    protected static GuiCraftingPlan.Element createCompletedJob(GuiCraftingPlan.Element previous, boolean fold) {
+    protected static GuiCraftingPlan.Element createCompletedJob(GuiCraftingPlan.Element previous) {
         long total = Math.max(previous.getCraftQuantityTotal(), previous.getCraftQuantity());
         GuiCraftingPlan.Element completed = new GuiCraftingPlan.Element(previous.getId(), previous.getIndent(),
                 (List) previous.getOutputs(), 0, 0, total, 0,
@@ -261,10 +272,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         completed.setEnabled(previous.isEnabled());
         for (GuiCraftingPlan.Element previousChild : previous.getChildren()) {
             if (previousChild.isCraftingJob()) {
-                GuiCraftingPlan.Element completedChild = completed.addChild(createCompletedJob(previousChild, false));
-                if (fold) {
-                    completedChild.setEnabled(false);
-                }
+                completed.addChild(createCompletedJob(previousChild));
             }
         }
         return completed;
@@ -441,6 +449,15 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             return TerminalCraftingJobStatus.CRAFTING;
         }
         return element.getStatus();
+    }
+
+    /**
+     * @param element An element.
+     * @return If the element is a done job in a plan that is still running.
+     */
+    protected boolean isFaded(GuiCraftingPlan.Element element) {
+        return element.isCraftingJob() && getDisplayStatus(element) == TerminalCraftingJobStatus.FINISHED
+                && getDisplayStatus(elements.get(0)) != TerminalCraftingJobStatus.FINISHED;
     }
 
     /**
@@ -688,11 +705,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         guiGraphics.flush();
         guiGraphics.disableScissor();
 
-        if (live) {
-            drawLegend(guiGraphics, innerLeft, innerBottom);
-        } else {
-            drawHint(guiGraphics, innerLeft, innerBottom);
-        }
+        int legendWidth = drawLegend(guiGraphics, innerLeft, innerBottom, live ? LEGEND_LIVE : LEGEND_PREVIEW);
+        drawHint(guiGraphics, innerLeft, innerBottom, legendWidth);
     }
 
     protected void drawNode(GuiGraphics guiGraphics, CraftingPlanGraphLayout.Placement<GuiCraftingPlan.Element> placement,
@@ -756,6 +770,14 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             guiGraphics.pose().popPose();
         }
 
+        // Done jobs are faded while the plan is running, so that the remaining work stands out
+        if (isFaded(element)) {
+            guiGraphics.pose().pushPose();
+            guiGraphics.pose().translate(0, 0, 250);
+            guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, COLOR_DONE_FADE);
+            guiGraphics.pose().popPose();
+        }
+
         // Markers are drawn in node space, in front of the ingredient
         boolean failed = isProblem(element);
         if (failed || hidden > 0) {
@@ -783,37 +805,63 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
     }
 
-    protected void drawHint(GuiGraphics guiGraphics, int innerLeft, int innerBottom) {
+    /**
+     * Draw the controls hint at the bottom right, if it fits next to the legend.
+     * The controls are also listed in the tooltips of the overlay buttons.
+     */
+    protected void drawHint(GuiGraphics guiGraphics, int innerLeft, int innerBottom, int legendWidth) {
+        Font font = Minecraft.getInstance().font;
         String hint = L10NHelpers.localize("gui.integratedterminals.craftingplan.graph.hint");
-        int width = Minecraft.getInstance().font.width(hint) / 2;
-        guiGraphics.fill(innerLeft, innerBottom - 7, innerLeft + width + 4, innerBottom, COLOR_TEXT_BACKGROUND);
-        RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), Minecraft.getInstance().font, hint,
-                innerLeft + 2, innerBottom - 5, 0.5F, COLOR_TEXT_HINT, true, Font.DisplayMode.NORMAL);
-    }
-
-    protected void drawLegend(GuiGraphics guiGraphics, int innerLeft, int innerBottom) {
-        if (viewWidth < LEGEND_MIN_WIDTH) {
+        int width = font.width(hint) / 2 + 4;
+        int right = innerLeft + getInnerWidth();
+        if (legendWidth < 0 || innerLeft + legendWidth + 4 + width > right) {
             return;
         }
+        guiGraphics.fill(right - width, innerBottom - LEGEND_ROW_HEIGHT, right, innerBottom, COLOR_TEXT_BACKGROUND);
+        RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, hint,
+                right - width + 2, innerBottom - 5, 0.5F, COLOR_TEXT_HINT, true, Font.DisplayMode.NORMAL);
+    }
+
+    /**
+     * Draw the legend at the bottom left, wrapping it over multiple rows if the viewport is too narrow.
+     * @return The width of the legend if it takes a single row, or -1 if it takes more.
+     */
+    protected int drawLegend(GuiGraphics guiGraphics, int innerLeft, int innerBottom, LegendEntry[] entries) {
         Font font = Minecraft.getInstance().font;
-        int width = 2;
-        for (String label : LEGEND_LABELS) {
-            width += 5 + font.width(L10NHelpers.localize("gui.integratedterminals.craftingplan.graph.legend." + label)) / 2 + 4;
-        }
-        guiGraphics.fill(innerLeft, innerBottom - 7, innerLeft + width, innerBottom, COLOR_TEXT_BACKGROUND);
-        int x = innerLeft + 2;
-        for (int i = 0; i < LEGEND_LABELS.length; i++) {
-            String label = L10NHelpers.localize("gui.integratedterminals.craftingplan.graph.legend." + LEGEND_LABELS[i]);
-            if (LEGEND_COLORS[i] == 0) {
-                guiGraphics.fill(x, innerBottom - 5, x + 3, innerBottom - 2, COLOR_SLOT_FILL);
-            } else {
-                guiGraphics.fill(x, innerBottom - 5, x + 3, innerBottom - 2, LEGEND_COLORS[i]);
+        int maxWidth = getInnerWidth() - 4;
+
+        // Divide the entries over rows
+        List<List<LegendEntry>> rows = Lists.newArrayList();
+        List<Integer> rowWidths = Lists.newArrayList();
+        List<LegendEntry> row = Lists.newArrayList();
+        int rowWidth = 2;
+        for (LegendEntry entry : entries) {
+            int width = entry.getWidth(font);
+            if (!row.isEmpty() && rowWidth + width > maxWidth) {
+                rows.add(row);
+                rowWidths.add(rowWidth);
+                row = Lists.newArrayList();
+                rowWidth = 2;
             }
-            x += 5;
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, label,
-                    x, innerBottom - 5, 0.5F, COLOR_TEXT_HINT, true, Font.DisplayMode.NORMAL);
-            x += font.width(label) / 2 + 4;
+            row.add(entry);
+            rowWidth += width;
         }
+        rows.add(row);
+        rowWidths.add(rowWidth);
+
+        // Draw the rows from the bottom up, so that the first row is on top
+        for (int r = 0; r < rows.size(); r++) {
+            int bottom = innerBottom - (rows.size() - 1 - r) * LEGEND_ROW_HEIGHT;
+            guiGraphics.fill(innerLeft, bottom - LEGEND_ROW_HEIGHT, innerLeft + rowWidths.get(r), bottom, COLOR_TEXT_BACKGROUND);
+            int x = innerLeft + 2;
+            for (LegendEntry entry : rows.get(r)) {
+                entry.drawSwatch(guiGraphics, x, bottom - 6);
+                RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, entry.getLabel(),
+                        x + SWATCH_SIZE + 2, bottom - 5, 0.5F, COLOR_TEXT_HINT, true, Font.DisplayMode.NORMAL);
+                x += entry.getWidth(font);
+            }
+        }
+        return rows.size() == 1 ? rowWidths.get(0) : -1;
     }
 
     @Override
@@ -1040,5 +1088,55 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     @Override
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
 
+    }
+
+    protected static enum LegendSwatch {
+        COLOR,
+        DONE,
+        TILE,
+        SLOT
+    }
+
+    /**
+     * An entry in the legend, with a small swatch that looks like the nodes it describes.
+     */
+    protected static class LegendEntry {
+        private final String key;
+        private final LegendSwatch swatch;
+        private final int color;
+
+        public LegendEntry(String key, LegendSwatch swatch, int color) {
+            this.key = key;
+            this.swatch = swatch;
+            this.color = color;
+        }
+
+        public String getLabel() {
+            return L10NHelpers.localize("gui.integratedterminals.craftingplan.graph.legend." + key);
+        }
+
+        public int getWidth(Font font) {
+            return SWATCH_SIZE + 2 + font.width(getLabel()) / 2 + 4;
+        }
+
+        public void drawSwatch(GuiGraphics guiGraphics, int x, int y) {
+            int size = SWATCH_SIZE;
+            switch (swatch) {
+                case COLOR -> guiGraphics.fill(x, y, x + size, y + size, color);
+                case DONE -> {
+                    guiGraphics.fill(x, y, x + size, y + size, color);
+                    guiGraphics.fill(x, y, x + size, y + size, COLOR_DONE_FADE);
+                }
+                case TILE -> {
+                    guiGraphics.fill(x, y, x + size, y + size, COLOR_NODE_OUTLINE);
+                    guiGraphics.fill(x + 1, y + 1, x + size - 1, y + size - 1, COLOR_NODE_FILL);
+                }
+                case SLOT -> {
+                    guiGraphics.fill(x, y, x + size, y + size, COLOR_SLOT_LIGHT);
+                    guiGraphics.fill(x, y, x + size - 1, y + size - 1, COLOR_SLOT_DARK);
+                    guiGraphics.fill(x + 1, y + 1, x + size - 1, y + size - 1, COLOR_SLOT_FILL);
+                }
+            }
+        }
     }
 }
