@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  *
  * @author rubensworks
  */
-public class GuiCraftingPlan extends AbstractWidget {
+public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanView {
 
     public static final int ELEMENT_WIDTH = 221;
     /**

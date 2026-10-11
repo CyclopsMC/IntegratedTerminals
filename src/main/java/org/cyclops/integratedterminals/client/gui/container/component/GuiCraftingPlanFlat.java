@@ -41,7 +41,7 @@ import java.util.List;
  *
  * @author rubensworks
  */
-public class GuiCraftingPlanFlat extends AbstractWidget {
+public class GuiCraftingPlanFlat extends AbstractWidget implements IGuiCraftingPlanView {
 
     private static final int COLUMNS = 2;
     private static final int COLUMN_PADDING = 2;
