@@ -1,6 +1,7 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
 import com.google.common.collect.Maps;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -16,6 +17,7 @@ import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraf
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanFlat;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanGraph;
+import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanProgressBar;
 import org.cyclops.integratedterminals.client.gui.container.component.IGuiCraftingPlanView;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlan;
 import org.cyclops.integratedterminals.network.packet.CancelCraftingJobPacket;
@@ -30,6 +32,11 @@ import java.util.Map;
  * @author rubensworks
  */
 public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenTerminalCraftingPlanBase<ContainerTerminalCraftingJobsPlan> {
+
+    private static final int PROGRESS_BAR_SPACING = 6;
+
+    @Nullable
+    private ButtonText cancelButton;
 
     // The last view of each type is kept, so that its visualization state can be inherited after an update
     @Nullable
@@ -91,10 +98,11 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenTerm
     @Override
     public void init() {
         super.init();
+        this.cancelButton = null;
 
         // Plans that are too large are only sent in their flattened form
         if (this.activeView != null && (getMenu().getCraftingPlan().isPresent() || getMenu().getCraftingPlanFlat().isPresent())) {
-            addRenderableWidget(new ButtonText(leftPos + imageWidth - 25 - 100, topPos + imageHeight - 24, 100, 20,
+            addRenderableWidget(this.cancelButton = new ButtonText(leftPos + imageWidth - 25 - 100, topPos + imageHeight - 24, 100, 20,
                     Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     (b) -> cancelCraftingJob(),
@@ -169,6 +177,22 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenTerm
             this.completedCraftingPlanFlat = craftingPlan.flatten();
         }
         return this.completedCraftingPlanFlat;
+    }
+
+    @Override
+    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+        ITerminalCraftingPlanFlat craftingPlanFlat = getCraftingPlanFlat();
+        if (this.activeView != null && craftingPlanFlat != null) {
+            // The graph also counts the jobs that are already done, which the flattened plan no longer contains
+            int progress = this.activeView instanceof GuiCraftingPlanGraph graph
+                    ? graph.getProgress() : GuiCraftingPlan.getProgress(craftingPlanFlat);
+            int left = this.viewButtonsRight + PROGRESS_BAR_SPACING;
+            int right = this.cancelButton != null ? this.cancelButton.getX() - PROGRESS_BAR_SPACING : leftPos + imageWidth - 25;
+            GuiCraftingPlanProgressBar.draw(guiGraphics, progress, craftingPlanFlat.getTickDuration(),
+                    craftingPlanFlat.getEstimatedTickDurationRemaining(), craftingPlanFlat.getStatus().isValid(),
+                    left, topPos + imageHeight - 23 + (18 - GuiCraftingPlanProgressBar.HEIGHT) / 2, right - left);
+        }
     }
 
     private void returnToOverview() {

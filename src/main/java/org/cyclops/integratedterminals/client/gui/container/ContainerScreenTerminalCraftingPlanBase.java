@@ -31,6 +31,8 @@ public abstract class ContainerScreenTerminalCraftingPlanBase<C extends Containe
 
     @Nullable
     protected IGuiCraftingPlanView activeView;
+    // The X position after the view buttons in the bottom row
+    protected int viewButtonsRight;
     // Kept so that its visualization state can be inherited after an update
     @Nullable
     private GuiCraftingPlanGraph guiCraftingPlanGraph;
@@ -142,8 +144,10 @@ public abstract class ContainerScreenTerminalCraftingPlanBase<C extends Containe
         this.children().clear();
         this.activeView = null;
 
+        this.viewButtonsRight = leftPos + 8;
         for (Button button : GuiCraftingPlanButtons.createViewButtons(this.guiCraftingPlanToggler, leftPos + 8, topPos + imageHeight - 23, this::init)) {
             addRenderableWidget(button);
+            this.viewButtonsRight = Math.max(this.viewButtonsRight, button.getX() + button.getWidth());
         }
 
         this.guiCraftingPlanToggler.init();

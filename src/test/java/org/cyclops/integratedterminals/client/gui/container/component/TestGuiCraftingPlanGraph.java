@@ -148,6 +148,32 @@ public class TestGuiCraftingPlanGraph {
     }
 
     @Test
+    public void testProgressCountsCompletedJobs() {
+        // 20 smelts and 4 crafts, of which 12 smelts and 1 craft are done
+        ITerminalCraftingPlan<Integer> running = job(1, TerminalCraftingJobStatus.PENDING_DEPENDENCIES, 3, 4,
+                job(2, TerminalCraftingJobStatus.CRAFTING, 8, 20));
+        List<GuiCraftingPlan.Element> elements = GuiCraftingPlan.getElements(running);
+        assertEquals(54, GuiCraftingPlanGraph.getProgress(elements));
+
+        // A finished job leaves the plan, but still counts as done
+        elements = update(elements, job(1, TerminalCraftingJobStatus.CRAFTING, 3, 4));
+        assertEquals(87, GuiCraftingPlanGraph.getProgress(elements));
+    }
+
+    @Test
+    public void testProgressCountsSharedJobsOnce() {
+        ITerminalCraftingPlan<Integer> shared = job(3, TerminalCraftingJobStatus.CRAFTING, 5, 10);
+        ITerminalCraftingPlan<Integer> plan = job(1, TerminalCraftingJobStatus.PENDING_DEPENDENCIES, 10, 10,
+                job(2, TerminalCraftingJobStatus.PENDING_DEPENDENCIES, 0, 0, shared), shared);
+        assertEquals(25, GuiCraftingPlanGraph.getProgress(GuiCraftingPlan.getElements(plan)));
+    }
+
+    @Test
+    public void testProgressUnknownWithoutCrafts() {
+        assertEquals(-1, GuiCraftingPlanGraph.getProgress(GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.UNSTARTED, 0, 0))));
+    }
+
+    @Test
     public void testRefusedInputsAreBlockedNotFailed() {
         // Targets refuse inputs while they are busy, so this is a temporary state
         GuiCraftingPlan.Element refused = GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.INVALID_INPUTS, 3, 3)).get(0);

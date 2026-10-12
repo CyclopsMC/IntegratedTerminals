@@ -4,6 +4,8 @@ import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.ints.Int2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -82,6 +84,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     private static final int COLOR_STATUS_CRAFTING_LIGHT = 0xFFB4E6FF;
     private static final int COLOR_STATUS_WAITING = 0xFFE8D020;
     private static final int COLOR_STATUS_BLOCKED = 0xFFF08A10;
+    private static final int COLOR_PROGRESS_TRACK = 0xFF6E6E6E;
     private static final int COLOR_STATUS_FAILED = 0xFFE03030;
     private static final int COLOR_HOVER = 0xFFFFFFFF;
     private static final int COLOR_BADGE = 0xFF1E1E1E;
@@ -346,6 +349,34 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
 
     public static boolean isEmpty(IPrototypedIngredient<?, ?> ingredient) {
         return ((IngredientComponent) ingredient.getComponent()).getMatcher().isEmpty(ingredient.getPrototype());
+    }
+
+    /**
+     * @return The completed percentage of all crafts in the plan, including completed jobs, or -1 if unknown.
+     */
+    public int getProgress() {
+        return getProgress(this.elements);
+    }
+
+    /**
+     * @param elements The elements of a plan.
+     * @return The completed percentage of all crafts of the crafting jobs, or -1 if unknown.
+     */
+    public static int getProgress(List<GuiCraftingPlan.Element> elements) {
+        long total = 0;
+        long remaining = 0;
+        // Jobs that several jobs depend on appear once per dependent
+        IntSet counted = new IntOpenHashSet();
+        for (GuiCraftingPlan.Element element : elements) {
+            if (element.isCraftingJob() && counted.add(element.getId())) {
+                total += element.getCraftQuantityTotal();
+                remaining += element.getCraftQuantity();
+            }
+        }
+        if (total <= 0) {
+            return -1;
+        }
+        return (int) ((total - Math.min(remaining, total)) * 100 / total);
     }
 
     public ITerminalCraftingPlan<?> getCraftingPlan() {
@@ -736,6 +767,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
 
         // Frame
+        int inset = 1;
         if (hovered) {
             guiGraphics.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, COLOR_HOVER);
         }
@@ -748,7 +780,6 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             // Crafting jobs look like a raised tile, framed in the color of their status
             int accent = getStatusColor(getDisplayStatus(element));
             guiGraphics.fill(x0, y0, x1, y1, COLOR_NODE_OUTLINE);
-            int inset = 1;
             if (accent != 0) {
                 inset += zoom >= 1.5F ? 3 : 2;
                 guiGraphics.fill(x0 + 1, y0 + 1, x1 - 1, y1 - 1, accent);
@@ -763,6 +794,21 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             guiGraphics.fill(x0 + inset, y0 + inset + 1, x0 + inset + 1, y1 - inset, COLOR_NODE_HIGHLIGHT);
             guiGraphics.fill(x0 + inset + 1, y1 - inset - 1, x1 - inset, y1 - inset, COLOR_NODE_SHADOW);
             guiGraphics.fill(x1 - inset - 1, y0 + inset + 1, x1 - inset, y1 - inset - 1, COLOR_NODE_SHADOW);
+        }
+
+        // Jobs that are partially done show how far they are along their bottom edge
+        long total = element.getCraftQuantityTotal();
+        long done = total - element.getCraftQuantity();
+        if (element.isCraftingJob() && !element.isCompleted() && done > 0 && done < total) {
+            // Inside the frame, with a gap so that it does not blend into a frame of the same color
+            int barInset = inset + 1;
+            int height = Math.max(2, Math.round(2 * zoom));
+            int barLeft = x0 + barInset;
+            int barRight = x1 - barInset;
+            int barBottom = y1 - barInset;
+            int filled = (int) ((barRight - barLeft) * done / total);
+            guiGraphics.fill(barLeft, barBottom - height, barRight, barBottom, COLOR_PROGRESS_TRACK);
+            guiGraphics.fill(barLeft, barBottom - height, barLeft + filled, barBottom, COLOR_STATUS_CRAFTING);
         }
 
         // Ingredient
@@ -784,11 +830,11 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             guiGraphics.pose().popPose();
             if (enlarged && !label.isEmpty()) {
                 // Draw the label as in a regular node, in the bottom right corner
-                int inset = (NODE_SIZE - GuiHelpers.SLOT_SIZE_INNER) / 2 + GuiHelpers.SLOT_SIZE_INNER;
+                int labelInset = (NODE_SIZE - GuiHelpers.SLOT_SIZE_INNER) / 2 + GuiHelpers.SLOT_SIZE_INNER;
                 guiGraphics.pose().pushPose();
                 guiGraphics.pose().translate(x1, y1, 0);
                 guiGraphics.pose().scale(zoom, zoom, 1);
-                new GuiGraphicsExtended(guiGraphics).drawSlotText(Minecraft.getInstance().font, label, -inset, -inset);
+                new GuiGraphicsExtended(guiGraphics).drawSlotText(Minecraft.getInstance().font, label, -labelInset, -labelInset);
                 guiGraphics.pose().popPose();
             }
         }
