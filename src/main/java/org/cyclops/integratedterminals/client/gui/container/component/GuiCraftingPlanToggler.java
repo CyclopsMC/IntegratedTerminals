@@ -58,7 +58,7 @@ public class GuiCraftingPlanToggler {
         if (this.craftingPlanDisplayMode == null) {
             this.craftingPlanDisplayMode = getDefaultDisplayMode(this.craftingPlanSupplier.get() != null,
                     this.craftingPlanFlatSupplier.get() != null, preferredDisplayMode,
-                    GeneralConfig.terminalStorageDefaultToCraftingPlanTree);
+                    GeneralConfig.terminalStorageDefaultToCraftingPlanTree, isTreeListEnabled());
         }
 
         // Reset display mode if both plan views became empty
@@ -72,11 +72,15 @@ public class GuiCraftingPlanToggler {
      * @param hasFlat If a flattened plan is available.
      * @param preferred The mode the player last chose, or null.
      * @param defaultToTree If a tree-based view should be preferred over the flattened view.
+     * @param treeListEnabled If the tree list view can be shown.
      * @return The display mode to show when a plan is opened.
      */
     public static CraftingPlanDisplayMode getDefaultDisplayMode(boolean hasTree, boolean hasFlat,
                                                                 @Nullable CraftingPlanDisplayMode preferred,
-                                                                boolean defaultToTree) {
+                                                                boolean defaultToTree, boolean treeListEnabled) {
+        if (preferred == CraftingPlanDisplayMode.TREE && !treeListEnabled) {
+            preferred = null;
+        }
         if (preferred != null && (preferred == CraftingPlanDisplayMode.FLAT ? hasFlat : hasTree)) {
             return preferred;
         }
@@ -145,6 +149,13 @@ public class GuiCraftingPlanToggler {
     protected static int clamp(int value, int min, int max) {
         // The minimum wins on screens that are too small
         return Math.max(min, Mth.clamp(value, min, max));
+    }
+
+    /**
+     * @return If the tree list view can be shown.
+     */
+    public static boolean isTreeListEnabled() {
+        return GeneralConfig.terminalStorageCraftingPlanTreeListEnabled;
     }
 
     public boolean hasTreePlan() {
