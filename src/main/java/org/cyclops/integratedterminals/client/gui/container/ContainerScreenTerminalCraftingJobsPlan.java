@@ -187,12 +187,37 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenTerm
             // The graph also counts the jobs that are already done, which the flattened plan no longer contains
             int progress = this.activeView instanceof GuiCraftingPlanGraph graph
                     ? graph.getProgress() : GuiCraftingPlan.getProgress(craftingPlanFlat);
-            int left = this.viewButtonsRight + PROGRESS_BAR_SPACING;
-            int right = this.cancelButton != null ? this.cancelButton.getX() - PROGRESS_BAR_SPACING : leftPos + imageWidth - 25;
+            int left = getProgressBarLeft();
             GuiCraftingPlanProgressBar.draw(guiGraphics, progress, craftingPlanFlat.getTickDuration(),
                     craftingPlanFlat.getEstimatedTickDurationRemaining(), craftingPlanFlat.getStatus().isValid(),
-                    left, topPos + imageHeight - 23 + (18 - GuiCraftingPlanProgressBar.HEIGHT) / 2, right - left);
+                    left, getProgressBarTop(), getProgressBarRight() - left);
         }
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        super.renderLabels(guiGraphics, mouseX, mouseY);
+        ITerminalCraftingPlanFlat craftingPlanFlat = getCraftingPlanFlat();
+        if (this.activeView != null && craftingPlanFlat != null && craftingPlanFlat.getStatus().isValid()) {
+            // Explain an unknown remaining duration when hovering it, as the plan header no longer shows it for running jobs
+            long remaining = craftingPlanFlat.getEstimatedTickDurationRemaining();
+            String remainingString = GuiCraftingPlan.getDurationValue(remaining);
+            int width = font.width(remainingString) / 2;
+            GuiCraftingPlan.drawUnknownDurationTooltip(this, guiGraphics, remainingString, remaining,
+                    getProgressBarRight() - 2 - width - leftPos, getProgressBarTop() + 2 - topPos, mouseX, mouseY);
+        }
+    }
+
+    protected int getProgressBarLeft() {
+        return this.viewButtonsRight + PROGRESS_BAR_SPACING;
+    }
+
+    protected int getProgressBarRight() {
+        return this.cancelButton != null ? this.cancelButton.getX() - PROGRESS_BAR_SPACING : leftPos + imageWidth - 25;
+    }
+
+    protected int getProgressBarTop() {
+        return topPos + imageHeight - 23 + (18 - GuiCraftingPlanProgressBar.HEIGHT) / 2;
     }
 
     private void returnToOverview() {

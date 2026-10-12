@@ -30,6 +30,8 @@ public class GuiCraftingPlanHeader {
     private final int channel;
     @Nullable
     private final String initiatorName;
+    // Running jobs show their durations in a progress bar instead
+    private final boolean showDurations;
 
     /**
      * @param unlocalizedLabel The plan label.
@@ -45,8 +47,9 @@ public class GuiCraftingPlanHeader {
                                  long estimatedTickDurationTotal, long estimatedTickDurationRemaining,
                                  int channel, @Nullable String initiatorName) {
         // A running job that has nothing left to craft has completed
-        this.label = L10NHelpers.localize(completed && TerminalCraftingPlanStatic.Label.RUNNING.getUnlocalizedMessage().equals(unlocalizedLabel)
-                ? LABEL_COMPLETED : unlocalizedLabel);
+        boolean running = TerminalCraftingPlanStatic.Label.RUNNING.getUnlocalizedMessage().equals(unlocalizedLabel);
+        this.label = L10NHelpers.localize(completed && running ? LABEL_COMPLETED : unlocalizedLabel);
+        this.showDurations = !running;
         this.tickDuration = tickDuration;
         // Jobs that have not started yet can only show a total estimation, running jobs show what is left of it
         this.estimatedTickDurationRemaining = status != TerminalCraftingJobStatus.UNSTARTED;
@@ -95,7 +98,7 @@ public class GuiCraftingPlanHeader {
         guiGraphics.drawCenteredString(fontRenderer, this.label, x + width / 2 - 1, y - 13, 16777215);
 
         // Draw duration
-        if (tickDuration >= 0) {
+        if (showDurations && tickDuration >= 0) {
             String durationString = GuiCraftingPlan.getDurationString(tickDuration);
             RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, durationString, rightX, y - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
@@ -113,7 +116,7 @@ public class GuiCraftingPlanHeader {
         }
 
         // Draw estimated duration
-        if (showEstimatedTickDuration) {
+        if (showDurations && showEstimatedTickDuration) {
             RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, getEstimatedDurationString(), x - 4, y - 14, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
     }
@@ -128,7 +131,7 @@ public class GuiCraftingPlanHeader {
      * @param mouseY The mouse Y position.
      */
     public void drawForeground(AbstractContainerScreen parentGui, GuiGraphics guiGraphics, int x, int y, int mouseX, int mouseY) {
-        if (showEstimatedTickDuration) {
+        if (showDurations && showEstimatedTickDuration) {
             GuiCraftingPlan.drawUnknownDurationTooltip(parentGui, guiGraphics, getEstimatedDurationString(),
                     estimatedTickDuration, x - 4, y - 14, mouseX, mouseY);
         }
