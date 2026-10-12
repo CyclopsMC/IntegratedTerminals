@@ -31,10 +31,11 @@ public class GuiCraftingPlanButtons {
         List<Button> buttons = Lists.newArrayList();
         int width = Images.BUTTON_BACKGROUND_ACTIVE.getWidth();
         if (toggler.hasTreePlan()) {
-            buttons.add(createViewButton(toggler, x + buttons.size() * width, y, GuiCraftingPlanToggler.CraftingPlanDisplayMode.TREE,
-                    "gui.integratedterminals.craftingplan.view.list", Images.BUTTON_MIDDLE_CRAFTING_PLAN_LIST, onChange));
+            // The default view comes first
             buttons.add(createViewButton(toggler, x + buttons.size() * width, y, GuiCraftingPlanToggler.CraftingPlanDisplayMode.GRAPH,
                     "gui.integratedterminals.craftingplan.view.graph", Images.BUTTON_MIDDLE_CRAFTING_PLAN_GRAPH, onChange));
+            buttons.add(createViewButton(toggler, x + buttons.size() * width, y, GuiCraftingPlanToggler.CraftingPlanDisplayMode.TREE,
+                    "gui.integratedterminals.craftingplan.view.list", Images.BUTTON_MIDDLE_CRAFTING_PLAN_LIST, onChange));
         }
         if (toggler.hasFlatPlan()) {
             buttons.add(createViewButton(toggler, x + buttons.size() * width, y, GuiCraftingPlanToggler.CraftingPlanDisplayMode.FLAT,
