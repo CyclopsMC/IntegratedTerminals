@@ -315,17 +315,18 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             long quantity = IndexedEntries.getQuantity(outputs);
 
             if (plan.getStatus() == TerminalCraftingJobStatus.ERROR
-                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID
-                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID_INPUTS) {
+                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID) {
                 if (plan.getDependencies().isEmpty()) {
                     entry.setQuantityMissing(entry.getQuantityMissing() + quantity);
                 } else {
                     entry.setQuantityToCraft(entry.getQuantityToCraft() + quantity);
                 }
             }
+            // Inputs that the target refused are inserted again later
             if (plan.getStatus() == TerminalCraftingJobStatus.QUEUEING
                     || plan.getStatus() == TerminalCraftingJobStatus.PENDING_DEPENDENCIES
                     || plan.getStatus() == TerminalCraftingJobStatus.PENDING_INPUTS
+                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID_INPUTS
                     || plan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
                 entry.setQuantityToCraft(entry.getQuantityToCraft() + quantity);
             }

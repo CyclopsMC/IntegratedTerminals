@@ -147,4 +147,15 @@ public class TestGuiCraftingPlanGraph {
         assertEquals(TerminalCraftingJobStatus.QUEUEING, GuiCraftingPlanGraph.getDisplayStatus(waiting));
     }
 
+    @Test
+    public void testRefusedInputsAreBlockedNotFailed() {
+        // Targets refuse inputs while they are busy, so this is a temporary state
+        GuiCraftingPlan.Element refused = GuiCraftingPlan.getElements(job(1, TerminalCraftingJobStatus.INVALID_INPUTS, 3, 3)).get(0);
+        assertFalse(GuiCraftingPlanGraph.isFailed(refused.getStatus()));
+        assertFalse(GuiCraftingPlanGraph.isProblem(refused));
+        assertEquals(GuiCraftingPlanGraph.getStatusColor(TerminalCraftingJobStatus.PENDING_INPUTS),
+                GuiCraftingPlanGraph.getStatusColor(TerminalCraftingJobStatus.INVALID_INPUTS));
+        assertTrue(GuiCraftingPlanGraph.isFailed(TerminalCraftingJobStatus.INVALID));
+    }
+
 }

@@ -444,8 +444,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
     }
 
     protected static boolean isFailed(TerminalCraftingJobStatus status) {
-        return status == TerminalCraftingJobStatus.INVALID || status == TerminalCraftingJobStatus.ERROR
-                || status == TerminalCraftingJobStatus.INVALID_INPUTS;
+        return status == TerminalCraftingJobStatus.INVALID || status == TerminalCraftingJobStatus.ERROR;
     }
 
     /**
@@ -491,7 +490,8 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             case FINISHED -> COLOR_STATUS_DONE;
             case CRAFTING -> COLOR_STATUS_CRAFTING;
             case QUEUEING, PENDING_DEPENDENCIES -> COLOR_STATUS_WAITING;
-            case PENDING_INPUTS, PENDING_OUTPUT_STORAGE -> COLOR_STATUS_BLOCKED;
+            // Targets refuse inputs while they are busy, after which the inputs are inserted again
+            case PENDING_INPUTS, INVALID_INPUTS, PENDING_OUTPUT_STORAGE -> COLOR_STATUS_BLOCKED;
             default -> 0;
         };
     }
