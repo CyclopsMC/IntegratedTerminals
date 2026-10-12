@@ -97,6 +97,9 @@ public class GuiCraftingPlanHeader {
         // Draw plan label
         guiGraphics.drawCenteredString(fontRenderer, this.label, x + width / 2 - 1, y - 13, 16777215);
 
+        // Without durations, the other lines take their place at the top
+        int secondLineY = showDurations ? y - 8 : y - 14;
+
         // Draw duration
         if (showDurations && tickDuration >= 0) {
             String durationString = GuiCraftingPlan.getDurationString(tickDuration);
@@ -106,13 +109,13 @@ public class GuiCraftingPlanHeader {
         // Draw channel
         if (channel != -1) {
             String channelString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, channelString, rightX, y - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, channelString, rightX, secondLineY, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw initiator
         if (initiatorName != null) {
             String initiatorString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, x - 4, y - 8, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
+            RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), fontRenderer, initiatorString, x - 4, secondLineY, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
         }
 
         // Draw estimated duration
