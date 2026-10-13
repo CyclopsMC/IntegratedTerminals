@@ -18,10 +18,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
 import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
-import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.client.gui.image.Image;
@@ -34,6 +32,7 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 import org.lwjgl.opengl.GL11;
@@ -405,19 +404,12 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
         }
         elements.add(currentElement);
         if (craftingPlan.getStatus() == TerminalCraftingJobStatus.PENDING_INPUTS) {
-            // Add last missing ingredients
+            // Add last missing ingredients, which are already the quantities for all remaining crafts
             for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : craftingPlan.getLastMissingIngredients()) {
-                List<List<IPrototypedIngredient>> outputs = Collections.singletonList(lastMissingIngredient
-                        .stream()
-                        .map(prototypedIngredient -> {
-                            IIngredientMatcher matcher = prototypedIngredient.getComponent().getMatcher();
-                            Object instance = matcher.withQuantity(prototypedIngredient.getPrototype(),
-                                    matcher.getQuantity(prototypedIngredient.getPrototype()) * craftingPlan.getCraftingQuantity());
-                            return new PrototypedIngredient(prototypedIngredient.getComponent(), instance, prototypedIngredient.getCondition());
-                        })
-                        .collect(Collectors.toList()));
+                List<List<IPrototypedIngredient>> outputs = Collections.singletonList(Lists.newArrayList(lastMissingIngredient));
                 elements.add(currentElement.addChild(new Element(elementId++, indent + 1, outputs,
-                        0, 0, craftingPlan.getCraftingQuantity(), TerminalCraftingJobStatus.INVALID.getColor(), TerminalCraftingJobStatus.INVALID)));
+                        0, 0, TerminalCraftingPlanStatic.IndexedEntries.getQuantity(lastMissingIngredient),
+                        TerminalCraftingJobStatus.INVALID.getColor(), TerminalCraftingJobStatus.INVALID)));
             }
         } else if (craftingPlan.getStatus() != TerminalCraftingJobStatus.CRAFTING) {
             for (IPrototypedIngredient bufferedIngredient : craftingPlan.getBufferedIngredients()) {
