@@ -20,6 +20,7 @@ import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.cyclopscore.client.gui.GuiGraphicsExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
+import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integratedterminals.Capabilities;
@@ -64,36 +65,36 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
      */
     private static final float MIN_READABLE_ZOOM = 0.75F;
 
-    private static final int COLOR_BACKGROUND = 0xFF2B2B2B;
-    private static final int COLOR_GRID = 0x0CFFFFFF;
-    private static final int COLOR_BEVEL_DARK = 0xFF373737;
-    private static final int COLOR_BEVEL_LIGHT = 0xFFFFFFFF;
-    private static final int COLOR_EDGE = 0xFFDADADA;
-    private static final int COLOR_NODE_OUTLINE = 0xFF000000;
-    private static final int COLOR_NODE_FILL = 0xFFC6C6C6;
-    private static final int COLOR_NODE_FILL_FAILED = 0xFFF0B4B4;
-    private static final int COLOR_NODE_HIGHLIGHT = 0x80FFFFFF;
-    private static final int COLOR_NODE_SHADOW = 0x40000000;
-    private static final int COLOR_SLOT_FILL = 0xFF8B8B8B;
-    private static final int COLOR_SLOT_DARK = 0xFF373737;
-    private static final int COLOR_SLOT_LIGHT = 0xFFFFFFFF;
-    private static final int COLOR_STATUS_DONE = 0xFF4CC24C;
+    private static final int COLOR_BACKGROUND = Helpers.RGBAToInt(43, 43, 43, 255);
+    private static final int COLOR_GRID = Helpers.RGBAToInt(255, 255, 255, 12);
+    private static final int COLOR_BEVEL_DARK = Helpers.RGBAToInt(55, 55, 55, 255);
+    private static final int COLOR_BEVEL_LIGHT = Helpers.RGBAToInt(255, 255, 255, 255);
+    private static final int COLOR_EDGE = Helpers.RGBAToInt(218, 218, 218, 255);
+    private static final int COLOR_NODE_OUTLINE = Helpers.RGBAToInt(0, 0, 0, 255);
+    private static final int COLOR_NODE_FILL = Helpers.RGBAToInt(198, 198, 198, 255);
+    private static final int COLOR_NODE_FILL_FAILED = Helpers.RGBAToInt(240, 180, 180, 255);
+    private static final int COLOR_NODE_HIGHLIGHT = Helpers.RGBAToInt(255, 255, 255, 128);
+    private static final int COLOR_NODE_SHADOW = Helpers.RGBAToInt(0, 0, 0, 64);
+    private static final int COLOR_SLOT_FILL = Helpers.RGBAToInt(139, 139, 139, 255);
+    private static final int COLOR_SLOT_DARK = Helpers.RGBAToInt(55, 55, 55, 255);
+    private static final int COLOR_SLOT_LIGHT = Helpers.RGBAToInt(255, 255, 255, 255);
+    private static final int COLOR_STATUS_DONE = Helpers.RGBAToInt(76, 194, 76, 255);
     // Done jobs are faded while the rest of the plan is still running, so that the remaining work stands out
-    private static final int COLOR_DONE_FADE = 0x58C6C6C6;
-    private static final int COLOR_STATUS_CRAFTING = 0xFF2BAEE7;
-    private static final int COLOR_STATUS_CRAFTING_LIGHT = 0xFFB4E6FF;
-    private static final int COLOR_STATUS_WAITING = 0xFFE8D020;
-    private static final int COLOR_STATUS_BLOCKED = 0xFFF08A10;
-    private static final int COLOR_PROGRESS_TRACK = 0xFF6E6E6E;
-    private static final int COLOR_STATUS_FAILED = 0xFFE03030;
-    private static final int COLOR_HOVER = 0xFFFFFFFF;
-    private static final int COLOR_BADGE = 0xFF1E1E1E;
-    private static final int COLOR_STACK_NEAR = 0xFFA8A8A8;
-    private static final int COLOR_STACK_FAR = 0xFF8B8B8B;
-    private static final int COLOR_PILL_TEXT = 0xFF2B2B2B;
-    private static final int COLOR_TEXT = 0xFFFFFFFF;
-    private static final int COLOR_TEXT_HINT = 0xFFBDBDBD;
-    private static final int COLOR_TEXT_BACKGROUND = 0xB02B2B2B;
+    private static final int COLOR_DONE_FADE = Helpers.RGBAToInt(198, 198, 198, 88);
+    private static final int COLOR_STATUS_CRAFTING = Helpers.RGBAToInt(43, 174, 231, 255);
+    private static final int COLOR_STATUS_CRAFTING_LIGHT = Helpers.RGBAToInt(180, 230, 255, 255);
+    private static final int COLOR_STATUS_WAITING = Helpers.RGBAToInt(232, 208, 32, 255);
+    private static final int COLOR_STATUS_BLOCKED = Helpers.RGBAToInt(240, 138, 16, 255);
+    private static final int COLOR_PROGRESS_TRACK = Helpers.RGBAToInt(110, 110, 110, 255);
+    private static final int COLOR_STATUS_FAILED = Helpers.RGBAToInt(224, 48, 48, 255);
+    private static final int COLOR_HOVER = Helpers.RGBAToInt(255, 255, 255, 255);
+    private static final int COLOR_BADGE = Helpers.RGBAToInt(30, 30, 30, 255);
+    private static final int COLOR_STACK_NEAR = Helpers.RGBAToInt(168, 168, 168, 255);
+    private static final int COLOR_STACK_FAR = Helpers.RGBAToInt(139, 139, 139, 255);
+    private static final int COLOR_PILL_TEXT = Helpers.RGBAToInt(43, 43, 43, 255);
+    private static final int COLOR_TEXT = Helpers.RGBAToInt(255, 255, 255, 255);
+    private static final int COLOR_TEXT_HINT = Helpers.RGBAToInt(189, 189, 189, 255);
+    private static final int COLOR_TEXT_BACKGROUND = Helpers.RGBAToInt(43, 43, 43, 176);
 
     private static final LegendEntry[] LEGEND_PREVIEW = {
             new LegendEntry("to_craft", LegendSwatch.TILE, 0),
@@ -172,7 +173,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         if (previous == null) {
             collapseToFit();
             this.camera.reset(layout.getBounds(), getInnerWidth(), getInnerHeight(),
-                    live ? CraftingPlanGraphCamera.DEFAULT_ZOOM_INDEX : CraftingPlanGraphCamera.INITIAL_MAX_ZOOM_INDEX);
+                    live ? CraftingPlanGraphCamera.DEFAULT_ZOOM : CraftingPlanGraphCamera.INITIAL_MAX_ZOOM);
         } else {
             refreshLayout();
             // Keep the camera, with the center of the view in place if the viewport was resized
@@ -607,7 +608,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
                 x = x0;
                 y = y1 - thickness - (s - 2 * w - h);
             }
-            int color = lerpColor(COLOR_STATUS_CRAFTING, 0xFFFFFFFF, 1F - (float) d / tail);
+            int color = lerpColor(COLOR_STATUS_CRAFTING, Helpers.RGBAToInt(255, 255, 255, 255), 1F - (float) d / tail);
             guiGraphics.fill(x, y, x + thickness, y + thickness, color);
         }
     }
@@ -695,7 +696,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
 
         // Edges, where the paths to problems are drawn last so that they are not hidden by shared parts of the trunk
-        int thickness = camera.getZoom() >= 1.5F ? 2 : 1;
+        int thickness = Math.max(1, Math.round(camera.getZoom()));
         for (int severity = 0; severity <= 2; severity++) {
             for (CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment : layout.getSegments()) {
                 if (getEdgeSeverity(segment) == severity) {
@@ -856,7 +857,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
             guiGraphics.pose().scale(zoom, zoom, 1);
             if (failed) {
                 guiGraphics.fill(1, 1, 7, 11, COLOR_BADGE);
-                guiGraphics.drawString(font, "!", 3, 2, 0xFFFF5555, false);
+                guiGraphics.drawString(font, "!", 3, 2, Helpers.RGBAToInt(255, 85, 85, 255), false);
             }
             if (hidden > 0) {
                 // A short edge into a pill with the number of hidden nodes, where the edges to them would start
