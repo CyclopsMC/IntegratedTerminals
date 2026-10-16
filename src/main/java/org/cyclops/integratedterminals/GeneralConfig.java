@@ -23,8 +23,10 @@ public class GeneralConfig extends DummyConfig {
     public static int terminalStoragePacketMaxInstances = 512;
     @ConfigurableProperty(category = "core", comment = "The maximum number of terminal storage crafting recipes that can be sent in a single packet. Reduce this when you have packet overflows.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static int terminalStoragePacketMaxRecipes = 128;
-    @ConfigurableProperty(category = "core", comment = "If crafting plans should default to the tree-based view. If false, it will default to the flattened view.", isCommandable = true, configLocation = ModConfig.Type.COMMON)
-    public static boolean terminalStorageDefaultToCraftingPlanTree = false;
+    @ConfigurableProperty(category = "core", comment = "If crafting plans should default to the graph-based view. If false, it will default to the flattened view.", isCommandable = true, configLocation = ModConfig.Type.COMMON)
+    public static boolean terminalStorageDefaultToCraftingPlanGraph = true;
+    @ConfigurableProperty(category = "core", comment = "If crafting plans can also be shown as a tree list, next to the graph and compact views.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
+    public static boolean terminalStorageCraftingPlanTreeListEnabled = false;
     @ConfigurableProperty(category = "core", comment = "The limit for the number of leaves in a tree-based crafting plan after which it won't be sent to the client anymore.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static int terminalStorageMaxTreePlanSize = 64;
     @ConfigurableProperty(category = "core", comment = "If storage terminals can be ender-upgraded with an eye of ender to gain a tab with the player's ender chest contents.", isCommandable = true, configLocation = ModConfig.Type.SERVER)

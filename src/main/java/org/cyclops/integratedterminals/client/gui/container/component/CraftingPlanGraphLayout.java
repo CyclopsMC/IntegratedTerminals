@@ -1,0 +1,301 @@
+package org.cyclops.integratedterminals.client.gui.container.component;
+
+import com.google.common.collect.Lists;
+
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Places the nodes of a tree in columns from left to right, with the root at the graph origin.
+ *
+ * This class is independent of Minecraft, so it can be unit-tested and ported easily.
+ *
+ * @param <N> The node type.
+ * @author rubensworks
+ */
+public class CraftingPlanGraphLayout<N extends CraftingPlanGraphLayout.INode<N>> {
+
+    public static final int NODE_SIZE = 26;
+    // The root is larger, so that it stands out as the goal of the plan
+    public static final int ROOT_NODE_SIZE = 34;
+    public static final int ROOT_GROWTH = ROOT_NODE_SIZE - NODE_SIZE;
+    public static final int COLUMN_GAP = 22;
+    public static final int ROW_GAP = 6;
+    public static final int COLUMN_PITCH = NODE_SIZE + COLUMN_GAP;
+    public static final int ROW_PITCH = NODE_SIZE + ROW_GAP;
+
+    private final List<Placement<N>> placements;
+    private final Map<N, Placement<N>> placementsByNode;
+    private final List<Segment<N>> segments;
+    private final Bounds bounds;
+
+    private CraftingPlanGraphLayout(List<Placement<N>> placements, List<Segment<N>> segments, Bounds bounds) {
+        this.placements = placements;
+        this.placementsByNode = new IdentityHashMap<>();
+        for (Placement<N> placement : placements) {
+            this.placementsByNode.put(placement.getNode(), placement);
+        }
+        this.segments = segments;
+        this.bounds = bounds;
+    }
+
+    /**
+     * @param root The root node.
+     * @param <N> The node type.
+     * @return The layout of all nodes that are not collapsed into one of their ancestors.
+     */
+    public static <N extends INode<N>> CraftingPlanGraphLayout<N> create(N root) {
+        List<Placement<N>> placements = Lists.newArrayList();
+        List<Segment<N>> segments = Lists.newArrayList();
+        Placement<N> rootPlacement = place(root, 0, new int[]{0}, placements, segments);
+
+        // Shift everything vertically so that the root ends up at the origin
+        int shiftY = -rootPlacement.getY();
+        int minX = 0;
+        int minY = Integer.MAX_VALUE;
+        int maxX = 0;
+        int maxY = Integer.MIN_VALUE;
+        for (Placement<N> placement : placements) {
+            placement.y += shiftY;
+            minY = Math.min(minY, placement.y);
+            maxX = Math.max(maxX, placement.x + placement.size);
+            maxY = Math.max(maxY, placement.y + placement.size);
+        }
+        for (Segment<N> segment : segments) {
+            segment.y1 += shiftY;
+            segment.y2 += shiftY;
+        }
+        return new CraftingPlanGraphLayout<>(Collections.unmodifiableList(placements),
+                Collections.unmodifiableList(segments), new Bounds(minX, minY, maxX, maxY));
+    }
+
+    private static <N extends INode<N>> Placement<N> place(N node, int depth, int[] nextRow,
+                                                           List<Placement<N>> placements, List<Segment<N>> segments) {
+        Placement<N> placement = depth == 0
+                ? new Placement<>(node, 0, ROOT_NODE_SIZE)
+                : new Placement<>(node, depth * COLUMN_PITCH + ROOT_GROWTH, NODE_SIZE);
+        placements.add(placement);
+
+        List<Placement<N>> childPlacements = Lists.newArrayList();
+        int hidden = 0;
+        for (N child : node.getChildren()) {
+            if (child.isVisible()) {
+                childPlacements.add(place(child, depth + 1, nextRow, placements, segments));
+            } else {
+                hidden += countNodes(child);
+            }
+        }
+        placement.hiddenDescendants = hidden;
+
+        if (childPlacements.isEmpty()) {
+            // Leaves (and collapsed nodes) take the next free row
+            placement.y = nextRow[0]++ * ROW_PITCH;
+        } else {
+            int firstY = childPlacements.get(0).y;
+            int lastY = childPlacements.get(childPlacements.size() - 1).y;
+            // Align the center of the parent with the center of its children
+            placement.y = (firstY + lastY) / 2 - (placement.size - NODE_SIZE) / 2;
+
+            // Elbow connectors: a stub out of the parent, and for each child a vertical part of the trunk and a stub into it.
+            // The trunk is split per child, so that the path to each child can be highlighted on its own.
+            int parentRight = placement.x + placement.size;
+            int trunkX = parentRight + COLUMN_GAP / 2;
+            int parentCenterY = placement.y + placement.size / 2;
+            List<N> children = Lists.newArrayList();
+            for (Placement<N> childPlacement : childPlacements) {
+                children.add(childPlacement.getNode());
+            }
+            segments.add(new Segment<>(parentRight, parentCenterY, trunkX, parentCenterY, children));
+            for (Placement<N> childPlacement : childPlacements) {
+                int childCenterY = childPlacement.y + childPlacement.size / 2;
+                List<N> child = Collections.singletonList(childPlacement.getNode());
+                if (childCenterY != parentCenterY) {
+                    segments.add(new Segment<>(trunkX, Math.min(parentCenterY, childCenterY), trunkX,
+                            Math.max(parentCenterY, childCenterY), child));
+                }
+                segments.add(new Segment<>(trunkX, childCenterY, childPlacement.x - 1, childCenterY, child));
+            }
+        }
+        return placement;
+    }
+
+    protected static <N extends INode<N>> int countNodes(N node) {
+        int count = 1;
+        for (N child : node.getChildren()) {
+            count += countNodes(child);
+        }
+        return count;
+    }
+
+    /**
+     * @return All visible nodes, in depth-first order, starting with the root.
+     */
+    public List<Placement<N>> getPlacements() {
+        return placements;
+    }
+
+    /**
+     * @return The line segments that connect the nodes.
+     */
+    public List<Segment<N>> getSegments() {
+        return segments;
+    }
+
+    public Bounds getBounds() {
+        return bounds;
+    }
+
+    /**
+     * @param node A node.
+     * @return The placement of the node, or null if it is not visible.
+     */
+    public Placement<N> getPlacement(N node) {
+        return placementsByNode.get(node);
+    }
+
+    /**
+     * A node in a tree that can be laid out.
+     * @param <N> The node type.
+     */
+    public static interface INode<N extends INode<N>> {
+        /**
+         * @return All children, including invisible ones.
+         */
+        public List<N> getChildren();
+
+        /**
+         * @return If this node is shown, otherwise it is collapsed into its parent.
+         */
+        public boolean isVisible();
+    }
+
+    /**
+     * The position of a node in graph space.
+     * @param <N> The node type.
+     */
+    public static class Placement<N> {
+        private final N node;
+        private final int x;
+        private final int size;
+        private int y;
+        private int hiddenDescendants;
+
+        public Placement(N node, int x, int size) {
+            this.node = node;
+            this.x = x;
+            this.size = size;
+        }
+
+        public N getNode() {
+            return node;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        /**
+         * @return The width and height of the node.
+         */
+        public int getSize() {
+            return size;
+        }
+
+        /**
+         * @return The number of descendants that are hidden because they are collapsed into this node.
+         */
+        public int getHiddenDescendants() {
+            return hiddenDescendants;
+        }
+    }
+
+    /**
+     * An axis-aligned line in graph space, from (x1, y1) to (x2, y2), both inclusive.
+     */
+    public static class Segment<N> {
+        private final int x1;
+        private int y1;
+        private final int x2;
+        private int y2;
+        private final List<N> targets;
+
+        public Segment(int x1, int y1, int x2, int y2, List<N> targets) {
+            this.x1 = x1;
+            this.y1 = y1;
+            this.x2 = x2;
+            this.y2 = y2;
+            this.targets = targets;
+        }
+
+        public int getX1() {
+            return x1;
+        }
+
+        public int getY1() {
+            return y1;
+        }
+
+        public int getX2() {
+            return x2;
+        }
+
+        public int getY2() {
+            return y2;
+        }
+
+        /**
+         * @return The child nodes this segment leads to.
+         */
+        public List<N> getTargets() {
+            return targets;
+        }
+    }
+
+    /**
+     * A rectangle in graph space, with exclusive maximum.
+     */
+    public static class Bounds {
+        private final int minX;
+        private final int minY;
+        private final int maxX;
+        private final int maxY;
+
+        public Bounds(int minX, int minY, int maxX, int maxY) {
+            this.minX = minX;
+            this.minY = minY;
+            this.maxX = maxX;
+            this.maxY = maxY;
+        }
+
+        public int getMinX() {
+            return minX;
+        }
+
+        public int getMinY() {
+            return minY;
+        }
+
+        public int getMaxX() {
+            return maxX;
+        }
+
+        public int getMaxY() {
+            return maxY;
+        }
+
+        public int getWidth() {
+            return maxX - minX;
+        }
+
+        public int getHeight() {
+            return maxY - minY;
+        }
+    }
+
+}

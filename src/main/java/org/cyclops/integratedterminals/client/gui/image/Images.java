@@ -42,6 +42,16 @@ public class Images {
     public static final Image BUTTON_MIDDLE_SCALE_MEDIUM = new Image(ICONS, 90, 36, 18, 18);
     public static final Image BUTTON_MIDDLE_SCALE_LARGE = new Image(ICONS, 108, 36, 18, 18);
 
+    public static final Image BUTTON_MIDDLE_CRAFTING_PLAN_LIST = new Image(ICONS, 0, 72, 18, 18);
+    public static final Image BUTTON_MIDDLE_CRAFTING_PLAN_GRAPH = new Image(ICONS, 18, 72, 18, 18);
+    public static final Image BUTTON_MIDDLE_CRAFTING_PLAN_FLAT = new Image(ICONS, 36, 72, 18, 18);
+
+    public static final Image BUTTON_GRAPH_ZOOM_IN = new Image(ICONS, 54, 72, 15, 15);
+    public static final Image BUTTON_GRAPH_ZOOM_OUT = new Image(ICONS, 72, 72, 15, 15);
+    public static final Image BUTTON_GRAPH_FIT = new Image(ICONS, 90, 72, 15, 15);
+    public static final Image BUTTON_GRAPH_FULLSCREEN = new Image(ICONS, 108, 72, 15, 15);
+    public static final Image BUTTON_GRAPH_FULLSCREEN_EXIT = new Image(ICONS, 126, 72, 15, 15);
+
     public static final Image BUTTON_SMALL_BACKGROUND_INACTIVE = new Image(ICONS, 0, 36, 8, 8);
 
     public static final Image BUTTON_SMALL_OVERLAY_CROSS = new Image(ICONS, 0, 44, 8, 8);

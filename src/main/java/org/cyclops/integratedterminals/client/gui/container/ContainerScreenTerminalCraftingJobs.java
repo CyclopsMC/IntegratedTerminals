@@ -17,7 +17,6 @@ import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
 import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
 import org.cyclops.cyclopscore.helper.GuiHelpers;
-import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.cyclopscore.helper.L10NHelpers;
 import org.cyclops.cyclopscore.helper.RenderHelpers;
 import org.cyclops.integrateddynamics.api.part.PartPos;
@@ -25,8 +24,8 @@ import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
+import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanProgressBar;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobs;
@@ -52,11 +51,6 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     private static final int COLUMN_INFO = 132;
     private static final int COLUMN_INFO_SPACING = 6;
     private static final int PROGRESS_BAR_OFFSET_Y = 8;
-    private static final int PROGRESS_BAR_HEIGHT = 8;
-
-    private static final int BORDER_COLOR = Helpers.RGBAToInt(0, 0, 0, 180);
-    private static final int TRACK_COLOR = Helpers.RGBAToInt(0, 0, 0, 100);
-    private static final int FILL_COLOR = TerminalCraftingJobStatus.CRAFTING.getColor() | 0xFF000000;
 
     private final Player player;
 
@@ -196,42 +190,13 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
                 && mouseX < OUTPUT_SLOT_X + 4 + GuiHelpers.SLOT_SIZE_INNER * outputs;
     }
 
-    /**
-     * Draw how far a job has come as a bar, with the time it has been running on the left,
-     * the completed percentage in the middle, and the estimated time until it is done on the right.
-     */
     protected void drawProgressBar(GuiGraphics guiGraphics, ITerminalCraftingPlanFlat<?> plan, int x, int y, int width) {
-        int progress = GuiCraftingPlan.getProgress(plan);
-        int filled = progress > 0 ? width * progress / 100 : 0;
-
-        // A sunken track, so that the numbers inside the bar stay readable over both the track and the fill
-        guiGraphics.fill(x, y, x + width, y + PROGRESS_BAR_HEIGHT, BORDER_COLOR);
-        guiGraphics.fill(x + 1, y + 1, x + width - 1, y + PROGRESS_BAR_HEIGHT - 1, TRACK_COLOR);
-        if (filled > 1) {
-            guiGraphics.fill(x + 1, y + 1, x + filled - 1, y + PROGRESS_BAR_HEIGHT - 1, FILL_COLOR);
-        }
-
-        long tickDuration = plan.getTickDuration();
-        if (tickDuration >= 0) {
-            drawProgressBarString(guiGraphics, GuiCraftingPlan.getDurationValue(tickDuration), x + 2, y);
-        }
-        if (progress >= 0) {
-            String progressString = L10NHelpers.localize("gui.integratedterminals.terminal_crafting_job.craftingplan.progress.short", progress);
-            drawProgressBarString(guiGraphics, progressString, x + (width - scaledWidth(progressString)) / 2, y);
-        }
-        if (plan.getStatus().isValid()) {
-            String remainingString = GuiCraftingPlan.getDurationValue(plan.getEstimatedTickDurationRemaining());
-            drawProgressBarString(guiGraphics, remainingString, x + width - 2 - scaledWidth(remainingString), y);
-        }
+        GuiCraftingPlanProgressBar.draw(guiGraphics, GuiCraftingPlan.getProgress(plan), plan.getTickDuration(),
+                plan.getEstimatedTickDurationRemaining(), plan.getStatus().isValid(), x, y, width);
     }
 
     protected int scaledWidth(String string) {
         return font.width(string) / 2;
-    }
-
-    protected void drawProgressBarString(GuiGraphics guiGraphics, String string, int x, int y) {
-        RenderHelpers.drawScaledString(guiGraphics.pose(), guiGraphics.bufferSource(), font, string,
-                x, y + 2, 0.5f, 16777215, true, Font.DisplayMode.NORMAL);
     }
 
     protected List<Component> getPlanTooltipLines(ITerminalCraftingPlanFlat<?> plan) {
