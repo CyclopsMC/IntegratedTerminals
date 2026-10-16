@@ -345,7 +345,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             entry.setQuantityInStorage(entry.getQuantityInStorage() + quantity);
         }
 
-        // Determine missing ingredients, which are already the quantities for all remaining crafts
+        // Determine missing ingredients
         for (List<IPrototypedIngredient<?, ?>> outputVariants : plan.getLastMissingIngredients()) {
             TerminalCraftingPlanFlatStatic.Entry entry = indexedEntries.get(outputVariants);
             long quantity = IndexedEntries.getQuantity(outputVariants);
