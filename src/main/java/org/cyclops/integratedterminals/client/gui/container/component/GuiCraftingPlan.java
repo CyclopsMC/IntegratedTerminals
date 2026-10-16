@@ -404,7 +404,7 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
         }
         elements.add(currentElement);
         if (craftingPlan.getStatus() == TerminalCraftingJobStatus.PENDING_INPUTS) {
-            // Add last missing ingredients, which are already the quantities for all remaining crafts
+            // Add last missing ingredients
             for (List<IPrototypedIngredient<?, ?>> lastMissingIngredient : craftingPlan.getLastMissingIngredients()) {
                 List<List<IPrototypedIngredient>> outputs = Collections.singletonList(Lists.newArrayList(lastMissingIngredient));
                 elements.add(currentElement.addChild(new Element(elementId++, indent + 1, outputs,
