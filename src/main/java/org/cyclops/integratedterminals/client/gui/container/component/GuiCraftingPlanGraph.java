@@ -173,7 +173,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         if (previous == null) {
             collapseToFit();
             this.camera.reset(layout.getBounds(), getInnerWidth(), getInnerHeight(),
-                    live ? CraftingPlanGraphCamera.DEFAULT_ZOOM_INDEX : CraftingPlanGraphCamera.INITIAL_MAX_ZOOM_INDEX);
+                    live ? CraftingPlanGraphCamera.DEFAULT_ZOOM : CraftingPlanGraphCamera.INITIAL_MAX_ZOOM);
         } else {
             refreshLayout();
             // Keep the camera, with the center of the view in place if the viewport was resized
@@ -696,7 +696,7 @@ public class GuiCraftingPlanGraph extends AbstractWidget implements IGuiCrafting
         }
 
         // Edges, where the paths to problems are drawn last so that they are not hidden by shared parts of the trunk
-        int thickness = camera.getZoom() >= 1.5F ? 2 : 1;
+        int thickness = Math.max(1, Math.round(camera.getZoom()));
         for (int severity = 0; severity <= 2; severity++) {
             for (CraftingPlanGraphLayout.Segment<GuiCraftingPlan.Element> segment : layout.getSegments()) {
                 if (getEdgeSeverity(segment) == severity) {
