@@ -24,7 +24,7 @@ public class GeneralConfig extends DummyConfig {
     @ConfigurableProperty(category = "core", comment = "The maximum number of terminal storage crafting recipes that can be sent in a single packet. Reduce this when you have packet overflows.", isCommandable = true, configLocation = ModConfig.Type.SERVER)
     public static int terminalStoragePacketMaxRecipes = 128;
     @ConfigurableProperty(category = "core", comment = "If crafting plans should default to the graph-based view. If false, it will default to the flattened view.", isCommandable = true, configLocation = ModConfig.Type.COMMON)
-    public static boolean terminalStorageDefaultToCraftingPlanTree = true;
+    public static boolean terminalStorageDefaultToCraftingPlanGraph = true;
     @ConfigurableProperty(category = "core", comment = "If crafting plans can also be shown as a tree list, next to the graph and compact views.", isCommandable = true, configLocation = ModConfig.Type.CLIENT)
     public static boolean terminalStorageCraftingPlanTreeListEnabled = false;
     @ConfigurableProperty(category = "core", comment = "The limit for the number of leaves in a tree-based crafting plan after which it won't be sent to the client anymore.", isCommandable = true, configLocation = ModConfig.Type.SERVER)

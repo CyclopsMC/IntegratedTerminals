@@ -58,7 +58,7 @@ public class GuiCraftingPlanToggler {
         if (this.craftingPlanDisplayMode == null) {
             this.craftingPlanDisplayMode = getDefaultDisplayMode(this.craftingPlanSupplier.get() != null,
                     this.craftingPlanFlatSupplier.get() != null, preferredDisplayMode,
-                    GeneralConfig.terminalStorageDefaultToCraftingPlanTree, isTreeListEnabled());
+                    GeneralConfig.terminalStorageDefaultToCraftingPlanGraph, isTreeListEnabled());
         }
 
         // Reset display mode if both plan views became empty
