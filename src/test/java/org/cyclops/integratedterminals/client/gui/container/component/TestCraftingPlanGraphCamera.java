@@ -39,13 +39,13 @@ public class TestCraftingPlanGraphCamera {
         double graphY = camera.toGraphY(60);
 
         assertTrue(camera.zoomAt(100, 60, 1));
-        assertEquals(1.5F, camera.getZoom(), EPSILON);
+        assertEquals(1.2F, camera.getZoom(), EPSILON);
         assertEquals(100, camera.toViewX(graphX), EPSILON);
         assertEquals(60, camera.toViewY(graphY), EPSILON);
 
         assertTrue(camera.zoomAt(100, 60, -1));
         assertTrue(camera.zoomAt(100, 60, -1));
-        assertEquals(0.75F, camera.getZoom(), EPSILON);
+        assertEquals(1F / 1.2F, camera.getZoom(), EPSILON);
         assertEquals(100, camera.toViewX(graphX), EPSILON);
         assertEquals(60, camera.toViewY(graphY), EPSILON);
     }
@@ -53,18 +53,69 @@ public class TestCraftingPlanGraphCamera {
     @Test
     public void testZoomIsClamped() {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             camera.zoomAt(0, 0, 1);
         }
-        assertEquals(2F, camera.getZoom(), EPSILON);
+        assertEquals(CraftingPlanGraphCamera.MAX_ZOOM, camera.getZoom(), EPSILON);
         assertFalse(camera.canZoomIn());
         assertFalse(camera.zoomAt(0, 0, 1));
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             camera.zoomAt(0, 0, -1);
         }
-        assertEquals(0.5F, camera.getZoom(), EPSILON);
+        assertEquals(CraftingPlanGraphCamera.MIN_ZOOM, camera.getZoom(), EPSILON);
         assertFalse(camera.canZoomOut());
         assertFalse(camera.zoomAt(0, 0, -1));
+    }
+
+    @Test
+    public void testZoomStopsAtDefault() {
+        CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
+        // Fits at 0.92
+        camera.fit(new CraftingPlanGraphLayout.Bounds(0, 0, 200, 50), 200, 300);
+        assertTrue(camera.zoomAt(0, 0, 1));
+        assertEquals(1F, camera.getZoom(), EPSILON);
+        assertTrue(camera.zoomAt(0, 0, 1));
+        assertEquals(1.2F, camera.getZoom(), EPSILON);
+    }
+
+    @Test
+    public void testZoomSnapsToDefault() {
+        CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
+        for (int i = 0; i < 20; i++) {
+            camera.zoomAt(0, 0, 1);
+        }
+        // Zooming out from the maximum does not hit the default level exactly, so it snaps to it
+        while (camera.getZoom() > 1.1F) {
+            camera.zoomAt(0, 0, -1);
+        }
+        assertEquals(1F, camera.getZoom(), EPSILON);
+    }
+
+    @Test
+    public void testMinZoomDependsOnGraphSize() {
+        CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
+
+        // Small graphs can be zoomed out to the default minimum
+        camera.updateMinZoom(new CraftingPlanGraphLayout.Bounds(0, 0, 100, 100), 200, 200);
+        assertEquals(CraftingPlanGraphCamera.MIN_ZOOM, camera.getMinZoom(), EPSILON);
+
+        // Larger graphs can be zoomed out until they fit
+        camera.updateMinZoom(new CraftingPlanGraphLayout.Bounds(0, 0, 600, 100), 200, 200);
+        assertEquals(184F / 600, camera.getMinZoom(), EPSILON);
+
+        // But not until nodes are too small to recognize
+        camera.updateMinZoom(new CraftingPlanGraphLayout.Bounds(0, 0, 10000, 100), 200, 200);
+        assertEquals(CraftingPlanGraphCamera.MIN_ZOOM_LARGE_GRAPH, camera.getMinZoom(), EPSILON);
+    }
+
+    @Test
+    public void testClampUpdatesMinZoom() {
+        CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
+        camera.clamp(new CraftingPlanGraphLayout.Bounds(0, 0, 600, 100), 200, 200);
+        for (int i = 0; i < 20; i++) {
+            camera.zoomAt(0, 0, -1);
+        }
+        assertEquals(184F / 600, camera.getZoom(), EPSILON);
     }
 
     @Test
@@ -72,19 +123,27 @@ public class TestCraftingPlanGraphCamera {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -16, 74, 42);
         camera.fit(bounds, 238, 178);
-        assertEquals(2F, camera.getZoom(), EPSILON);
+        assertEquals(162F / 58, camera.getZoom(), EPSILON);
         // Centered
         assertEquals(238 - camera.toViewX(74), camera.toViewX(0), EPSILON);
         assertEquals(178 - camera.toViewY(42), camera.toViewY(-16), EPSILON);
     }
 
     @Test
-    public void testFitPicksLargestFittingLevel() {
+    public void testFitTinyGraphIsLimited() {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
-        // Fits at 0.75 (150 + 16 <= 200), not at 1 (200 + 16 > 200)
+        camera.fit(new CraftingPlanGraphLayout.Bounds(0, 0, 26, 26), 400, 300);
+        assertEquals(CraftingPlanGraphCamera.MAX_ZOOM, camera.getZoom(), EPSILON);
+    }
+
+    @Test
+    public void testFitZoomsToTheGraph() {
+        CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
+        // 184 / 200 = 0.92 horizontally, which is the limit
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, 0, 200, 50);
         camera.fit(bounds, 200, 300);
-        assertEquals(0.75F, camera.getZoom(), EPSILON);
+        assertEquals(0.92F, camera.getZoom(), EPSILON);
+        assertTrue(CraftingPlanGraphCamera.fits(bounds, 200, 300, camera.getZoom()));
     }
 
     @Test
@@ -92,7 +151,7 @@ public class TestCraftingPlanGraphCamera {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -1000, 1000, 1000);
         camera.fit(bounds, 200, 100);
-        assertEquals(0.5F, camera.getZoom(), EPSILON);
+        assertEquals(CraftingPlanGraphCamera.MIN_ZOOM_LARGE_GRAPH, camera.getZoom(), EPSILON);
         assertEquals(MARGIN, camera.toViewX(0), EPSILON);
         // Root center is vertically centered
         assertEquals(50, camera.toViewY(CraftingPlanGraphLayout.ROOT_NODE_SIZE / 2D), EPSILON);
@@ -103,7 +162,7 @@ public class TestCraftingPlanGraphCamera {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -16, 74, 42);
         camera.reset(bounds, 238, 178);
-        // It would fit at 2, but the initial view is limited to 1.5
+        // It would fit at 2.79, but the initial view is limited to 1.5
         assertEquals(1.5F, camera.getZoom(), EPSILON);
         assertEquals(238 - camera.toViewX(74), camera.toViewX(0), EPSILON);
         assertEquals(178 - camera.toViewY(42), camera.toViewY(-16), EPSILON);
@@ -113,7 +172,7 @@ public class TestCraftingPlanGraphCamera {
     public void testResetWithCustomLimit() {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -16, 74, 42);
-        camera.reset(bounds, 238, 178, CraftingPlanGraphCamera.DEFAULT_ZOOM_INDEX);
+        camera.reset(bounds, 238, 178, CraftingPlanGraphCamera.DEFAULT_ZOOM);
         assertEquals(1F, camera.getZoom(), EPSILON);
     }
 
@@ -122,7 +181,7 @@ public class TestCraftingPlanGraphCamera {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -100, 170, 100);
         camera.reset(bounds, 200, 200);
-        assertEquals(0.75F, camera.getZoom(), EPSILON);
+        assertEquals(0.92F, camera.getZoom(), EPSILON);
         assertEquals(200 - camera.toViewX(170), camera.toViewX(0), EPSILON);
     }
 
@@ -131,7 +190,7 @@ public class TestCraftingPlanGraphCamera {
         CraftingPlanGraphCamera camera = new CraftingPlanGraphCamera();
         CraftingPlanGraphLayout.Bounds bounds = new CraftingPlanGraphLayout.Bounds(0, -1000, 1000, 1000);
         camera.reset(bounds, 200, 100);
-        assertEquals(0.5F, camera.getZoom(), EPSILON);
+        assertEquals(CraftingPlanGraphCamera.MIN_ZOOM_LARGE_GRAPH, camera.getZoom(), EPSILON);
         assertEquals(MARGIN, camera.toViewX(0), EPSILON);
     }
 
@@ -177,7 +236,7 @@ public class TestCraftingPlanGraphCamera {
         copy.copyFrom(camera);
         assertEquals(camera.getOriginX(), copy.getOriginX(), EPSILON);
         assertEquals(camera.getOriginY(), copy.getOriginY(), EPSILON);
-        assertEquals(camera.getZoomIndex(), copy.getZoomIndex());
+        assertEquals(camera.getZoom(), copy.getZoom(), EPSILON);
     }
 
 }
