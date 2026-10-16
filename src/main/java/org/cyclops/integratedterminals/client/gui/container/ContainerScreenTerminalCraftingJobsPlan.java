@@ -129,8 +129,7 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenTerm
         }
         // Finished jobs are removed from the network, so keep showing the result instead of an empty job.
         // Only do this if everything was crafted, as the job may also have been cancelled elsewhere.
-        // The server does not always send a last plan with nothing left to craft before removing the job,
-        // in which case the empty message is shown as before.
+        // The server does not always send a last plan with nothing left to craft before removing the job.
         if (this.lastCraftingPlan != null && this.lastCraftingPlan.getCraftingQuantity() == 0) {
             if (this.completedCraftingPlan == null) {
                 this.completedCraftingPlan = TerminalCraftingPlanStatic.asCompleted(this.lastCraftingPlan, this.knownOutputs);

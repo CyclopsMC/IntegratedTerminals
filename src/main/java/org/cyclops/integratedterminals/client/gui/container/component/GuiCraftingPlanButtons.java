@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonImage;
 import org.cyclops.cyclopscore.client.gui.image.IImage;
+import org.cyclops.cyclopscore.helper.Helpers;
 import org.cyclops.integratedterminals.client.gui.image.Images;
 
 import java.util.List;
@@ -92,9 +93,9 @@ public class GuiCraftingPlanButtons {
      */
     public static class ButtonView extends ButtonImage {
 
-        private static final int COLOR_SELECTED_OUTLINE = 0xFFFFFFFF;
-        private static final int COLOR_UNSELECTED_FADE = 0x908B8B8B;
-        private static final int COLOR_HOVER = 0x30FFFFFF;
+        private static final int COLOR_SELECTED_OUTLINE = Helpers.RGBAToInt(255, 255, 255, 255);
+        private static final int COLOR_UNSELECTED_FADE = Helpers.RGBAToInt(139, 139, 139, 144);
+        private static final int COLOR_HOVER = Helpers.RGBAToInt(255, 255, 255, 48);
 
         private final boolean selected;
 

@@ -45,7 +45,7 @@ public class Images {
     public static final Image BUTTON_MIDDLE_CRAFTING_PLAN_LIST = new Image(ICONS, 0, 72, 18, 18);
     public static final Image BUTTON_MIDDLE_CRAFTING_PLAN_GRAPH = new Image(ICONS, 18, 72, 18, 18);
     public static final Image BUTTON_MIDDLE_CRAFTING_PLAN_FLAT = new Image(ICONS, 36, 72, 18, 18);
-    // These are drawn on 15x15 buttons, so only the top-left 15x15 of each cell is used
+
     public static final Image BUTTON_GRAPH_ZOOM_IN = new Image(ICONS, 54, 72, 15, 15);
     public static final Image BUTTON_GRAPH_ZOOM_OUT = new Image(ICONS, 72, 72, 15, 15);
     public static final Image BUTTON_GRAPH_FIT = new Image(ICONS, 90, 72, 15, 15);
