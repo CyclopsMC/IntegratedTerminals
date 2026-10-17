@@ -1,8 +1,24 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.11.0"></a>
+## [26.1.2-1.11.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.10.0...26.1.2-1.11.0) - 2026-10-17 09:12:40
+
+
+### Added
+* Add interactive graph-based view for crafting plans (#233)
+
+A graph is shown in the crafting plan preview and in the plan of running
+jobs, next to the existing tree list and compact views, and replaces the tree
+list as the default tree-based view. It supports zooming, fitting the plan
+to the view, collapsing nodes, fullscreen mode, and supports live updates.
+
+### Fixed
+* Show the ingredients taken from storage in crafting plan previews (#234)
+* Fix missing ingredients of running jobs being multiplied (#235)
+
 <a name="26.1.2-1.10.0"></a>
-## [26.1.2-1.10.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.9.1...26.1.2-1.10.0) - 2026-09-12 09:50:13
+## [26.1.2-1.10.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.9.1...26.1.2-1.10.0) - 2026-09-12 09:50:13 +0200
 
 
 ### Added
