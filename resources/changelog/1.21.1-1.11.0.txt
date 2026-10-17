@@ -1,0 +1,14 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.30.0 or higher.
+
+Additions:
+* Add interactive graph-based view for crafting plans (#233)
+
+A graph is shown in the crafting plan preview and in the plan of running
+jobs, next to the existing tree list and compact views, and replaces the tree
+list as the default tree-based view. It supports zooming, fitting the plan
+to the view, collapsing nodes, fullscreen mode, and supports live updates.
+
+Fixes:
+* Show the ingredients taken from storage in crafting plan previews (#234)
+* Fix missing ingredients of running jobs being multiplied (#235)
