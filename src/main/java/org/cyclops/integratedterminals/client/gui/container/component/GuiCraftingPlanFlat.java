@@ -20,11 +20,9 @@ import org.cyclops.cyclopscore.client.gui.component.WidgetScrollBar;
 import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integratedterminals.Capabilities;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
-import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingJobStatus;
 import org.cyclops.integratedterminals.client.gui.container.ContainerScreenTerminalStorage;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -39,7 +37,7 @@ import java.util.List;
  *
  * @author rubensworks
  */
-public class GuiCraftingPlanFlat extends AbstractWidget {
+public class GuiCraftingPlanFlat extends AbstractWidget implements IGuiCraftingPlanView {
 
     private static final int COLUMNS = 2;
     private static final int COLUMN_PADDING = 2;
@@ -57,14 +55,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     private final List<GuiCraftingPlanFlat.Element> visibleElements;
     private final boolean valid;
     private final WidgetScrollBar scrollBar;
-    private final String label;
-    private final long tickDuration;
-    private final long estimatedTickDuration;
-    private final boolean estimatedTickDurationRemaining;
-    private final boolean showEstimatedTickDuration;
-    private final int channel;
-    @Nullable
-    private final String initiatorName;
+    private final GuiCraftingPlanHeader header;
 
     private int firstRow;
 
@@ -78,16 +69,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
         this.valid = craftingPlan.getStatus().isValid();
         this.scrollBar = new WidgetScrollBar(guiLeft + x + 227, guiTop + y + 0, ELEMENT_HEIGHT_MAX, Component.translatable("gui.cyclopscore.scrollbar"), this::setFirstRow, visibleRows);
         refreshList();
-        this.label = IModHelpers.get().getL10NHelpers().localize(craftingPlan.getUnlocalizedLabel());
-        this.tickDuration = craftingPlan.getTickDuration();
-        // Jobs that have not started yet can only show a total estimation, running jobs show what is left of it
-        this.estimatedTickDurationRemaining = craftingPlan.getStatus() != TerminalCraftingJobStatus.UNSTARTED;
-        this.estimatedTickDuration = this.estimatedTickDurationRemaining
-                ? craftingPlan.getEstimatedTickDurationRemaining() : craftingPlan.getEstimatedTickDurationTotal();
-        // Jobs that can not be crafted have nothing to estimate, other jobs show a placeholder until they are measured
-        this.showEstimatedTickDuration = craftingPlan.getStatus().isValid();
-        this.channel = craftingPlan.getChannel();
-        this.initiatorName = craftingPlan.getInitiatorName();
+        this.header = GuiCraftingPlanHeader.forPlan(craftingPlan);
     }
 
     public void inheritVisualizationState(GuiCraftingPlanFlat guiCraftingPlan) {
@@ -210,33 +192,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
     }
 
     public void drawGuiContainerBackgroundLayer(GuiGraphicsExtractor guiGraphics, float partialTicks, int mouseX, int mouseY) {
-        Font fontRenderer = Minecraft.getInstance().font;
-
-        // Draw plan label
-        guiGraphics.centeredText(Minecraft.getInstance().font, this.label, guiLeft + getX() + GuiCraftingPlan.ELEMENT_WIDTH / 2 + 8, guiTop + getY() - 13, ARGB.opaque(16777215));
-
-        // Draw duration
-        if (tickDuration >= 0) {
-            String durationString = getDurationString(tickDuration);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, durationString, guiLeft + getX() + 200, guiTop + getY() - 14, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
-        }
-
-        // Draw channel
-        if (channel != -1) {
-            String channelString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.crafting_channel", channel);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, channelString, guiLeft + getX() + 200, guiTop + getY() - 8, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
-        }
-
-        // Draw initiator
-        if (initiatorName != null) {
-            String initiatorString = IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.owner", initiatorName);
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, initiatorString, guiLeft + getX() - 4, guiTop + getY() - 8, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
-        }
-
-        // Draw estimated duration
-        if (showEstimatedTickDuration) {
-            IModHelpers.get().getRenderHelpers().drawScaledString(guiGraphics, fontRenderer, getEstimatedDurationString(), guiLeft + getX() - 4, guiTop + getY() - 14, 0.5f, ARGB.opaque(16777215), true, Font.DisplayMode.NORMAL);
-        }
+        header.drawBackground(guiGraphics, guiLeft + getX(), guiTop + getY(), GuiCraftingPlan.VIEW_WIDTH);
 
         drawGuiContainerLayer(guiGraphics, guiLeft, guiTop, ContainerScreenTerminalStorage.DrawLayer.BACKGROUND, partialTicks, mouseX, mouseY);
         scrollBar.extractWidgetRenderState(guiGraphics, mouseX, mouseY, partialTicks);
@@ -244,16 +200,7 @@ public class GuiCraftingPlanFlat extends AbstractWidget {
 
     public void drawGuiContainerForegroundLayer(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         drawGuiContainerLayer(guiGraphics, 0, 0, ContainerScreenTerminalStorage.DrawLayer.FOREGROUND, 0, mouseX, mouseY);
-        if (showEstimatedTickDuration) {
-            GuiCraftingPlan.drawUnknownDurationTooltip(this.parentGui, guiGraphics, getEstimatedDurationString(),
-                    estimatedTickDuration, getX() - 4, getY() - 14, mouseX, mouseY);
-        }
-    }
-
-    protected String getEstimatedDurationString() {
-        return GuiCraftingPlan.getDurationString(estimatedTickDurationRemaining
-                ? "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.remaining"
-                : "gui.integratedterminals.terminal_crafting_job.craftingplan.duration.estimate", estimatedTickDuration);
+        header.drawForeground(this.parentGui, guiGraphics, getX(), getY(), mouseX, mouseY);
     }
 
     @Override

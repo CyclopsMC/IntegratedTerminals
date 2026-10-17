@@ -40,6 +40,8 @@ import org.cyclops.integratedterminals.gametest.GameTestPendingCraftingJobOutput
 import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingJobFinishedEvent;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingOptionIntegratedTerminals;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingOptionMachines;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingPlanMissing;
+import org.cyclops.integratedterminals.gametest.GameTestTerminalCraftingPlanPreview;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageChannels;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageClickPredictions;
 import org.cyclops.integratedterminals.gametest.GameTestTerminalStorageEnderChest;
@@ -163,6 +165,8 @@ public class IntegratedTerminals extends ModBaseNeoForge<IntegratedTerminals> {
                 GameTestTerminalCraftingJobFinishedEvent.class,
                 GameTestTerminalCraftingOptionIntegratedTerminals.class,
                 GameTestTerminalCraftingOptionMachines.class,
+                GameTestTerminalCraftingPlanMissing.class,
+                GameTestTerminalCraftingPlanPreview.class,
                 GameTestTerminalStorageChannels.class,
                 GameTestTerminalStorageClickPredictions.class,
                 GameTestTerminalStorageEnderChest.class,

@@ -313,22 +313,24 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             long quantity = IndexedEntries.getQuantity(outputs);
 
             if (plan.getStatus() == TerminalCraftingJobStatus.ERROR
-                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID
-                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID_INPUTS) {
+                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID) {
                 if (plan.getDependencies().isEmpty()) {
                     entry.setQuantityMissing(entry.getQuantityMissing() + quantity);
                 } else {
                     entry.setQuantityToCraft(entry.getQuantityToCraft() + quantity);
                 }
             }
+            // Inputs that the target refused are inserted again later
             if (plan.getStatus() == TerminalCraftingJobStatus.QUEUEING
                     || plan.getStatus() == TerminalCraftingJobStatus.PENDING_DEPENDENCIES
                     || plan.getStatus() == TerminalCraftingJobStatus.PENDING_INPUTS
+                    || plan.getStatus() == TerminalCraftingJobStatus.INVALID_INPUTS
                     || plan.getStatus() == TerminalCraftingJobStatus.UNSTARTED) {
                 entry.setQuantityToCraft(entry.getQuantityToCraft() + quantity);
             }
+            // Finished jobs with nothing left to craft are done, not crafting
             if (plan.getStatus() == TerminalCraftingJobStatus.CRAFTING ||
-                    plan.getStatus() == TerminalCraftingJobStatus.FINISHED) {
+                    (plan.getStatus() == TerminalCraftingJobStatus.FINISHED && plan.getCraftingQuantity() > 0)) {
                 entry.setQuantityCrafting(entry.getQuantityCrafting() + quantity);
             }
         }
@@ -345,7 +347,7 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
         for (List<IPrototypedIngredient<?, ?>> outputVariants : plan.getLastMissingIngredients()) {
             TerminalCraftingPlanFlatStatic.Entry entry = indexedEntries.get(outputVariants);
             long quantity = IndexedEntries.getQuantity(outputVariants);
-            entry.setQuantityMissing(entry.getQuantityMissing() + quantity * plan.getCraftingQuantity());
+            entry.setQuantityMissing(entry.getQuantityMissing() + quantity);
         }
 
         // Recurse into dependencies
@@ -502,6 +504,36 @@ public class TerminalCraftingPlanStatic<I> implements ITerminalCraftingPlan<I> {
             plan.unlocalizedLabelOverride = unlocalizedLabelOverride;
         }
         return plan;
+    }
+
+    /**
+     * @param craftingPlan A crafting plan.
+     * @param <I> The plan identifier type.
+     * @return A copy of the plan in which the plan and all of its dependencies are finished,
+     *         with nothing left to craft and no ingredients left in their buffers.
+     */
+    public static <I> TerminalCraftingPlanStatic<I> asCompleted(ITerminalCraftingPlan<I> craftingPlan) {
+        return asCompleted(craftingPlan, Collections.emptyMap());
+    }
+
+    /**
+     * @param craftingPlan A running crafting plan.
+     * @param knownOutputs Outputs per job id, used instead of the remaining outputs, which are empty once crafted.
+     * @param <I> The id type.
+     * @return A copy of the plan in which everything has been crafted.
+     */
+    public static <I> TerminalCraftingPlanStatic<I> asCompleted(ITerminalCraftingPlan<I> craftingPlan,
+                                                                Map<I, List<IPrototypedIngredient<?, ?>>> knownOutputs) {
+        List<ITerminalCraftingPlan<I>> dependencies = Lists.newArrayList();
+        for (ITerminalCraftingPlan<I> dependency : craftingPlan.getDependencies()) {
+            dependencies.add(asCompleted(dependency, knownOutputs));
+        }
+        return new TerminalCraftingPlanStatic<>(craftingPlan.getId(), dependencies,
+                knownOutputs.getOrDefault(craftingPlan.getId(), craftingPlan.getOutputs()),
+                TerminalCraftingJobStatus.FINISHED, 0,
+                Math.max(craftingPlan.getCraftingQuantityTotal(), craftingPlan.getCraftingQuantity()),
+                Collections.emptyList(), Collections.emptyList(), Label.RUNNING, craftingPlan.getTickDuration(),
+                craftingPlan.getEstimatedTickDurationTotal(), 0, craftingPlan.getChannel(), craftingPlan.getInitiatorName());
     }
 
     public static enum Label {
