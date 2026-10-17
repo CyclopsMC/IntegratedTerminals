@@ -64,6 +64,7 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
 
     @Override
     public void init() {
+        clearWidgets();
         super.init();
 
         scrollBar = new WidgetScrollBar(leftPos + 236, topPos + 18, 178,

@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.11.1"></a>
+## [1.21.1-1.11.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.11.0...1.21.1-1.11.1) - 2026-10-17 10:16:28
+
+
+### Fixed
+* Fix widgets piling up in the crafting job terminal (#238)
+
 <a name="1.21.1-1.11.0"></a>
-## [1.21.1-1.11.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.10.0...1.21.1-1.11.0) - 2026-10-17 08:52:01
+## [1.21.1-1.11.0](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.10.0...1.21.1-1.11.0) - 2026-10-17 08:52:01 +0200
 
 
 ### Added
