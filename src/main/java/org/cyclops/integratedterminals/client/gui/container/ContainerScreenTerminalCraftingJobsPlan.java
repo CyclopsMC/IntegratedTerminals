@@ -1,40 +1,44 @@
 package org.cyclops.integratedterminals.client.gui.container;
 
-import net.minecraft.ChatFormatting;
+import com.google.common.collect.Maps;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
+import org.cyclops.commoncapabilities.api.ingredient.IIngredientMatcher;
+import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
+import org.cyclops.commoncapabilities.api.ingredient.PrototypedIngredient;
 import org.cyclops.cyclopscore.client.gui.component.button.ButtonText;
-import org.cyclops.cyclopscore.client.gui.container.ContainerScreenExtended;
-import org.cyclops.cyclopscore.helper.IModHelpers;
 import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integratedterminals.IntegratedTerminals;
-import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlanFlat;
+import org.cyclops.integratedterminals.api.terminalstorage.crafting.TerminalCraftingPlanStatic;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlan;
 import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanFlat;
-import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanToggler;
+import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanGraph;
+import org.cyclops.integratedterminals.client.gui.container.component.GuiCraftingPlanProgressBar;
+import org.cyclops.integratedterminals.client.gui.container.component.IGuiCraftingPlanView;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlan;
 import org.cyclops.integratedterminals.network.packet.CancelCraftingJobPacket;
 import org.cyclops.integratedterminals.network.packet.OpenCraftingJobsGuiPacket;
-import com.mojang.blaze3d.platform.InputConstants;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A gui for visualizing a live crafting plan.
  * @author rubensworks
  */
-public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExtended<ContainerTerminalCraftingJobsPlan> {
+public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenTerminalCraftingPlanBase<ContainerTerminalCraftingJobsPlan> {
 
-    private final Player player;
-    private GuiCraftingPlanToggler guiCraftingPlanToggler;
+    private static final int PROGRESS_BAR_SPACING = 6;
 
+    @Nullable
+    private ButtonText cancelButton;
+
+    // The last view of each type is kept, so that its visualization state can be inherited after an update
     @Nullable
     private GuiCraftingPlan guiCraftingPlan;
     @Nullable
@@ -43,92 +47,62 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
     private boolean craftingPlanInitialized = false;
     private boolean craftingPlanFlatInitialized = false;
 
+    @Nullable
+    private ITerminalCraftingPlan lastCraftingPlan;
+    @Nullable
+    private ITerminalCraftingPlan completedCraftingPlan;
+    @Nullable
+    private ITerminalCraftingPlanFlat completedCraftingPlanFlat;
+    // Outputs are only what is left to craft, so the last non-empty outputs per job id are kept for the completed plan
+    private final Map<Object, List<IPrototypedIngredient<?, ?>>> knownOutputs = Maps.newHashMap();
+
     public ContainerScreenTerminalCraftingJobsPlan(ContainerTerminalCraftingJobsPlan container, Inventory inventory, Component title) {
         super(container, inventory, title);
-
-        this.player = inventory.player;
-        this.guiCraftingPlanToggler = new GuiCraftingPlanToggler(
-                () -> this.getMenu().getCraftingPlan().orElse(null),
-                () -> this.getMenu().getCraftingPlanFlat().orElse(null),
-                () -> {
-                    GuiCraftingPlan previousGuiCraftingPlan = this.guiCraftingPlan;
-                    this.guiCraftingPlan = new GuiCraftingPlan(this, this.getMenu().getCraftingPlan().get(), leftPos, topPos, 9, 18, 10);
-                    if (previousGuiCraftingPlan != null) {
-                        this.guiCraftingPlan.inheritVisualizationState(previousGuiCraftingPlan);
-                    }
-                    addRenderableWidget(this.guiCraftingPlan);
-                    this.guiCraftingPlanFlat = null;
-
-                    if (this.getMenu().getCraftingPlanFlat().isPresent()) {
-                        addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 80, 20,
-                                Component.translatable("gui.integratedterminals.craftingplan.view.flat"),
-                                Component.translatable("gui.integratedterminals.craftingplan.view.flat").withStyle(ChatFormatting.ITALIC),
-                                (b) -> {
-                                    this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(GuiCraftingPlanToggler.CraftingPlanDisplayMode.FLAT);
-                                    this.init();
-                                },
-                                true));
-                    }
-                },
-                () -> {
-                    GuiCraftingPlanFlat previousGuiCraftingPlan = this.guiCraftingPlanFlat;
-                    this.guiCraftingPlanFlat = new GuiCraftingPlanFlat(this, this.getMenu().getCraftingPlanFlat().get(), leftPos, topPos, 9, 18, 10);
-                    if (previousGuiCraftingPlan != null) {
-                        this.guiCraftingPlanFlat.inheritVisualizationState(previousGuiCraftingPlan);
-                    }
-                    addRenderableWidget(this.guiCraftingPlanFlat);
-                    this.guiCraftingPlan = null;
-
-                    if (this.getMenu().getCraftingPlan().isPresent()) {
-                        addRenderableWidget(new ButtonText(leftPos + 8, topPos + 198, 80, 20,
-                                Component.translatable("gui.integratedterminals.craftingplan.view.tree"),
-                                Component.translatable("gui.integratedterminals.craftingplan.view.tree").withStyle(ChatFormatting.ITALIC),
-                                (b) -> {
-                                    this.guiCraftingPlanToggler.setCraftingPlanDisplayMode(GuiCraftingPlanToggler.CraftingPlanDisplayMode.TREE);
-                                    this.init();
-                                },
-                                true));
-                    }
-                },
-                () -> {
-                    this.guiCraftingPlan = null;
-                    this.guiCraftingPlanFlat = null;
-                }
-        );
     }
 
     @Override
-    protected Identifier constructGuiTexture() {
-        return Identifier.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan.png");
+    protected IGuiCraftingPlanView createTreeView() {
+        GuiCraftingPlan previous = this.guiCraftingPlan;
+        this.guiCraftingPlan = new GuiCraftingPlan(this, getCraftingPlan(), leftPos, topPos, 9, 18, 10);
+        if (previous != null) {
+            this.guiCraftingPlan.inheritVisualizationState(previous);
+        }
+        return this.guiCraftingPlan;
     }
 
     @Override
-    public Identifier getGuiTexture() {
-        return this.guiCraftingPlanToggler.getCraftingPlanDisplayMode() == GuiCraftingPlanToggler.CraftingPlanDisplayMode.FLAT ? Identifier.fromNamespaceAndPath(Reference.MOD_ID, "textures/gui/crafting_plan_flat.png") : super.getGuiTexture();
+    protected IGuiCraftingPlanView createFlatView() {
+        GuiCraftingPlanFlat previous = this.guiCraftingPlanFlat;
+        this.guiCraftingPlanFlat = new GuiCraftingPlanFlat(this, getCraftingPlanFlat(), leftPos, topPos, 9, 18, 10);
+        if (previous != null) {
+            this.guiCraftingPlanFlat.inheritVisualizationState(previous);
+        }
+        return this.guiCraftingPlanFlat;
     }
 
     @Override
-    public int getBaseXSize() {
-        return 256;
+    protected boolean isLive() {
+        return true;
     }
 
     @Override
-    public int getBaseYSize() {
-        return 222;
+    protected String getEmptyMessage() {
+        return "gui.integratedterminals.terminal_crafting_job.craftingplan.empty";
+    }
+
+    @Override
+    protected void onEscape() {
+        returnToOverview();
     }
 
     @Override
     public void init() {
         super.init();
+        this.cancelButton = null;
 
-        // Reset states
-        this.renderables.clear();
-        this.children().clear();
-
-        this.guiCraftingPlanToggler.init();
-
-        if (this.guiCraftingPlan != null || this.guiCraftingPlanFlat != null) {
-            addRenderableWidget(new ButtonText(leftPos + 221 + 10 - 100, topPos + 198, 100, 20,
+        // Plans that are too large are only sent in their flattened form
+        if (this.activeView != null && (getMenu().getCraftingPlan().isPresent() || getMenu().getCraftingPlanFlat().isPresent())) {
+            addRenderableWidget(this.cancelButton = new ButtonText(leftPos + imageWidth - 25 - 100, topPos + imageHeight - 24, 100, 20,
                     Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     Component.translatable("gui.integratedterminals.terminal_crafting_job.craftingplan.cancel"),
                     (b) -> cancelCraftingJob(),
@@ -137,14 +111,112 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
         }
     }
 
+    /**
+     * @return The plan of the running job, or the completed version of its last plan once it has finished.
+     */
+    @Nullable
     @Override
-    public boolean keyPressed(KeyEvent evt) {
-        if (evt.key() == InputConstants.KEY_ESCAPE) {
-            returnToOverview();
-            return true;
-        } else {
-            return super.keyPressed(evt);
+    protected ITerminalCraftingPlan getCraftingPlan() {
+        if (getMenu().getCraftingPlan().isPresent()) {
+            ITerminalCraftingPlan craftingPlan = getMenu().getCraftingPlan().get();
+            if (craftingPlan != this.lastCraftingPlan) {
+                this.lastCraftingPlan = craftingPlan;
+                rememberOutputs(craftingPlan);
+            }
+            this.completedCraftingPlan = null;
+            this.completedCraftingPlanFlat = null;
+            return this.lastCraftingPlan;
         }
+        // Finished jobs are removed from the network, so keep showing the result instead of an empty job.
+        // Only do this if everything was crafted, as the job may also have been cancelled elsewhere.
+        // The server does not always send a last plan with nothing left to craft before removing the job.
+        if (this.lastCraftingPlan != null && this.lastCraftingPlan.getCraftingQuantity() == 0) {
+            if (this.completedCraftingPlan == null) {
+                this.completedCraftingPlan = TerminalCraftingPlanStatic.asCompleted(this.lastCraftingPlan, this.knownOutputs);
+            }
+            return this.completedCraftingPlan;
+        }
+        return null;
+    }
+
+    protected void rememberOutputs(ITerminalCraftingPlan<?> craftingPlan) {
+        List<IPrototypedIngredient<?, ?>> outputs = craftingPlan.getOutputs();
+        long remaining = craftingPlan.getCraftingQuantity();
+        if (remaining > 0 && outputs.stream().anyMatch(output -> !GuiCraftingPlanGraph.isEmpty(output))) {
+            // Outputs are for the remaining crafts, so scale them to all crafts of the job
+            long total = Math.max(craftingPlan.getCraftingQuantityTotal(), remaining);
+            this.knownOutputs.put(craftingPlan.getId(), outputs.stream()
+                    .<IPrototypedIngredient<?, ?>>map(output -> scaleQuantity(output, total, remaining))
+                    .toList());
+        }
+        for (ITerminalCraftingPlan<?> dependency : craftingPlan.getDependencies()) {
+            rememberOutputs(dependency);
+        }
+    }
+
+    protected static IPrototypedIngredient<?, ?> scaleQuantity(IPrototypedIngredient ingredient, long multiplier, long divisor) {
+        IIngredientMatcher matcher = ingredient.getComponent().getMatcher();
+        long quantity = matcher.getQuantity(ingredient.getPrototype()) * multiplier / divisor;
+        return new PrototypedIngredient(ingredient.getComponent(),
+                matcher.withQuantity(ingredient.getPrototype(), quantity), ingredient.getCondition());
+    }
+
+    @Nullable
+    @Override
+    protected ITerminalCraftingPlanFlat getCraftingPlanFlat() {
+        if (getMenu().getCraftingPlanFlat().isPresent()) {
+            return getMenu().getCraftingPlanFlat().get();
+        }
+        ITerminalCraftingPlan craftingPlan = getCraftingPlan();
+        if (craftingPlan == null || craftingPlan != this.completedCraftingPlan) {
+            return null;
+        }
+        // Flatten only once, as this is called multiple times on each init
+        if (this.completedCraftingPlanFlat == null) {
+            this.completedCraftingPlanFlat = craftingPlan.flatten();
+        }
+        return this.completedCraftingPlanFlat;
+    }
+
+    @Override
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
+        ITerminalCraftingPlanFlat craftingPlanFlat = getCraftingPlanFlat();
+        if (this.activeView != null && craftingPlanFlat != null) {
+            // The graph also counts the jobs that are already done, which the flattened plan no longer contains
+            int progress = this.activeView instanceof GuiCraftingPlanGraph graph
+                    ? graph.getProgress() : GuiCraftingPlan.getProgress(craftingPlanFlat);
+            int left = getProgressBarLeft();
+            GuiCraftingPlanProgressBar.draw(guiGraphics, progress, craftingPlanFlat.getTickDuration(),
+                    craftingPlanFlat.getEstimatedTickDurationRemaining(), craftingPlanFlat.getStatus().isValid(),
+                    left, getProgressBarTop(), getProgressBarRight() - left);
+        }
+    }
+
+    @Override
+    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+        super.extractLabels(guiGraphics, mouseX, mouseY);
+        ITerminalCraftingPlanFlat craftingPlanFlat = getCraftingPlanFlat();
+        if (this.activeView != null && craftingPlanFlat != null && craftingPlanFlat.getStatus().isValid()) {
+            // Explain an unknown remaining duration when hovering it, as the plan header no longer shows it for running jobs
+            long remaining = craftingPlanFlat.getEstimatedTickDurationRemaining();
+            String remainingString = GuiCraftingPlan.getDurationValue(remaining);
+            int width = font.width(remainingString) / 2;
+            GuiCraftingPlan.drawUnknownDurationTooltip(this, guiGraphics, remainingString, remaining,
+                    getProgressBarRight() - 2 - width - leftPos, getProgressBarTop() + 2 - topPos, mouseX, mouseY);
+        }
+    }
+
+    protected int getProgressBarLeft() {
+        return this.viewButtonsRight + PROGRESS_BAR_SPACING;
+    }
+
+    protected int getProgressBarRight() {
+        return this.cancelButton != null ? this.cancelButton.getX() - PROGRESS_BAR_SPACING : leftPos + imageWidth - 25;
+    }
+
+    protected int getProgressBarTop() {
+        return topPos + imageHeight - 23 + (18 - GuiCraftingPlanProgressBar.HEIGHT) / 2;
     }
 
     private void returnToOverview() {
@@ -159,59 +231,6 @@ public class ContainerScreenTerminalCraftingJobsPlan extends ContainerScreenExte
 
         // Return to overview
         returnToOverview();
-    }
-
-    @Override
-    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.extractBackground(guiGraphics, mouseX, mouseY, partialTicks);
-        if (this.guiCraftingPlan != null) {
-            guiCraftingPlan.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
-        } else if (this.guiCraftingPlanFlat != null) {
-            guiCraftingPlanFlat.drawGuiContainerBackgroundLayer(guiGraphics, partialTicks, mouseX, mouseY);
-        } else {
-            guiGraphics.centeredText(font, IModHelpers.get().getL10NHelpers().localize("gui.integratedterminals.terminal_crafting_job.craftingplan.empty"),
-                    leftPos + getBaseXSize() / 2, topPos + 23, ARGB.opaque(16777215));
-        }
-    }
-
-    @Override
-    protected void drawCurrentScreen(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTicks) {
-        super.drawCurrentScreen(guiGraphics, mouseX, mouseY, partialTicks);
-        if (this.guiCraftingPlan != null) {
-            guiCraftingPlan.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
-        } else if (this.guiCraftingPlanFlat != null) {
-            guiCraftingPlanFlat.extractRenderState(guiGraphics, mouseX, mouseY, partialTicks);
-        }
-    }
-
-    @Override
-    protected void extractLabels(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
-        // super.drawGuiContainerForegroundLayer(matrixStack, mouseX, mouseY);
-        if (this.guiCraftingPlan != null) {
-            guiCraftingPlan.drawGuiContainerForegroundLayer(guiGraphics, mouseX, mouseY);
-        } else if (this.guiCraftingPlanFlat != null) {
-            guiCraftingPlanFlat.drawGuiContainerForegroundLayer(guiGraphics, mouseX, mouseY);
-        }
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double mouseZ, double delta) {
-        if (this.guiCraftingPlan != null) {
-            return guiCraftingPlan.mouseScrolled(mouseX, mouseY, mouseZ, delta);
-        } else if (this.guiCraftingPlanFlat != null) {
-            return guiCraftingPlanFlat.mouseScrolled(mouseX, mouseY, mouseZ, delta);
-        }
-        return super.mouseScrolled(mouseX, mouseY, mouseZ, delta);
-    }
-
-    @Override
-    public boolean mouseDragged(MouseButtonEvent mouse, double mouseXPrev, double mouseYPrev) {
-        if (this.guiCraftingPlan != null) {
-            return guiCraftingPlan.mouseDragged(mouse, mouseXPrev, mouseYPrev);
-        } else if (this.guiCraftingPlanFlat != null) {
-            return guiCraftingPlanFlat.mouseDragged(mouse, mouseXPrev, mouseYPrev);
-        }
-        return super.mouseDragged(mouse, mouseXPrev, mouseYPrev);
     }
 
     @Override

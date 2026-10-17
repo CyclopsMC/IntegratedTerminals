@@ -367,25 +367,10 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
         int tabHeight = getGridYSize() + 40;
         int offsetX = getTabBackgroundOffsetX();
         int offsetY = TAB_BACKGROUND_OFFSET;
-        int cornerSize = 7;
         int columns = getSlotRowLength();
         int rows = getSlotVisibleRows();
 
-        // Corners
-        //blit(matrixStack, leftPos + offsetX, topPos + offsetY, 0, 0, imageWidth - 2 * offsetX, imageHeight - 2 * offsetY); // top-left
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offsetX, topPos + offsetY, cornerSize, 0, cornerSize, cornerSize, 256, 256); // top-left
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offsetX + tabWidth - cornerSize, topPos + offsetY, 0, 0, cornerSize, cornerSize, 256, 256); // top-right
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offsetX + tabWidth - cornerSize, topPos + offsetY + tabHeight - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize, 256, 256); // bottom-right
-        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, this.texture, leftPos + offsetX, topPos + offsetY + tabHeight - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize, 256, 256); // bottom-left
-
-        // Sides
-        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + cornerSize, topPos + offsetY, cornerSize + 4, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize, -1); // top
-        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + tabWidth - cornerSize, topPos + offsetY + cornerSize, 0, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2, -1); // right
-        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + cornerSize, topPos + offsetY + tabHeight - cornerSize, 25, 0, 1, cornerSize, 256, 256, tabWidth - cornerSize * 2, cornerSize, -1); // bottom
-        blitRescalable(guiGraphics, this.texture, leftPos + offsetX, topPos + offsetY + cornerSize, cornerSize, 4, cornerSize, 1, 256, 256, cornerSize, tabHeight - cornerSize * 2, -1); // left
-
-        // Background
-        blitRescalable(guiGraphics, this.texture, leftPos + offsetX + cornerSize, topPos + offsetY + cornerSize, 0, 3, 1, 1, 256, 256, tabWidth - cornerSize * 2, tabHeight - cornerSize * 2, -1);
+        drawPanel(guiGraphics, this.texture, leftPos + offsetX, topPos + offsetY, tabWidth, tabHeight);
 
         // Slots
         for (int j = 0; j < rows; j++) {
@@ -414,6 +399,34 @@ public class ContainerScreenTerminalStorage<L, C extends ContainerTerminalStorag
 
         // Render tab-specific things
         getSelectedClientTab().ifPresent(tab -> tab.onTabBackgroundRender(this, guiGraphics, f, mouseX, mouseY));
+    }
+
+    /**
+     * Draw a panel with a bevelled border of any size, by 9-slicing the given texture.
+     * @param guiGraphics The gui graphics.
+     * @param texture A texture with the same layout as part_terminal_storage.png.
+     * @param x The X position.
+     * @param y The Y position.
+     * @param width The width.
+     * @param height The height.
+     */
+    public static void drawPanel(GuiGraphicsExtractor guiGraphics, Identifier texture, int x, int y, int width, int height) {
+        int cornerSize = 7;
+
+        // Corners
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y, cornerSize, 0, cornerSize, cornerSize, 256, 256); // top-left
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, x + width - cornerSize, y, 0, 0, cornerSize, cornerSize, 256, 256); // top-right
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, x + width - cornerSize, y + height - cornerSize, cornerSize * 2, 0, cornerSize, cornerSize, 256, 256); // bottom-right
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, x, y + height - cornerSize, cornerSize * 3, 0, cornerSize, cornerSize, 256, 256); // bottom-left
+
+        // Sides
+        blitRescalable(guiGraphics, texture, x + cornerSize, y, cornerSize + 4, 0, 1, cornerSize, 256, 256, width - cornerSize * 2, cornerSize, -1); // top
+        blitRescalable(guiGraphics, texture, x + width - cornerSize, y + cornerSize, 0, 4, cornerSize, 1, 256, 256, cornerSize, height - cornerSize * 2, -1); // right
+        blitRescalable(guiGraphics, texture, x + cornerSize, y + height - cornerSize, 25, 0, 1, cornerSize, 256, 256, width - cornerSize * 2, cornerSize, -1); // bottom
+        blitRescalable(guiGraphics, texture, x, y + cornerSize, cornerSize, 4, cornerSize, 1, 256, 256, cornerSize, height - cornerSize * 2, -1); // left
+
+        // Background
+        blitRescalable(guiGraphics, texture, x + cornerSize, y + cornerSize, 0, 3, 1, 1, 256, 256, width - cornerSize * 2, height - cornerSize * 2, -1);
     }
 
     public static void blitRescalable(GuiGraphicsExtractor guiGraphics, Identifier texture, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight, int realWidth, int realHeight, int color) {

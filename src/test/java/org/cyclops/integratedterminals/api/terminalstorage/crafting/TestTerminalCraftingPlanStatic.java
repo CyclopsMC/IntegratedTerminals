@@ -1,12 +1,16 @@
 package org.cyclops.integratedterminals.api.terminalstorage.crafting;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.cyclops.commoncapabilities.api.ingredient.IPrototypedIngredient;
+import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * @author rubensworks
@@ -86,6 +90,70 @@ public class TestTerminalCraftingPlanStatic {
         assertEquals(10, plan.getCraftingQuantityTotal());
         assertEquals(-1, plan.getEstimatedTickDurationTotal());
         assertEquals(-1, plan.getEstimatedTickDurationRemaining());
+    }
+
+    @Test
+    public void testAsCompleted() {
+        TerminalCraftingPlanStatic<Integer> dependency = new TerminalCraftingPlanStatic<>(2, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingJobStatus.CRAFTING, 3, 5, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingPlanStatic.Label.RUNNING, 10, 40, 20, 0, "player");
+        TerminalCraftingPlanStatic<Integer> plan = new TerminalCraftingPlanStatic<>(1, Lists.newArrayList(dependency),
+                Collections.emptyList(), TerminalCraftingJobStatus.FINISHED, 0, 4, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingPlanStatic.Label.RUNNING, 100, 400, 20, 0, "player");
+
+        ITerminalCraftingPlan<Integer> completed = TerminalCraftingPlanStatic.asCompleted(plan);
+        assertEquals(1, (int) completed.getId());
+        assertEquals(TerminalCraftingJobStatus.FINISHED, completed.getStatus());
+        assertEquals(0, completed.getCraftingQuantity());
+        assertEquals(4, completed.getCraftingQuantityTotal());
+        assertEquals(0, completed.getEstimatedTickDurationRemaining());
+        assertEquals(100, completed.getTickDuration());
+        assertEquals("player", completed.getInitiatorName());
+        assertEquals(TerminalCraftingPlanStatic.Label.RUNNING.getUnlocalizedMessage(), completed.getUnlocalizedLabel());
+
+        ITerminalCraftingPlan<Integer> completedDependency = completed.getDependencies().get(0);
+        assertEquals(2, (int) completedDependency.getId());
+        assertEquals(TerminalCraftingJobStatus.FINISHED, completedDependency.getStatus());
+        assertEquals(0, completedDependency.getCraftingQuantity());
+        assertEquals(5, completedDependency.getCraftingQuantityTotal());
+    }
+
+    @Test
+    public void testAsCompletedKnownOutputs() {
+        List<IPrototypedIngredient<?, ?>> remaining = Lists.newArrayList(new DummyIngredient());
+        List<IPrototypedIngredient<?, ?>> known = Lists.newArrayList(new DummyIngredient());
+        TerminalCraftingPlanStatic<Integer> dependency = new TerminalCraftingPlanStatic<>(2, Collections.emptyList(),
+                remaining, TerminalCraftingJobStatus.FINISHED, 0, 5, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingPlanStatic.Label.RUNNING, 10, 40, 20, 0, "player");
+        TerminalCraftingPlanStatic<Integer> plan = new TerminalCraftingPlanStatic<>(1, Lists.newArrayList(dependency),
+                remaining, TerminalCraftingJobStatus.FINISHED, 0, 4, Collections.emptyList(),
+                Collections.emptyList(), TerminalCraftingPlanStatic.Label.RUNNING, 100, 400, 20, 0, "player");
+
+        ITerminalCraftingPlan<Integer> completed = TerminalCraftingPlanStatic.asCompleted(plan, ImmutableMap.of(2, known));
+        assertSame(remaining, completed.getOutputs());
+        assertSame(known, completed.getDependencies().get(0).getOutputs());
+    }
+
+    private static class DummyIngredient implements IPrototypedIngredient<Object, Object> {
+        @Override
+        public IngredientComponent<Object, Object> getComponent() {
+            return null;
+        }
+
+        @Override
+        public Object getPrototype() {
+            return null;
+        }
+
+        @Override
+        public Object getCondition() {
+            return null;
+        }
+
+        @Override
+        public int compareTo(IPrototypedIngredient<?, ?> o) {
+            return 0;
+        }
     }
 
 }

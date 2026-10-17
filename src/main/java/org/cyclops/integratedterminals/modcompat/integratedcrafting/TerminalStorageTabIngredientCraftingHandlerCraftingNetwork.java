@@ -211,6 +211,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
         // The job has not started yet, so its remaining duration is equal to its total duration
         long estimatedTickDuration = estimateTickDuration(getEstimatedRecipeDuration(craftingNetwork, craftingJob),
                 craftingJob.getAmountTotal(), dependencies);
+        // The buffer is only filled once the job starts, so show what it will take from storage
         if (root) {
             return new TerminalCraftingPlanCraftingJobDependencyGraph(
                     craftingJob.getId(),
@@ -219,7 +220,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     TerminalCraftingJobStatus.UNSTARTED,
                     craftingJob.getAmount(),
                     craftingJob.getAmountTotal(),
-                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
+                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     Collections.emptyList(),
                     TerminalCraftingPlanStatic.Label.VALID,
                     -1,
@@ -236,7 +237,7 @@ public class TerminalStorageTabIngredientCraftingHandlerCraftingNetwork
                     TerminalCraftingJobStatus.UNSTARTED,
                     craftingJob.getAmount(),
                     craftingJob.getAmountTotal(),
-                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorageBuffer()),
+                    IntegratedCraftingHelpers.getPrototypesFromIngredients(craftingJob.getIngredientsStorage()),
                     Collections.emptyList(),
                     TerminalCraftingPlanStatic.Label.VALID,
                     -1,
