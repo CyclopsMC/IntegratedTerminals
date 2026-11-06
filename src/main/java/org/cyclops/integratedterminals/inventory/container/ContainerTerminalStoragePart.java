@@ -19,6 +19,7 @@ import org.cyclops.integrateddynamics.core.inventory.container.ContainerMultipar
 import org.cyclops.integrateddynamics.core.part.event.PartVariableDrivenVariableContentsUpdatedEvent;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.location.TerminalStorageLocations;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
@@ -88,7 +89,8 @@ public class ContainerTerminalStoragePart extends ContainerTerminalStorageBase<P
 
     @Override
     public boolean stillValid(Player playerIn) {
-        return PartHelpers.canInteractWith(getPartTarget(), player, this.partContainer.get());
+        return PartHelpers.canInteractWith(getPartTarget(), player, this.partContainer.get())
+                && PartTypeTerminal.isWithinInteractionDistance(player, getPartTarget().getCenter());
     }
 
     @Override

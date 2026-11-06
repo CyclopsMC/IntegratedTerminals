@@ -9,10 +9,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import org.cyclops.cyclopscore.network.CodecField;
 import org.cyclops.cyclopscore.network.PacketCodec;
+import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.core.helper.NetworkHelpers;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
+import org.cyclops.integratedterminals.part.PartTypes;
 
 /**
  * Packet for opening a live crafting plan gui.
@@ -57,6 +60,9 @@ public class CancelCraftingJobPacket extends PacketCodec {
 
     @Override
     public void actionServer(Level world, ServerPlayer player) {
+        if (!PartTypeTerminal.canInteractWith(player, PartPos.of(world, pos, side), PartTypes.TERMINAL_CRAFTING_JOB)) {
+            return;
+        }
         NetworkHelpers.getNetwork(world, pos, side)
                 .ifPresent(network -> {
                     ITerminalStorageTabIngredientCraftingHandler handler = getHandler();
