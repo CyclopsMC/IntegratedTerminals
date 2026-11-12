@@ -21,6 +21,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.IntegratedTerminals;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageBase;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStoragePart;
 import org.cyclops.integratedterminals.inventory.container.TerminalStorageState;
@@ -73,9 +74,13 @@ public class TerminalStorageIngredientPartOpenPacket extends PacketCodec {
     }
 
     public static void openServer(Level world, BlockPos pos, Direction side, ServerPlayer player, String tabName, int channel) {
+        PartPos partPos = PartPos.of(world, pos, side);
+        if (!PartTypeTerminal.canInteractWith(player, partPos, PartTypes.TERMINAL_STORAGE)) {
+            return;
+        }
+
         // Create common data
         ContainerTerminalStorageBase.InitTabData initData = new ContainerTerminalStorageBase.InitTabData(tabName, channel);
-        PartPos partPos = PartPos.of(world, pos, side);
         Triple<IPartContainer, PartTypeBase, PartTarget> data = PartHelpers.getContainerPartConstructionData(partPos);
         PartTypeTerminalStorage.State state = (PartTypeTerminalStorage.State) data.getLeft()
                 .getPartState(data.getRight().getCenter().getSide());
