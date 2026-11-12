@@ -1,5 +1,4 @@
 org.cyclops.integratedterminals
-org.cyclops.integratedterminals.advancement.criterion
 org.cyclops.integratedterminals.api.ingredient
 org.cyclops.integratedterminals.api.terminalstorage
 org.cyclops.integratedterminals.api.terminalstorage.crafting
@@ -12,9 +11,6 @@ org.cyclops.integratedterminals.client.gui
 org.cyclops.integratedterminals.client.gui.container
 org.cyclops.integratedterminals.client.gui.container.component
 org.cyclops.integratedterminals.client.gui.image
-org.cyclops.integratedterminals.client.gui.toast
-org.cyclops.integratedterminals.client.gui.tooltip
-org.cyclops.integratedterminals.component
 org.cyclops.integratedterminals.core.client.gui
 org.cyclops.integratedterminals.core.part
 org.cyclops.integratedterminals.core.terminalstorage
@@ -23,7 +19,6 @@ org.cyclops.integratedterminals.core.terminalstorage.crafting
 org.cyclops.integratedterminals.core.terminalstorage.location
 org.cyclops.integratedterminals.core.terminalstorage.query
 org.cyclops.integratedterminals.core.terminalstorage.slot
-org.cyclops.integratedterminals.gametest
 org.cyclops.integratedterminals.inventory
 org.cyclops.integratedterminals.inventory.container
 org.cyclops.integratedterminals.item
@@ -31,4 +26,3 @@ org.cyclops.integratedterminals.modcompat.integratedcrafting
 org.cyclops.integratedterminals.network.packet
 org.cyclops.integratedterminals.part
 org.cyclops.integratedterminals.proxy
-org.cyclops.integratedterminals.recipe
