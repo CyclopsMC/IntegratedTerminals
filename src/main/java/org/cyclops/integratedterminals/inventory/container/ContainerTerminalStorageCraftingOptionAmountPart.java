@@ -2,6 +2,7 @@ package org.cyclops.integratedterminals.inventory.container;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import org.cyclops.integrateddynamics.api.part.IPartContainer;
 import org.cyclops.integrateddynamics.api.part.PartPos;
@@ -9,6 +10,7 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.part.PartTypeTerminalStorage;
 
 import javax.annotation.Nullable;
@@ -44,6 +46,13 @@ public class ContainerTerminalStorageCraftingOptionAmountPart extends ContainerT
         this.target = target;
         this.partType = partType;
         this.partContainer = partContainer;
+    }
+
+    @Override
+    public boolean stillValid(Player playerIn) {
+        return target
+                .map(partTarget -> PartTypeTerminal.isWithinInteractionDistance(playerIn, partTarget.getCenter()))
+                .orElse(true);
     }
 
 }
