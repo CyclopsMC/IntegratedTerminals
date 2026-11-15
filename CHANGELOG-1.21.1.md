@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.11.2"></a>
+## [1.21.1-1.11.2](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.11.1...1.21.1-1.11.2) - 2026-11-15 11:07:11
+
+
+### Fixed
+* Validate distance and part type for terminal packets with part positions (#241), Closes GHSA-hg9c-74wg-w4gg
+
 <a name="1.21.1-1.11.1"></a>
-## [1.21.1-1.11.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.11.0...1.21.1-1.11.1) - 2026-10-17 10:16:28
+## [1.21.1-1.11.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.11.0...1.21.1-1.11.1) - 2026-10-17 10:16:28 +0200
 
 
 ### Fixed

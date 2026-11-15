@@ -15,6 +15,7 @@ import org.cyclops.integrateddynamics.api.part.PartPos;
 import org.cyclops.integrateddynamics.core.helper.PartHelpers;
 import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.part.PartTypes;
 
 /**
@@ -54,7 +55,11 @@ public class OpenCraftingJobsGuiPacket extends PacketCodec<OpenCraftingJobsGuiPa
 
     @Override
     public void actionServer(Level world, ServerPlayer player) {
-        PartHelpers.openContainerPart(player, PartPos.of(DimPos.of(world, pos), side), PartTypes.TERMINAL_CRAFTING_JOB);
+        PartPos partPos = PartPos.of(DimPos.of(world, pos), side);
+        if (!PartTypeTerminal.canInteractWith(player, partPos, PartTypes.TERMINAL_CRAFTING_JOB)) {
+            return;
+        }
+        PartHelpers.openContainerPart(player, partPos, PartTypes.TERMINAL_CRAFTING_JOB);
     }
 
     public static void send(BlockPos pos, Direction side) {

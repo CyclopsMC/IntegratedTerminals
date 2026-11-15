@@ -19,6 +19,7 @@ import org.cyclops.integrateddynamics.core.part.PartTypeBase;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.location.ITerminalStorageLocation;
 import org.cyclops.integratedterminals.core.client.gui.CraftingOptionGuiData;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingOptionAmountPart;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalStorageCraftingPlanPart;
 import org.cyclops.integratedterminals.network.packet.TerminalStorageIngredientPartOpenPacket;
@@ -59,6 +60,10 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
 
     @Override
     public <T, M> void openContainerCraftingPlan(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, Level world, ServerPlayer player) {
+        if (!canInteractWith(craftingOptionGuiData, world, player)) {
+            return;
+        }
+
         // Create temporary container provider
         MenuProvider containerProvider = new MenuProvider() {
             @Override
@@ -90,6 +95,10 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
 
     @Override
     public <T, M> void openContainerCraftingOptionAmount(CraftingOptionGuiData<T, M, PartPos> craftingOptionGuiData, Level world, ServerPlayer player) {
+        if (!canInteractWith(craftingOptionGuiData, world, player)) {
+            return;
+        }
+
         // Create temporary container provider
         MenuProvider containerProvider = new MenuProvider() {
             @Override
@@ -117,6 +126,11 @@ public class TerminalStorageLocationPart implements ITerminalStorageLocation<Par
             packetBuffer.writeUtf(PartTypes.TERMINAL_STORAGE.getUniqueName().toString());
             craftingOptionGuiData.writeToPacketBuffer(packetBuffer);
         });
+    }
+
+    protected static boolean canInteractWith(CraftingOptionGuiData<?, ?, PartPos> craftingOptionGuiData, Level world, ServerPlayer player) {
+        PartPos location = craftingOptionGuiData.getLocationInstance();
+        return PartTypeTerminal.canInteractWith(player, PartPos.of(world, location.getPos().getBlockPos(), location.getSide()), PartTypes.TERMINAL_STORAGE);
     }
 
     @Override
