@@ -1,8 +1,18 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.11.2"></a>
+## [26.1.2-1.11.2](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.11.1...26.1.2-1.11.2) - 2026-11-15 11:09:17
+
+
+### Added
+* Add translations through Crowdin (#239)
+
+### Fixed
+* Validate distance and part type for terminal packets with part positions (#241), Closes GHSA-hg9c-74wg-w4gg
+
 <a name="26.1.2-1.11.1"></a>
-## [26.1.2-1.11.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.11.0...26.1.2-1.11.1) - 2026-10-17 10:17:14
+## [26.1.2-1.11.1](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.11.0...26.1.2-1.11.1) - 2026-10-17 10:17:14 +0200
 
 
 ### Fixed

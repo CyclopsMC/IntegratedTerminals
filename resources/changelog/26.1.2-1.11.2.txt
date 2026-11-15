@@ -1,0 +1,8 @@
+As always, don't forget to backup your world before updating!
+Requires CyclopsCore version 1.31.0 or higher.
+
+Additions:
+* Add translations through Crowdin (#239)
+
+Fixes:
+* Validate distance and part type for terminal packets with part positions (#241), Closes GHSA-hg9c-74wg-w4gg

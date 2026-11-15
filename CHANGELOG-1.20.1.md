@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.7.1"></a>
+## [1.20.1-1.7.1](/compare/1.20.1-1.7.0...1.20.1-1.7.1) - 2026-11-15 11:03:29
+
+
+### Fixed
+* Validate distance and part type for terminal packets with part positions (#241), Closes GHSA-hg9c-74wg-w4gg
+
 <a name="1.20.1-1.7.0"></a>
-## [1.20.1-1.7.0](/compare/1.20.1-1.6.20...1.20.1-1.7.0) - 2026-08-24 20:02:11
+## [1.20.1-1.7.0](/compare/1.20.1-1.6.20...1.20.1-1.7.0) - 2026-08-24 20:02:11 +0200
 
 
 ### Changed

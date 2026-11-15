@@ -27,6 +27,7 @@ import org.cyclops.integratedterminals.IntegratedTerminals;
 import org.cyclops.integratedterminals.Reference;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
 import org.cyclops.integratedterminals.core.client.gui.CraftingJobGuiData;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.inventory.container.ContainerTerminalCraftingJobsPlan;
@@ -81,6 +82,11 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsP
 
     @Override
     public void actionServer(Level world, ServerPlayer player) {
+        PartPos partPos = PartPos.of(world, pos, side);
+        if (!PartTypeTerminal.canInteractWith(player, partPos, PartTypes.TERMINAL_CRAFTING_JOB)) {
+            return;
+        }
+
         // Create common data holder
         ITerminalStorageTabIngredientCraftingHandler handler = getHandler();
         CraftingJobGuiData craftingJobGuiData = new CraftingJobGuiData(
@@ -90,7 +96,6 @@ public class OpenCraftingJobsPlanGuiPacket extends PacketCodec<OpenCraftingJobsP
                 handler,
                 IModHelpers.get().getMinecraftHelpers().valueInputFromNbt(craftingJobId, world.registryAccess(), handler::deserializeCraftingJobId)
         );
-        PartPos partPos = PartPos.of(world, pos, side);
 
         // Create temporary container provider
         MenuProvider containerProvider = new MenuProvider() {

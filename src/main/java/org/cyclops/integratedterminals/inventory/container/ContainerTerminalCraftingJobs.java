@@ -20,6 +20,7 @@ import org.cyclops.integratedterminals.GeneralConfig;
 import org.cyclops.integratedterminals.RegistryEntries;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalCraftingPlan;
 import org.cyclops.integratedterminals.api.terminalstorage.crafting.ITerminalStorageTabIngredientCraftingHandler;
+import org.cyclops.integratedterminals.core.part.PartTypeTerminal;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.HandlerWrappedTerminalCraftingPlan;
 import org.cyclops.integratedterminals.core.terminalstorage.crafting.TerminalStorageTabIngredientCraftingHandlers;
 import org.cyclops.integratedterminals.part.PartTypeTerminalCraftingJob;
@@ -110,7 +111,9 @@ public class ContainerTerminalCraftingJobs extends ContainerMultipart<PartTypeTe
 
     @Override
     public boolean stillValid(Player playerIn) {
-        return true;
+        return getTarget()
+                .map(partTarget -> PartTypeTerminal.isWithinInteractionDistance(playerIn, partTarget.getCenter()))
+                .orElse(true);
     }
 
     @Override
