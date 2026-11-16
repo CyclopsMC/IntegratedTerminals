@@ -180,7 +180,10 @@ public class ContainerScreenTerminalStorageCraftingOptionAmount<L, C extends Con
 
     protected void drawOutputSlots(GuiGraphicsExtractor guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
         int offsetY = OUTPUT_SLOT_Y;
-        for (IPrototypedIngredient output : this.outputs.subList(firstRow, Math.min(this.outputs.size(), firstRow + scrollBar.getVisibleRows()))) {
+        int size = this.outputs.size();
+        // The first row may point past the end of the list if it shrank since the last refresh
+        int start = Math.min(firstRow, size);
+        for (IPrototypedIngredient output : this.outputs.subList(start, Math.min(size, start + scrollBar.getVisibleRows()))) {
             drawInstance(guiGraphics, output.getComponent(), output.getPrototype(), x + OUTPUT_SLOT_X, y + offsetY, layer, partialTicks, mouseX, mouseY);
             offsetY += IModHelpers.get().getGuiHelpers().getSlotSize();
         }

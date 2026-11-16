@@ -117,6 +117,8 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
         visibleElements.clear();
         addActiveElements(elements.get(0), visibleElements);
         this.scrollBar.setTotalRows(visibleElements.size());
+        // Clamp the scroll position, as the list may have become shorter than the current first row
+        this.firstRow = Math.min(this.firstRow, Math.max(0, visibleElements.size() - 1));
     }
 
     protected static void addActiveElements(GuiCraftingPlan.Element root, List<GuiCraftingPlan.Element> elements) {
@@ -138,7 +140,11 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
     }
 
     protected List<Element> getVisibleElements() {
-        return this.visibleElements.subList(firstRow, Math.min(this.visibleElements.size(), firstRow + scrollBar.getVisibleRows()));
+        int size = this.visibleElements.size();
+        // The first row may point past the end of the list if the list shrank since the last refresh,
+        // which would make subList throw. (e.g. when inheriting the scroll state of a longer plan)
+        int start = Math.min(this.firstRow, size);
+        return this.visibleElements.subList(start, Math.min(size, start + scrollBar.getVisibleRows()));
     }
 
     protected int getAbsoluteElementIndent(Element element) {

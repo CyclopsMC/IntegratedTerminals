@@ -119,8 +119,11 @@ public class ContainerScreenTerminalCraftingJobs extends ContainerScreenExtended
     }
 
     protected List<HandlerWrappedTerminalCraftingPlan> getVisiblePlans() {
-        return this.getMenu().getCraftingJobs()
-                .subList(firstRow, Math.min(this.getMenu().getCraftingJobs().size(), firstRow + scrollBar.getVisibleRows()));
+        List<HandlerWrappedTerminalCraftingPlan> craftingJobs = this.getMenu().getCraftingJobs();
+        int size = craftingJobs.size();
+        // The first row may point past the end of the list if it shrank since the last refresh
+        int start = Math.min(firstRow, size);
+        return craftingJobs.subList(start, Math.min(size, start + scrollBar.getVisibleRows()));
     }
 
     protected void drawCraftingPlans(GuiGraphicsExtractor guiGraphics, int x, int y, float partialTicks, int mouseX, int mouseY, ContainerScreenTerminalStorage.DrawLayer layer) {
