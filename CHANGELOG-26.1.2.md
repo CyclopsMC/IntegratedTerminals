@@ -1,8 +1,15 @@
 # Changelog for Minecraft 26.1.2
 All notable changes to this project will be documented in this file.
 
+<a name="26.1.2-1.11.3"></a>
+## [26.1.2-1.11.3](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.11.2...26.1.2-1.11.3) - 2026-11-21 14:05:10
+
+
+### Fixed
+* Fix crash when a scrolled crafting job plan with collapsed rows refreshes (#243), Closes #242
+
 <a name="26.1.2-1.11.2"></a>
-## [26.1.2-1.11.2](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.11.1...26.1.2-1.11.2) - 2026-11-15 11:09:17
+## [26.1.2-1.11.2](https://github.com/CyclopsMC/IntegratedTerminals/compare/26.1.2-1.11.1...26.1.2-1.11.2) - 2026-11-15 11:09:17 +0100
 
 
 ### Added
