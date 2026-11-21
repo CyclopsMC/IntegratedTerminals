@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.21.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.21.1-1.11.3"></a>
+## [1.21.1-1.11.3](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.11.2...1.21.1-1.11.3) - 2026-11-21 14:02:46
+
+
+### Fixed
+* Fix crash when a scrolled crafting job plan with collapsed rows refreshes (#243), Closes #242
+
 <a name="1.21.1-1.11.2"></a>
-## [1.21.1-1.11.2](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.11.1...1.21.1-1.11.2) - 2026-11-15 11:07:11
+## [1.21.1-1.11.2](https://github.com/CyclopsMC/IntegratedTerminals/compare/1.21.1-1.11.1...1.21.1-1.11.2) - 2026-11-15 11:07:11 +0100
 
 
 ### Fixed
