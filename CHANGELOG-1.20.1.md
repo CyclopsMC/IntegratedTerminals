@@ -1,8 +1,15 @@
 # Changelog for Minecraft 1.20.1
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.1-1.7.2"></a>
+## [1.20.1-1.7.2](/compare/1.20.1-1.7.1...1.20.1-1.7.2) - 2026-11-21 13:59:57
+
+
+### Fixed
+* Fix crash when a scrolled crafting job plan with collapsed rows refreshes (#243), Closes #242
+
 <a name="1.20.1-1.7.1"></a>
-## [1.20.1-1.7.1](/compare/1.20.1-1.7.0...1.20.1-1.7.1) - 2026-11-15 11:03:29
+## [1.20.1-1.7.1](/compare/1.20.1-1.7.0...1.20.1-1.7.1) - 2026-11-15 11:03:29 +0100
 
 
 ### Fixed

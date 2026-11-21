@@ -92,10 +92,6 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
     }
 
     public void inheritVisualizationState(GuiCraftingPlan guiCraftingPlan) {
-        // Inherit scroll state
-        float lastScroll = guiCraftingPlan.scrollBar.getCurrentScroll();
-        this.scrollBar.scrollTo(lastScroll);
-
         // Inherit toggle state
         IntOpenHashSet disabledElementIds = new IntOpenHashSet();
         for (Element element : guiCraftingPlan.elements) {
@@ -111,6 +107,10 @@ public class GuiCraftingPlan extends AbstractWidget implements IGuiCraftingPlanV
 
         // Recalculate visible items
         refreshList();
+
+        // Inherit scroll state after hiding collapsed elements, as the first row is derived from the visible row count
+        float lastScroll = guiCraftingPlan.scrollBar.getCurrentScroll();
+        this.scrollBar.scrollTo(lastScroll);
     }
 
     protected void refreshList() {
